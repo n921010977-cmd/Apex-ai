@@ -36,28 +36,29 @@ export function Navbar() {
           </div>
         </Link>
 
-        <div className="hidden md:flex items-center gap-8">
+        <div className="hidden md:flex items-center gap-7">
           {[
-            { label: "Product", href: "#product" },
-            { label: "Executives", href: "#executives" },
-            { label: "Pricing", href: "#pricing" },
-            { label: "About", href: "#about" },
+            { label: "Продукт", href: "#product" },
+            { label: "AI команда", href: "#executives" },
+            { label: "Отзывы", href: "#testimonials" },
+            { label: "Тарифы", href: "#pricing" },
+            { label: "FAQ", href: "#faq" },
           ].map((item) => (
-            <a key={item.label} href={item.href} className="text-sm text-white/45 hover:text-white transition-colors duration-200">
+            <a key={item.label} href={item.href} className="text-sm text-white/40 hover:text-white transition-colors duration-200">
               {item.label}
             </a>
           ))}
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm text-white/45 hover:text-white transition-colors duration-200 hidden sm:block">
-            Sign in
+          <Link href="/login" className="text-sm text-white/40 hover:text-white transition-colors duration-200 hidden sm:block">
+            Войти
           </Link>
           <Link
-            href="/dashboard"
+            href="/register"
             className="inline-flex items-center gap-2 h-9 px-5 text-sm font-medium bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all duration-200 hover:shadow-lg hover:shadow-violet-500/25"
           >
-            Get Started Free
+            Начать бесплатно
           </Link>
         </div>
       </nav>
