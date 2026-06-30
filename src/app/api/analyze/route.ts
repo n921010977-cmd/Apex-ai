@@ -37,7 +37,7 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
   try {
     const response = await client.messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 1500,
+      max_tokens: 4000,
       system: systemPrompt,
       messages: [{ role: "user", content: buildUserMessage(brief) }],
     });
@@ -55,6 +55,14 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
       facts: parsed.facts ?? "",
       risks: parsed.risks ?? "",
       recommendations: parsed.recommendations ?? "",
+      forecast: parsed.forecast ?? "",
+      metrics: parsed.metrics ?? {
+        success_probability: "—",
+        risk_level: "средний",
+        competition: "средняя",
+        investment_appeal: "—",
+        scalability: "—",
+      },
       confidence: parsed.confidence ?? "средняя",
       score: Math.min(100, Math.max(0, Number(parsed.score) || 75)),
     };
@@ -62,11 +70,19 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
     return {
       role,
       title: meta.title,
-      summary: "Анализ временно недоступен.",
+      summary: "Анализ временно недоступен. Проверьте настройку API-ключа.",
       analysis: "",
       facts: "",
       risks: "",
       recommendations: "",
+      forecast: "",
+      metrics: {
+        success_probability: "—",
+        risk_level: "—",
+        competition: "—",
+        investment_appeal: "—",
+        scalability: "—",
+      },
       confidence: "низкая",
       score: 70,
     };

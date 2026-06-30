@@ -551,20 +551,39 @@ export default function ProjectPage() {
                       </div>
 
                       {[
-                        { label: "Краткий вывод", text: r.summary, icon: "◆" },
-                        { label: "Детальный анализ", text: r.analysis, icon: "◈" },
-                        { label: "Факты и предположения", text: r.facts, icon: "◉" },
-                        { label: "Риски и ограничения", text: r.risks, icon: "⚠" },
-                        { label: "Рекомендации", text: r.recommendations, icon: "→" },
+                        { label: "📌 Краткий вывод", text: r.summary, icon: "◆" },
+                        { label: "📊 Подробный анализ", text: r.analysis, icon: "◈" },
+                        { label: "📋 Факты и предположения", text: r.facts, icon: "◉" },
+                        { label: "⚠️ Возможные риски", text: r.risks, icon: "⚠" },
+                        { label: "🚀 Практический план действий", text: r.recommendations, icon: "→" },
+                        { label: "📈 Прогноз", text: r.forecast, icon: "↗" },
                       ].map((sec) => sec.text ? (
                         <div key={sec.label} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                          <div className="flex items-center gap-2 mb-2.5">
-                            <span className="text-[10px]" style={{ color }}>{sec.icon}</span>
-                            <div className="text-[10px] font-semibold text-white/40 uppercase tracking-widest">{sec.label}</div>
-                          </div>
+                          <div className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-2.5">{sec.label}</div>
                           <p className="text-[13px] text-white/65 leading-relaxed whitespace-pre-line">{sec.text}</p>
                         </div>
                       ) : null)}
+
+                      {/* Metrics grid */}
+                      {r.metrics && r.metrics.success_probability !== "—" && (
+                        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
+                          <div className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-3">🎯 Оценка</div>
+                          <div className="grid grid-cols-2 gap-2">
+                            {[
+                              { label: "Вероятность успеха", value: r.metrics.success_probability },
+                              { label: "Уровень риска", value: r.metrics.risk_level },
+                              { label: "Конкуренция", value: r.metrics.competition },
+                              { label: "Инвест. привлекательность", value: r.metrics.investment_appeal },
+                              { label: "Масштабируемость", value: r.metrics.scalability },
+                            ].map((m) => (
+                              <div key={m.label} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.04]">
+                                <div className="text-[9px] text-white/30 mb-0.5">{m.label}</div>
+                                <div className="text-sm font-bold" style={{ color }}>{m.value}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 );
