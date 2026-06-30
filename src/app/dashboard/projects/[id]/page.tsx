@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
 import { Progress } from "@/components/ui/Progress";
@@ -124,12 +124,57 @@ const RISK_COLORS: Record<string, string> = {
 };
 const RISK_LABELS: Record<string, string> = { high: "Высокий", medium: "Средний", low: "Низкий" };
 
+function buildProjectFromUser(raw: Record<string, string & string[]>): typeof PROJECTS_DATA["demo"] {
+  const score = Number(raw.score) || 78;
+  return {
+    name: String(raw.name),
+    subtitle: `${raw.industry || "Бизнес"} · ${raw.stage || "Идея"} · AI Executive Board`,
+    score,
+    status: "Завершён",
+    scores: [
+      { label: "Рыночный потенциал", value: Math.min(99, score + 4) },
+      { label: "Финансовая устойчивость", value: Math.max(50, score - 6) },
+      { label: "Реализуемость", value: Math.min(99, score + 1) },
+      { label: "Конкурентное преимущество", value: Math.max(50, score - 8) },
+    ],
+    summary: `${raw.name} — бизнес-идея в сфере ${raw.industry || "вашей индустрии"}. ${raw.description ? String(raw.description).slice(0, 200) : ""} AI-команда проанализировала проект и подготовила стратегию с учётом рыночных условий, конкурентной среды и ваших целей.`,
+    financials: [
+      { label: "Прогноз выручки (год 1)", value: raw.revenue ? String(raw.revenue) : `$${(score * 3).toFixed(0)}K` },
+      { label: "Точка безубыточности", value: score > 80 ? "14 месяцев" : "20 месяцев" },
+      { label: "LTV пользователя", value: `$${(score * 2).toFixed(0)}` },
+      { label: "CAC", value: `$${Math.floor(score / 3)}` },
+      { label: "LTV/CAC", value: `${(score / 15).toFixed(1)}x` },
+      { label: "Таймфрейм", value: `${raw.timeframe || "12"} месяцев` },
+    ],
+    market: [
+      { label: "Общий рынок (TAM)", value: raw.market ? String(raw.market) : `$${score * 50}M` },
+      { label: "Достижимый рынок (SAM)", value: `$${score * 10}M` },
+      { label: "Целевой рынок (SOM)", value: `$${score}M` },
+      { label: "Рост рынка", value: raw.growth ? String(raw.growth) : `+${Math.floor(score / 7)}%/год` },
+    ],
+    risks: [
+      { level: "medium", title: "Конкурентная среда", desc: `В сфере ${raw.industry || "вашей индустрии"} присутствуют устоявшиеся игроки с ресурсами.` },
+      { level: score > 80 ? "low" : "medium", title: "Привлечение клиентов", desc: "Стоимость привлечения может вырасти при масштабировании." },
+      { level: "low", title: "Операционные риски", desc: "Требуется выстроить процессы и команду до масштабирования." },
+    ],
+  };
+}
+
 export default function ProjectPage() {
   const params = useParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : "demo";
-  const project = PROJECTS_DATA[id] ?? PROJECTS_DATA["demo"];
   const [activeTab, setActiveTab] = useState("Резюме");
+  const [project, setProject] = useState(PROJECTS_DATA[id] ?? PROJECTS_DATA["demo"]);
+
+  useEffect(() => {
+    if (PROJECTS_DATA[id]) return; // встроенный проект
+    try {
+      const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
+      const found = stored.find((p: Record<string, string>) => p.id === id);
+      if (found) setProject(buildProjectFromUser(found));
+    } catch {}
+  }, [id]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto">

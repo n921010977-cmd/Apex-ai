@@ -20,7 +20,38 @@ export default function NewStrategyPage() {
   const totalSteps = 3;
 
   const handleGoalToggle = (goal: string) => setForm((f) => ({ ...f, goals: f.goals.includes(goal) ? f.goals.filter((g) => g !== goal) : [...f.goals, goal] }));
-  const handleSubmit = async () => { setLoading(true); await new Promise((r) => setTimeout(r, 2000)); router.push("/dashboard/projects/demo"); };
+
+  const handleSubmit = async () => {
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 2500));
+
+    // Генерируем уникальный ID и сохраняем проект в localStorage
+    const id = `proj_${Date.now()}`;
+    const score = Math.floor(70 + Math.random() * 25);
+    const newProject = {
+      id,
+      name: form.name,
+      description: form.description,
+      industry: form.industry,
+      stage: form.stage,
+      goals: form.goals,
+      targetRevenue: form.targetRevenue,
+      timeframe: form.timeframe,
+      score,
+      status: "complete",
+      date: "Только что",
+      revenue: `$${(score * 25000 / 1000).toFixed(1)}M`,
+      market: `$${(score * 50).toFixed(0)}M`,
+      growth: `+${Math.floor(10 + score / 5)}%/год`,
+    };
+
+    // Загружаем существующие пользовательские проекты
+    const existing = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
+    localStorage.setItem("apex-user-projects", JSON.stringify([newProject, ...existing]));
+
+    router.push(`/dashboard/projects/${id}`);
+  };
+
   const canNext = () => { if (step === 1) return form.name.trim().length > 0 && form.description.trim().length > 20; if (step === 2) return form.industry && form.stage; return true; };
 
   return (

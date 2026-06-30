@@ -1,12 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Progress } from "@/components/ui/Progress";
 
-const PROJECTS = [
+const DEFAULT_PROJECTS = [
   { id: "demo", name: "AI-Powered Fitness Platform", description: "Мобильное приложение с персонализированными планами тренировок и питания на основе AI", industry: "Mobile App · SaaS", score: 87, status: "complete", executives: 8, date: "2 часа назад", revenue: "$2.4M", market: "$4.2B", growth: "+24%/год" },
   { id: "2", name: "SaaS Invoice Platform", description: "Автоматизированное выставление счетов и управление платежами для фрилансеров и агентств", industry: "SaaS · FinTech", score: 91, status: "complete", executives: 8, date: "Вчера", revenue: "$1.8M", market: "$2.1B", growth: "+18%/год" },
   { id: "3", name: "Local Restaurant Chain", description: "Стратегия расширения для регионального ресторанного бренда в сегменте fast-casual", industry: "Restaurant · Food", score: 72, status: "in_progress", executives: 5, date: "В процессе", revenue: "Считается…", market: "$890M", growth: "+9%/год" },
@@ -17,6 +17,30 @@ const FILTERS = ["Все", "Завершённые", "В работе"];
 export default function ProjectsPage() {
   const [filter, setFilter] = useState("Все");
   const [view, setView] = useState<"list" | "grid">("list");
+  const [userProjects, setUserProjects] = useState<typeof DEFAULT_PROJECTS>([]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mapped = stored.map((p: any) => ({
+        id: p.id,
+        name: p.name,
+        description: p.description || "",
+        industry: p.industry || "Бизнес",
+        score: Number(p.score) || 78,
+        status: "complete",
+        executives: 8,
+        date: p.date || "Только что",
+        revenue: p.revenue || "—",
+        market: p.market || "—",
+        growth: p.growth || "—",
+      }));
+      setUserProjects(mapped);
+    } catch {}
+  }, []);
+
+  const PROJECTS = [...userProjects, ...DEFAULT_PROJECTS];
 
   const filtered = PROJECTS.filter((p) => {
     if (filter === "Завершённые") return p.status === "complete";
