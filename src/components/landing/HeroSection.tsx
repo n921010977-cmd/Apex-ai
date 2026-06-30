@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { motion } from "framer-motion";
 
 const EXECUTIVES = [
   { role: "CEO", color: "#7c3aed", delay: 0 },
@@ -16,7 +17,7 @@ function ExecutiveOrbit({ role, color, delay, angle }: { role: string; color: st
   const x = Math.cos(rad) * r;
   const y = Math.sin(rad) * r;
   return (
-    <div
+    <motion.div
       className="absolute size-14 rounded-2xl flex flex-col items-center justify-center border border-white/10 animate-float"
       style={{
         left: `calc(50% + ${x}px - 28px)`,
@@ -26,51 +27,68 @@ function ExecutiveOrbit({ role, color, delay, angle }: { role: string; color: st
         animationDelay: `${delay}s`,
         boxShadow: `0 0 20px ${color}30`,
       }}
+      initial={{ opacity: 0, scale: 0 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5, delay: 0.8 + delay, type: "spring" }}
     >
       <span className="text-xs font-bold" style={{ color }}>{role}</span>
-    </div>
+    </motion.div>
   );
 }
+
+const container = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.1 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 20 },
+  show:   { opacity: 1, y: 0, transition: { duration: 0.6 } },
+};
 
 export function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <div className="absolute inset-0 grid-pattern opacity-40" />
+      <div className="grid-pattern opacity-40" />
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 -translate-y-1/2 size-[600px] rounded-full bg-violet-600/8 blur-[120px]" />
       <div className="absolute bottom-1/4 left-1/4 size-[400px] rounded-full bg-blue-600/6 blur-[100px]" />
 
       <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 flex flex-col lg:flex-row items-center gap-20">
-        <div className="flex-1 text-center lg:text-left">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-violet-500/20 bg-violet-500/5 mb-8">
+        <motion.div
+          className="flex-1 text-center lg:text-left"
+          variants={container}
+          initial="hidden"
+          animate="show"
+        >
+          <motion.div variants={item} className="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-violet-500/20 bg-violet-500/5 mb-8">
             <span className="size-1.5 rounded-full bg-violet-400 animate-pulse" />
             <span className="text-xs text-violet-300 font-medium tracking-wide">AI Executive Board — Now Available</span>
-          </div>
+          </motion.div>
 
-          <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] mb-6 tracking-tight">
+          <motion.h1 variants={item} className="text-5xl sm:text-6xl lg:text-7xl font-bold leading-[1.05] mb-6 tracking-tight">
             <span className="text-white">Your Business.</span><br />
-            <span className="gradient-text">Expert Strategy.</span><br />
+            <span className="gradient-text-blue">Expert Strategy.</span><br />
             <span className="text-white/60">Instant Execution.</span>
-          </h1>
+          </motion.h1>
 
-          <p className="text-lg text-white/45 max-w-xl mb-10 leading-relaxed">
+          <motion.p variants={item} className="text-lg text-white/45 max-w-xl mb-10 leading-relaxed">
             Replace a $50,000/month consulting team with an AI Executive Board.
             Get a complete business strategy — CEO, CFO, CMO, COO, CTO and more — working together for your idea in minutes.
-          </p>
+          </motion.p>
 
-          <div className="flex flex-wrap gap-8 mb-10 justify-center lg:justify-start">
+          <motion.div variants={item} className="flex flex-wrap gap-8 mb-10 justify-center lg:justify-start">
             {[
               { value: "10,000+", label: "Strategies Built" },
               { value: "< 5 min", label: "Complete Analysis" },
-              { value: "9 Experts", label: "AI Executives" },
+              { value: "8 Experts", label: "AI Executives" },
             ].map((stat) => (
               <div key={stat.label}>
                 <div className="text-2xl font-bold text-white">{stat.value}</div>
                 <div className="text-xs text-white/35 mt-0.5">{stat.label}</div>
               </div>
             ))}
-          </div>
+          </motion.div>
 
-          <div className="flex flex-wrap gap-4 justify-center lg:justify-start">
+          <motion.div variants={item} className="flex flex-wrap gap-4 justify-center lg:justify-start">
             <Link
               href="/dashboard"
               className="inline-flex items-center gap-2.5 h-14 px-8 text-base font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-2xl hover:from-violet-500 hover:to-blue-500 transition-all duration-200 hover:shadow-xl hover:shadow-violet-500/30 hover:-translate-y-0.5"
@@ -80,13 +98,15 @@ export function HeroSection() {
               </svg>
               Launch Your Strategy
             </Link>
-            <button className="inline-flex items-center gap-2.5 h-14 px-8 text-base font-medium glass rounded-2xl text-white/70 hover:text-white border border-white/[0.08] hover:border-white/[0.15] transition-all duration-200">
-              <svg className="size-5" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
-              Watch Demo
-            </button>
-          </div>
+            <Link
+              href="/register"
+              className="inline-flex items-center gap-2.5 h-14 px-8 text-base font-medium glass rounded-2xl text-white/70 hover:text-white border border-white/[0.08] hover:border-white/[0.15] transition-all duration-200"
+            >
+              Start Free →
+            </Link>
+          </motion.div>
 
-          <div className="mt-8 flex items-center gap-3 justify-center lg:justify-start">
+          <motion.div variants={item} className="mt-8 flex items-center gap-3 justify-center lg:justify-start">
             <div className="flex -space-x-2">
               {["#7c3aed","#3b82f6","#10b981","#f59e0b","#ec4899"].map((c, i) => (
                 <div key={i} className="size-8 rounded-full border-2 border-[#080808] flex items-center justify-center text-xs font-bold text-white" style={{ background: c }}>
@@ -97,10 +117,16 @@ export function HeroSection() {
             <div className="text-sm text-white/35">
               <span className="text-white/60 font-medium">4.9/5</span> from 2,300+ founders
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
-        <div className="flex-1 flex items-center justify-center">
+        {/* Orbit visual */}
+        <motion.div
+          className="flex-1 flex items-center justify-center"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
+        >
           <div className="relative size-80 sm:size-96">
             <div className="absolute inset-0 rounded-full border border-white/[0.04] animate-spin-slow" />
             <div className="absolute inset-8 rounded-full border border-violet-500/10" />
@@ -119,10 +145,10 @@ export function HeroSection() {
               <ExecutiveOrbit key={exec.role} role={exec.role} color={exec.color} delay={exec.delay} angle={(i * 360) / EXECUTIVES.length - 90} />
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
 
-      <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#080808] to-transparent" />
+      <div className="absolute bottom-0 inset-x-0 h-32 bg-gradient-to-t from-[#05060A] to-transparent" />
     </section>
   );
 }

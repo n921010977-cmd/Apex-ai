@@ -1,5 +1,7 @@
 "use client";
 
+import { motion } from "framer-motion";
+
 const REPORT_SECTIONS = [
   "Executive Summary","Business Score (0–100)","Financial Forecast","Revenue Projections","Market Analysis",
   "Competitor Intelligence","SWOT Analysis","Marketing Strategy","Customer Persona","Launch Plan",
@@ -17,7 +19,13 @@ export function FeaturesSection() {
   return (
     <section className="relative py-32 px-6">
       <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+        >
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 mb-6">
             <span className="text-xs text-emerald-300 font-medium tracking-wide uppercase">Complete Strategy</span>
           </div>
@@ -25,9 +33,16 @@ export function FeaturesSection() {
             Everything You Need<br /><span className="gradient-text">Nothing You Don&apos;t</span>
           </h2>
           <p className="text-lg text-white/40 max-w-xl mx-auto">Every report contains 15+ professionally structured sections covering every aspect of your business.</p>
-        </div>
+        </motion.div>
+
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
-          <div className="relative">
+          <motion.div
+            className="relative"
+            initial={{ opacity: 0, x: -30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
             <div className="rounded-2xl glass-strong border border-white/[0.08] overflow-hidden">
               <div className="px-6 py-5 border-b border-white/[0.06] flex items-center gap-3">
                 <div className="size-8 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center">
@@ -47,7 +62,13 @@ export function FeaturesSection() {
                   <span className="text-2xl font-bold gradient-text">87/100</span>
                 </div>
                 <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
-                  <div className="h-full w-[87%] bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full" />
+                  <motion.div
+                    className="h-full bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full"
+                    initial={{ width: 0 }}
+                    whileInView={{ width: "87%" }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
+                  />
                 </div>
                 <div className="flex justify-between mt-1.5">
                   <span className="text-[10px] text-white/25">Poor</span>
@@ -57,13 +78,20 @@ export function FeaturesSection() {
               <div className="p-6">
                 <div className="text-xs font-medium text-white/30 uppercase tracking-widest mb-4">Report Contents</div>
                 <div className="grid grid-cols-2 gap-2">
-                  {REPORT_SECTIONS.map((section) => (
-                    <div key={section} className="flex items-center gap-2">
+                  {REPORT_SECTIONS.map((section, i) => (
+                    <motion.div
+                      key={section}
+                      className="flex items-center gap-2"
+                      initial={{ opacity: 0 }}
+                      whileInView={{ opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: i * 0.04 }}
+                    >
                       <div className="size-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
                         <svg className="size-2.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
                       </div>
                       <span className="text-xs text-white/50">{section}</span>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
               </div>
@@ -76,16 +104,30 @@ export function FeaturesSection() {
               <div className="text-xs text-white/40 mb-1">Break-even</div>
               <div className="text-lg font-bold text-blue-400">Month 8</div>
             </div>
-          </div>
-          <div className="flex flex-col gap-6">
-            {FEATURES.map((feature) => (
-              <div key={feature.title} className="flex gap-4">
+          </motion.div>
+
+          <motion.div
+            className="flex flex-col gap-6"
+            initial={{ opacity: 0, x: 30 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true, margin: "-50px" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+          >
+            {FEATURES.map((feature, i) => (
+              <motion.div
+                key={feature.title}
+                className="flex gap-4"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1 }}
+              >
                 <div className="size-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 flex-shrink-0 mt-0.5">{feature.icon}</div>
                 <div>
                   <h3 className="text-base font-semibold text-white mb-1">{feature.title}</h3>
                   <p className="text-sm text-white/40 leading-relaxed">{feature.description}</p>
                 </div>
-              </div>
+              </motion.div>
             ))}
             <div className="mt-4">
               <a href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-violet-400 hover:text-violet-300 transition-colors">
@@ -93,7 +135,7 @@ export function FeaturesSection() {
                 <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
               </a>
             </div>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>

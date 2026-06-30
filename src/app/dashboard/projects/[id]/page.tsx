@@ -285,16 +285,39 @@ export default function ProjectPage() {
 
   useEffect(() => {
     if (!isUserProject) return;
-    try {
-      const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const found = stored.find((p: any) => p.id === id);
-      if (found) {
-        setRawProject(found);
-        setProject(buildProjectFromUser(found));
-        if (found.aiResults && found.aiResults.length > 0) setAiResults(found.aiResults);
-      }
-    } catch {}
+
+    // Try Supabase API first
+    fetch(`/api/projects/${id}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.project) {
+          const p = data.project;
+          const mapped = {
+            id: p.id, name: p.name, description: p.description,
+            industry: p.industry, stage: p.stage, goals: p.goals,
+            targetRevenue: p.target_revenue, timeframe: p.timeframe,
+            score: p.overall_score, aiResults: Array.isArray(p.ai_results) ? p.ai_results : [],
+          };
+          setRawProject(mapped);
+          setProject(buildProjectFromUser(mapped));
+          if (mapped.aiResults?.length > 0) setAiResults(mapped.aiResults);
+          return;
+        }
+        throw new Error("not found");
+      })
+      .catch(() => {
+        // Fallback to localStorage
+        try {
+          const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const found = stored.find((p: any) => p.id === id);
+          if (found) {
+            setRawProject(found);
+            setProject(buildProjectFromUser(found));
+            if (found.aiResults && found.aiResults.length > 0) setAiResults(found.aiResults);
+          }
+        } catch {}
+      });
   }, [id, isUserProject]);
 
   async function handleReanalyze() {
