@@ -73,6 +73,26 @@ const NAV_ITEMS = [
     ),
   },
   {
+    label: "AI Чат",
+    href: "/dashboard/chat",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-[15px]">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+      </svg>
+    ),
+  },
+  {
+    label: "AI Агенты",
+    href: "/dashboard/agents",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-[15px]">
+        <circle cx="12" cy="8" r="4" />
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
+        <path d="M15 8h.01M9 8h.01" />
+      </svg>
+    ),
+  },
+  {
     label: "Блокнот",
     href: "/dashboard/notepad",
     icon: (
