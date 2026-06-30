@@ -1,11 +1,17 @@
 import { NextRequest } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { HttpsProxyAgent } from "https-proxy-agent";
 import { AGENT_PROMPTS, AGENT_META, ProjectBrief, AgentResult } from "@/lib/agents";
 
 export const maxDuration = 120;
 
+const proxyUrl = process.env.HTTPS_PROXY || process.env.https_proxy;
+const httpAgent = proxyUrl ? new HttpsProxyAgent(proxyUrl) : undefined;
+
 const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
+  // @ts-expect-error httpAgent is valid for node fetch
+  httpAgent,
 });
 
 function buildUserMessage(brief: ProjectBrief): string {
