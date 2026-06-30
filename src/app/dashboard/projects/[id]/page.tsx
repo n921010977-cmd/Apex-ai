@@ -115,7 +115,13 @@ const PROJECTS_DATA: Record<string, {
   },
 };
 
-const TABS = ["Резюме", "Финансы", "Рынок", "Риски"];
+const TABS = ["Резюме", "AI Команда", "Финансы", "Рынок", "Риски"];
+
+const AGENT_COLORS: Record<string, string> = {
+  "CEO": "#7c3aed", "CFO": "#3b82f6", "CMO": "#10b981",
+  "COO": "#f59e0b", "Business Analyst": "#f97316",
+  "CTO": "#ec4899", "Sales Director": "#6366f1", "Legal Advisor": "#64748b",
+};
 
 const RISK_COLORS: Record<string, string> = {
   high: "text-red-400 bg-red-500/10 border-red-500/20",
@@ -166,13 +172,20 @@ export default function ProjectPage() {
   const id = typeof params.id === "string" ? params.id : "demo";
   const [activeTab, setActiveTab] = useState("Резюме");
   const [project, setProject] = useState(PROJECTS_DATA[id] ?? PROJECTS_DATA["demo"]);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [aiResults, setAiResults] = useState<any[]>([]);
+  const [activeAgent, setActiveAgent] = useState<string>("CEO");
 
   useEffect(() => {
-    if (PROJECTS_DATA[id]) return; // встроенный проект
+    if (PROJECTS_DATA[id]) return;
     try {
       const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
-      const found = stored.find((p: Record<string, string>) => p.id === id);
-      if (found) setProject(buildProjectFromUser(found));
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const found = stored.find((p: any) => p.id === id);
+      if (found) {
+        setProject(buildProjectFromUser(found));
+        if (found.aiResults) setAiResults(found.aiResults);
+      }
     } catch {}
   }, [id]);
 
@@ -247,6 +260,89 @@ export default function ProjectPage() {
             <p className="text-sm text-white/60 leading-relaxed">{project.summary}</p>
           </CardContent>
         </Card>
+      )}
+
+      {activeTab === "AI Команда" && (
+        aiResults.length > 0 ? (
+          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
+            {/* Agent list */}
+            <div className="space-y-1.5">
+              {aiResults.map((r) => {
+                const color = AGENT_COLORS[r.role] ?? "#7c3aed";
+                const isActive = activeAgent === r.role;
+                return (
+                  <button
+                    key={r.role}
+                    onClick={() => setActiveAgent(r.role)}
+                    className={`w-full text-left rounded-xl border px-3 py-2.5 transition-all ${isActive ? "border-violet-500/30 bg-violet-600/8" : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.1]"}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="size-8 rounded-lg flex items-center justify-center text-[11px] font-bold flex-shrink-0" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
+                        <span style={{ color }}>{r.role[0]}</span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-[12px] font-semibold text-white">{r.role}</div>
+                        <div className="text-[10px] text-white/30 truncate">{r.title}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-bold" style={{ color }}>{r.score}</div>
+                        <div className="text-[9px] text-white/25">балл</div>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Agent detail */}
+            <div className="xl:col-span-2">
+              {(() => {
+                const r = aiResults.find((x) => x.role === activeAgent);
+                if (!r) return null;
+                const color = AGENT_COLORS[r.role] ?? "#7c3aed";
+                const CONF_COLOR: Record<string, string> = { высокая: "text-emerald-400", средняя: "text-amber-400", низкая: "text-red-400" };
+                return (
+                  <Card>
+                    <CardContent className="p-5 space-y-5">
+                      <div className="flex items-center gap-3">
+                        <div className="size-10 rounded-xl flex items-center justify-center font-bold text-base" style={{ background: `${color}20`, border: `1px solid ${color}30`, color }}>
+                          {r.role[0]}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-bold text-white">{r.role} — {r.title}</div>
+                          <div className="text-[11px] text-white/35">
+                            Балл: <span style={{ color }} className="font-semibold">{r.score}</span>
+                            {" · "}Уверенность: <span className={`font-medium ${CONF_COLOR[r.confidence] ?? "text-white/50"}`}>{r.confidence}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {[
+                        { label: "Краткий вывод", text: r.summary },
+                        { label: "Анализ", text: r.analysis },
+                        { label: "Факты и предположения", text: r.facts },
+                        { label: "Риски", text: r.risks },
+                        { label: "Рекомендации", text: r.recommendations },
+                      ].map((sec) => sec.text ? (
+                        <div key={sec.label}>
+                          <div className="text-[10px] font-semibold text-white/30 uppercase tracking-widest mb-2">{sec.label}</div>
+                          <p className="text-[13px] text-white/60 leading-relaxed whitespace-pre-line">{sec.text}</p>
+                        </div>
+                      ) : null)}
+                    </CardContent>
+                  </Card>
+                );
+              })()}
+            </div>
+          </div>
+        ) : (
+          <Card>
+            <CardContent className="p-8 text-center">
+              <div className="text-sm text-white/30 mb-3">AI-анализ не доступен для этого проекта</div>
+              <p className="text-xs text-white/20">Создайте новый проект, чтобы получить анализ от 8 AI-специалистов</p>
+            </CardContent>
+          </Card>
+        )
       )}
 
       {activeTab === "Финансы" && (
