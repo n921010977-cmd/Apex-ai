@@ -93,8 +93,28 @@ export default function NewStrategyPage() {
         }
       }
     } catch {
-      // API недоступен — пометим всех агентов как выполнивших
-      AGENTS.forEach((a) => setDoneAgents((prev) => new Set([...prev, a.role])));
+      // API недоступен — генерируем fallback-результаты чтобы страница проекта работала
+      const fallbackScore = Math.floor(70 + Math.random() * 20);
+      const fallbackTitles: Record<string, string> = {
+        CEO: "Генеральный директор", CFO: "Финансовый директор", CMO: "Директор по маркетингу",
+        COO: "Операционный директор", "Business Analyst": "Бизнес-аналитик",
+        CTO: "Технический директор", "Sales Director": "Директор по продажам", "Legal Advisor": "Юридический советник",
+      };
+      AGENTS.forEach((a) => {
+        const s = Math.floor(fallbackScore - 5 + Math.random() * 15);
+        collectedResults.push({
+          role: a.role, title: fallbackTitles[a.role] ?? a.label,
+          summary: `Анализ для "${form.name}" в сфере "${form.industry || "вашей индустрии"}". Для получения детального анализа убедитесь, что API-ключ настроен корректно.`,
+          analysis: `Проект находится на стадии "${form.stage || "идеи"}". Рынок ${form.industry || "выбранной индустрии"} предоставляет возможности для роста.`,
+          facts: "Анализ выполнен в офлайн-режиме. Данные носят ориентировочный характер.",
+          risks: "Рекомендуется запустить полный AI-анализ после настройки API-ключа.",
+          recommendations: "1. Настройте ANTHROPIC_API_KEY в переменных окружения.\n2. Нажмите «Обновить анализ» на странице проекта для получения полного анализа.",
+          confidence: "низкая", score: s,
+        });
+        setDoneAgents((prev) => new Set([...prev, a.role]));
+        setAgentResults([...collectedResults]);
+      });
+      finalScore = fallbackScore;
     }
 
     const score = finalScore || Math.floor(70 + Math.random() * 25);
@@ -106,7 +126,7 @@ export default function NewStrategyPage() {
       revenue: form.targetRevenue || `$${(score * 25000 / 1000).toFixed(1)}M`,
       market: `$${(score * 50).toFixed(0)}M`,
       growth: `+${Math.floor(10 + score / 5)}%/год`,
-      aiResults: collectedResults.length > 0 ? collectedResults : undefined,
+      aiResults: collectedResults.length > 0 ? collectedResults : [],
     };
 
     const existing = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
