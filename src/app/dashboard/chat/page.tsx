@@ -59,11 +59,17 @@ export default function ChatListPage() {
         body: JSON.stringify({ title: "New Chat", agentId }),
       });
       const data = await res.json();
-      if (data.conversation) router.push(`/dashboard/chat/${data.conversation.id}`);
+      if (data.conversation) {
+        const url = agentId ? `/dashboard/chat/${data.conversation.id}?agent=${agentId}` : `/dashboard/chat/${data.conversation.id}`;
+        router.push(url);
+        return;
+      }
+      throw new Error("no conversation");
     } catch {
-      // Fallback: generate local ID and use AI in local mode
+      // Fallback: local mode — no Supabase needed, calls /api/chat/direct
       const id = `local-${Date.now()}`;
-      router.push(`/dashboard/chat/${id}`);
+      const url = agentId ? `/dashboard/chat/${id}?agent=${agentId}` : `/dashboard/chat/${id}`;
+      router.push(url);
     } finally {
       setCreating(false);
     }

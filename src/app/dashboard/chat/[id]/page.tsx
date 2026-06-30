@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface Message {
@@ -101,10 +101,22 @@ function formatInline(text: string): React.ReactNode {
   });
 }
 
+const AGENT_NAMES: Record<string, string> = {
+  ceo: "CEO — Стратег",
+  cfo: "CFO — Финансист",
+  cmo: "CMO — Маркетолог",
+  coo: "COO — Операционист",
+  analyst: "Business Analyst",
+  general: "AI Assistant",
+};
+
 export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const conversationId = params.id as string;
+  const agentId = searchParams.get("agent") ?? undefined;
+  const isLocal = conversationId.startsWith("local-");
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -116,14 +128,14 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  // Load messages
+  // Load messages from DB (only for real conversations)
   useEffect(() => {
-    if (conversationId.startsWith("local-")) return;
+    if (isLocal) return;
     fetch(`/api/chat/${conversationId}/messages`)
       .then(r => r.json())
       .then(d => { if (d.messages) setMessages(d.messages); })
       .catch(() => {});
-  }, [conversationId]);
+  }, [conversationId, isLocal]);
 
   // Scroll to bottom
   useEffect(() => {
@@ -141,16 +153,24 @@ export default function ChatPage() {
 
     // Add user message optimistically
     const tempId = `temp-${Date.now()}`;
-    setMessages(prev => [...prev, { id: tempId, role: "user", content: userMessage, created_at: new Date().toISOString() }]);
+    const currentMessages = [...messages, { id: tempId, role: "user" as const, content: userMessage, created_at: new Date().toISOString() }];
+    setMessages(currentMessages);
 
     try {
       abortRef.current = new AbortController();
-      const endpoint = conversationId.startsWith("local-")
-        ? `/api/analyze`
+
+      // Local mode: call direct API (no Supabase auth needed), pass full history
+      // DB mode: call chat send endpoint
+      const endpoint = isLocal
+        ? `/api/chat/direct`
         : `/api/chat/${conversationId}/send`;
 
-      const body = conversationId.startsWith("local-")
-        ? JSON.stringify({ name: userMessage, description: userMessage, industry: "General", stage: "Idea", goals: [], timeframe: "12" })
+      const body = isLocal
+        ? JSON.stringify({
+            message: userMessage,
+            agentId,
+            history: messages.map(m => ({ role: m.role, content: m.content })),
+          })
         : JSON.stringify({ message: userMessage });
 
       const res = await fetch(endpoint, {
@@ -245,10 +265,10 @@ export default function ChatPage() {
           <svg className="size-3.5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-white truncate">AI Assistant</div>
+          <div className="text-sm font-semibold text-white truncate">{agentId ? (AGENT_NAMES[agentId] ?? "AI Assistant") : "AI Assistant"}</div>
           <div className="flex items-center gap-1.5">
             <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] text-emerald-400">Онлайн</span>
+            <span className="text-[10px] text-emerald-400">{isLocal ? "Локальный режим" : "Онлайн"}</span>
           </div>
         </div>
         <button className="size-7 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center justify-center text-white/30 hover:text-white/60">
