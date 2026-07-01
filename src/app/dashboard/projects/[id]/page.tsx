@@ -562,12 +562,13 @@ export default function ProjectPage() {
   const [project, setProject] = useState<ProjectData>(PROJECTS_DATA[id] ?? PROJECTS_DATA["demo"]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [aiResults, setAiResults] = useState<any[]>([]);
-  const [activeAgent, setActiveAgent] = useState<string>("CEO");
+  const [activeAgent, setActiveAgent] = useState<string>("");
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [reanalyzeProgress, setReanalyzeProgress] = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rawProject, setRawProject] = useState<Record<string, any> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const agentDetailRef = useRef<HTMLDivElement | null>(null);
 
   const isUserProject = !PROJECTS_DATA[id];
 
@@ -588,7 +589,7 @@ export default function ProjectPage() {
           };
           setRawProject(mapped);
           setProject(buildProjectFromUser(mapped));
-          if (mapped.aiResults?.length > 0) setAiResults(mapped.aiResults);
+          if (mapped.aiResults?.length > 0) { setAiResults(mapped.aiResults); setActiveAgent(mapped.aiResults[0].role); }
           return;
         }
         throw new Error("not found");
@@ -602,7 +603,7 @@ export default function ProjectPage() {
           if (found) {
             setRawProject(found);
             setProject(buildProjectFromUser(found));
-            if (found.aiResults && found.aiResults.length > 0) setAiResults(found.aiResults);
+            if (found.aiResults && found.aiResults.length > 0) { setAiResults(found.aiResults); setActiveAgent(found.aiResults[0].role); }
           }
         } catch {}
       });
@@ -652,6 +653,7 @@ export default function ProjectPage() {
               collected.push(evt.result);
               setReanalyzeProgress(collected.length);
               setAiResults([...collected]);
+              if (collected.length === 1) setActiveAgent(collected[0].role);
             }
             if (evt.type === "complete") {
               // Update score in project
@@ -769,8 +771,8 @@ export default function ProjectPage() {
           "Точка безубыточности": { color: "#60a5fa", glow: "rgba(96,165,250,0.35)", icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg> },
           "LTV/CAC":          { color: "#f59e0b", glow: "rgba(245,158,11,0.35)",  icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="2" y1="14" x2="14" y2="2"/><circle cx="5" cy="5" r="2"/><circle cx="11" cy="11" r="2"/></svg> },
         };
-        const ceo = aiResults.find(r => r.role === "CEO");
-        const cmo = aiResults.find(r => r.role === "CMO");
+        const ceo = aiResults.find(r => r.role === "CEO" || r.role?.toLowerCase().includes("ceo") || r.role?.includes("директор") && r.role?.includes("исполн") || r.role?.includes("Генеральный"));
+        const cmo = aiResults.find(r => r.role === "CMO" || r.role?.toLowerCase().includes("cmo") || r.role?.toLowerCase().includes("маркетинг"));
         return (
           <div className="space-y-4">
             {/* Top row: market rings (left) + score panel (right) */}
@@ -907,7 +909,7 @@ export default function ProjectPage() {
                 return (
                   <button
                     key={r.role}
-                    onClick={() => setActiveAgent(r.role)}
+                    onClick={() => { setActiveAgent(r.role); setTimeout(() => agentDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50); }}
                     className={`w-full text-left rounded-xl border px-3 py-2.5 transition-all ${isActive ? "border-violet-500/40 bg-violet-600/10" : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.1]"}`}
                   >
                     <div className="flex items-center gap-3">
@@ -941,7 +943,7 @@ export default function ProjectPage() {
             </div>
 
             {/* Agent detail */}
-            <div className="xl:col-span-2">
+            <div className="xl:col-span-2" ref={agentDetailRef}>
               {(() => {
                 const r = aiResults.find((x) => x.role === activeAgent);
                 if (!r) return null;
@@ -1101,7 +1103,7 @@ export default function ProjectPage() {
 
           {/* CFO analysis — premium panel */}
           {aiResults.length > 0 && (() => {
-            const cfo = aiResults.find(r => r.role === "CFO");
+            const cfo = aiResults.find(r => r.role === "CFO" || r.role?.toLowerCase().includes("cfo") || r.role?.toLowerCase().includes("финанс"));
             return cfo ? (
               <div
                 className="relative rounded-2xl overflow-hidden p-5"
@@ -1169,7 +1171,7 @@ export default function ProjectPage() {
 
           {/* Business Analyst — premium panel */}
           {aiResults.length > 0 && (() => {
-            const ba = aiResults.find(r => r.role === "Business Analyst");
+            const ba = aiResults.find(r => r.role === "Business Analyst" || r.role?.toLowerCase().includes("analyst") || r.role?.toLowerCase().includes("аналитик"));
             return ba ? (
               <div
                 className="relative rounded-2xl overflow-hidden p-5"
@@ -1254,8 +1256,8 @@ export default function ProjectPage() {
 
           {/* CEO + Legal risks from AI — premium panels */}
           {aiResults.length > 0 && (() => {
-            const legal = aiResults.find(r => r.role === "Legal Advisor");
-            const ceo = aiResults.find(r => r.role === "CEO");
+            const legal = aiResults.find(r => r.role === "Legal Advisor" || r.role?.toLowerCase().includes("legal") || r.role?.toLowerCase().includes("юрид"));
+            const ceo = aiResults.find(r => r.role === "CEO" || r.role?.toLowerCase().includes("ceo") || r.role?.includes("Генеральный"));
             const panels = [
               ...(ceo?.risks ? [{ label: "CEO — Риски", sub: "Стратегический риск-аудит", letter: "C", color: "#7c3aed", text: ceo.risks, score: ceo.score }] : []),
               ...(legal?.risks ? [{ label: "Legal Advisor — Риски", sub: "Юридические и регуляторные риски", letter: "L", color: "#64748b", text: legal.risks, score: legal.score }] : []),
