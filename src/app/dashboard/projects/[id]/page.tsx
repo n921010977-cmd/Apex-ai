@@ -195,27 +195,100 @@ function ScoreRadar({ scores }: { scores: { label: string; value: number }[] }) 
 }
 
 // Financial bar chart
-function FinancialChart({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
+function FinancialAreaChart({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
   const items = financials.filter(f => f.numeric !== undefined);
   if (items.length < 2) return null;
   const max = Math.max(...items.map(i => i.numeric!));
+  const W = 600; const H = 120; const PAD = 24;
+  const pts = items.map((item, i) => ({
+    x: PAD + (i / (items.length - 1)) * (W - PAD * 2),
+    y: H - PAD - ((item.numeric! / max) * (H - PAD * 2)),
+    ...item,
+  }));
+  const pathD = pts.map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `C ${(pts[i-1].x + p.x)/2} ${pts[i-1].y} ${(pts[i-1].x + p.x)/2} ${p.y} ${p.x} ${p.y}`)).join(" ");
+  const areaD = `${pathD} L ${pts[pts.length-1].x} ${H} L ${pts[0].x} ${H} Z`;
+  const firstVal = items[0];
+  const lastVal = items[items.length - 1];
+
   return (
-    <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-      <div className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4">Прогноз выручки</div>
-      <div className="flex items-end gap-4 h-28">
-        {items.map((item, idx) => {
-          const pct = (item.numeric! / max) * 100;
-          const color = idx === 0 ? "#3b82f6" : "#7c3aed";
-          return (
-            <div key={item.label} className="flex-1 flex flex-col items-center gap-1.5">
-              <span className="text-xs font-bold" style={{ color }}>{item.value}</span>
-              <div className="w-full rounded-t-lg transition-all duration-700 relative" style={{ height: `${Math.max(8, pct)}%`, background: `linear-gradient(180deg, ${color}, ${color}55)` }} />
-              <span className="text-[9px] text-white/30 text-center leading-tight">{item.label}</span>
-            </div>
-          );
-        })}
+    <div className="relative rounded-2xl overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(59,130,246,0.04) 100%)", border: "1px solid rgba(255,255,255,0.07)" }}>
+      {/* circuit pattern bg */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+      <div className="relative p-5">
+        <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-4">Прогноз выручки</div>
+        {/* value labels */}
+        <div className="flex justify-between items-start mb-3">
+          <div>
+            <div className="text-xl font-bold font-mono" style={{ color: "#60a5fa" }}>{firstVal.value}</div>
+            <div className="text-[10px] text-white/30 mt-0.5">{firstVal.label}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-xl font-bold font-mono" style={{ color: "#a78bfa" }}>{lastVal.value}</div>
+            <div className="text-[10px] text-white/30 mt-0.5">{lastVal.label}</div>
+          </div>
+        </div>
+        {/* SVG area chart */}
+        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 120 }}>
+          <defs>
+            <linearGradient id="areaGrad" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#3b82f6" />
+              <stop offset="100%" stopColor="#7c3aed" />
+            </linearGradient>
+            <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {/* grid lines */}
+          {[0.25, 0.5, 0.75].map(t => (
+            <line key={t} x1={PAD} y1={PAD + t * (H - PAD * 2)} x2={W - PAD} y2={PAD + t * (H - PAD * 2)} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+          ))}
+          {/* area fill */}
+          <path d={areaD} fill="url(#areaFill)" />
+          {/* line */}
+          <path d={pathD} fill="none" stroke="url(#areaGrad)" strokeWidth="2" strokeLinecap="round" />
+          {/* data points */}
+          {pts.map((p, i) => (
+            <g key={i}>
+              <circle cx={p.x} cy={p.y} r="5" fill="#0a0a0a" stroke={i === 0 ? "#3b82f6" : "#7c3aed"} strokeWidth="2" />
+              <circle cx={p.x} cy={p.y} r="2" fill={i === 0 ? "#3b82f6" : "#7c3aed"} />
+            </g>
+          ))}
+        </svg>
       </div>
     </div>
+  );
+}
+
+const METRIC_ICONS: Record<string, React.ReactNode> = {
+  "LTV пользователя": (
+    <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <polyline points="1 10 4 6 7 8 10 4 15 7" /><line x1="1" y1="15" x2="15" y2="15" />
+    </svg>
+  ),
+  "CAC": (
+    <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="8" cy="6" r="3"/><rect x="3" y="11" width="10" height="3" rx="1"/><line x1="8" y1="9" x2="8" y2="11"/>
+    </svg>
+  ),
+  "LTV/CAC": (
+    <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/>
+    </svg>
+  ),
+};
+
+function CircularScore({ score, color }: { score: number; color: string }) {
+  const r = 22; const circ = 2 * Math.PI * r;
+  const dash = (score / 100) * circ;
+  return (
+    <svg viewBox="0 0 60 60" className="size-10">
+      <circle cx="30" cy="30" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+      <circle cx="30" cy="30" r={r} fill="none" stroke={color} strokeWidth="4"
+        strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={circ * 0.25}
+        strokeLinecap="round" style={{ filter: `drop-shadow(0 0 4px ${color}80)` }} />
+      <text x="30" y="35" textAnchor="middle" fontSize="11" fontWeight="700" fill="white" fontFamily="monospace">{score}</text>
+    </svg>
   );
 }
 
@@ -657,38 +730,76 @@ export default function ProjectPage() {
 
       {/* ── Финансы ── */}
       {activeTab === "Финансы" && (
-        <div className="space-y-5">
-          <FinancialChart financials={project.financials} />
+        <div className="space-y-4">
+          {/* Premium area chart */}
+          <FinancialAreaChart financials={project.financials} />
+
+          {/* Glassmorphism metric cards */}
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {project.financials.map((f) => (
-              <Card key={f.label} className="p-4">
-                <CardContent className="p-0">
-                  <div className="text-lg font-bold text-white mb-0.5">{f.value}</div>
-                  <div className="text-xs text-white/35">{f.label}</div>
-                </CardContent>
-              </Card>
-            ))}
+            {project.financials.map((f) => {
+              const icon = METRIC_ICONS[f.label];
+              const isRevenue = f.label.startsWith("Прогноз");
+              const accentColor = isRevenue ? "#60a5fa" : f.label === "LTV пользователя" ? "#a78bfa" : f.label === "CAC" ? "#34d399" : f.label === "LTV/CAC" ? "#f59e0b" : "rgba(255,255,255,0.7)";
+              return (
+                <div
+                  key={f.label}
+                  className="relative rounded-xl overflow-hidden p-4 group transition-all duration-300 hover:scale-[1.02]"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(12px)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.2)",
+                  }}
+                >
+                  {/* shimmer edge */}
+                  <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accentColor}40, transparent)` }} />
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="text-xl font-bold font-mono" style={{ color: accentColor }}>{f.value}</div>
+                    {icon && (
+                      <div className="mt-0.5 opacity-40 group-hover:opacity-70 transition-opacity" style={{ color: accentColor }}>
+                        {icon}
+                      </div>
+                    )}
+                  </div>
+                  <div className="text-[11px] text-white/30 leading-tight">{f.label}</div>
+                </div>
+              );
+            })}
           </div>
-          {/* CFO analysis if available */}
+
+          {/* CFO analysis — premium panel */}
           {aiResults.length > 0 && (() => {
             const cfo = aiResults.find(r => r.role === "CFO");
             return cfo ? (
-              <Card>
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="size-7 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: "#3b82f618", border: "1px solid #3b82f630", color: "#3b82f6" }}>C</div>
-                    <span className="text-xs font-semibold text-white/60">Финансовый директор (CFO) — Анализ</span>
-                    <span className="ml-auto text-xs font-bold" style={{ color: "#3b82f6" }}>{cfo.score}/100</span>
+              <div
+                className="relative rounded-2xl overflow-hidden p-5"
+                style={{
+                  background: "linear-gradient(135deg, rgba(59,130,246,0.07) 0%, rgba(124,58,237,0.04) 100%)",
+                  border: "1px solid rgba(59,130,246,0.15)",
+                  backdropFilter: "blur(16px)",
+                  boxShadow: "inset 0 1px 0 rgba(59,130,246,0.12), 0 8px 32px rgba(0,0,0,0.3)",
+                }}
+              >
+                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }} />
+                <div className="flex items-center gap-3 mb-4">
+                  <div
+                    className="size-9 rounded-xl flex items-center justify-center text-sm font-bold"
+                    style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)", color: "#3b82f6" }}
+                  >C</div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-white/80">Финансовый директор (CFO) — Анализ</div>
+                    <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · Финансовый аудит</div>
                   </div>
-                  {cfo.analysis && <p className="text-[13px] text-white/55 leading-relaxed">{cfo.analysis}</p>}
-                  {cfo.recommendations && (
-                    <div className="mt-3 pt-3 border-t border-white/[0.05]">
-                      <div className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5">Рекомендации CFO</div>
-                      <p className="text-[12px] text-white/50 leading-relaxed whitespace-pre-line">{cfo.recommendations}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                  <CircularScore score={cfo.score} color="#3b82f6" />
+                </div>
+                {cfo.analysis && <p className="text-[13px] text-white/60 leading-relaxed">{cfo.analysis}</p>}
+                {cfo.recommendations && (
+                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                    <div className="text-[9px] text-white/25 uppercase tracking-[0.2em] mb-2">Рекомендации CFO</div>
+                    <p className="text-[12px] text-white/50 leading-relaxed whitespace-pre-line">{cfo.recommendations}</p>
+                  </div>
+                )}
+              </div>
             ) : null;
           })()}
         </div>
