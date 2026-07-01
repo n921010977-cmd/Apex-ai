@@ -1,141 +1,489 @@
 "use client";
 
 import { motion } from "framer-motion";
+import type { Variants } from "framer-motion";
+
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const REPORT_SECTIONS = [
-  "Executive Summary","Business Score (0–100)","Financial Forecast","Revenue Projections","Market Analysis",
-  "Competitor Intelligence","SWOT Analysis","Marketing Strategy","Customer Persona","Launch Plan",
-  "30-Day Roadmap","90-Day Roadmap","Growth Strategy","Risk Analysis","Action Checklist",
+  "Executive Summary",    "Business Score (0–100)",
+  "Financial Forecast",   "Revenue Projections",
+  "Market Analysis",      "Competitor Intelligence",
+  "SWOT Analysis",        "Marketing Strategy",
+  "Customer Persona",     "Launch Plan",
+  "30-Day Roadmap",       "90-Day Roadmap",
+  "Growth Strategy",      "Risk Analysis",
+  "Action Checklist",
 ];
 
 const FEATURES = [
-  { title: "Real Executive Thinking", description: "Not generic AI answers. Each executive produces their own perspective, data, and recommendations — just like a real board meeting.", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-5"><path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14Z" /><path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.14Z" /></svg> },
-  { title: "Instant Financial Models", description: "Your CFO builds realistic revenue projections, expense forecasts, and break-even analysis specific to your business model.", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-5"><line x1="18" y1="20" x2="18" y2="10" /><line x1="12" y1="20" x2="12" y2="4" /><line x1="6" y1="20" x2="6" y2="14" /></svg> },
-  { title: "Competitive Intelligence", description: "Deep competitor analysis with positioning maps, gap analysis, and differentiation strategies built by your Business Analyst.", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-5"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" /></svg> },
-  { title: "Exportable Reports", description: "Download beautiful PDF reports to share with investors, co-founders, or banks. Professional grade, presentation ready.", icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="size-5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" /><polyline points="7 10 12 15 17 10" /><line x1="12" y1="15" x2="12" y2="3" /></svg> },
+  {
+    title:       "Real Executive Thinking",
+    description: "Not generic AI answers. Each executive produces their own perspective, data, and recommendations — just like a real board meeting.",
+    color:       "#8b5cf6",
+    rgb:         "139,92,246",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22">
+        <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14Z" />
+        <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96-.46 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-1.14Z" />
+      </svg>
+    ),
+  },
+  {
+    title:       "Instant Financial Models",
+    description: "Your CFO builds realistic revenue projections, expense forecasts, and break-even analysis specific to your business model.",
+    color:       "#3b82f6",
+    rgb:         "59,130,246",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22">
+        <line x1="18" y1="20" x2="18" y2="10" />
+        <line x1="12" y1="20" x2="12" y2="4" />
+        <line x1="6"  y1="20" x2="6"  y2="14" />
+      </svg>
+    ),
+  },
+  {
+    title:       "Competitive Intelligence",
+    description: "Deep competitor analysis with positioning maps, gap analysis, and differentiation strategies built by your Business Analyst.",
+    color:       "#06b6d4",
+    rgb:         "6,182,212",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.35-4.35" />
+      </svg>
+    ),
+  },
+  {
+    title:       "Exportable Reports",
+    description: "Download beautiful PDF reports to share with investors, co-founders, or banks. Professional grade, presentation ready.",
+    color:       "#10b981",
+    rgb:         "16,185,129",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+        <polyline points="7 10 12 15 17 10" />
+        <line x1="12" y1="15" x2="12" y2="3" />
+      </svg>
+    ),
+  },
 ];
+
+// ─── Holographic icon (reused from executives section pattern) ────────────────
+
+function HoloIcon({ color, rgb, icon }: { color: string; rgb: string; icon: React.ReactNode }) {
+  return (
+    <div style={{ position: "relative", width: 50, height: 50, flexShrink: 0 }}>
+      {/* Bloom */}
+      <div style={{
+        position: "absolute", inset: -8, borderRadius: 24,
+        background: `radial-gradient(circle, rgba(${rgb},0.4) 0%, transparent 70%)`,
+        filter: "blur(8px)", pointerEvents: "none",
+      }} />
+      {/* Tile */}
+      <div style={{
+        position: "relative", width: 50, height: 50, borderRadius: 14,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: `linear-gradient(145deg, rgba(${rgb},0.32) 0%, rgba(${rgb},0.09) 100%)`,
+        border: `1px solid rgba(${rgb},0.5)`,
+        boxShadow: [
+          `0 4px 20px rgba(${rgb},0.24)`,
+          `inset 0 1px 0 rgba(255,255,255,0.24)`,
+          `inset 0 -1px 0 rgba(${rgb},0.1)`,
+        ].join(", "),
+        overflow: "hidden",
+      }}>
+        {/* Top-left reflection */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, width: "60%", height: "60%",
+          borderRadius: "14px 0 40% 0",
+          background: "linear-gradient(135deg, rgba(255,255,255,0.16) 0%, transparent 100%)",
+          pointerEvents: "none",
+        }} />
+        <div style={{
+          color, position: "relative", zIndex: 1,
+          filter: `drop-shadow(0 0 7px rgba(${rgb},0.8)) drop-shadow(0 0 14px rgba(${rgb},0.35))`,
+        }}>
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Floating widget ──────────────────────────────────────────────────────────
+
+function FloatingWidget({
+  label, value, color, rgb, style,
+}: { label: string; value: string; color: string; rgb: string; style?: React.CSSProperties }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.85 }}
+      whileInView={{ opacity: 1, scale: 1 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.6, delay: 0.5, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        padding:        "12px 16px",
+        borderRadius:   16,
+        background:     "rgba(6,6,10,0.88)",
+        backdropFilter: "blur(24px) saturate(180%)",
+        border:         `1px solid rgba(${rgb},0.28)`,
+        boxShadow:      [
+          `0 0 0 1px rgba(${rgb},0.08)`,
+          `0 0 28px rgba(${rgb},0.14)`,
+          `0 12px 40px rgba(0,0,0,0.55)`,
+          `inset 0 1px 0 rgba(255,255,255,0.08)`,
+        ].join(", "),
+        ...style,
+      }}
+    >
+      {/* Shimmer top */}
+      <div style={{
+        position: "absolute", top: 0, left: "10%", right: "10%", height: 1,
+        background: `linear-gradient(90deg, transparent, rgba(${rgb},0.6), transparent)`,
+      }} />
+      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", letterSpacing: "0.1em", marginBottom: 5 }}>
+        {label}
+      </div>
+      <div style={{ fontSize: 21, fontWeight: 700, color, letterSpacing: "-0.02em", lineHeight: 1 }}>
+        {value}
+      </div>
+    </motion.div>
+  );
+}
+
+// ─── Report card (left column) ────────────────────────────────────────────────
+
+function ReportCard() {
+  return (
+    <div style={{ position: "relative", padding: "24px 8px 24px 8px" }}>
+
+      {/* Floating widget – top right */}
+      <div className="hidden lg:block" style={{ position: "absolute", top: 0, right: -8, zIndex: 10 }}>
+        <FloatingWidget label="Projected Revenue" value="$2.4M / yr" color="#10b981" rgb="16,185,129"
+          style={{ position: "relative" }} />
+      </div>
+
+      {/* Floating widget – bottom left */}
+      <div className="hidden lg:block" style={{ position: "absolute", bottom: 0, left: -8, zIndex: 10 }}>
+        <FloatingWidget label="Break-even" value="Month 8" color="#3b82f6" rgb="59,130,246"
+          style={{ position: "relative" }} />
+      </div>
+
+      {/* Main glass card */}
+      <div
+        style={{
+          borderRadius:   24,
+          overflow:       "hidden",
+          background:     "linear-gradient(160deg, rgba(20,14,40,0.85) 0%, rgba(6,6,12,0.92) 100%)",
+          border:         "1px solid rgba(255,255,255,0.08)",
+          boxShadow:      [
+            "0 0 0 1px rgba(139,92,246,0.08)",
+            "0 8px 40px rgba(0,0,0,0.6)",
+            "0 32px 80px rgba(0,0,0,0.4)",
+            "inset 0 1px 0 rgba(255,255,255,0.07)",
+          ].join(", "),
+          backdropFilter: "blur(24px) saturate(160%)",
+        }}
+      >
+        {/* ─ Header row ─ */}
+        <div style={{
+          display:       "flex",
+          alignItems:    "center",
+          gap:           14,
+          padding:       "18px 22px",
+          borderBottom:  "1px solid rgba(255,255,255,0.06)",
+        }}>
+          {/* Doc icon */}
+          <div style={{
+            width: 40, height: 40, borderRadius: 12, flexShrink: 0,
+            background: "linear-gradient(135deg, #7c3aed, #2563eb)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 0 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.2)",
+          }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="1.8" width="20" height="20">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="16" y1="13" x2="8" y2="13" />
+              <line x1="16" y1="17" x2="8" y2="17" />
+            </svg>
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.92)", letterSpacing: "-0.01em" }}>
+              Business Strategy Report
+            </div>
+            <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.32)", marginTop: 2 }}>
+              Generated by AI Executive Board
+            </div>
+          </div>
+          {/* Complete badge */}
+          <div style={{
+            fontSize: 10.5, padding: "4px 10px", borderRadius: 999, fontWeight: 600,
+            background: "rgba(16,185,129,0.1)",
+            border: "1px solid rgba(16,185,129,0.25)",
+            color: "#34d399",
+          }}>
+            Complete
+          </div>
+        </div>
+
+        {/* ─ Score section ─ */}
+        <div style={{ padding: "22px 22px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 14 }}>
+            <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", letterSpacing: "0.01em" }}>
+              Business Viability Score
+            </span>
+            <span
+              style={{
+                fontSize:             42,
+                fontWeight:           800,
+                lineHeight:           1,
+                letterSpacing:        "-0.03em",
+                background:           "linear-gradient(135deg, #a78bfa 0%, #06b6d4 55%, #34d399 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor:  "transparent",
+                backgroundClip:       "text",
+              }}
+            >
+              87<span style={{ fontSize: 22, opacity: 0.75 }}>/100</span>
+            </span>
+          </div>
+
+          {/* Progress bar with glow */}
+          <div style={{ position: "relative" }}>
+            {/* Track */}
+            <div style={{
+              height: 10, background: "rgba(255,255,255,0.05)", borderRadius: 999, overflow: "hidden",
+            }}>
+              <motion.div
+                style={{
+                  height: "100%",
+                  background: "linear-gradient(90deg, #7c3aed, #06b6d4 55%, #10b981)",
+                  borderRadius: 999,
+                }}
+                initial={{ width: 0 }}
+                whileInView={{ width: "87%" }}
+                viewport={{ once: true }}
+                transition={{ duration: 1.5, delay: 0.35, ease: "easeOut" }}
+              />
+            </div>
+            {/* Glow layer (outside overflow:hidden) */}
+            <motion.div
+              style={{
+                position: "absolute", top: -6, bottom: -6, left: 0, borderRadius: 999,
+                background: "linear-gradient(90deg, rgba(124,58,237,0.5), rgba(6,182,212,0.5) 55%, rgba(16,185,129,0.5))",
+                filter: "blur(10px)",
+                pointerEvents: "none",
+              }}
+              initial={{ width: 0 }}
+              whileInView={{ width: "87%" }}
+              viewport={{ once: true }}
+              transition={{ duration: 1.5, delay: 0.35, ease: "easeOut" }}
+            />
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7 }}>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.22)" }}>Poor</span>
+            <span style={{ fontSize: 10, color: "#34d399", fontWeight: 600 }}>Excellent</span>
+          </div>
+        </div>
+
+        {/* ─ Report contents ─ */}
+        <div style={{ padding: "18px 22px 22px" }}>
+          <div style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase",
+            color: "rgba(255,255,255,0.25)", marginBottom: 14,
+          }}>
+            Report Contents
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "9px 12px" }}>
+            {REPORT_SECTIONS.map((section, i) => (
+              <motion.div
+                key={section}
+                style={{ display: "flex", alignItems: "center", gap: 8 }}
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.4 + i * 0.035 }}
+              >
+                {/* Glowing check circle */}
+                <div style={{
+                  width: 17, height: 17, borderRadius: "50%", flexShrink: 0,
+                  background: "rgba(16,185,129,0.1)",
+                  border: "1px solid rgba(16,185,129,0.32)",
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  boxShadow: "0 0 5px rgba(16,185,129,0.18)",
+                }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" width="10" height="10">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+                <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.3 }}>
+                  {section}
+                </span>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Section ──────────────────────────────────────────────────────────────────
+
+const listVar: Variants = {
+  hidden: { opacity: 0 },
+  show:   { opacity: 1, transition: { staggerChildren: 0.1 } },
+};
+
+const itemVar: Variants = {
+  hidden: { opacity: 0, x: 28 },
+  show:   { opacity: 1, x: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } },
+};
 
 export function FeaturesSection() {
   return (
-    <section className="relative py-32 px-6">
-      <div className="max-w-7xl mx-auto">
+    <section
+      id="testimonials"
+      style={{ position: "relative", padding: "96px 24px 112px", overflow: "hidden" }}
+    >
+      <style>{`
+        @keyframes feat-badge-glow {
+          0%, 100% { box-shadow: 0 0 0 0   rgba(16,185,129,0.25); }
+          50%       { box-shadow: 0 0 0 5px rgba(16,185,129,0);    }
+        }
+      `}</style>
+
+      {/* Ambient glows */}
+      <div aria-hidden style={{ position:"absolute", top:"20%",    left:"8%",   width:600, height:600, background:"radial-gradient(circle, rgba(124,58,237,0.07) 0%, transparent 65%)", filter:"blur(70px)", pointerEvents:"none" }} />
+      <div aria-hidden style={{ position:"absolute", bottom:"15%", right:"8%",  width:600, height:600, background:"radial-gradient(circle, rgba(16,185,129,0.06) 0%, transparent 65%)", filter:"blur(70px)", pointerEvents:"none" }} />
+      <div aria-hidden style={{ position:"absolute", top:"50%",    left:"50%",  transform:"translate(-50%,-50%)", width:800, height:400, background:"radial-gradient(ellipse, rgba(6,182,212,0.04) 0%, transparent 65%)", filter:"blur(60px)", pointerEvents:"none" }} />
+
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+
+        {/* ── Header ── */}
         <motion.div
-          className="text-center mb-16"
-          initial={{ opacity: 0, y: 30 }}
+          style={{ textAlign: "center", marginBottom: 72 }}
+          initial={{ opacity: 0, y: 28 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          viewport={{ once: true, margin: "-80px" }}
+          transition={{ duration: 0.75, ease: "easeOut" }}
         >
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 mb-6">
-            <span className="text-xs text-emerald-300 font-medium tracking-wide uppercase">Complete Strategy</span>
+          {/* Badge */}
+          <div style={{
+            display: "inline-flex", alignItems: "center", gap: 9,
+            padding: "7px 20px", borderRadius: 999,
+            border: "1px solid rgba(16,185,129,0.38)",
+            background: "rgba(16,185,129,0.07)",
+            marginBottom: 28,
+            animation: "feat-badge-glow 3.5s ease-in-out infinite",
+          }}>
+            <span style={{
+              width: 5, height: 5, borderRadius: "50%", flexShrink: 0,
+              background: "#10b981", boxShadow: "0 0 8px #10b981", display: "block",
+            }} />
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "#6ee7b7" }}>
+              Complete Strategy
+            </span>
           </div>
-          <h2 className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight">
-            Everything You Need<br /><span className="gradient-text">Nothing You Don&apos;t</span>
+
+          {/* Heading */}
+          <h2 style={{ fontSize: "clamp(30px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.07, margin: "0 0 20px" }}>
+            <span style={{
+              display: "block",
+              background: "linear-gradient(180deg, #ffffff 35%, rgba(255,255,255,0.7) 100%)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+            }}>
+              Everything You Need
+            </span>
+            <span style={{
+              display: "block",
+              background: "linear-gradient(135deg, #94a3b8 0%, #e2e8f0 50%, #94a3b8 100%)",
+              WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+            }}>
+              Nothing You Don&apos;t
+            </span>
           </h2>
-          <p className="text-lg text-white/40 max-w-xl mx-auto">Every report contains 15+ professionally structured sections covering every aspect of your business.</p>
+
+          <p style={{ fontSize: 17, color: "rgba(255,255,255,0.38)", maxWidth: 520, margin: "0 auto", lineHeight: 1.65 }}>
+            Every report contains 15+ professionally structured sections covering every aspect of your business.
+          </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start">
+        {/* ── Two-column layout ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
+
+          {/* Left — report card */}
           <motion.div
-            className="relative"
-            initial={{ opacity: 0, x: -30 }}
+            initial={{ opacity: 0, x: -32 }}
             whileInView={{ opacity: 1, x: 0 }}
             viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
+            transition={{ duration: 0.75, ease: [0.22, 1, 0.36, 1] }}
           >
-            <div className="rounded-2xl glass-strong border border-white/[0.08] overflow-hidden">
-              <div className="px-6 py-5 border-b border-white/[0.06] flex items-center gap-3">
-                <div className="size-8 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center">
-                  <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
-                </div>
-                <div>
-                  <div className="text-sm font-semibold text-white">Business Strategy Report</div>
-                  <div className="text-xs text-white/35">Generated by AI Executive Board</div>
-                </div>
-                <div className="ml-auto">
-                  <span className="text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Complete</span>
-                </div>
-              </div>
-              <div className="px-6 py-5 border-b border-white/[0.06]">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-sm text-white/50">Business Viability Score</span>
-                  <span className="text-2xl font-bold gradient-text">87/100</span>
-                </div>
-                <div className="h-2 bg-white/[0.04] rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-violet-600 to-emerald-500 rounded-full"
-                    initial={{ width: 0 }}
-                    whileInView={{ width: "87%" }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.3, ease: "easeOut" }}
-                  />
-                </div>
-                <div className="flex justify-between mt-1.5">
-                  <span className="text-[10px] text-white/25">Poor</span>
-                  <span className="text-[10px] text-emerald-400 font-medium">Excellent</span>
-                </div>
-              </div>
-              <div className="p-6">
-                <div className="text-xs font-medium text-white/30 uppercase tracking-widest mb-4">Report Contents</div>
-                <div className="grid grid-cols-2 gap-2">
-                  {REPORT_SECTIONS.map((section, i) => (
-                    <motion.div
-                      key={section}
-                      className="flex items-center gap-2"
-                      initial={{ opacity: 0 }}
-                      whileInView={{ opacity: 1 }}
-                      viewport={{ once: true }}
-                      transition={{ delay: i * 0.04 }}
-                    >
-                      <div className="size-4 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                        <svg className="size-2.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12" /></svg>
-                      </div>
-                      <span className="text-xs text-white/50">{section}</span>
-                    </motion.div>
-                  ))}
-                </div>
-              </div>
-            </div>
-            <div className="absolute -top-4 -right-4 glass rounded-xl p-3 border border-white/[0.08] hidden lg:block">
-              <div className="text-xs text-white/40 mb-1">Projected Revenue</div>
-              <div className="text-lg font-bold text-emerald-400">$2.4M / yr</div>
-            </div>
-            <div className="absolute -bottom-4 -left-4 glass rounded-xl p-3 border border-white/[0.08] hidden lg:block">
-              <div className="text-xs text-white/40 mb-1">Break-even</div>
-              <div className="text-lg font-bold text-blue-400">Month 8</div>
-            </div>
+            <ReportCard />
           </motion.div>
 
+          {/* Right — feature list */}
           <motion.div
-            className="flex flex-col gap-6"
-            initial={{ opacity: 0, x: 30 }}
-            whileInView={{ opacity: 1, x: 0 }}
+            className="flex flex-col gap-4"
+            variants={listVar}
+            initial="hidden"
+            whileInView="show"
             viewport={{ once: true, margin: "-50px" }}
-            transition={{ duration: 0.7, ease: "easeOut" }}
           >
-            {FEATURES.map((feature, i) => (
+            {FEATURES.map((f) => (
               <motion.div
-                key={feature.title}
-                className="flex gap-4"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ delay: i * 0.1 }}
+                key={f.title}
+                variants={itemVar}
+                style={{
+                  display:        "flex",
+                  gap:            18,
+                  padding:        "18px 20px",
+                  borderRadius:   20,
+                  background:     `linear-gradient(135deg, rgba(${f.rgb},0.07) 0%, rgba(6,6,12,0.7) 100%)`,
+                  border:         `1px solid rgba(${f.rgb},0.18)`,
+                  boxShadow:      `0 0 0 1px rgba(${f.rgb},0.05), 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`,
+                  backdropFilter: "blur(16px)",
+                }}
               >
-                <div className="size-10 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center text-violet-400 flex-shrink-0 mt-0.5">{feature.icon}</div>
-                <div>
-                  <h3 className="text-base font-semibold text-white mb-1">{feature.title}</h3>
-                  <p className="text-sm text-white/40 leading-relaxed">{feature.description}</p>
+                <HoloIcon color={f.color} rgb={f.rgb} icon={f.icon} />
+                <div style={{ flex: 1 }}>
+                  <h3 style={{ fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.92)", letterSpacing: "-0.01em", margin: "0 0 7px" }}>
+                    {f.title}
+                  </h3>
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.38)", lineHeight: 1.65, margin: 0 }}>
+                    {f.description}
+                  </p>
                 </div>
               </motion.div>
             ))}
-            <div className="mt-4">
-              <a href="/dashboard" className="inline-flex items-center gap-2 text-sm font-medium text-violet-400 hover:text-violet-300 transition-colors">
+
+            {/* View sample report link */}
+            <motion.div variants={itemVar} style={{ paddingTop: 8 }}>
+              <a
+                href="/dashboard"
+                style={{
+                  display:        "inline-flex",
+                  alignItems:     "center",
+                  gap:            8,
+                  fontSize:       14,
+                  fontWeight:     600,
+                  color:          "#a78bfa",
+                  textDecoration: "none",
+                  transition:     "color 0.2s",
+                }}
+                onMouseEnter={e => (e.currentTarget.style.color = "#c4b5fd")}
+                onMouseLeave={e => (e.currentTarget.style.color = "#a78bfa")}
+              >
                 View sample report
-                <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
               </a>
-            </div>
+            </motion.div>
           </motion.div>
+
         </div>
       </div>
     </section>
