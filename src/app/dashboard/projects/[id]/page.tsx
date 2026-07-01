@@ -128,33 +128,78 @@ const RISK_COLORS: Record<string, string> = {
 const RISK_LABELS: Record<string, string> = { high: "Высокий", medium: "Средний", low: "Низкий" };
 const RISK_ICONS: Record<string, string> = { high: "⚠", medium: "◈", low: "◉" };
 
-// SVG Bar chart for market data
-function MarketBarChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
-  const numericItems = items.filter(i => i.numeric !== undefined);
+// Concentric circles TAM/SAM/SOM visualization
+function MarketConcentricChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
+  const numericItems = items.filter(i => i.numeric !== undefined).slice(0, 3);
   if (numericItems.length < 2) return null;
   const max = Math.max(...numericItems.map(i => i.numeric!));
-  const colors = ["#7c3aed", "#3b82f6", "#10b981"];
+  const RINGS = [
+    { color: "#7c3aed", glow: "rgba(124,58,237,0.4)", label: "TAM" },
+    { color: "#3b82f6", glow: "rgba(59,130,246,0.4)", label: "SAM" },
+    { color: "#10b981", glow: "rgba(16,185,129,0.5)", label: "SOM" },
+  ];
+  const cx = 120; const cy = 120;
+  const maxR = 90;
+
   return (
-    <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.06]">
-      <div className="text-xs font-semibold text-white/40 uppercase tracking-widest mb-4">Размер рынка (визуализация)</div>
-      <div className="space-y-3">
-        {numericItems.map((item, idx) => {
-          const pct = (item.numeric! / max) * 100;
-          return (
-            <div key={item.label}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-xs text-white/50">{item.label}</span>
-                <span className="text-xs font-bold" style={{ color: colors[idx] || "#7c3aed" }}>{item.value}</span>
+    <div
+      className="relative rounded-2xl overflow-hidden p-5"
+      style={{
+        background: "linear-gradient(135deg, rgba(124,58,237,0.05) 0%, rgba(15,15,20,0.8) 100%)",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
+      {/* grid bg */}
+      <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
+      <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.4), transparent)" }} />
+
+      <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-4 relative">Размер рынка (визуализация)</div>
+
+      <div className="relative flex items-center gap-8">
+        {/* SVG circles */}
+        <div className="flex-shrink-0">
+          <svg viewBox="0 0 240 240" style={{ width: 180, height: 180 }}>
+            <defs>
+              {RINGS.map((r, i) => (
+                <radialGradient key={i} id={`rg${i}`} cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor={r.color} stopOpacity="0.15" />
+                  <stop offset="100%" stopColor={r.color} stopOpacity="0.03" />
+                </radialGradient>
+              ))}
+            </defs>
+            {/* rings from outside in */}
+            {numericItems.map((item, i) => {
+              const frac = Math.pow(item.numeric! / max, 0.45);
+              const r = maxR * frac;
+              const ring = RINGS[i];
+              return (
+                <g key={i}>
+                  <circle cx={cx} cy={cy} r={r} fill={`url(#rg${i})`} />
+                  <circle cx={cx} cy={cy} r={r} fill="none" stroke={ring.color} strokeWidth={i === 0 ? 1.5 : 1}
+                    style={{ filter: `drop-shadow(0 0 6px ${ring.glow})` }} />
+                </g>
+              );
+            }).reverse()}
+            {/* center dot */}
+            <circle cx={cx} cy={cy} r="3" fill="#10b981" style={{ filter: "drop-shadow(0 0 6px rgba(16,185,129,0.8))" }} />
+          </svg>
+        </div>
+
+        {/* legend */}
+        <div className="flex-1 space-y-4">
+          {numericItems.map((item, i) => {
+            const ring = RINGS[i];
+            return (
+              <div key={i} className="flex items-center gap-3">
+                <div className="size-2.5 rounded-full flex-shrink-0" style={{ background: ring.color, boxShadow: `0 0 8px ${ring.glow}` }} />
+                <div className="flex-1 min-w-0">
+                  <div className="text-[10px] text-white/35 mb-0.5">{item.label}</div>
+                  <div className="text-base font-bold font-mono leading-tight" style={{ color: ring.color }}>{item.value}</div>
+                </div>
               </div>
-              <div className="h-2 bg-white/[0.05] rounded-full overflow-hidden">
-                <div
-                  className="h-full rounded-full transition-all duration-700"
-                  style={{ width: `${pct}%`, background: `linear-gradient(90deg, ${colors[idx] || "#7c3aed"}, ${colors[idx] || "#7c3aed"}88)` }}
-                />
-              </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -807,38 +852,71 @@ export default function ProjectPage() {
 
       {/* ── Рынок ── */}
       {activeTab === "Рынок" && (
-        <div className="space-y-5">
-          <MarketBarChart items={project.market} />
-          <div className="grid grid-cols-2 gap-4">
-            {project.market.map((m) => (
-              <Card key={m.label} className="p-5">
-                <CardContent className="p-0">
-                  <div className="text-2xl font-bold text-violet-400 mb-1">{m.value}</div>
-                  <div className="text-xs text-white/40">{m.label}</div>
-                </CardContent>
-              </Card>
-            ))}
+        <div className="space-y-4">
+          {/* Concentric rings TAM/SAM/SOM */}
+          <MarketConcentricChart items={project.market} />
+
+          {/* Glassmorphism market metric cards */}
+          <div className="grid grid-cols-2 gap-3">
+            {project.market.map((m, i) => {
+              const colors = ["#a78bfa", "#60a5fa", "#34d399", "#f59e0b"];
+              const color = colors[i % colors.length];
+              return (
+                <div
+                  key={m.label}
+                  className="relative rounded-xl overflow-hidden p-5 group transition-all duration-300 hover:scale-[1.02]"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    backdropFilter: "blur(12px)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.2)",
+                  }}
+                >
+                  <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${color}50, transparent)` }} />
+                  <div className="text-2xl font-bold font-mono mb-1.5" style={{ color }}>{m.value}</div>
+                  <div className="text-[11px] text-white/35">{m.label}</div>
+                </div>
+              );
+            })}
           </div>
-          {/* Business Analyst insights */}
+
+          {/* Business Analyst — premium panel */}
           {aiResults.length > 0 && (() => {
             const ba = aiResults.find(r => r.role === "Business Analyst");
             return ba ? (
-              <Card>
-                <CardContent className="p-5">
-                  <div className="flex items-center gap-2 mb-3">
-                    <div className="size-7 rounded-lg flex items-center justify-center text-xs font-bold" style={{ background: "#f9731618", border: "1px solid #f9731630", color: "#f97316" }}>B</div>
-                    <span className="text-xs font-semibold text-white/60">Бизнес-аналитик — Рыночный анализ</span>
-                    <span className="ml-auto text-xs font-bold" style={{ color: "#f97316" }}>{ba.score}/100</span>
+              <div
+                className="relative rounded-2xl overflow-hidden p-5"
+                style={{
+                  background: "linear-gradient(135deg, rgba(249,115,22,0.06) 0%, rgba(15,15,20,0.6) 100%)",
+                  border: "1px solid rgba(249,115,22,0.14)",
+                  backdropFilter: "blur(16px)",
+                  boxShadow: "inset 0 1px 0 rgba(249,115,22,0.1), 0 8px 32px rgba(0,0,0,0.3)",
+                }}
+              >
+                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(249,115,22,0.45), transparent)" }} />
+                {/* header */}
+                <div className="flex items-center gap-3 mb-4">
+                  <div
+                    className="size-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                    style={{ background: "rgba(249,115,22,0.14)", border: "1px solid rgba(249,115,22,0.24)", color: "#f97316" }}
+                  >B</div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-white/80">Бизнес-аналитик — Рыночный анализ</div>
+                    <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · Исследование рынка</div>
                   </div>
-                  {ba.analysis && <p className="text-[13px] text-white/55 leading-relaxed">{ba.analysis}</p>}
-                  {ba.facts && (
-                    <div className="mt-3 pt-3 border-t border-white/[0.05]">
-                      <div className="text-[9px] text-white/25 uppercase tracking-widest mb-1.5">Факты и данные</div>
-                      <p className="text-[12px] text-white/50 leading-relaxed whitespace-pre-line">{ba.facts}</p>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                  <CircularScore score={ba.score} color="#f97316" />
+                </div>
+                {/* analysis text — readable */}
+                {ba.analysis && (
+                  <p className="text-[13px] text-white/65 leading-[1.8] tracking-[0.01em]">{ba.analysis}</p>
+                )}
+                {ba.facts && (
+                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
+                    <div className="text-[9px] text-white/25 uppercase tracking-[0.2em] mb-2">Факты и данные</div>
+                    <p className="text-[12px] text-white/50 leading-[1.8] whitespace-pre-line">{ba.facts}</p>
+                  </div>
+                )}
+              </div>
             ) : null;
           })()}
         </div>
