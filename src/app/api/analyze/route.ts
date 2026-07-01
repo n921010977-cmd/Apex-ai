@@ -33,14 +33,27 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
   try {
     const response = await getClient().messages.create({
       model: "claude-haiku-4-5-20251001",
-      max_tokens: 4000,
+      max_tokens: 6000,
       system: systemPrompt,
       messages: [{ role: "user", content: buildUserMessage(brief) }],
     });
 
     const text = response.content[0].type === "text" ? response.content[0].text : "";
     // Strip markdown code fences if present
-    const clean = text.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+    let clean = text.replace(/^```(?:json)?\n?/m, "").replace(/\n?```$/m, "").trim();
+
+    // If JSON was truncated (stop_reason = max_tokens), attempt to close it
+    if (response.stop_reason === "max_tokens") {
+      // Try to close open string/object/array by finding last valid JSON boundary
+      try { JSON.parse(clean); } catch {
+        // Close any open string, then close objects/arrays
+        const openBraces = (clean.match(/\{/g) ?? []).length - (clean.match(/\}/g) ?? []).length;
+        const openBrackets = (clean.match(/\[/g) ?? []).length - (clean.match(/\]/g) ?? []).length;
+        if (clean.endsWith('"') || clean.split('"').length % 2 === 0) clean += '"';
+        clean += "]".repeat(Math.max(0, openBrackets)) + "}".repeat(Math.max(0, openBraces));
+      }
+    }
+
     const parsed = JSON.parse(clean);
 
     return {
