@@ -69,6 +69,63 @@ export const CreateReportSchema = z.object({
 
 export const UpdateReportSchema = CreateReportSchema.partial();
 
+export const GenerateReportSchema = z.object({
+  projectId: z.string().min(1, "projectId is required"),
+  title: z.string().min(2).max(300).optional(),
+  type: z.enum(["STRATEGY", "FINANCIAL", "MARKETING", "OPERATIONS", "ANALYSIS", "EXECUTIVE", "CUSTOM"]).default("EXECUTIVE"),
+});
+
+// ─── Report section content schemas (Zod-validated agent output) ──────────────
+
+const SectionScoreSchema = z.object({
+  score: z.number().min(0).max(100),
+  markdown: z.string().min(1),
+});
+
+export const FinanceSectionSchema = SectionScoreSchema.extend({
+  unitEconomics: z.object({
+    ltv: z.number().optional(),
+    cac: z.number().optional(),
+    ltvCacRatio: z.number().optional(),
+    grossMargin: z.number().optional(),
+    paybackMonths: z.number().optional(),
+  }).optional(),
+  scenarios: z.array(z.object({ name: z.string(), revenueY1: z.number(), revenueY2: z.number(), revenueY3: z.number() })).optional(),
+});
+
+export const MarketSectionSchema = SectionScoreSchema.extend({
+  tam: z.number().optional(),
+  sam: z.number().optional(),
+  som: z.number().optional(),
+  competitors: z.array(z.object({ name: z.string(), strength: z.string(), weakness: z.string() })).max(5).optional(),
+});
+
+export const MarketingSectionSchema = SectionScoreSchema.extend({
+  channels: z.array(z.object({ name: z.string(), priority: z.enum(["HIGH", "MEDIUM", "LOW"]), cac: z.number().optional() })).optional(),
+});
+
+export const OperationsSectionSchema = SectionScoreSchema.extend({
+  milestones: z.array(z.object({ week: z.number(), title: z.string(), description: z.string() })).optional(),
+});
+
+export const RisksSectionSchema = SectionScoreSchema.extend({
+  risks: z.array(z.object({
+    title: z.string(),
+    probability: z.enum(["HIGH", "MEDIUM", "LOW"]),
+    impact: z.enum(["HIGH", "MEDIUM", "LOW"]),
+    mitigation: z.string(),
+  })).min(1).max(10),
+});
+
+export const RoadmapSectionSchema = SectionScoreSchema.extend({
+  phases: z.array(z.object({
+    phase: z.number(),
+    title: z.string(),
+    duration: z.string(),
+    goals: z.array(z.string()),
+  })).optional(),
+});
+
 // ─── Tasks ────────────────────────────────────────────────────────────────────
 
 export const CreateTaskSchema = z.object({

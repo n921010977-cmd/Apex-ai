@@ -24,6 +24,9 @@ model User {
   organization   Organization? @relation(fields: [organizationId], references: [id])
   organizationId String?
 
+  reportsThisMonth Int @default(0)
+  reportsResetAt   DateTime?
+
   sessions      Session[]
   projects      Project[]
   messages      Message[]
@@ -222,25 +225,31 @@ enum MsgStatus {
 // ─── Reports ──────────────────────────────────────────────────────────────────
 
 model Report {
-  id        String       @id @default(cuid())
-  title     String
-  content   String       @db.Text
-  type      ReportType
-  status    ReportStatus @default(DRAFT)
-  version   Int          @default(1)
-  metadata  Json         @default("{}")
-  userId    String
-  projectId String?
-  createdAt DateTime     @default(now())
-  updatedAt DateTime     @updatedAt
+  id           String             @id @default(cuid())
+  title        String
+  content      String             @db.Text
+  type         ReportType
+  status       ReportStatus       @default(DRAFT)
+  genStatus    ReportGenStatus    @default(PENDING)
+  overallScore Int?
+  totalPages   Int                @default(0)
+  summary      String?            @db.Text
+  version      Int                @default(1)
+  metadata     Json               @default("{}")
+  userId       String
+  projectId    String?
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
 
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  project  Project? @relation(fields: [projectId], references: [id])
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project?      @relation(fields: [projectId], references: [id])
   versions ReportVersion[]
+  sections ReportSection[]
   files    File[]
 
   @@index([userId])
   @@index([projectId])
+  @@index([genStatus])
 }
 
 enum ReportType {
@@ -258,6 +267,41 @@ enum ReportStatus {
   REVIEW
   PUBLISHED
   ARCHIVED
+}
+
+enum ReportGenStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model ReportSection {
+  id       String            @id @default(cuid())
+  reportId String
+  type     ReportSectionType
+  title    String
+  content  Json              @default("{}")
+  score    Int?
+  status   ReportGenStatus   @default(PENDING)
+  sortOrder Int              @default(0)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@unique([reportId, type])
+  @@index([reportId])
+}
+
+enum ReportSectionType {
+  SUMMARY
+  FINANCE
+  MARKET
+  MARKETING
+  OPERATIONS
+  RISKS
+  ROADMAP
 }
 
 model ReportVersion {

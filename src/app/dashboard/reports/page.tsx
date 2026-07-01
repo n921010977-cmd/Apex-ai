@@ -1,346 +1,541 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import {
+  FileText, DollarSign, Search, Target, Settings, AlertTriangle,
+  Clock, ChevronRight, Download, Share2, Plus, CheckCircle,
+  Loader2,
+} from "lucide-react";
 
-const REPORTS = [
+// ─── Types ────────────────────────────────────────────────────────────────────
+
+type ReportStatus = "COMPLETED" | "PROCESSING" | "PENDING" | "FAILED";
+
+interface ReportSection {
+  id: string;
+  type: string;
+  title: string;
+  color: string;
+  glow: string;
+  icon: React.ReactNode;
+}
+
+interface MockReport {
+  id: string;
+  title: string;
+  type: string;
+  status: ReportStatus;
+  pages: number;
+  score: number;
+  time: string;
+  summary: string;
+}
+
+// ─── Static data ──────────────────────────────────────────────────────────────
+
+const REPORTS: MockReport[] = [
   {
-    id: "1",
+    id: "r1",
     title: "Фитнес-платформа на базе ИИ — Полный отчёт",
     type: "Полный анализ",
-    date: "2 часа назад",
+    status: "COMPLETED",
     pages: 24,
     score: 87,
-    status: "ready",
-    summary: "Проект демонстрирует высокий потенциал в быстрорастущем рынке. Финансовая модель устойчива с прогнозом выхода на прибыль через 18 месяцев. Рекомендуется ускорить выход на рынок для захвата первичной доли.",
-    sections: ["Резюме", "Финансовая модель", "Анализ рынка", "Маркетинг", "Операции", "Риски", "Дорожная карта"],
+    time: "2 часа назад",
+    summary:
+      "Проект демонстрирует высокий потенциал в быстрорастущем рынке. Финансовая модель устойчива с прогнозом выхода на прибыль через 18 месяцев. Рекомендуется ускорить выход на рынок для захвата первичной доли.",
   },
   {
-    id: "2",
+    id: "r2",
     title: "SaaS Invoice Platform — Стратегический отчёт",
     type: "Стратегический",
-    date: "Вчера",
+    status: "COMPLETED",
     pages: 18,
     score: 91,
-    status: "ready",
-    summary: "SaaS Invoice Platform показывает исключительные метрики unit-экономики. LTV/CAC 11.2x — класс-А по отраслевым стандартам. Приоритет — масштабирование через канал дизайн-агентств.",
-    sections: ["Резюме", "Финансовая модель", "Анализ рынка", "Маркетинг", "Технологии"],
+    time: "Вчера",
+    summary:
+      "Продукт демонстрирует отличный product-market fit в сегменте малого бизнеса. Unit-экономика сильная: LTV/CAC = 4.2x. Рекомендуется инвестировать в SEO-канал для снижения CAC на 30%.",
   },
   {
-    id: "3",
+    id: "r3",
     title: "Сеть ресторанов — Анализ расширения",
     type: "В работе",
-    date: "В процессе",
+    status: "PROCESSING",
     pages: 0,
     score: 72,
-    status: "in_progress",
+    time: "В процессе",
     summary: "",
-    sections: [],
   },
 ];
 
-// Section config: icon + accent color
-const SECTION_CFG: Record<string, { color: string; glow: string; icon: React.ReactNode }> = {
-  "Резюме": {
-    color: "#a78bfa", glow: "rgba(167,139,250,0.35)",
-    icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M3 2h7l3 3v9H3V2z"/><path d="M10 2v3h3"/><line x1="5" y1="7" x2="11" y2="7"/><line x1="5" y1="9.5" x2="11" y2="9.5"/><line x1="5" y1="12" x2="8" y2="12"/></svg>,
-  },
-  "Финансовая модель": {
-    color: "#34d399", glow: "rgba(52,211,153,0.35)",
-    icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="8" y1="1" x2="8" y2="15"/><path d="M11 3.5H6.5a2.5 2.5 0 0 0 0 5h3a2.5 2.5 0 0 1 0 5H4"/></svg>,
-  },
-  "Анализ рынка": {
-    color: "#22d3ee", glow: "rgba(34,211,238,0.35)",
-    icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="7" cy="7" r="5"/><path d="m13 13-2.5-2.5"/></svg>,
-  },
-  "Маркетинг": {
-    color: "#f472b6", glow: "rgba(244,114,182,0.35)",
-    icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2L9 4 4 2 2 6l5 2 3 5 4-2-2-5z"/><circle cx="4.5" cy="11.5" r="1.5"/></svg>,
-  },
-  "Операции": {
-    color: "#fbbf24", glow: "rgba(251,191,36,0.35)",
-    icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42"/></svg>,
-  },
-  "Риски": {
-    color: "#f87171", glow: "rgba(248,113,113,0.35)",
-    icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 1L1 14h14L8 1z"/><line x1="8" y1="6" x2="8" y2="9.5"/><circle cx="8" cy="11.5" r="0.75" fill="currentColor"/></svg>,
-  },
-  "Технологии": {
-    color: "#60a5fa", glow: "rgba(96,165,250,0.35)",
-    icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="11 12 14 8 11 4"/><polyline points="5 4 2 8 5 12"/><line x1="9.5" y1="3" x2="6.5" y2="13"/></svg>,
-  },
-  "Дорожная карта": {
-    color: "#818cf8", glow: "rgba(129,140,248,0.35)",
-    icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>,
-  },
-};
+const SECTIONS: ReportSection[] = [
+  { id: "summary",   type: "SUMMARY",    title: "Резюме",            color: "#a78bfa", glow: "rgba(167,139,250,0.35)", icon: <FileText      size={15} /> },
+  { id: "finance",   type: "FINANCE",    title: "Финансовая модель", color: "#34d399", glow: "rgba(52,211,153,0.35)",  icon: <DollarSign    size={15} /> },
+  { id: "market",    type: "MARKET",     title: "Анализ рынка",      color: "#22d3ee", glow: "rgba(34,211,238,0.35)",  icon: <Search        size={15} /> },
+  { id: "marketing", type: "MARKETING",  title: "Маркетинг",         color: "#f472b6", glow: "rgba(244,114,182,0.35)", icon: <Target        size={15} /> },
+  { id: "ops",       type: "OPERATIONS", title: "Операции",          color: "#fbbf24", glow: "rgba(251,191,36,0.35)",  icon: <Settings      size={15} /> },
+  { id: "risks",     type: "RISKS",      title: "Риски",             color: "#f87171", glow: "rgba(248,113,113,0.35)", icon: <AlertTriangle size={15} /> },
+  { id: "roadmap",   type: "ROADMAP",    title: "Дорожная карта",    color: "#60a5fa", glow: "rgba(96,165,250,0.35)",  icon: <Clock         size={15} /> },
+];
 
-export default function ReportsPage() {
-  const [selected, setSelected] = useState<string>("1");
-  const activeReport = REPORTS.find((r) => r.id === selected) ?? null;
+// ─── Circular score gauge ──────────────────────────────────────────────────────
+
+function ScoreGauge({ score, size = 72 }: { score: number; size?: number }) {
+  const r = (size - 10) / 2;
+  const circ = 2 * Math.PI * r;
+  const dash = (score / 100) * circ;
+  const color = score >= 85 ? "#34d399" : score >= 70 ? "#f59e0b" : "#f87171";
+  const cx = size / 2;
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="flex-shrink-0">
+      <defs>
+        <filter id="sg-glow">
+          <feGaussianBlur stdDeviation="2" result="blur" />
+          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
+        </filter>
+      </defs>
+      <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
+      <circle
+        cx={cx} cy={cx} r={r} fill="none"
+        stroke={color} strokeWidth="5"
+        strokeDasharray={`${dash} ${circ - dash}`}
+        strokeDashoffset={circ * 0.25}
+        strokeLinecap="round"
+        filter="url(#sg-glow)"
+      />
+      <text x={cx} y={cx + 5} textAnchor="middle" fontSize="16" fontWeight="800" fill="white" fontFamily="monospace">{score}</text>
+      <text x={cx} y={cx + 17} textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.35)" fontFamily="system-ui" letterSpacing="1">Бизнес-балл</text>
+    </svg>
+  );
+}
+
+// ─── Generating loader (skeleton) ─────────────────────────────────────────────
+
+function GeneratingLoader() {
+  const steps = [
+    { label: "Финансовый агент",    color: "#34d399", done: true  },
+    { label: "Маркетинговый агент", color: "#22d3ee", done: true  },
+    { label: "Операционный агент",  color: "#fbbf24", done: false },
+    { label: "Агент рисков",        color: "#f87171", done: false },
+    { label: "Оркестратор",         color: "#a78bfa", done: false },
+  ];
+  const activeIdx = steps.findIndex(s => !s.done);
+
+  return (
+    <div className="flex flex-col items-center justify-center min-h-[420px] gap-7 py-6">
+      {/* Spinner rings */}
+      <div className="relative size-20">
+        <div className="absolute inset-0 rounded-full border-2 border-violet-500/20 animate-ping" />
+        <div
+          className="absolute inset-1 rounded-full border-2 border-violet-400/30 animate-spin"
+          style={{ animationDuration: "2s", borderTopColor: "#7c3aed" }}
+        />
+        <div
+          className="absolute inset-3 rounded-full border-2 border-violet-300/20 animate-spin"
+          style={{ animationDuration: "3s", animationDirection: "reverse", borderTopColor: "#a78bfa" }}
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <Loader2 size={18} className="text-violet-400 animate-spin" />
+        </div>
+      </div>
+
+      <div className="text-center">
+        <div className="text-base font-semibold text-white mb-1">Генерация отчёта</div>
+        <div className="text-xs text-white/35">AI-агенты анализируют ваш проект</div>
+      </div>
+
+      {/* Agent progress bars */}
+      <div className="w-full max-w-xs space-y-2.5">
+        {steps.map((s, i) => (
+          <div key={i} className="flex items-center gap-3">
+            <div
+              className="size-5 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{
+                background: s.done ? `${s.color}20` : "rgba(255,255,255,0.04)",
+                border: `1px solid ${s.done ? `${s.color}40` : "rgba(255,255,255,0.08)"}`,
+              }}
+            >
+              {s.done
+                ? <CheckCircle size={10} style={{ color: s.color }} />
+                : i === activeIdx
+                  ? <Loader2 size={9} className="animate-spin text-white/40" />
+                  : null}
+            </div>
+            <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-white/[0.04]">
+              <div
+                className="h-full rounded-full transition-all duration-700"
+                style={{
+                  width: s.done ? "100%" : i === activeIdx ? "45%" : "0%",
+                  background: s.done ? s.color : `${s.color}55`,
+                  boxShadow: s.done ? `0 0 6px ${s.color}80` : "none",
+                }}
+              />
+            </div>
+            <span className="text-[10px] text-white/30 w-28 text-right truncate">{s.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Skeleton text lines */}
+      <div className="w-full space-y-2">
+        {[82, 58, 72, 44].map((w, i) => (
+          <div key={i} className="h-2.5 rounded-full bg-white/[0.04] overflow-hidden">
+            <div
+              className="h-full rounded-full animate-pulse"
+              style={{ width: `${w}%`, background: "rgba(124,58,237,0.2)", animationDelay: `${i * 220}ms` }}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Report card (left list) ──────────────────────────────────────────────────
+
+function ReportCard({ report, active, onClick }: { report: MockReport; active: boolean; onClick: () => void }) {
+  const isProcessing = report.status === "PROCESSING";
+  const statusColor  = report.status === "COMPLETED" ? "#34d399" : isProcessing ? "#f59e0b" : "#f87171";
+  const statusLabel  = report.status === "COMPLETED" ? "Готов"   : isProcessing ? "В работе" : "Ошибка";
+
+  return (
+    <button
+      onClick={onClick}
+      className="relative w-full text-left rounded-2xl p-4 transition-all duration-200 group hover:scale-[1.01] overflow-hidden"
+      style={{
+        background: active
+          ? "linear-gradient(135deg, rgba(124,58,237,0.13) 0%, rgba(10,10,14,0.9) 100%)"
+          : "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(10,10,14,0.7) 100%)",
+        border: active ? "1px solid rgba(124,58,237,0.32)" : "1px solid rgba(255,255,255,0.07)",
+        backdropFilter: "blur(12px)",
+        boxShadow: active
+          ? "inset 0 1px 0 rgba(124,58,237,0.18), 0 8px 24px rgba(0,0,0,0.3)"
+          : "inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 12px rgba(0,0,0,0.2)",
+      }}
+    >
+      {/* shimmer top edge */}
+      <div
+        className="absolute inset-x-0 top-0 h-px"
+        style={{ background: `linear-gradient(90deg, transparent, ${active ? "rgba(124,58,237,0.55)" : "rgba(255,255,255,0.08)"}, transparent)` }}
+      />
+
+      <div className="flex items-start justify-between mb-2 gap-2">
+        <span
+          className="inline-flex items-center gap-1.5 text-[9px] font-semibold px-2 py-0.5 rounded-full"
+          style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}30` }}
+        >
+          <span
+            className="size-1.5 rounded-full"
+            style={{ background: statusColor, boxShadow: `0 0 4px ${statusColor}` }}
+          />
+          {statusLabel}
+        </span>
+        <span className="text-[9px] text-white/25 flex-shrink-0">{report.time}</span>
+      </div>
+
+      <div className="text-[12.5px] font-semibold text-white/85 leading-snug mb-2 group-hover:text-white transition-colors">
+        {report.title}
+      </div>
+
+      <div className="flex items-center gap-2 text-[10px] text-white/30 flex-wrap">
+        <span>{report.type}</span>
+        {report.pages > 0 && (
+          <><span className="text-white/15">•</span><span>{report.pages} стр.</span></>
+        )}
+        {report.score > 0 && (
+          <>
+            <span className="text-white/15">•</span>
+            <span className="font-semibold" style={{ color: report.score >= 85 ? "#34d399" : "#f59e0b" }}>
+              {report.score}/100
+            </span>
+          </>
+        )}
+        {isProcessing && (
+          <span className="flex items-center gap-1 text-amber-400/60">
+            <Loader2 size={8} className="animate-spin" />
+            Генерация…
+          </span>
+        )}
+      </div>
+    </button>
+  );
+}
+
+// ─── Section tile ──────────────────────────────────────────────────────────────
+
+function SectionTile({ section }: { section: ReportSection }) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <button
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      className="relative flex items-center gap-3 px-4 py-3.5 rounded-xl text-left overflow-hidden transition-all duration-200 group"
+      style={{
+        background: hovered
+          ? `linear-gradient(135deg, ${section.color}14 0%, rgba(10,10,14,0.85) 100%)`
+          : "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(10,10,14,0.7) 100%)",
+        border: hovered ? `1px solid ${section.color}35` : "1px solid rgba(255,255,255,0.06)",
+        backdropFilter: "blur(10px)",
+        boxShadow: hovered
+          ? `0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 ${section.color}18`
+          : "inset 0 1px 0 rgba(255,255,255,0.04)",
+      }}
+    >
+      {hovered && (
+        <div
+          className="absolute inset-x-0 top-0 h-px"
+          style={{ background: `linear-gradient(90deg, transparent, ${section.color}55, transparent)` }}
+        />
+      )}
+
+      <div
+        className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
+        style={{
+          background: hovered ? `${section.color}22` : `${section.color}10`,
+          border: `1px solid ${section.color}${hovered ? "38" : "20"}`,
+          color: section.color,
+          boxShadow: hovered ? `0 0 12px ${section.glow}` : "none",
+          transform: hovered ? "scale(1.08)" : "scale(1)",
+        }}
+      >
+        {section.icon}
+      </div>
+
+      <span className="flex-1 text-[12.5px] font-medium text-white/65 group-hover:text-white transition-colors">
+        {section.title}
+      </span>
+
+      <ChevronRight
+        size={13}
+        className="text-white/20 transition-all duration-200 group-hover:text-white/50 group-hover:translate-x-0.5"
+      />
+    </button>
+  );
+}
+
+// ─── Main page ────────────────────────────────────────────────────────────────
+
+export default function ReportsPage() {
+  const [activeReport, setActiveReport] = useState<MockReport>(REPORTS[0]);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
+  if (!mounted) return null;
+
+  const isProcessing = activeReport.status === "PROCESSING";
+  const used = 1; const total = 3;
+
+  return (
+    <div className="p-6 max-w-[1200px] mx-auto">
+
+      {/* ── Page header ── */}
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
         <div>
           <h1 className="text-xl font-bold text-white mb-0.5">Отчёты</h1>
           <p className="text-sm text-white/35">Аналитические отчёты по вашим проектам</p>
         </div>
         <div className="flex items-center gap-3">
-          <span className="text-xs text-white/30">Использовано: 1 из 3</span>
+          <div className="text-[11px] text-white/30">
+            Использовано: <span className="text-white/55 font-medium">{used} из {total}</span>
+          </div>
           <button
-            className="h-9 px-4 text-xs font-semibold text-white rounded-xl transition-all duration-200 hover:-translate-y-0.5"
+            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold text-white transition-all duration-200 hover:scale-[1.03] hover:brightness-110"
             style={{
-              background: "linear-gradient(135deg, #7c3aed, #3b82f6)",
-              boxShadow: "0 6px 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.14)",
+              background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
+              boxShadow: "0 6px 20px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
             }}
           >
+            <Plus size={14} />
             Создать отчёт
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[300px_1fr] gap-5">
+      {/* ── Two-panel layout ── */}
+      <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-5 items-start">
 
         {/* ── Left: report list ── */}
-        <div className="space-y-3">
-          {REPORTS.map((r) => {
-            const isActive = selected === r.id;
-            const isBlocked = r.status === "in_progress";
-            const scoreColor = r.score >= 85 ? "#34d399" : r.score >= 75 ? "#f59e0b" : "#f87171";
-            return (
-              <div
-                key={r.id}
-                onClick={() => !isBlocked && setSelected(r.id)}
-                className="relative rounded-2xl overflow-hidden p-4 transition-all duration-200"
-                style={{
-                  background: isActive
-                    ? "linear-gradient(135deg, rgba(124,58,237,0.14) 0%, rgba(10,10,14,0.92) 100%)"
-                    : "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(10,10,14,0.8) 100%)",
-                  border: isActive
-                    ? "1px solid rgba(124,58,237,0.35)"
-                    : "1px solid rgba(255,255,255,0.07)",
-                  backdropFilter: "blur(10px)",
-                  cursor: isBlocked ? "not-allowed" : "pointer",
-                  opacity: isBlocked ? 0.55 : 1,
-                  boxShadow: isActive ? "inset 0 1px 0 rgba(124,58,237,0.2), 0 8px 24px rgba(0,0,0,0.3)" : "none",
-                }}
-              >
-                {/* shimmer top */}
-                <div className="absolute inset-x-0 top-0 h-px" style={{
-                  background: isActive
-                    ? "linear-gradient(90deg, transparent, rgba(124,58,237,0.6), transparent)"
-                    : "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)",
-                }} />
+        <div className="space-y-2.5">
+          {REPORTS.map((r) => (
+            <ReportCard
+              key={r.id}
+              report={r}
+              active={activeReport.id === r.id}
+              onClick={() => setActiveReport(r)}
+            />
+          ))}
 
-                {/* status + date */}
-                <div className="flex items-center justify-between mb-2">
-                  <span
-                    className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                    style={r.status === "ready" ? {
-                      background: "rgba(52,211,153,0.12)",
-                      border: "1px solid rgba(52,211,153,0.25)",
-                      color: "#34d399",
-                    } : {
-                      background: "rgba(251,191,36,0.12)",
-                      border: "1px solid rgba(251,191,36,0.25)",
-                      color: "#fbbf24",
-                    }}
-                  >
-                    <span className="size-1.5 rounded-full flex-shrink-0" style={{
-                      background: r.status === "ready" ? "#34d399" : "#fbbf24",
-                      boxShadow: r.status === "ready" ? "0 0 5px rgba(52,211,153,0.8)" : "0 0 5px rgba(251,191,36,0.8)",
-                    }} />
-                    {r.status === "ready" ? "Готов" : "В работе"}
-                  </span>
-                  <span className="text-[9px] text-white/25">{r.date}</span>
-                </div>
-
-                {/* title */}
-                <h3 className="text-[12px] font-semibold text-white/85 leading-snug mb-2">{r.title}</h3>
-
-                {/* meta */}
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[9px] text-white/30">{r.type}</span>
-                  {r.pages > 0 && (
-                    <>
-                      <span className="text-white/15">·</span>
-                      <span className="text-[9px] text-white/30">{r.pages} стр.</span>
-                    </>
-                  )}
-                  <span className="text-white/15">·</span>
-                  <span className="text-[9px] font-bold font-mono" style={{ color: scoreColor }}>{r.score}/100</span>
-                </div>
-              </div>
-            );
-          })}
-
-          {/* Usage indicator */}
+          {/* Limit block */}
           <div
-            className="relative rounded-2xl overflow-hidden p-4 text-center"
+            className="rounded-2xl p-4 text-center"
             style={{
-              border: "1px dashed rgba(255,255,255,0.08)",
-              background: "transparent",
+              background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(10,10,14,0.6) 100%)",
+              border: "1px solid rgba(255,255,255,0.05)",
+              backdropFilter: "blur(10px)",
             }}
           >
-            <p className="text-[10px] text-white/25 mb-2">Осталось 2 отчёта в месяц</p>
-            <button className="text-[10px] text-violet-400/70 hover:text-violet-300 transition-colors">Апгрейд для безлимита →</button>
+            <div className="text-[11px] text-white/30 mb-2">
+              Осталось <span className="text-white/55 font-semibold">{total - used} отчёта</span> в месяц
+            </div>
+            <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden mb-3">
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${(used / total) * 100}%`,
+                  background: "linear-gradient(90deg, #7c3aed, #6366f1)",
+                  boxShadow: "0 0 8px rgba(124,58,237,0.5)",
+                }}
+              />
+            </div>
+            <Link
+              href="/dashboard/settings"
+              className="text-[11px] text-violet-400/70 hover:text-violet-300 transition-colors"
+            >
+              Апгрейд для безлимита →
+            </Link>
           </div>
         </div>
 
         {/* ── Right: detail panel ── */}
-        {activeReport ? (
+        <div
+          className="relative rounded-2xl overflow-hidden"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.035) 0%, rgba(10,10,14,0.95) 100%)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            backdropFilter: "blur(20px)",
+            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), 0 20px 60px rgba(0,0,0,0.4)",
+          }}
+        >
+          {/* shimmer top */}
           <div
-            className="relative rounded-2xl overflow-hidden p-6"
-            style={{
-              background: "linear-gradient(160deg, rgba(124,58,237,0.07) 0%, rgba(59,130,246,0.03) 40%, rgba(10,10,14,0.95) 100%)",
-              border: "1px solid rgba(255,255,255,0.08)",
-              backdropFilter: "blur(20px)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), 0 20px 60px rgba(0,0,0,0.4)",
-            }}
-          >
-            {/* Top shimmer */}
-            <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.5), rgba(59,130,246,0.3), transparent)" }} />
-            {/* Subtle radial glow bg */}
-            <div className="absolute top-0 left-0 w-80 h-48 opacity-[0.08] pointer-events-none" style={{ background: "radial-gradient(ellipse at 30% 0%, #7c3aed 0%, transparent 70%)" }} />
+            className="absolute inset-x-0 top-0 h-px"
+            style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.5), rgba(59,130,246,0.35), transparent)" }}
+          />
+          {/* radial bg glow */}
+          <div
+            className="absolute top-0 left-0 right-0 h-40 pointer-events-none"
+            style={{ background: "radial-gradient(ellipse at 40% 0%, rgba(124,58,237,0.07) 0%, transparent 70%)" }}
+          />
+
+          <div className="relative p-6">
 
             {/* Header */}
-            <div className="flex items-start justify-between mb-6 relative">
-              <div className="flex-1 min-w-0 pr-6">
-                <h2 className="text-base font-bold text-white mb-2 leading-snug">{activeReport.title}</h2>
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div className="flex-1 min-w-0">
+                <h2 className="text-base font-bold text-white leading-snug mb-3">{activeReport.title}</h2>
                 <div className="flex items-center gap-2 flex-wrap">
+                  {/* status badge */}
                   <span
-                    className="inline-flex items-center gap-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                    style={{ background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)", color: "#34d399" }}
+                    className="inline-flex items-center gap-1.5 text-[9px] font-semibold px-2.5 py-1 rounded-full"
+                    style={{
+                      background: isProcessing ? "rgba(245,158,11,0.12)" : "rgba(52,211,153,0.12)",
+                      color: isProcessing ? "#f59e0b" : "#34d399",
+                      border: `1px solid ${isProcessing ? "rgba(245,158,11,0.3)" : "rgba(52,211,153,0.3)"}`,
+                    }}
                   >
-                    <span className="size-1.5 rounded-full bg-emerald-400" style={{ boxShadow: "0 0 5px rgba(52,211,153,0.8)" }} />
-                    Готов
+                    <span
+                      className="size-1.5 rounded-full animate-pulse"
+                      style={{ background: isProcessing ? "#f59e0b" : "#34d399" }}
+                    />
+                    {isProcessing ? "В работе" : "Готов"}
                   </span>
-                  <span className="text-[10px] text-white/30">{activeReport.pages} страниц</span>
-                  <span className="text-white/15">·</span>
-                  <span className="text-[10px] text-white/30">{activeReport.date}</span>
+
+                  {activeReport.pages > 0 && (
+                    <span className="inline-flex items-center gap-1 text-[9px] text-white/30 px-2 py-1 rounded-full border border-white/[0.06] bg-white/[0.02]">
+                      <FileText size={9} />
+                      {activeReport.pages} страниц
+                    </span>
+                  )}
+                  {!isProcessing && (
+                    <span className="inline-flex items-center gap-1 text-[9px] text-white/30 px-2 py-1 rounded-full border border-white/[0.06] bg-white/[0.02]">
+                      <Clock size={9} />
+                      {activeReport.time}
+                    </span>
+                  )}
                 </div>
               </div>
 
-              {/* Score gauge */}
-              <div className="flex-shrink-0 text-right">
-                {(() => {
-                  const color = activeReport.score >= 85 ? "#34d399" : "#f59e0b";
-                  const r = 22; const circ = 2 * Math.PI * r;
-                  const dash = (activeReport.score / 100) * circ;
-                  return (
-                    <div className="flex flex-col items-end gap-1">
-                      <svg viewBox="0 0 56 56" style={{ width: 56, height: 56 }}>
-                        <circle cx="28" cy="28" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5"/>
-                        <circle cx="28" cy="28" r={r} fill="none" stroke={color} strokeWidth="5"
-                          strokeDasharray={`${dash.toFixed(1)} ${(circ - dash).toFixed(1)}`}
-                          strokeDashoffset={(circ * 0.25).toFixed(1)} strokeLinecap="round"
-                          style={{ filter: `drop-shadow(0 0 6px ${color}90)` }}/>
-                        <text x="28" y="33" textAnchor="middle" fontSize="14" fontWeight="800" fill="white" fontFamily="monospace">{activeReport.score}</text>
-                      </svg>
-                      <div className="text-[9px] text-white/30">Бизнес-балл</div>
-                    </div>
-                  );
-                })()}
-              </div>
+              {!isProcessing && activeReport.score > 0 && (
+                <ScoreGauge score={activeReport.score} size={72} />
+              )}
             </div>
 
-            {/* Summary block */}
-            <div
-              className="relative rounded-xl overflow-hidden p-4 mb-5"
-              style={{
-                background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)",
-                border: "1px solid rgba(255,255,255,0.07)",
-                backdropFilter: "blur(8px)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05)",
-              }}
-            >
-              <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(167,139,250,0.3), transparent)" }} />
-              <h3 className="text-[9px] font-bold text-white/35 uppercase tracking-[0.22em] mb-3">Краткое резюме</h3>
-              <p className="text-[13px] text-white/65 leading-[1.8]">{activeReport.summary}</p>
-            </div>
+            {/* Divider */}
+            <div className="h-px bg-white/[0.05] mb-5" />
 
-            {/* Sections grid */}
-            <h3 className="text-[9px] font-bold text-white/30 uppercase tracking-[0.22em] mb-3">Разделы отчёта</h3>
-            <div className="grid grid-cols-2 gap-2 mb-6">
-              {activeReport.sections.map((section) => {
-                const cfg = SECTION_CFG[section] ?? { color: "#a78bfa", glow: "rgba(167,139,250,0.3)", icon: null };
-                return (
-                  <div
-                    key={section}
-                    className="relative flex items-center gap-3 p-3 rounded-xl overflow-hidden cursor-pointer group transition-all duration-200 hover:scale-[1.02]"
-                    style={{
-                      background: `linear-gradient(135deg, ${cfg.color}0d 0%, rgba(255,255,255,0.025) 100%)`,
-                      border: `1px solid rgba(255,255,255,0.07)`,
-                      backdropFilter: "blur(8px)",
-                    }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.borderColor = `${cfg.color}30`; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(255,255,255,0.07)"; }}
-                  >
-                    <div className="absolute inset-x-0 top-0 h-px opacity-0 group-hover:opacity-100 transition-opacity" style={{ background: `linear-gradient(90deg, transparent, ${cfg.color}45, transparent)` }} />
-                    {/* icon container */}
-                    <div
-                      className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
-                      style={{
-                        background: `${cfg.color}15`,
-                        border: `1px solid ${cfg.color}25`,
-                        color: cfg.color,
-                        boxShadow: `0 0 0 rgba(0,0,0,0)`,
-                      }}
-                      onMouseEnter={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = `0 0 8px ${cfg.glow}`; }}
-                      onMouseLeave={e => { (e.currentTarget as HTMLDivElement).style.boxShadow = "0 0 0 rgba(0,0,0,0)"; }}
-                    >
-                      {cfg.icon}
-                    </div>
-                    <span className="text-[11.5px] text-white/55 group-hover:text-white/80 transition-colors flex-1">{section}</span>
-                    <svg className="size-3 text-white/15 group-hover:text-white/40 transition-colors flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+            {/* ── Processing state ── */}
+            {isProcessing ? (
+              <GeneratingLoader />
+            ) : (
+              <>
+                {/* Summary */}
+                <div className="mb-5">
+                  <div className="text-[9px] font-semibold text-white/25 uppercase tracking-[0.2em] mb-2.5">
+                    Краткое резюме
                   </div>
-                );
-              })}
-            </div>
+                  <div
+                    className="relative rounded-xl p-4"
+                    style={{
+                      background: "rgba(255,255,255,0.025)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                    }}
+                  >
+                    <div
+                      className="absolute inset-x-0 top-0 h-px rounded-t-xl"
+                      style={{ background: "linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent)" }}
+                    />
+                    <p className="text-[13px] text-white/60 leading-[1.75]">{activeReport.summary}</p>
+                  </div>
+                </div>
 
-            {/* CTA buttons */}
-            <div className="flex gap-3">
-              <button
-                className="flex-1 h-10 text-[13px] font-semibold text-white rounded-xl transition-all duration-200 hover:-translate-y-0.5 hover:brightness-110"
-                style={{
-                  background: "linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)",
-                  boxShadow: "0 8px 28px rgba(124,58,237,0.45), 0 2px 8px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.18)",
-                }}
-              >
-                <span className="flex items-center justify-center gap-2">
-                  <svg viewBox="0 0 20 20" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M3 14v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V14"/><path d="M10 3v9M7 9l3 3 3-3"/>
-                  </svg>
-                  Скачать PDF
-                </span>
-              </button>
-              <button
-                className="h-10 px-5 text-[12px] font-medium rounded-xl transition-all duration-200 hover:-translate-y-0.5"
-                style={{
-                  background: "rgba(255,255,255,0.04)",
-                  border: "1px solid rgba(255,255,255,0.1)",
-                  color: "rgba(255,255,255,0.6)",
-                  backdropFilter: "blur(8px)",
-                }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.2)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.85)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.borderColor = "rgba(255,255,255,0.1)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.6)"; }}
-              >
-                Поделиться
-              </button>
-            </div>
+                {/* Section grid */}
+                <div className="mb-5">
+                  <div className="text-[9px] font-semibold text-white/25 uppercase tracking-[0.2em] mb-2.5">
+                    Разделы отчёта
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {SECTIONS.map((s) => (
+                      <SectionTile key={s.id} section={s} />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Action buttons */}
+                <div className="flex gap-2.5">
+                  <button
+                    className="flex-1 h-11 flex items-center justify-center gap-2 text-[13px] font-semibold text-white rounded-xl transition-all duration-200 hover:scale-[1.02] hover:brightness-110 relative overflow-hidden"
+                    style={{
+                      background: "linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)",
+                      boxShadow: "0 8px 28px rgba(124,58,237,0.45), 0 2px 8px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.18)",
+                    }}
+                  >
+                    <div
+                      className="absolute inset-x-0 top-0 h-px"
+                      style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.28),transparent)" }}
+                    />
+                    <Download size={15} />
+                    Скачать PDF
+                  </button>
+
+                  <button
+                    className="h-11 px-5 flex items-center gap-2 text-[13px] font-medium text-white/55 rounded-xl transition-all duration-200 hover:text-white hover:border-white/15"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    <Share2 size={14} />
+                    Поделиться
+                  </button>
+                </div>
+              </>
+            )}
           </div>
-        ) : (
-          <div
-            className="rounded-2xl flex flex-col items-center justify-center gap-3 p-12"
-            style={{ border: "1px dashed rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.01)" }}
-          >
-            <div className="size-12 rounded-xl flex items-center justify-center" style={{ border: "1px dashed rgba(255,255,255,0.1)" }}>
-              <svg className="size-5 text-white/15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            </div>
-            <p className="text-sm text-white/25">Выберите отчёт для просмотра</p>
-          </div>
-        )}
+        </div>
       </div>
     </div>
   );
