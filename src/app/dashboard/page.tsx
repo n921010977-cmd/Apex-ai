@@ -1,474 +1,394 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Badge } from "@/components/ui/Badge";
+import {
+  Zap, TrendingUp, Target, Shield, ChevronRight, ArrowUpRight,
+  Brain, DollarSign, Users, Cpu, Globe, Lightbulb, Activity,
+  BarChart2, FileText, PieChart, Rocket, Star, AlertTriangle,
+  CheckCircle, Clock, ExternalLink,
+} from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type AgentStatus = "IDLE" | "THINKING" | "ANALYZING" | "WRITING" | "COMPLETED" | "ERROR";
-
-interface AgentState {
-  role:        string;
-  name:        string;
-  task:        string;
-  color:       string;
-  rgb:         string;
-  status:      AgentStatus;
-  progress:    number;
-  currentLog:  string;
-  logs:        string[];
-}
-
 interface Project {
-  id:             string;
-  name:           string;
-  description:    string | null;
-  overall_score:  number;
-  status:         string;
-  created_at:     string;
-  target_revenue: string | null;
-  ai_results:     unknown[];
+  id: string; name: string; description: string | null;
+  overall_score: number; status: string; created_at: string;
+  target_revenue: string | null; ai_results: unknown[];
 }
 
-// ─── Static data ──────────────────────────────────────────────────────────────
+// ─── Static demo data ─────────────────────────────────────────────────────────
 
 const DEMO_PROJECTS: Project[] = [
-  { id: "demo", name: "AI-Powered Fitness App", description: "Мобильное приложение с AI-персонализацией тренировок", overall_score: 87, status: "active", created_at: new Date(Date.now() - 2 * 3600000).toISOString(), target_revenue: "$2.4M", ai_results: [1,2,3] },
-  { id: "2",    name: "SaaS Invoice Platform",  description: "Автоматизированное выставление счетов для фрилансеров",  overall_score: 91, status: "active", created_at: new Date(Date.now() - 86400000).toISOString(),   target_revenue: "$1.8M", ai_results: [1,2,3] },
+  { id: "demo", name: "AI-Powered Fitness App", description: "Мобильное приложение с AI-персонализацией тренировок", overall_score: 87, status: "active", created_at: new Date(Date.now() - 7200000).toISOString(), target_revenue: "$2.4M", ai_results: [1,2,3] },
+  { id: "2",    name: "SaaS Invoice Platform",  description: "Автоматизированное выставление счетов для фрилансеров",  overall_score: 91, status: "active", created_at: new Date(Date.now() - 86400000).toISOString(), target_revenue: "$1.8M", ai_results: [1,2,3] },
 ];
 
-const AGENT_LOG_SEQUENCES: Record<string, string[]> = {
-  CEO: [
-    "Читаю бизнес-бриф команды...",
-    "Анализирую конкурентную среду...",
-    "Формирую стратегическое видение...",
-    "Оцениваю рыночную позицию...",
-    "Синтезирую данные от команды...",
-    "Составляю executive summary...",
-    "Финализирую стратегию роста...",
-  ],
-  CFO: [
-    "Строю финансовую модель...",
-    "Рассчитываю точку безубыточности...",
-    "Анализирую Unit Economics...",
-    "Прогнозирую денежные потоки...",
-    "Оцениваю инвестиционные риски...",
-    "Формирую P&L на 3 года...",
-    "Документирую финансовые KPI...",
-  ],
-  CMO: [
-    "Изучаю целевую аудиторию...",
-    "Анализирую конкурентный маркетинг...",
-    "Разрабатываю go-to-market план...",
-    "Формирую контент-стратегию...",
-    "Рассчитываю маркетинговый бюджет...",
-    "Определяю каналы привлечения...",
-    "Оформляю brand positioning...",
-  ],
-  COO: [
-    "Проектирую операционную структуру...",
-    "Оптимизирую бизнес-процессы...",
-    "Определяю операционные KPI...",
-    "Строю org chart команды...",
-    "Планирую масштабирование...",
-    "Документирую SOP процедуры...",
-    "Формирую execution roadmap...",
-  ],
-  CTO: [
-    "Анализирую технический стек...",
-    "Оцениваю архитектурные риски...",
-    "Проектирую MVP roadmap...",
-    "Выбираю инфраструктурные решения...",
-    "Оцениваю tech debt и сроки...",
-    "Формирую tech spec документ...",
-    "Финализирую dev timeline...",
-  ],
-};
-
-const INITIAL_AGENTS: AgentState[] = [
-  { role: "CEO", name: "София Ривз",   task: "Стратегическое видение",   color: "#8b5cf6", rgb: "139,92,246",  status: "IDLE", progress: 0, currentLog: "Ожидаю брифинга...", logs: [] },
-  { role: "CFO", name: "Маркус Чен",   task: "Финансовый анализ",         color: "#06b6d4", rgb: "6,182,212",   status: "IDLE", progress: 0, currentLog: "Ожидаю брифинга...", logs: [] },
-  { role: "CMO", name: "Елена Торрес", task: "Маркетинговая стратегия",   color: "#10b981", rgb: "16,185,129",  status: "IDLE", progress: 0, currentLog: "Ожидаю брифинга...", logs: [] },
-  { role: "COO", name: "Джеймс Райт", task: "Операционный план",          color: "#f59e0b", rgb: "245,158,11",  status: "IDLE", progress: 0, currentLog: "Ожидаю брифинга...", logs: [] },
-  { role: "CTO", name: "Парк Айден",   task: "Технологический стек",      color: "#ec4899", rgb: "236,72,153",  status: "IDLE", progress: 0, currentLog: "Ожидаю брифинга...", logs: [] },
+const EXECUTIVES = [
+  { role: "CEO",  name: "Sophia Rivers",  title: "Chief Strategy AI", specialty: "Стратегия & Видение",   color: "#7A5CFF", rgb: "122,92,255",  confidence: 94, tasks: 12, icon: Brain },
+  { role: "CFO",  name: "Marcus Chen",    title: "Finance AI",         specialty: "Финансы & Модели",      color: "#5A8DFF", rgb: "90,141,255",  confidence: 89, tasks: 8,  icon: DollarSign },
+  { role: "CMO",  name: "Elena Torres",   title: "Growth AI",          specialty: "Маркетинг & Рост",      color: "#00E7A7", rgb: "0,231,167",   confidence: 91, tasks: 15, icon: TrendingUp },
+  { role: "COO",  name: "James Wright",   title: "Operations AI",      specialty: "Операции & Процессы",   color: "#FFB800", rgb: "255,184,0",   confidence: 86, tasks: 10, icon: Activity },
+  { role: "CTO",  name: "Park Aiden",     title: "Technology AI",      specialty: "Технологии & Архитект.",color: "#FF5470", rgb: "255,84,112",  confidence: 92, tasks: 9,  icon: Cpu },
 ];
 
-const STATUS_META: Record<AgentStatus, { label: string; dotColor: string; pulse: boolean }> = {
-  IDLE:      { label: "Ожидание",  dotColor: "rgba(255,255,255,0.2)",  pulse: false },
-  THINKING:  { label: "Думает",    dotColor: "#a78bfa",                pulse: true  },
-  ANALYZING: { label: "Анализ",    dotColor: "#06b6d4",                pulse: true  },
-  WRITING:   { label: "Пишет",     dotColor: "#60a5fa",                pulse: true  },
-  COMPLETED: { label: "Готово",    dotColor: "#34d399",                pulse: false },
-  ERROR:     { label: "Ошибка",    dotColor: "#f87171",                pulse: false },
-};
+const AI_INSIGHTS = [
+  { type: "opportunity", icon: TrendingUp, color: "#00E7A7", title: "Новый рыночный сегмент", desc: "Корпоративный B2B рынок показывает 340% рост спроса в вашей нише. Потенциал: $4.2M ARR.", prob: 84, impact: "Высокий", growth: "+$4.2M" },
+  { type: "threat",      icon: AlertTriangle, color: "#FF5470", title: "Конкурент привлёк $15M", desc: "FitAI Labs закрыла раунд Series A. Агрессивная экспансия в вашу целевую аудиторию.", prob: 67, impact: "Средний", growth: "-12%" },
+  { type: "action",      icon: Lightbulb, color: "#FFB800", title: "Повысьте цену на 23%", desc: "Анализ рынка показывает недооценку продукта. Увеличение до $49/мес не снизит конверсию.", prob: 78, impact: "Высокий", growth: "+$680K" },
+  { type: "opportunity", icon: Globe, color: "#5A8DFF", title: "Выход на рынок EU", desc: "GDPR-совместимая инфраструктура готова. Германия и Нидерланды — первые целевые рынки.", prob: 71, impact: "Высокий", growth: "+$1.8M" },
+];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+const ACTIVITY = [
+  { icon: CheckCircle, color: "#00E7A7", label: "Стратегический анализ завершён",    sub: "Fitness App · 94 балла",        time: "2м назад" },
+  { icon: Globe,       color: "#5A8DFF", label: "Обнаружен новый конкурент",          sub: "FitAI Labs · $15M funding",     time: "18м назад" },
+  { icon: DollarSign,  color: "#7A5CFF", label: "Финансовая модель обновлена",        sub: "Q2 прогноз пересмотрен вверх",  time: "1ч назад" },
+  { icon: FileText,    color: "#FFB800", label: "Investor Report сформирован",        sub: "PDF · 48 страниц",              time: "3ч назад" },
+  { icon: Brain,       color: "#FF5470", label: "Симуляция рынка завершена",          sub: "Точность 91% · 10K сценариев",  time: "5ч назад" },
+];
 
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const h = Math.floor(diff / 3600000);
-  const d = Math.floor(diff / 86400000);
-  if (h < 1) return "Только что";
-  if (h < 24) return `${h}ч назад`;
-  if (d === 1) return "Вчера";
-  return `${d}д назад`;
-}
+const QUICK_ACTIONS = [
+  { label: "Новая стратегия", href: "/dashboard/new",       icon: Zap,       color: "#7A5CFF", rgb: "122,92,255" },
+  { label: "Финансовая модель",href: "/dashboard/new",      icon: DollarSign, color: "#5A8DFF", rgb: "90,141,255" },
+  { label: "Investor Report", href: "/dashboard/reports",   icon: FileText,  color: "#00E7A7", rgb: "0,231,167"  },
+  { label: "Growth Strategy", href: "/dashboard/analytics", icon: TrendingUp, color: "#FFB800", rgb: "255,184,0"  },
+  { label: "Pitch Deck",      href: "/dashboard/new",       icon: Rocket,    color: "#FF5470", rgb: "255,84,112" },
+  { label: "AI Чат",          href: "/dashboard/chat",      icon: Brain,     color: "#a78bfa", rgb: "167,139,250"},
+];
 
-// ─── Sparkline ────────────────────────────────────────────────────────────────
+// ─── AI Neural Visualization ──────────────────────────────────────────────────
 
-const SPARKLINE = [30, 38, 45, 42, 55, 60, 58, 70, 75, 82, 88, 95];
-function Sparkline() {
-  const W = 80, H = 28, n = SPARKLINE.length;
-  const min = Math.min(...SPARKLINE), max = Math.max(...SPARKLINE);
-  const pts = SPARKLINE.map((v, i) => ({ x: (i / (n - 1)) * W, y: H - ((v - min) / (max - min)) * H }));
-  const line = pts.map((p, i) => {
-    if (i === 0) return `M ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
-    const prev = pts[i - 1], mx = (prev.x + p.x) / 2;
-    return `C ${mx.toFixed(1)} ${prev.y.toFixed(1)} ${mx.toFixed(1)} ${p.y.toFixed(1)} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`;
-  }).join(" ");
-  const area = `${line} L ${pts[n-1].x} ${H} L 0 ${H} Z`;
+function NeuralViz() {
+  const nodes = [
+    { x: 50,  y: 50,  r: 5,   color: "#7A5CFF" },
+    { x: 200, y: 30,  r: 3.5, color: "#5A8DFF" },
+    { x: 340, y: 70,  r: 4,   color: "#00E7A7" },
+    { x: 120, y: 120, r: 3,   color: "#7A5CFF" },
+    { x: 260, y: 110, r: 4.5, color: "#FFB800" },
+    { x: 400, y: 140, r: 3,   color: "#5A8DFF" },
+    { x: 80,  y: 180, r: 3.5, color: "#00E7A7" },
+    { x: 220, y: 190, r: 3,   color: "#FF5470" },
+    { x: 360, y: 200, r: 4,   color: "#7A5CFF" },
+  ];
+  const edges = [
+    [0,1],[1,2],[0,3],[1,4],[2,4],[3,4],[4,5],[3,6],[6,7],[7,8],[4,7],[5,8],[1,3],[2,5],
+  ];
+
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: W, height: H }}>
+    <svg viewBox="0 0 450 230" style={{ width: "100%", height: "100%", overflow: "visible" }}>
       <defs>
-        <linearGradient id="spFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#34d399" stopOpacity="0.25"/>
-          <stop offset="100%" stopColor="#34d399" stopOpacity="0"/>
-        </linearGradient>
+        {nodes.map((n, i) => (
+          <radialGradient key={i} id={`ng${i}`} cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor={n.color} stopOpacity="0.9"/>
+            <stop offset="100%" stopColor={n.color} stopOpacity="0.1"/>
+          </radialGradient>
+        ))}
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2.5" result="coloredBlur"/>
+          <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+        </filter>
       </defs>
-      <path d={area} fill="url(#spFill)"/>
-      <path d={line} fill="none" stroke="#34d399" strokeWidth="1.5" strokeLinecap="round" style={{ filter: "drop-shadow(0 0 3px rgba(52,211,153,0.7))" }}/>
-      <circle cx={pts[n-1].x} cy={pts[n-1].y} r="2.5" fill="#34d399" style={{ filter: "drop-shadow(0 0 4px #34d399)" }}/>
+
+      {/* Edges */}
+      {edges.map(([a, b], i) => (
+        <line
+          key={i}
+          x1={nodes[a].x} y1={nodes[a].y}
+          x2={nodes[b].x} y2={nodes[b].y}
+          stroke={`url(#ng${a})`}
+          strokeWidth="0.8"
+          strokeOpacity="0.25"
+        />
+      ))}
+
+      {/* Animated particles on edges */}
+      {edges.slice(0, 7).map(([a, b], i) => (
+        <circle key={`p${i}`} r="2" fill={nodes[a].color} opacity="0.8" filter="url(#glow)">
+          <animateMotion
+            dur={`${2.2 + i * 0.4}s`}
+            repeatCount="indefinite"
+            begin={`${i * 0.35}s`}
+          >
+            <mpath xlinkHref={`#edge${i}`}/>
+          </animateMotion>
+          <animate attributeName="opacity" values="0;0.9;0" dur={`${2.2 + i * 0.4}s`} repeatCount="indefinite" begin={`${i * 0.35}s`}/>
+          <animateMotion
+            dur={`${2.2 + i * 0.4}s`}
+            repeatCount="indefinite"
+            begin={`${i * 0.35}s`}
+            path={`M${nodes[a].x},${nodes[a].y} L${nodes[b].x},${nodes[b].y}`}
+          />
+        </circle>
+      ))}
+
+      {/* Nodes */}
+      {nodes.map((n, i) => (
+        <g key={i}>
+          {/* Outer glow ring */}
+          <circle cx={n.x} cy={n.y} r={n.r * 3.5} fill={n.color} opacity="0.06">
+            <animate attributeName="r" values={`${n.r*2.5};${n.r*4.5};${n.r*2.5}`} dur={`${2.5 + i*0.3}s`} repeatCount="indefinite"/>
+            <animate attributeName="opacity" values="0.06;0.12;0.06" dur={`${2.5 + i*0.3}s`} repeatCount="indefinite"/>
+          </circle>
+          {/* Core */}
+          <circle cx={n.x} cy={n.y} r={n.r} fill={`url(#ng${i})`} filter="url(#glow)">
+            <animate attributeName="r" values={`${n.r};${n.r*1.3};${n.r}`} dur={`${2 + i*0.25}s`} repeatCount="indefinite"/>
+          </circle>
+        </g>
+      ))}
     </svg>
   );
 }
 
-// ─── Agent Log Drawer ─────────────────────────────────────────────────────────
+// ─── Animated counter ─────────────────────────────────────────────────────────
 
-function AgentLogDrawer({ agent, onClose }: { agent: AgentState; onClose: () => void }) {
-  const logRef = useRef<HTMLDivElement>(null);
+function Counter({ to, prefix = "", suffix = "" }: { to: number; prefix?: string; suffix?: string }) {
+  const [val, setVal] = useState(0);
+  const ref = useRef(false);
   useEffect(() => {
-    if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight;
-  }, [agent.logs]);
+    if (ref.current) return;
+    ref.current = true;
+    const start = Date.now();
+    const dur   = 1400;
+    const tick  = () => {
+      const p = Math.min(1, (Date.now() - start) / dur);
+      const ease = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(ease * to));
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  }, [to]);
+  return <>{prefix}{val.toLocaleString()}{suffix}</>;
+}
+
+// ─── Mini sparkline ───────────────────────────────────────────────────────────
+
+function MiniSparkline({ color, data }: { color: string; data: number[] }) {
+  const W = 64, H = 20, n = data.length;
+  const min = Math.min(...data), max = Math.max(...data);
+  const pts = data.map((v, i) => ({ x: (i / (n-1)) * W, y: H - ((v - min) / (max - min + 0.001)) * H }));
+  const d = pts.map((p, i) => i === 0 ? `M${p.x.toFixed(1)},${p.y.toFixed(1)}` : `L${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H}>
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+        style={{ filter: `drop-shadow(0 0 3px ${color}60)` }}/>
+      <circle cx={pts[n-1].x} cy={pts[n-1].y} r="2" fill={color} style={{ filter: `drop-shadow(0 0 4px ${color})` }}/>
+    </svg>
+  );
+}
+
+// ─── Project card ─────────────────────────────────────────────────────────────
+
+const PROJECT_COVERS = ["from-violet-900/60 to-blue-900/40", "from-cyan-900/60 to-emerald-900/40"];
+const PROJECT_SCORES_DATA = [
+  [55, 60, 68, 72, 79, 83, 87],
+  [62, 70, 74, 82, 86, 89, 91],
+];
+
+function ProjectCard({ p, i }: { p: Project; i: number }) {
+  const [hovered, setHovered] = useState(false);
+  const scoreColor = p.overall_score >= 85 ? "#00E7A7" : p.overall_score >= 75 ? "#FFB800" : "#FF5470";
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 8, scale: 0.97 }}
-      animate={{ opacity: 1, y: 0, scale: 1 }}
-      exit={{ opacity: 0, y: 6, scale: 0.97 }}
-      transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      animate={{ y: hovered ? -6 : 0, scale: hovered ? 1.01 : 1 }}
+      transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        position:       "absolute",
-        bottom:         "calc(100% + 8px)",
-        left:           0,
-        right:          0,
-        zIndex:         50,
-        borderRadius:   16,
+        borderRadius:   20,
         overflow:       "hidden",
-        background:     `linear-gradient(145deg, rgba(${agent.rgb},0.1) 0%, rgba(8,8,14,0.96) 100%)`,
-        border:         `1px solid rgba(${agent.rgb},0.3)`,
-        boxShadow:      `0 0 40px rgba(${agent.rgb},0.15), 0 16px 48px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.07)`,
-        backdropFilter: "blur(24px)",
+        background:     "#141821",
+        border:         `1px solid ${hovered ? "rgba(122,92,255,0.25)" : "rgba(255,255,255,0.06)"}`,
+        boxShadow:      hovered
+          ? "0 20px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(122,92,255,0.1)"
+          : "0 4px 24px rgba(0,0,0,0.3)",
+        transition:     "border-color 0.3s, box-shadow 0.3s",
+        cursor:         "pointer",
       }}
     >
-      {/* Header */}
-      <div style={{
-        display: "flex", alignItems: "center", justifyContent: "space-between",
-        padding: "10px 14px 8px",
-        borderBottom: `1px solid rgba(${agent.rgb},0.15)`,
-      }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
-          <div style={{
-            width: 6, height: 6, borderRadius: "50%",
-            background: STATUS_META[agent.status].dotColor,
-            boxShadow: `0 0 8px ${STATUS_META[agent.status].dotColor}`,
-            animation: STATUS_META[agent.status].pulse ? "agent-pulse 1.4s ease-in-out infinite" : "none",
-          }} />
-          <span style={{ fontSize: 11, fontWeight: 600, color: `rgba(${agent.rgb},0.9)` }}>
-            {agent.role} — Лог активности
+      {/* Cover */}
+      <div className={`h-24 bg-gradient-to-br ${PROJECT_COVERS[i % PROJECT_COVERS.length]} relative overflow-hidden`}>
+        <div className="absolute inset-0" style={{ backgroundImage: "radial-gradient(ellipse at 30% 50%, rgba(122,92,255,0.15) 0%, transparent 60%)" }} />
+        <div className="absolute bottom-3 left-4 flex items-center gap-2">
+          <div className="size-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(255,255,255,0.08)", backdropFilter: "blur(12px)", border: "1px solid rgba(255,255,255,0.12)" }}>
+            <Rocket size={14} style={{ color: "rgba(255,255,255,0.7)" }} />
+          </div>
+          <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)", background: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)", padding: "3px 8px", borderRadius: 6 }}>
+            {p.status === "active" ? "● Активен" : "⏸ Пауза"}
           </span>
         </div>
-        <button
-          onClick={onClose}
-          style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 2, lineHeight: 1 }}
-        >
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8" width="13" height="13">
-            <line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/>
-          </svg>
-        </button>
+        <div className="absolute top-3 right-3">
+          <MiniSparkline color={scoreColor} data={PROJECT_SCORES_DATA[i % 2]} />
+        </div>
       </div>
 
-      {/* Logs */}
-      <div ref={logRef} style={{ maxHeight: 140, overflowY: "auto", padding: "10px 14px", fontFamily: "ui-monospace, 'Cascadia Code', monospace" }}>
-        {agent.logs.length === 0 ? (
-          <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.2)" }}>Ожидание команды...</span>
-        ) : agent.logs.map((log, i) => (
-          <div key={i} style={{ display: "flex", gap: 8, marginBottom: 5, alignItems: "flex-start" }}>
-            <span style={{ fontSize: 9, color: `rgba(${agent.rgb},0.45)`, flexShrink: 0, marginTop: 1.5, letterSpacing: "0.05em" }}>
-              {String(i + 1).padStart(2, "0")}
-            </span>
-            <span style={{
-              fontSize: 10.5,
-              color: i === agent.logs.length - 1 ? `rgba(${agent.rgb},0.85)` : "rgba(255,255,255,0.35)",
-              lineHeight: 1.5,
-            }}>
-              {log}
-            </span>
-            {i === agent.logs.length - 1 && agent.status !== "COMPLETED" && (
-              <span style={{ display: "inline-flex", gap: 2, marginLeft: 2, alignSelf: "center" }}>
-                {[0,1,2].map(d => (
-                  <span key={d} style={{
-                    display: "inline-block", width: 3, height: 3, borderRadius: "50%",
-                    background: `rgba(${agent.rgb},0.6)`,
-                    animation: `agent-dot 1.1s ease-in-out infinite`,
-                    animationDelay: `${d * 0.18}s`,
-                  }} />
-                ))}
-              </span>
-            )}
+      {/* Content */}
+      <div className="p-4">
+        <div className="flex items-start justify-between mb-2">
+          <div>
+            <h3 style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 3 }}>{p.name}</h3>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.5 }}>{p.description}</p>
           </div>
-        ))}
+          <div className="text-right flex-shrink-0 ml-3">
+            <div style={{ fontSize: 22, fontWeight: 800, color: scoreColor, lineHeight: 1, fontVariantNumeric: "tabular-nums", filter: `drop-shadow(0 0 10px ${scoreColor}60)` }}>
+              {p.overall_score}
+            </div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>AI Score</div>
+          </div>
+        </div>
+
+        {/* Metrics row */}
+        <div className="grid grid-cols-3 gap-2 mt-3 mb-3">
+          {[
+            { label: "ARR",    value: p.target_revenue ?? "—", color: "#00E7A7" },
+            { label: "Health", value: `${p.overall_score}%`,   color: "#5A8DFF" },
+            { label: "Stage",  value: "Growth",                 color: "#FFB800" },
+          ].map(m => (
+            <div key={m.label} className="text-center p-2 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{m.value}</div>
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{m.label}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress */}
+        <div style={{ height: 3, background: "rgba(255,255,255,0.06)", borderRadius: 2, marginBottom: 12, overflow: "hidden" }}>
+          <motion.div
+            initial={{ width: 0 }}
+            animate={{ width: `${p.overall_score}%` }}
+            transition={{ duration: 1.2, ease: "easeOut", delay: 0.3 }}
+            style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${scoreColor}60, ${scoreColor})`, boxShadow: `0 0 8px ${scoreColor}60` }}
+          />
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          <Link
+            href={`/dashboard/projects/${p.id}`}
+            className="flex-1 flex items-center justify-center gap-1.5 font-semibold text-white transition-all hover:-translate-y-px"
+            style={{ height: 30, borderRadius: 9, fontSize: 11, background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", boxShadow: "0 4px 12px rgba(122,92,255,0.35)" }}
+          >
+            <Zap size={11} />
+            Continue Strategy
+          </Link>
+          <Link
+            href={`/dashboard/reports`}
+            className="flex items-center justify-center gap-1.5 transition-all hover:bg-white/[0.08]"
+            style={{ height: 30, padding: "0 12px", borderRadius: 9, fontSize: 11, color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+          >
+            <FileText size={11} />
+            Report
+          </Link>
+        </div>
       </div>
     </motion.div>
   );
 }
 
-// ─── Agent Card ───────────────────────────────────────────────────────────────
+// ─── Executive card ───────────────────────────────────────────────────────────
 
-function AgentCard({
-  agent,
-  isExpanded,
-  onToggle,
-}: {
-  agent:      AgentState;
-  isExpanded: boolean;
-  onToggle:   () => void;
-}) {
-  const meta = STATUS_META[agent.status];
+const EXEC_SPARKLINES: Record<string, number[]> = {
+  CEO: [70, 74, 79, 82, 88, 91, 94],
+  CFO: [65, 68, 73, 78, 83, 87, 89],
+  CMO: [60, 67, 75, 80, 85, 88, 91],
+  COO: [72, 75, 78, 80, 83, 85, 86],
+  CTO: [68, 74, 80, 84, 87, 90, 92],
+};
 
-  return (
-    <div style={{ position: "relative" }}>
-      <AnimatePresence>{isExpanded && <AgentLogDrawer agent={agent} onClose={onToggle} />}</AnimatePresence>
-
-      <motion.div
-        onClick={onToggle}
-        whileHover={{ x: 2, transition: { duration: 0.15 } }}
-        style={{
-          display:        "flex",
-          alignItems:     "center",
-          gap:            10,
-          padding:        "9px 10px",
-          borderRadius:   14,
-          cursor:         "pointer",
-          background:     isExpanded ? `rgba(${agent.rgb},0.08)` : "transparent",
-          border:         `1px solid ${isExpanded ? `rgba(${agent.rgb},0.2)` : "transparent"}`,
-          transition:     "background 0.2s, border-color 0.2s",
-          position:       "relative",
-          overflow:       "hidden",
-        }}
-      >
-        {/* Active glow bar on left edge */}
-        {agent.status !== "IDLE" && (
-          <div style={{
-            position:   "absolute",
-            left:       0,
-            top:        "15%",
-            bottom:     "15%",
-            width:      2.5,
-            borderRadius: 2,
-            background: `linear-gradient(180deg, ${agent.color}, rgba(${agent.rgb},0.3))`,
-            boxShadow:  `0 0 8px rgba(${agent.rgb},0.7)`,
-          }} />
-        )}
-
-        {/* Avatar */}
-        <div style={{
-          flexShrink:     0,
-          width:          34,
-          height:         34,
-          borderRadius:   10,
-          display:        "flex",
-          alignItems:     "center",
-          justifyContent: "center",
-          fontSize:       10,
-          fontWeight:     700,
-          color:          agent.color,
-          background:     `rgba(${agent.rgb},0.12)`,
-          border:         `1px solid rgba(${agent.rgb},${agent.status !== "IDLE" ? "0.35" : "0.18"})`,
-          boxShadow:      agent.status !== "IDLE" ? `0 0 12px rgba(${agent.rgb},0.3)` : "none",
-          transition:     "box-shadow 0.3s, border-color 0.3s",
-        }}>
-          {agent.role[0]}
-        </div>
-
-        {/* Info */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
-            <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.75)", lineHeight: 1 }}>
-              {agent.name}
-            </span>
-            <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
-              <span style={{
-                fontSize:     9,
-                fontWeight:   600,
-                letterSpacing: "0.05em",
-                color:        agent.status === "IDLE" ? "rgba(255,255,255,0.2)" : agent.color,
-                textTransform: "uppercase",
-              }}>
-                {meta.label}
-              </span>
-              <div style={{
-                width:     6,
-                height:    6,
-                borderRadius: "50%",
-                background: meta.dotColor,
-                boxShadow:  meta.pulse ? `0 0 6px ${meta.dotColor}` : "none",
-                animation:  meta.pulse ? "agent-pulse 1.4s ease-in-out infinite" : "none",
-                flexShrink: 0,
-              }} />
-            </div>
-          </div>
-
-          {/* Current log message */}
-          <div style={{
-            fontSize:   9.5,
-            color:      agent.status !== "IDLE" ? `rgba(${agent.rgb},0.6)` : "rgba(255,255,255,0.2)",
-            marginBottom: agent.status !== "IDLE" ? 6 : 0,
-            whiteSpace: "nowrap",
-            overflow:   "hidden",
-            textOverflow: "ellipsis",
-            fontFamily: agent.status !== "IDLE" ? "ui-monospace, 'Cascadia Code', monospace" : "inherit",
-            transition: "color 0.3s",
-          }}>
-            {agent.currentLog}
-          </div>
-
-          {/* Progress bar */}
-          {agent.status !== "IDLE" && (
-            <div style={{ height: 2, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden" }}>
-              <motion.div
-                style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, rgba(${agent.rgb},0.6), ${agent.color})` }}
-                animate={{ width: `${agent.progress}%` }}
-                transition={{ duration: 0.8, ease: "easeOut" }}
-              />
-            </div>
-          )}
-
-          {/* Completed checkmark */}
-          {agent.status === "COMPLETED" && (
-            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-              <div style={{ height: 2, background: `linear-gradient(90deg, rgba(${agent.rgb},0.5), #34d399)`, borderRadius: 2, flex: 1 }} />
-              <svg viewBox="0 0 12 12" fill="none" stroke="#34d399" strokeWidth="2" width="10" height="10" style={{ filter: "drop-shadow(0 0 3px #34d399)" }}>
-                <polyline points="2,6 5,9 10,3"/>
-              </svg>
-            </div>
-          )}
-        </div>
-      </motion.div>
-    </div>
-  );
-}
-
-// ─── Command Button ───────────────────────────────────────────────────────────
-
-type BriefState = "IDLE" | "STARTING" | "RUNNING" | "DONE";
-
-function CommandButton({ briefState, onClick }: { briefState: BriefState; onClick: () => void }) {
-  const isDisabled = briefState === "STARTING" || briefState === "RUNNING";
-  const isDone     = briefState === "DONE";
+function ExecCard({ exec }: { exec: typeof EXECUTIVES[number] }) {
+  const [hovered, setHovered] = useState(false);
+  const Icon = exec.icon;
 
   return (
-    <motion.button
-      onClick={!isDisabled && !isDone ? onClick : undefined}
-      disabled={isDisabled}
-      whileHover={!isDisabled && !isDone ? { y: -1, transition: { duration: 0.15 } } : {}}
-      whileTap={!isDisabled && !isDone ? { scale: 0.98 } : {}}
+    <motion.div
+      onHoverStart={() => setHovered(true)}
+      onHoverEnd={() => setHovered(false)}
+      animate={{ y: hovered ? -8 : 0 }}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       style={{
-        width:          "100%",
-        height:         38,
-        borderRadius:   12,
-        border:         "none",
-        cursor:         isDisabled ? "not-allowed" : isDone ? "default" : "pointer",
-        display:        "flex",
-        alignItems:     "center",
-        justifyContent: "center",
-        gap:            7,
-        fontSize:       12,
-        fontWeight:     600,
-        color:          "#fff",
-        background:     isDone
-          ? "linear-gradient(135deg, #059669, #34d399)"
-          : "linear-gradient(135deg, #7c3aed, #3b82f6)",
-        boxShadow:      isDone
-          ? "0 6px 20px rgba(5,150,105,0.4), inset 0 1px 0 rgba(255,255,255,0.15)"
-          : "0 6px 20px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
-        opacity:        isDisabled ? 0.75 : 1,
-        transition:     "background 0.4s, box-shadow 0.4s, opacity 0.2s",
+        borderRadius:   18,
+        padding:        "18px 16px",
+        background:     `linear-gradient(145deg, rgba(${exec.rgb},0.1) 0%, #141821 100%)`,
+        border:         `1px solid ${hovered ? `rgba(${exec.rgb},0.35)` : `rgba(${exec.rgb},0.18)`}`,
+        boxShadow:      hovered ? `0 16px 48px rgba(${exec.rgb},0.15), 0 0 0 1px rgba(${exec.rgb},0.1)` : "0 4px 20px rgba(0,0,0,0.3)",
+        backdropFilter: "blur(20px)",
+        transition:     "border-color 0.3s, box-shadow 0.3s",
+        cursor:         "pointer",
+        position:       "relative",
+        overflow:       "hidden",
       }}
     >
-      {briefState === "IDLE" && (
-        <>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-          </svg>
-          Брифовать команду
-        </>
-      )}
-      {briefState === "STARTING" && (
-        <>
-          <span style={{ display: "flex", gap: 3 }}>
-            {[0,1,2].map(d => (
-              <span key={d} style={{
-                display: "inline-block", width: 4, height: 4, borderRadius: "50%",
-                background: "rgba(255,255,255,0.7)",
-                animation: "agent-dot 1.1s ease-in-out infinite",
-                animationDelay: `${d * 0.16}s`,
-              }} />
-            ))}
-          </span>
-          Планирование...
-        </>
-      )}
-      {briefState === "RUNNING" && (
-        <>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="13" height="13"
-            style={{ animation: "spin 1.4s linear infinite" }}>
-            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-          </svg>
-          Анализ в процессе...
-        </>
-      )}
-      {briefState === "DONE" && (
-        <>
-          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2.2" width="13" height="13"
-            style={{ filter: "drop-shadow(0 0 4px rgba(52,211,153,0.8))" }}>
-            <polyline points="2,8 6,12 14,4"/>
-          </svg>
-          Анализ завершён
-        </>
-      )}
-    </motion.button>
+      {/* Top bevel */}
+      <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: `linear-gradient(90deg, transparent, rgba(${exec.rgb},0.55), transparent)` }} />
+
+      {/* Role badge */}
+      <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center gap-2">
+          <div style={{
+            width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(135deg, rgba(${exec.rgb},0.25), rgba(${exec.rgb},0.08))`,
+            border: `1px solid rgba(${exec.rgb},0.3)`,
+            boxShadow: `0 0 16px rgba(${exec.rgb},0.2)`,
+            color: exec.color,
+          }}>
+            <Icon size={15} />
+          </div>
+          <div>
+            <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: exec.color }}>{exec.role}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{exec.title}</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#00E7A7", boxShadow: "0 0 6px rgba(0,231,167,0.8)", display: "block", animation: "xc-pulse 2s ease-in-out infinite" }} />
+        </div>
+      </div>
+
+      {/* Name */}
+      <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{exec.name}</div>
+      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginBottom: 12 }}>{exec.specialty}</div>
+
+      {/* Confidence + sparkline */}
+      <div className="flex items-end justify-between mb-2">
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: exec.color, lineHeight: 1, filter: `drop-shadow(0 0 8px rgba(${exec.rgb},0.5))` }}>
+            {exec.confidence}%
+          </div>
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>Уверенность AI</div>
+        </div>
+        <MiniSparkline color={exec.color} data={EXEC_SPARKLINES[exec.role]} />
+      </div>
+
+      {/* Progress bar */}
+      <div style={{ height: 2, background: "rgba(255,255,255,0.06)", borderRadius: 2, overflow: "hidden", marginBottom: 12 }}>
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${exec.confidence}%` }}
+          transition={{ duration: 1, ease: "easeOut", delay: 0.2 }}
+          style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, rgba(${exec.rgb},0.5), ${exec.color})` }}
+        />
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between">
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)" }}>{exec.tasks} задач активно</span>
+        <div className="flex items-center gap-1" style={{ fontSize: 10, color: exec.color, cursor: "pointer" }}>
+          Открыть <ArrowUpRight size={10} />
+        </div>
+      </div>
+
+      <style>{`@keyframes xc-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
+    </motion.div>
   );
 }
 
 // ─── Dashboard page ───────────────────────────────────────────────────────────
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  show: (i: number) => ({ opacity: 1, y: 0, transition: { duration: 0.45, delay: i * 0.07 } }),
-};
-
 export default function DashboardPage() {
-  const [projects,    setProjects]    = useState<Project[]>([]);
-  const [loading,     setLoading]     = useState(true);
-  const [agents,      setAgents]      = useState<AgentState[]>(INITIAL_AGENTS);
-  const [briefState,  setBriefState]  = useState<BriefState>("IDLE");
-  const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading,  setLoading]  = useState(true);
+  const [tab,      setTab]      = useState<"projects" | "insights">("projects");
 
-  const intervalsRef = useRef<ReturnType<typeof setInterval>[]>([]);
-
-  // Load projects
   useEffect(() => {
     const stored = localStorage.getItem("apex-user-projects");
     const local: Project[] = stored ? JSON.parse(stored) : [];
@@ -483,405 +403,357 @@ export default function DashboardPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  // Agent simulation engine
-  const runAgentSimulation = useCallback((roleIndex: number) => {
-    const role       = INITIAL_AGENTS[roleIndex].role;
-    const messages   = AGENT_LOG_SEQUENCES[role];
-    let   msgIdx     = 0;
-    let   progress   = 0;
-
-    const TOTAL_DURATION = 18000 + roleIndex * 2500; // ms per agent
-    const TICK_MS        = 300;
-    const PROGRESS_STEP  = (100 / (TOTAL_DURATION / TICK_MS));
-
-    const updateStatus = (prog: number): AgentStatus => {
-      if (prog >= 100) return "COMPLETED";
-      if (prog >= 70)  return "WRITING";
-      if (prog >= 15)  return "ANALYZING";
-      return "THINKING";
-    };
-
-    const tick = setInterval(() => {
-      progress = Math.min(100, progress + PROGRESS_STEP);
-
-      // Advance log message
-      const targetMsgIdx = Math.floor((progress / 100) * (messages.length - 1));
-      if (targetMsgIdx > msgIdx) {
-        msgIdx = targetMsgIdx;
-      }
-
-      const currentMsg = messages[Math.min(msgIdx, messages.length - 1)];
-      const newStatus  = updateStatus(progress);
-
-      setAgents(prev => prev.map((a, i) => {
-        if (i !== roleIndex) return a;
-        const isNewMsg = currentMsg !== a.currentLog;
-        return {
-          ...a,
-          status:     newStatus,
-          progress:   Math.round(progress),
-          currentLog: newStatus === "COMPLETED" ? "Отчёт сформирован ✓" : currentMsg,
-          logs:       isNewMsg && newStatus !== "COMPLETED"
-            ? [...a.logs, currentMsg].slice(-20)
-            : newStatus === "COMPLETED" && a.status !== "COMPLETED"
-              ? [...a.logs, "Отчёт сформирован ✓"]
-              : a.logs,
-        };
-      }));
-
-      if (progress >= 100) {
-        clearInterval(tick);
-        // Check if all done
-        setAgents(prev => {
-          const allDone = prev.every(a => a.status === "COMPLETED");
-          if (allDone) setBriefState("DONE");
-          return prev;
-        });
-      }
-    }, TICK_MS);
-
-    intervalsRef.current.push(tick);
-  }, []);
-
-  const handleBriefTeam = useCallback(() => {
-    if (briefState !== "IDLE") return;
-
-    // Clear any existing intervals
-    intervalsRef.current.forEach(clearInterval);
-    intervalsRef.current = [];
-
-    // Reset agents
-    setAgents(INITIAL_AGENTS.map(a => ({ ...a, status: "IDLE", progress: 0, logs: [], currentLog: "Получаю задачу..." })));
-    setBriefState("STARTING");
-
-    setTimeout(() => {
-      setBriefState("RUNNING");
-      // Start agents with staggered delay
-      INITIAL_AGENTS.forEach((_, i) => {
-        setTimeout(() => runAgentSimulation(i), i * 1200);
-      });
-    }, 900);
-  }, [briefState, runAgentSimulation]);
-
-  useEffect(() => {
-    return () => { intervalsRef.current.forEach(clearInterval); };
-  }, []);
-
   const hour     = new Date().getHours();
   const greeting = hour < 12 ? "Доброе утро" : hour < 17 ? "Добрый день" : "Добрый вечер";
-  const avgScore = projects.length ? Math.round(projects.reduce((a, p) => a + p.overall_score, 0) / projects.length) : 0;
-
-  const completedCount = agents.filter(a => a.status === "COMPLETED").length;
-  const runningCount   = agents.filter(a => a.status !== "IDLE" && a.status !== "COMPLETED").length;
-
-  const STAT_CARDS = [
-    {
-      label: "Проектов", value: loading ? "…" : projects.length.toString(),
-      sub: "всего", color: "#7c3aed", glow: "rgba(124,58,237,0.4)", positive: true,
-      icon: <svg viewBox="0 0 20 20" className="size-4.5" fill="none" stroke="currentColor" strokeWidth="1.4"><rect x="2" y="6" width="16" height="11" rx="2"/><path d="M2 9h16"/><path d="M6 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2"/></svg>,
-      extra: null,
-    },
-    {
-      label: "Средний балл", value: avgScore ? avgScore.toString() : null,
-      sub: avgScore >= 80 ? "отлично" : avgScore >= 60 ? "хорошо" : "в работе",
-      color: "#f59e0b", glow: "rgba(245,158,11,0.4)", positive: avgScore >= 75,
-      icon: <svg viewBox="0 0 20 20" className="size-4.5" fill="none" stroke="currentColor" strokeWidth="1.4"><polygon points="10 2 12.6 7.3 18.5 8.1 14.3 12.2 15.2 18.1 10 15.3 4.8 18.1 5.7 12.2 1.5 8.1 7.4 7.3"/></svg>,
-      extra: null,
-    },
-    {
-      label: "Отчётов",
-      value: loading ? "…" : `${projects.filter(p => (p.ai_results as unknown[])?.length > 0).length} / 3`,
-      sub: "2 остались", color: "#3b82f6", glow: "rgba(59,130,246,0.4)", positive: false,
-      icon: <svg viewBox="0 0 20 20" className="size-4.5" fill="none" stroke="currentColor" strokeWidth="1.4"><line x1="15" y1="17" x2="15" y2="8"/><line x1="10" y1="17" x2="10" y2="3"/><line x1="5" y1="17" x2="5" y2="11"/></svg>,
-      extra: null,
-    },
-    {
-      label: "Прогноз выручки", value: "$4.2M", sub: "по всем проектам",
-      color: "#10b981", glow: "rgba(16,185,129,0.4)", positive: true,
-      icon: <svg viewBox="0 0 20 20" className="size-4.5" fill="none" stroke="currentColor" strokeWidth="1.4"><polyline points="2 12 5 8 8 10 12 5 18 8" strokeLinecap="round" strokeLinejoin="round"/><line x1="2" y1="17" x2="18" y2="17" strokeLinecap="round"/></svg>,
-      extra: <Sparkline />,
-    },
-  ];
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
-      <style>{`
-        @keyframes agent-pulse { 0%,100% { opacity:1; transform:scale(1); } 50% { opacity:0.45; transform:scale(0.6); } }
-        @keyframes agent-dot   { 0%,100% { opacity:0.3; transform:translateY(0); } 50% { opacity:1; transform:translateY(-2px); } }
-        @keyframes spin        { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
+    <div className="min-h-full" style={{ background: "#040404", padding: "0 0 60px" }}>
 
-      {/* ── Header ── */}
-      <motion.div
-        className="flex items-start justify-between"
-        initial={{ opacity: 0, y: -10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4 }}
+      {/* ═══════════ HERO COMMAND CENTER ═══════════ */}
+      <div
+        className="relative overflow-hidden"
+        style={{
+          background: "linear-gradient(180deg, #080C18 0%, #040404 100%)",
+          borderBottom: "1px solid rgba(255,255,255,0.05)",
+        }}
       >
-        <div>
-          <h1 className="text-xl font-bold text-white mb-0.5">{greeting}, основатель</h1>
-          <p className="text-sm text-white/35">
-            {briefState === "RUNNING"
-              ? `Работает ${runningCount} агентов · ${completedCount}/5 завершили`
-              : briefState === "DONE"
-              ? "Все агенты завершили анализ · Отчёт готов"
-              : "Ваш исполнительный совет готов к работе."}
-          </p>
-        </div>
-        <Link
-          href="/dashboard/new"
-          className="inline-flex items-center gap-2 h-9 px-4 text-xs font-semibold text-white rounded-xl transition-all duration-200 hover:-translate-y-0.5"
-          style={{
-            background: "linear-gradient(135deg, #7c3aed, #3b82f6)",
-            boxShadow: "0 8px 24px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.15)",
-          }}
-        >
-          <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Новая стратегия
-        </Link>
-      </motion.div>
+        {/* Background mesh */}
+        <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(ellipse 60% 80% at 70% 50%, rgba(122,92,255,0.08) 0%, transparent 60%), radial-gradient(ellipse 40% 60% at 20% 30%, rgba(90,141,255,0.05) 0%, transparent 60%)", pointerEvents: "none" }} />
 
-      {/* ── Stat cards ── */}
-      <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">
-        {STAT_CARDS.map((s, i) => (
-          <motion.div key={s.label} variants={fadeUp} initial="hidden" animate="show" custom={i}>
-            <div
-              className="relative rounded-2xl overflow-hidden p-4 transition-all duration-300 hover:scale-[1.02]"
-              style={{
-                background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(10,10,14,0.88) 100%)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                backdropFilter: "blur(14px)",
-                boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 28px rgba(0,0,0,0.25)",
-              }}
-            >
-              <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${s.color}50, transparent)` }} />
-              <div className="flex items-start justify-between mb-3">
-                <div className="size-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${s.color}18`, border: `1px solid ${s.color}28`, color: s.color }}>
-                  {s.icon}
-                </div>
-                {s.extra && <div className="flex-shrink-0 mt-1">{s.extra}</div>}
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px 36px", display: "grid", gridTemplateColumns: "1fr 380px", gap: 40, alignItems: "center" }}>
+
+          {/* Left: headline */}
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+            {/* System status badge */}
+            <div className="flex items-center gap-2 mb-5">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-full" style={{ background: "rgba(0,231,167,0.08)", border: "1px solid rgba(0,231,167,0.18)" }}>
+                <span className="size-1.5 rounded-full" style={{ background: "#00E7A7", boxShadow: "0 0 8px rgba(0,231,167,0.9)", animation: "hero-pulse 1.8s ease-in-out infinite" }} />
+                <span style={{ fontSize: 10, fontWeight: 700, color: "#00E7A7", letterSpacing: "0.1em" }}>AI СИСТЕМА АКТИВНА</span>
               </div>
-              {s.value !== null ? (
-                <div className="text-xl font-bold font-mono mb-0.5" style={{ color: s.color, textShadow: `0 0 20px ${s.glow}` }}>{s.value}</div>
-              ) : (
-                <div className="flex items-center gap-1.5 mb-0.5 h-7">
-                  <span className="text-[11px] text-white/35">Вычисляется</span>
-                  <span className="flex gap-0.5">{[0,1,2].map(d => <span key={d} className="size-1 rounded-full bg-amber-400/50 animate-bounce" style={{ animationDelay: `${d*150}ms` }}/>)}</span>
-                </div>
-              )}
-              <div className="text-[11px] text-white/35 mb-1">{s.label}</div>
-              <div className={`text-[10px] ${s.positive ? "text-emerald-400/80" : "text-white/25"}`}>{s.sub}</div>
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full" style={{ background: "rgba(122,92,255,0.06)", border: "1px solid rgba(122,92,255,0.15)" }}>
+                <Star size={10} style={{ color: "#7A5CFF" }} />
+                <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(122,92,255,0.9)" }}>Confidence 91%</span>
+              </div>
             </div>
-          </motion.div>
-        ))}
-      </div>
 
-      {/* ── Main row ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-5">
+            <h1 style={{ fontSize: "clamp(28px,3.5vw,44px)", fontWeight: 800, color: "#ffffff", lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: 10 }}>
+              {greeting},<br/>
+              <span style={{ background: "linear-gradient(135deg, #7A5CFF 0%, #5A8DFF 50%, #00E7A7 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                Apex Executive Board
+              </span>
+            </h1>
+            <p style={{ fontSize: 15, color: "rgba(255,255,255,0.42)", lineHeight: 1.6, marginBottom: 28, maxWidth: 480 }}>
+              Ваша AI-команда директоров анализирует рынок, стратегию и финансы в реальном времени.
+            </p>
 
-        {/* Projects */}
-        <div className="xl:col-span-2 space-y-3">
-          <div className="flex items-center justify-between">
-            <h2 className="text-[13px] font-semibold text-white/80">Последние проекты</h2>
-            <Link href="/dashboard/projects" className="text-xs text-violet-400/70 hover:text-violet-300 transition-colors">Все проекты →</Link>
-          </div>
-
-          {loading ? (
-            Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="h-20 rounded-2xl bg-white/[0.03] border border-white/[0.05] animate-pulse"/>
-            ))
-          ) : (
-            projects.slice(0, 5).map((p, i) => {
-              const scoreColor = p.overall_score >= 85 ? "#34d399" : p.overall_score >= 75 ? "#f59e0b" : "#f87171";
-              return (
-                <motion.div key={p.id} variants={fadeUp} initial="hidden" animate="show" custom={i + 4}>
-                  <Link href={`/dashboard/projects/${p.id}`}>
-                    <div
-                      className="relative rounded-2xl overflow-hidden p-4 cursor-pointer group transition-all duration-200 hover:scale-[1.01] hover:-translate-y-0.5"
-                      style={{
-                        background: "linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(10,10,14,0.85) 100%)",
-                        border: "1px solid rgba(255,255,255,0.07)",
-                        backdropFilter: "blur(10px)",
-                        boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), 0 4px 20px rgba(0,0,0,0.2)",
-                      }}
-                    >
-                      <div className="absolute inset-x-0 top-0 h-px group-hover:opacity-100 opacity-0 transition-opacity"
-                        style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.4), transparent)" }}/>
-                      <div className="flex items-center gap-4">
-                        <div className="size-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                          style={{ background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.2)" }}>
-                          <svg className="size-4.5" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5">
-                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                          </svg>
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 mb-1">
-                            <span className="text-[13px] font-semibold text-white truncate">{p.name}</span>
-                            <Badge variant={p.status === "active" ? "success" : "warning"} dot>
-                              {p.status === "active" ? "Завершён" : "В работе"}
-                            </Badge>
-                          </div>
-                          <p className="text-[11px] text-white/35 mb-2.5 truncate">{p.description ?? "Нет описания"}</p>
-                          <div className="h-1.5 bg-white/[0.06] rounded-full overflow-hidden">
-                            <div className="h-full rounded-full transition-all duration-1000"
-                              style={{ width: `${p.overall_score}%`, background: `linear-gradient(90deg, ${scoreColor}aa, ${scoreColor})`, boxShadow: `0 0 8px ${scoreColor}80` }}/>
-                          </div>
-                        </div>
-                        <div className="text-right flex-shrink-0 ml-2">
-                          <div className="text-sm font-bold font-mono" style={{ color: scoreColor }}>{p.overall_score}</div>
-                          <div className="text-[10px] text-white/25 mt-0.5">{p.target_revenue ?? "—"}</div>
-                          <div className="text-[9px] text-white/20 mt-0.5">{timeAgo(p.created_at)}</div>
-                        </div>
-                        <svg className="size-3.5 text-white/15 group-hover:text-violet-400/40 transition-colors flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
-                      </div>
+            {/* KPI row */}
+            <div className="flex flex-wrap gap-4 mb-8">
+              {[
+                { icon: Target,    label: "Возможностей", value: 4,   suffix: "", color: "#00E7A7", rgb: "0,231,167" },
+                { icon: BarChart2, label: "AI Analyses",  value: 12,  suffix: "+", color: "#5A8DFF", rgb: "90,141,255" },
+                { icon: Shield,    label: "Рисков",       value: 2,   suffix: "",  color: "#FF5470", rgb: "255,84,112" },
+                { icon: TrendingUp,label: "Рост MoM",     value: 34,  suffix: "%", color: "#FFB800", rgb: "255,184,0" },
+              ].map(k => (
+                <div key={k.label} className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl"
+                  style={{ background: `rgba(${k.rgb},0.06)`, border: `1px solid rgba(${k.rgb},0.15)` }}>
+                  <k.icon size={14} style={{ color: k.color, flexShrink: 0 }} />
+                  <div>
+                    <div style={{ fontSize: 16, fontWeight: 800, color: k.color, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+                      <Counter to={k.value} suffix={k.suffix} />
                     </div>
-                  </Link>
-                </motion.div>
-              );
-            })
-          )}
-
-          <motion.div variants={fadeUp} initial="hidden" animate="show" custom={8}>
-            <Link href="/dashboard/new">
-              <div
-                className="flex items-center gap-3.5 p-4 rounded-2xl transition-all duration-200 cursor-pointer group hover:-translate-y-0.5"
-                style={{ border: "1px dashed rgba(255,255,255,0.08)", background: "transparent" }}
-                onMouseEnter={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "rgba(124,58,237,0.3)"; el.style.background = "rgba(124,58,237,0.04)"; }}
-                onMouseLeave={e => { const el = e.currentTarget as HTMLDivElement; el.style.borderColor = "rgba(255,255,255,0.08)"; el.style.background = "transparent"; }}
-              >
-                <div className="size-10 rounded-xl flex items-center justify-center flex-shrink-0 border border-dashed transition-all duration-200"
-                  style={{ borderColor: "rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.02)" }}>
-                  <svg className="size-4 text-white/20 group-hover:text-violet-400/60 transition-colors" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 1, whiteSpace: "nowrap" }}>{k.label}</div>
+                  </div>
                 </div>
-                <div>
-                  <div className="text-[13px] font-medium text-white/30 group-hover:text-white/55 transition-colors">Новая стратегия</div>
-                  <div className="text-[11px] text-white/15">Опишите бизнес-идею и получите AI-анализ</div>
-                </div>
-              </div>
-            </Link>
-          </motion.div>
-        </div>
-
-        {/* ── Right: Live Command Panel ── */}
-        <motion.div
-          className="space-y-4"
-          initial={{ opacity: 0, x: 20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.5, delay: 0.3 }}
-        >
-          {/* Executive Board */}
-          <div
-            className="relative rounded-2xl overflow-visible p-4"
-            style={{
-              background: "linear-gradient(145deg, rgba(124,58,237,0.08) 0%, rgba(10,10,14,0.94) 100%)",
-              border: "1px solid rgba(255,255,255,0.07)",
-              backdropFilter: "blur(20px)",
-              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 8px 32px rgba(0,0,0,0.3)",
-            }}
-          >
-            <div className="absolute inset-x-0 top-0 h-px rounded-t-2xl"
-              style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.45), transparent)" }}/>
-
-            {/* Panel header */}
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-[13px] font-semibold text-white/80">Исполнительный совет</h3>
-              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                {briefState === "RUNNING" && (
-                  <span style={{ fontSize: 9, fontWeight: 600, color: "#a78bfa", letterSpacing: "0.06em", textTransform: "uppercase" }}>
-                    {completedCount}/5
-                  </span>
-                )}
-                <span className="flex items-center gap-1.5 text-[9px] font-medium"
-                  style={{ color: briefState === "DONE" ? "#34d399" : briefState === "RUNNING" ? "#a78bfa" : "#34d399" }}>
-                  <span className="size-1.5 rounded-full"
-                    style={{
-                      background: briefState === "DONE" ? "#34d399" : briefState === "RUNNING" ? "#a78bfa" : "#34d399",
-                      boxShadow: `0 0 6px ${briefState === "RUNNING" ? "rgba(167,139,250,0.8)" : "rgba(52,211,153,0.8)"}`,
-                      animation: briefState === "RUNNING" ? "agent-pulse 1.4s ease-in-out infinite" : "none",
-                    }}/>
-                  {briefState === "DONE" ? "Анализ готов" : briefState === "RUNNING" ? "В работе" : "Готов к работе"}
-                </span>
-              </div>
-            </div>
-
-            {/* Agent cards */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 2, marginBottom: 14 }}>
-              {agents.map((agent, i) => (
-                <AgentCard
-                  key={agent.role}
-                  agent={agent}
-                  isExpanded={expandedIdx === i}
-                  onToggle={() => setExpandedIdx(expandedIdx === i ? null : i)}
-                />
               ))}
             </div>
 
-            {/* Command button */}
-            <CommandButton briefState={briefState} onClick={handleBriefTeam} />
-
-            {/* Hint */}
-            <p style={{ fontSize: 9.5, color: "rgba(255,255,255,0.2)", textAlign: "center", marginTop: 8 }}>
-              {briefState === "IDLE"
-                ? "Нажми на карточку агента, чтобы открыть лог"
-                : briefState === "DONE"
-                ? "Нажмите на агента, чтобы посмотреть лог работы"
-                : "Нажми на агента, чтобы следить за его прогрессом"}
-            </p>
-          </div>
-
-          {/* Pro plan banner */}
-          <div
-            className="relative rounded-2xl overflow-hidden p-4"
-            style={{
-              background: "linear-gradient(135deg, rgba(124,58,237,0.15) 0%, rgba(59,130,246,0.08) 100%)",
-              border: "1px solid rgba(124,58,237,0.2)",
-              backdropFilter: "blur(12px)",
-              boxShadow: "inset 0 1px 0 rgba(124,58,237,0.18), 0 8px 32px rgba(0,0,0,0.3)",
-            }}
-          >
-            <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.55), transparent)" }}/>
-            <div className="text-[9px] font-bold uppercase tracking-[0.2em] mb-2" style={{ color: "#a78bfa" }}>Pro Plan</div>
-            <p className="text-[11.5px] text-white/50 mb-3 leading-relaxed">Безлимитные отчёты, расширенный финансовый анализ и PDF экспорт.</p>
-            <div className="flex items-baseline gap-1 mb-3">
-              <span className="text-2xl font-bold font-mono text-white">$49</span>
-              <span className="text-xs text-white/30">/мес</span>
+            {/* CTA buttons */}
+            <div className="flex flex-wrap gap-3">
+              <Link href="/dashboard/new"
+                className="flex items-center gap-2 font-semibold text-white transition-all hover:-translate-y-px hover:brightness-110"
+                style={{ height: 42, padding: "0 20px", borderRadius: 12, fontSize: 13, background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", boxShadow: "0 8px 28px rgba(122,92,255,0.45), inset 0 1px 0 rgba(255,255,255,0.15)" }}>
+                <Zap size={14} />
+                Start New Strategy
+              </Link>
+              <Link href="/dashboard/chat"
+                className="flex items-center gap-2 font-medium transition-all hover:bg-white/[0.08]"
+                style={{ height: 42, padding: "0 20px", borderRadius: 12, fontSize: 13, color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
+                <Brain size={14} />
+                Ask Executive Board
+              </Link>
             </div>
-            <Link href="/dashboard/settings"
-              className="w-full h-8 text-[11px] font-semibold text-white rounded-xl inline-flex items-center justify-center transition-all duration-200 hover:-translate-y-0.5"
-              style={{ background: "linear-gradient(135deg, #7c3aed, #3b82f6)", boxShadow: "0 4px 14px rgba(124,58,237,0.35)" }}>
-              Перейти на Pro
-            </Link>
+          </motion.div>
+
+          {/* Right: neural viz */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            style={{ height: 240, position: "relative" }}
+          >
+            <div style={{ position: "absolute", inset: 0, borderRadius: 24, background: "rgba(122,92,255,0.03)", border: "1px solid rgba(122,92,255,0.1)" }} />
+            <NeuralViz />
+            {/* Float labels */}
+            {[
+              { label: "Market Analysis", x: "8%",  y: "12%", color: "#7A5CFF" },
+              { label: "Finance Model",   x: "58%", y: "5%",  color: "#5A8DFF" },
+              { label: "Growth Engine",   x: "72%", y: "58%", color: "#00E7A7" },
+            ].map(fl => (
+              <div key={fl.label} style={{ position: "absolute", left: fl.x, top: fl.y, fontSize: 9, fontWeight: 600, color: fl.color, background: `rgba(0,0,0,0.6)`, backdropFilter: "blur(8px)", padding: "3px 7px", borderRadius: 5, border: `1px solid ${fl.color}25`, whiteSpace: "nowrap" }}>
+                {fl.label}
+              </div>
+            ))}
+          </motion.div>
+        </div>
+
+        <style>{`
+          @keyframes hero-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.6)} }
+        `}</style>
+      </div>
+
+      {/* ═══════════ EXECUTIVE BOARD ═══════════ */}
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "36px 32px 0" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>Executive AI Board</h2>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>5 AI-директоров · Все активны</p>
+          </div>
+          <Link href="/dashboard/executives" className="flex items-center gap-1" style={{ fontSize: 12, color: "rgba(122,92,255,0.8)" }}>
+            Открыть совет <ChevronRight size={13} />
+          </Link>
+        </div>
+
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3"
+          initial="hidden"
+          animate="show"
+          variants={{ show: { transition: { staggerChildren: 0.07 } } }}
+        >
+          {EXECUTIVES.map((exec, i) => (
+            <motion.div
+              key={exec.role}
+              variants={{ hidden: { opacity: 0, y: 24 }, show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22,1,0.36,1] } } }}
+            >
+              <ExecCard exec={exec} />
+            </motion.div>
+          ))}
+        </motion.div>
+      </div>
+
+      {/* ═══════════ MAIN CONTENT ═══════════ */}
+      <div style={{ maxWidth: 1280, margin: "36px auto 0", padding: "0 32px", display: "grid", gridTemplateColumns: "1fr 340px", gap: 24 }}>
+
+        {/* Left column */}
+        <div className="space-y-6">
+
+          {/* Tab bar */}
+          <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", display: "inline-flex" }}>
+            {([["projects", "Мои проекты"], ["insights", "AI Intelligence"]] as const).map(([id, label]) => (
+              <button
+                key={id}
+                onClick={() => setTab(id)}
+                className="px-4 py-1.5 rounded-lg text-xs font-medium transition-all"
+                style={tab === id
+                  ? { background: "rgba(122,92,255,0.2)", color: "#c4b5fd", border: "1px solid rgba(122,92,255,0.25)" }
+                  : { color: "rgba(255,255,255,0.38)", border: "1px solid transparent" }
+                }
+              >
+                {label}
+              </button>
+            ))}
           </div>
 
-          {/* Quick actions */}
-          <div
-            className="relative rounded-2xl overflow-hidden p-4"
-            style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(10,10,14,0.88) 100%)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              backdropFilter: "blur(10px)",
-            }}
-          >
-            <div className="text-[9px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-3">Быстрые действия</div>
-            <div className="space-y-0.5">
-              {[
-                { label: "Новый анализ", href: "/dashboard/new",       icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2v5.5l2.5 2.5"/><circle cx="8" cy="8" r="6"/></svg> },
-                { label: "Все проекты",  href: "/dashboard/projects",  icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="1" y="5" width="14" height="9" rx="1.5"/><path d="M1 8h14"/><path d="M5 5V3.5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1V5"/></svg> },
-                { label: "Аналитика",    href: "/dashboard/analytics", icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="2 11 5 7 8 9 11 5 14 7"/></svg> },
-                { label: "Настройки",    href: "/dashboard/settings",  icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="2"/><path d="M8 1v2M8 13v2M1 8h2M13 8h2M3.05 3.05l1.42 1.42M11.53 11.53l1.42 1.42M3.05 12.95l1.42-1.42M11.53 4.47l1.42-1.42"/></svg> },
-              ].map(action => (
-                <Link key={action.href} href={action.href}
-                  className="flex items-center gap-3 px-3 py-2 rounded-xl text-[12px] text-white/45 hover:text-white/75 hover:bg-white/[0.04] transition-all">
-                  <span className="text-white/30">{action.icon}</span>
-                  {action.label}
-                  <svg className="size-3 ml-auto text-white/15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
+          <AnimatePresence mode="wait">
+            {tab === "projects" ? (
+              <motion.div key="proj" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}>
+                {/* Project grid */}
+                {loading ? (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {[0,1].map(i => <div key={i} className="h-72 rounded-2xl animate-pulse" style={{ background: "rgba(255,255,255,0.03)" }} />)}
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {projects.slice(0, 4).map((p, i) => <ProjectCard key={p.id} p={p} i={i} />)}
+                  </div>
+                )}
+
+                {/* New project slot */}
+                <Link href="/dashboard/new"
+                  className="mt-4 flex items-center gap-3 p-4 rounded-2xl group transition-all"
+                  style={{ border: "1px dashed rgba(255,255,255,0.07)", background: "transparent" }}
+                  onMouseEnter={e => { const el = e.currentTarget; el.style.borderColor="rgba(122,92,255,0.3)"; el.style.background="rgba(122,92,255,0.04)"; }}
+                  onMouseLeave={e => { const el = e.currentTarget; el.style.borderColor="rgba(255,255,255,0.07)"; el.style.background="transparent"; }}
+                >
+                  <div className="size-10 rounded-xl flex items-center justify-center" style={{ border: "1px dashed rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.02)" }}>
+                    <Zap size={16} className="text-white/20 group-hover:text-violet-400/60 transition-colors" />
+                  </div>
+                  <div>
+                    <div className="text-sm font-medium text-white/30 group-hover:text-white/55 transition-colors">Новая стратегия</div>
+                    <div className="text-xs text-white/15">Опишите идею — AI-команда проведёт полный анализ</div>
+                  </div>
+                </Link>
+              </motion.div>
+            ) : (
+              <motion.div key="insights" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.25 }}
+                className="space-y-3">
+                {AI_INSIGHTS.map((ins, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.4, delay: i * 0.08 }}
+                    style={{ borderRadius: 16, padding: "16px 18px", background: "#141821", border: `1px solid rgba(${ins.color === "#00E7A7" ? "0,231,167" : ins.color === "#FF5470" ? "255,84,112" : ins.color === "#FFB800" ? "255,184,0" : "90,141,255"},0.15)`, cursor: "pointer" }}
+                    className="group hover:-translate-y-0.5 transition-transform"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="size-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${ins.color}12`, border: `1px solid ${ins.color}22`, color: ins.color }}>
+                        <ins.icon size={15} />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 3 }}>{ins.title}</div>
+                            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.55 }}>{ins.desc}</p>
+                          </div>
+                          <div className="text-right flex-shrink-0">
+                            <div style={{ fontSize: 14, fontWeight: 800, color: ins.color }}>{ins.growth}</div>
+                            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>Эффект</div>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3 mt-3">
+                          <div className="flex items-center gap-1.5" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
+                            <span style={{ color: ins.color, fontWeight: 700 }}>{ins.prob}%</span> вероятность
+                          </div>
+                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>·</div>
+                          <div style={{ fontSize: 10, color: ins.impact === "Высокий" ? "#00E7A7" : "#FFB800", fontWeight: 600 }}>{ins.impact} импакт</div>
+                          <ExternalLink size={10} className="ml-auto text-white/20 group-hover:text-violet-400/50 transition-colors" />
+                        </div>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Right column */}
+        <div className="space-y-4">
+
+          {/* Quick Actions */}
+          <div style={{ borderRadius: 18, padding: "18px", background: "#0E1015", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 12 }}>
+              Quick Actions
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              {QUICK_ACTIONS.map((qa, i) => (
+                <Link
+                  key={i}
+                  href={qa.href}
+                  className="flex flex-col gap-2 p-3 rounded-xl group transition-all hover:-translate-y-0.5"
+                  style={{ background: `rgba(${qa.rgb},0.06)`, border: `1px solid rgba(${qa.rgb},0.12)` }}
+                >
+                  <qa.icon size={15} style={{ color: qa.color }} />
+                  <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.65)", lineHeight: 1.3 }}>{qa.label}</span>
                 </Link>
               ))}
             </div>
           </div>
-        </motion.div>
+
+          {/* Activity timeline */}
+          <div style={{ borderRadius: 18, padding: "18px", background: "#0E1015", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="flex items-center justify-between mb-3">
+              <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)" }}>
+                Activity Log
+              </div>
+              <div className="flex items-center gap-1.5" style={{ fontSize: 9, fontWeight: 600, color: "#00E7A7" }}>
+                <span className="size-1.5 rounded-full" style={{ background: "#00E7A7", animation: "hero-pulse 2s ease-in-out infinite" }} />
+                Live
+              </div>
+            </div>
+
+            <div className="space-y-0">
+              {ACTIVITY.map((ev, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: 12 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.4, delay: i * 0.06 }}
+                  className="flex items-start gap-3 py-2.5 group cursor-pointer"
+                  style={{ borderBottom: i < ACTIVITY.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}
+                >
+                  <div className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: `${ev.color}12`, border: `1px solid ${ev.color}20`, color: ev.color }}>
+                    <ev.icon size={12} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(255,255,255,0.72)", lineHeight: 1.3 }}>{ev.label}</div>
+                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>{ev.sub}</div>
+                  </div>
+                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", flexShrink: 0, marginTop: 1 }}>{ev.time}</span>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+
+          {/* Today's top recommendation */}
+          <div style={{ borderRadius: 18, padding: "18px", background: "linear-gradient(145deg, rgba(122,92,255,0.12), rgba(90,141,255,0.06))", border: "1px solid rgba(122,92,255,0.2)" }}>
+            <div className="flex items-center gap-2 mb-3">
+              <Lightbulb size={13} style={{ color: "#7A5CFF" }} />
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(122,92,255,0.9)" }}>
+                Рекомендация дня
+              </span>
+            </div>
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", lineHeight: 1.5, marginBottom: 8 }}>
+              Повысьте цену на 23% — рынок недооценивает продукт
+            </p>
+            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", lineHeight: 1.55, marginBottom: 14 }}>
+              Анализ 340 конкурентов показывает медиану $49/мес для вашего сегмента. Текущая цена оставляет $680K в год на столе.
+            </p>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="text-center">
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#00E7A7" }}>78%</div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Вероятность</div>
+              </div>
+              <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.08)" }} />
+              <div className="text-center">
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#FFB800" }}>+$680K</div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Потенциал/год</div>
+              </div>
+              <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.08)" }} />
+              <div className="text-center">
+                <div style={{ fontSize: 16, fontWeight: 800, color: "#5A8DFF" }}>High</div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Импакт</div>
+              </div>
+            </div>
+            <Link href="/dashboard/new" className="flex items-center justify-center gap-2 font-semibold text-white transition-all hover:-translate-y-px"
+              style={{ height: 34, borderRadius: 10, fontSize: 12, background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", boxShadow: "0 4px 14px rgba(122,92,255,0.4)" }}>
+              <Zap size={12} /> Применить стратегию
+            </Link>
+          </div>
+
+          {/* Market pulse */}
+          <div style={{ borderRadius: 18, padding: "18px", background: "#0E1015", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 12 }}>
+              Market Pulse
+            </div>
+            {[
+              { label: "B2B SaaS",       trend: "+18%", color: "#00E7A7" },
+              { label: "AI Fitness",     trend: "+340%", color: "#7A5CFF" },
+              { label: "FinTech Tools",  trend: "+22%",  color: "#5A8DFF" },
+              { label: "No-code Tools",  trend: "-4%",   color: "#FF5470" },
+            ].map((m, i) => (
+              <div key={i} className="flex items-center justify-between py-2" style={{ borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                <div className="flex items-center gap-2">
+                  <Globe size={11} style={{ color: "rgba(255,255,255,0.25)" }} />
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>{m.label}</span>
+                </div>
+                <span style={{ fontSize: 12, fontWeight: 700, color: m.color }}>{m.trend}</span>
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
+
     </div>
   );
 }
