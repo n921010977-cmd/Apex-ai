@@ -441,7 +441,7 @@ export function HeroSection() {
 
             {/* Secondary glass */}
             <Link
-              href="/register"
+              href="/dashboard"
               className="inline-flex items-center gap-2 px-7 text-[14px] font-medium text-white/60 rounded-2xl transition-all duration-200 hover:text-white hover:border-white/15"
               style={{
                 height: 52,

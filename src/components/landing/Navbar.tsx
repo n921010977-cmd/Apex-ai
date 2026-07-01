@@ -51,11 +51,8 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-3">
-          <Link href="/login" className="text-sm text-white/40 hover:text-white transition-colors duration-200 hidden sm:block">
-            Войти
-          </Link>
           <Link
-            href="/register"
+            href="/dashboard"
             className="inline-flex items-center gap-2 h-9 px-5 text-sm font-medium bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all duration-200 hover:shadow-lg hover:shadow-violet-500/25"
           >
             Начать бесплатно
