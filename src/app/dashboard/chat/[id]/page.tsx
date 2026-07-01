@@ -180,11 +180,34 @@ export default function ChatPage() {
         signal: abortRef.current.signal,
       });
 
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "Unknown error");
+        throw new Error(`HTTP ${res.status}: ${errText}`);
+      }
+
       const reader = res.body!.getReader();
       const dec = new TextDecoder();
       let buf = "";
       let fullContent = "";
+      let messageSaved = false;
       const currentToolCalls: ToolCall[] = [];
+
+      const saveMessage = (content: string) => {
+        if (messageSaved || !content.trim()) return;
+        messageSaved = true;
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== tempId);
+          return [...filtered, {
+            id: `ai-${Date.now()}`,
+            role: "assistant" as const,
+            content,
+            created_at: new Date().toISOString(),
+            metadata: currentToolCalls.length > 0 ? { tools: currentToolCalls } : undefined,
+          }];
+        });
+        setStreamingContent("");
+        setToolCalls([]);
+      };
 
       while (true) {
         const { done, value } = await reader.read();
@@ -209,30 +232,40 @@ export default function ChatPage() {
               setActiveTools(prev => prev.filter(t => t !== evt.tool));
             }
             if (evt.type === "done" || evt.type === "complete") {
-              setMessages(prev => {
-                const filtered = prev.filter(m => m.id !== tempId);
-                return [...filtered, {
-                  id: `ai-${Date.now()}`,
-                  role: "assistant",
-                  content: fullContent,
-                  created_at: new Date().toISOString(),
-                  metadata: currentToolCalls.length > 0 ? { tools: currentToolCalls } : undefined,
-                }];
-              });
-              setStreamingContent("");
-              setToolCalls([]);
+              saveMessage(fullContent);
             }
-          } catch {}
+            if (evt.type === "error") {
+              throw new Error(evt.message ?? "Stream error");
+            }
+          } catch (parseErr) {
+            // ignore JSON parse errors on non-data lines
+          }
         }
       }
+
+      // Process remaining buffer after stream closes
+      if (buf.startsWith("data: ")) {
+        try {
+          const evt = JSON.parse(buf.slice(6));
+          if (evt.type === "token") fullContent += evt.token;
+        } catch {}
+      }
+
+      // Fallback: stream closed without explicit done event
+      saveMessage(fullContent);
+
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
-        setMessages(prev => [...prev, {
-          id: `err-${Date.now()}`,
-          role: "assistant",
-          content: "Произошла ошибка. Проверьте подключение и попробуйте снова.",
-          created_at: new Date().toISOString(),
-        }]);
+        const errMsg = (e as Error).message ?? "Неизвестная ошибка";
+        setMessages(prev => {
+          const filtered = prev.filter(m => m.id !== tempId);
+          return [...filtered, {
+            id: `err-${Date.now()}`,
+            role: "assistant" as const,
+            content: `❌ Ошибка: ${errMsg}`,
+            created_at: new Date().toISOString(),
+          }];
+        });
         setStreamingContent("");
       }
     } finally {
