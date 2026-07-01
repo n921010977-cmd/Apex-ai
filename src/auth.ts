@@ -21,14 +21,6 @@ declare module "next-auth" {
   }
 }
 
-declare module "next-auth/jwt" {
-  interface JWT {
-    id?: string;
-    role?: string;
-    tier?: string;
-  }
-}
-
 // ─── Helper: look up a user by email via Supabase ─────────────────────────────
 
 async function findUserByEmail(email: string) {
