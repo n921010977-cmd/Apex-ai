@@ -7,6 +7,7 @@ import {
   Zap, Brain, DollarSign, TrendingUp, Activity, Cpu,
   CheckCircle, ChevronRight, FileText, Globe, Target,
   Lightbulb, ArrowRight, Sparkles, Shield, Users, BarChart2,
+  PieChart, Briefcase, Search, Layers, Rocket, Star,
 } from "lucide-react";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -29,14 +30,26 @@ const GOALS = [
   "Нанять команду","Exit стратегия",
 ];
 const AGENTS = [
-  { role: "CEO",           label: "Генеральный директор",    color: "#7A5CFF", rgb: "122,92,255",  icon: Brain,      name: "Sophia Rivers" },
-  { role: "CFO",           label: "Финансовый директор",     color: "#5A8DFF", rgb: "90,141,255",  icon: DollarSign, name: "Marcus Chen"   },
-  { role: "CMO",           label: "Директор по маркетингу",  color: "#00E7A7", rgb: "0,231,167",   icon: TrendingUp, name: "Elena Torres"  },
-  { role: "COO",           label: "Операционный директор",   color: "#FFB800", rgb: "255,184,0",   icon: Activity,   name: "James Wright"  },
-  { role: "Business Analyst",label:"Бизнес-аналитик",        color: "#FF5470", rgb: "255,84,112",  icon: BarChart2,  name: "Kim Park"      },
-  { role: "CTO",           label: "Технический директор",    color: "#a78bfa", rgb: "167,139,250", icon: Cpu,        name: "Aiden Park"    },
-  { role: "Sales Director",label: "Директор по продажам",    color: "#34d399", rgb: "52,211,153",  icon: Users,      name: "Ryan Cole"     },
-  { role: "Legal Advisor", label: "Юридический советник",    color: "#94a3b8", rgb: "148,163,184", icon: Shield,     name: "Mia Larson"    },
+  { role: "CEO",              label: "Генеральный директор",      color: "#7A5CFF", rgb: "122,92,255",  icon: Brain,      name: "Sophia Rivers"  },
+  { role: "CFO",              label: "Финансовый директор",       color: "#5A8DFF", rgb: "90,141,255",  icon: DollarSign, name: "Marcus Chen"    },
+  { role: "CMO",              label: "Директор по маркетингу",    color: "#00E7A7", rgb: "0,231,167",   icon: TrendingUp, name: "Elena Torres"   },
+  { role: "COO",              label: "Операционный директор",     color: "#FFB800", rgb: "255,184,0",   icon: Activity,   name: "James Wright"   },
+  { role: "CTO",              label: "Технический директор",      color: "#a78bfa", rgb: "167,139,250", icon: Cpu,        name: "Aiden Park"     },
+  { role: "Business Analyst", label: "Бизнес-аналитик",          color: "#FF5470", rgb: "255,84,112",  icon: BarChart2,  name: "Kim Park"       },
+  { role: "Sales Director",   label: "Директор по продажам",     color: "#34d399", rgb: "52,211,153",  icon: Users,      name: "Ryan Cole"      },
+  { role: "Legal Advisor",    label: "Юридический советник",     color: "#94a3b8", rgb: "148,163,184", icon: Shield,     name: "Mia Larson"     },
+  { role: "Growth Hacker",    label: "Директор по росту",        color: "#f97316", rgb: "249,115,22",  icon: Rocket,     name: "Alex Kim"       },
+  { role: "Product Manager",  label: "Продукт-менеджер",         color: "#e879f9", rgb: "232,121,249", icon: Layers,     name: "Sara Patel"     },
+  { role: "Data Scientist",   label: "Датa-сайентист",           color: "#38bdf8", rgb: "56,189,248",  icon: PieChart,   name: "Leo Zhang"      },
+  { role: "HR Director",      label: "HR Директор",              color: "#fb7185", rgb: "251,113,133", icon: Star,       name: "Maya Scott"     },
+  { role: "Investor Relations",label:"Инвесторские отношения",   color: "#4ade80", rgb: "74,222,128",  icon: Briefcase,  name: "Tom Evans"      },
+  { role: "Market Research",  label: "Рыночный аналитик",        color: "#fbbf24", rgb: "251,191,36",  icon: Search,     name: "Nina Brown"     },
+  { role: "Risk Manager",     label: "Риск-менеджер",            color: "#f43f5e", rgb: "244,63,94",   icon: Shield,     name: "Omar Hassan"    },
+  { role: "Brand Strategist", label: "Бренд-стратег",            color: "#818cf8", rgb: "129,140,248", icon: Target,     name: "Chloe Martin"   },
+  { role: "Supply Chain",     label: "Цепочка поставок",         color: "#2dd4bf", rgb: "45,212,191",  icon: Globe,      name: "Jake Turner"    },
+  { role: "UX Researcher",    label: "UX-исследователь",         color: "#c084fc", rgb: "192,132,252", icon: Lightbulb,  name: "Zoe Carter"     },
+  { role: "PR Director",      label: "PR Директор",              color: "#fdba74", rgb: "253,186,116", icon: Globe,      name: "Liam Foster"    },
+  { role: "Strategy Advisor", label: "Стратегический советник",  color: "#7A5CFF", rgb: "122,92,255",  icon: Zap,        name: "Diana Wells"    },
 ];
 
 const STEP_TIMELINE = [
@@ -88,14 +101,26 @@ function qualityScore(name: string, desc: string): number {
 // ─── Live AI Agent Panel ──────────────────────────────────────────────────────
 
 const AGENT_THOUGHTS: Record<string, string[]> = {
-  CEO:              ["Формирую стратегическое видение...", "Анализирую рыночную позицию...", "Оцениваю конкурентов..."],
-  CFO:              ["Строю финансовую модель...",         "Прогнозирую cash flow...",        "Считаю Unit Economics..."],
-  CMO:              ["Изучаю целевую аудиторию...",        "Анализирую каналы роста...",      "Разрабатываю go-to-market..."],
-  COO:              ["Проектирую операции...",             "Оптимизирую процессы...",         "Определяю KPI..."],
-  "Business Analyst":["Анализирую данные рынка...",       "Оцениваю потенциал...",           "Строю прогнозы..."],
-  CTO:              ["Анализирую технический стек...",     "Проектирую архитектуру...",       "Оцениваю риски..."],
-  "Sales Director": ["Строю воронку продаж...",            "Анализирую CAC/LTV...",           "Прогнозирую конверсию..."],
-  "Legal Advisor":  ["Проверяю юридические риски...",     "Анализирую требования...",        "Оцениваю структуру..."],
+  CEO:                 ["Формирую стратегическое видение...", "Анализирую рыночную позицию...",  "Оцениваю конкурентов..."],
+  CFO:                 ["Строю финансовую модель...",         "Прогнозирую cash flow...",         "Считаю Unit Economics..."],
+  CMO:                 ["Изучаю целевую аудиторию...",        "Анализирую каналы роста...",       "Разрабатываю go-to-market..."],
+  COO:                 ["Проектирую операции...",             "Оптимизирую процессы...",          "Определяю KPI..."],
+  CTO:                 ["Анализирую технический стек...",     "Проектирую архитектуру...",        "Оцениваю риски..."],
+  "Business Analyst":  ["Анализирую данные рынка...",        "Оцениваю потенциал...",            "Строю прогнозы..."],
+  "Sales Director":    ["Строю воронку продаж...",           "Анализирую CAC/LTV...",            "Прогнозирую конверсию..."],
+  "Legal Advisor":     ["Проверяю юридические риски...",     "Анализирую требования...",         "Оцениваю структуру..."],
+  "Growth Hacker":     ["Ищу точки взрывного роста...",      "Тестирую growth-каналы...",        "Оптимизирую воронку..."],
+  "Product Manager":   ["Анализирую пользователей...",       "Приоритизирую фичи...",            "Строю roadmap..."],
+  "Data Scientist":    ["Обрабатываю массивы данных...",     "Строю предиктивные модели...",     "Валидирую гипотезы..."],
+  "HR Director":       ["Проектирую org-структуру...",       "Оцениваю кадровые риски...",       "Планирую найм..."],
+  "Investor Relations":["Готовлю investor pitch...",         "Анализирую cap table...",          "Оцениваю раунды..."],
+  "Market Research":   ["Сканирую рыночные тренды...",       "Анализирую конкурентов...",        "Оцениваю TAM/SAM/SOM..."],
+  "Risk Manager":      ["Идентифицирую риски...",            "Строю матрицу рисков...",          "Разрабатываю mitigation..."],
+  "Brand Strategist":  ["Формирую brand identity...",        "Анализирую позиционирование...",   "Строю brand voice..."],
+  "Supply Chain":      ["Оцениваю цепочку поставок...",      "Анализирую зависимости...",        "Оптимизирую логистику..."],
+  "UX Researcher":     ["Исследую user journey...",          "Выявляю pain points...",           "Проектирую UX стратегию..."],
+  "PR Director":       ["Строю PR стратегию...",             "Анализирую медиа-пространство...", "Готовлю key messages..."],
+  "Strategy Advisor":  ["Синтезирую стратегии...",           "Оцениваю синергию...",             "Финализирую рекомендации..."],
 };
 
 function LiveAgentPanel({ hasText }: { hasText: boolean }) {
@@ -106,7 +131,7 @@ function LiveAgentPanel({ hasText }: { hasText: boolean }) {
     if (!hasText) return;
     const intervals: ReturnType<typeof setInterval>[] = [];
 
-    AGENTS.slice(0, 5).forEach((a, i) => {
+    AGENTS.forEach((a, i) => {
       const msgs   = AGENT_THOUGHTS[a.role];
       let   msgIdx = 0;
       const iv = setInterval(() => {
@@ -114,7 +139,7 @@ function LiveAgentPanel({ hasText }: { hasText: boolean }) {
         setThoughts(prev => ({ ...prev, [a.role]: msgs[msgIdx] }));
         setPulses(prev => ({ ...prev, [a.role]: true }));
         setTimeout(() => setPulses(prev => ({ ...prev, [a.role]: false })), 600);
-      }, 2800 + i * 400);
+      }, 2800 + i * 300);
       intervals.push(iv);
       setThoughts(prev => ({ ...prev, [a.role]: msgs[0] }));
     });
@@ -123,8 +148,8 @@ function LiveAgentPanel({ hasText }: { hasText: boolean }) {
   }, [hasText]);
 
   return (
-    <div className="space-y-2">
-      {AGENTS.slice(0, 5).map((a) => {
+    <div className="space-y-1.5">
+      {AGENTS.map((a) => {
         const Icon = a.icon;
         const active = hasText;
         return (
@@ -214,7 +239,7 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
           Executive Board в работе
         </h2>
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.38)" }}>
-          8 AI-директоров анализируют проект параллельно
+          20 AI-директоров анализируют проект параллельно
         </p>
       </div>
 
@@ -234,7 +259,7 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
       </div>
 
       {/* Agent grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 10, width: "100%", maxWidth: 480 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, width: "100%", maxWidth: 860 }}>
         {AGENTS.map((agent) => {
           const done   = doneAgents.has(agent.role);
           const result = agentResults.find(r => r.role === agent.role);
@@ -415,7 +440,7 @@ export default function NewStrategyPage() {
                   {[
                     { label:"Market Synced",         color:"#00E7A7", rgb:"0,231,167" },
                     { label:"Financial Models Ready", color:"#5A8DFF", rgb:"90,141,255" },
-                    { label:"8 AI Directors Online",  color:"#7A5CFF", rgb:"122,92,255" },
+                    { label:"20 AI Directors Online", color:"#7A5CFF", rgb:"122,92,255" },
                     { label:"Competitors Loaded",     color:"#FFB800", rgb:"255,184,0" },
                   ].map(s => (
                     <div key={s.label} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background:`rgba(${s.rgb},0.07)`, border:`1px solid rgba(${s.rgb},0.18)`, fontSize:9, fontWeight:700, color:s.color, letterSpacing:"0.05em" }}>

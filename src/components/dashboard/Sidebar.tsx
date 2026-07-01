@@ -96,7 +96,7 @@ export function Sidebar() {
             }}
           />
           <span style={{ fontSize: 10, fontWeight: 600, color: "#00E7A7", letterSpacing: "0.04em" }}>
-            AI Online · 5 агентов
+            AI Online · 20 агентов
           </span>
         </div>
       </div>
