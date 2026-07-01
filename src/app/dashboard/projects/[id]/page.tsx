@@ -304,36 +304,107 @@ function MarketConcentricChart({ items }: { items: { label: string; value: strin
   );
 }
 
-// Score radar chart using SVG
-function ScoreRadar({ scores }: { scores: { label: string; value: number }[] }) {
-  const cx = 100; const cy = 100; const r = 70;
-  const n = scores.length;
-  const points = scores.map((s, i) => {
-    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
-    const frac = s.value / 100;
-    return { x: cx + Math.cos(angle) * r * frac, y: cy + Math.sin(angle) * r * frac, lx: cx + Math.cos(angle) * (r + 18), ly: cy + Math.sin(angle) * (r + 18) };
+// Premium luxury gauge (replaces diamond radar)
+function PremiumScoreGauge({ score }: { score: number }) {
+  const cx = 65; const cy = 65; const r = 48;
+  const startDeg = 135; const totalDeg = 270;
+  const color = score >= 85 ? "#34d399" : score >= 70 ? "#f59e0b" : "#f87171";
+  const d2r = (d: number) => d * Math.PI / 180;
+  const pt = (deg: number) => ({ x: cx + r * Math.cos(d2r(deg)), y: cy + r * Math.sin(d2r(deg)) });
+  const arc = (s: number, e: number) => {
+    const sp = pt(s); const ep = pt(e);
+    const large = e - s > 180 ? 1 : 0;
+    return `M ${sp.x.toFixed(2)} ${sp.y.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${ep.x.toFixed(2)} ${ep.y.toFixed(2)}`;
+  };
+  const scoreEnd = startDeg + (score / 100) * totalDeg;
+  return (
+    <svg viewBox="0 0 130 102" style={{ width: 130, height: 102 }}>
+      <defs>
+        <pattern id="gaugeGrid" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
+          <circle cx="1" cy="1" r="0.9" fill="rgba(255,255,255,0.07)" />
+        </pattern>
+        <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="#7c3aed" /><stop offset="100%" stopColor={color} />
+        </linearGradient>
+      </defs>
+      <circle cx={cx} cy={cy} r={r + 10} fill="url(#gaugeGrid)" />
+      <path d={arc(startDeg, startDeg + totalDeg)} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7" strokeLinecap="round" />
+      {score > 0 && <path d={arc(startDeg, scoreEnd)} fill="none" stroke="url(#gaugeGrad)" strokeWidth="7" strokeLinecap="round" style={{ filter: `drop-shadow(0 0 8px ${color}90)` }} />}
+      <text x={cx} y={cy + 7} textAnchor="middle" fontSize="24" fontWeight="800" fill="white" fontFamily="monospace">{score}</text>
+      <text x={cx} y={cy + 20} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)" fontFamily="system-ui" letterSpacing="1.5">Бизнес-балл</text>
+    </svg>
+  );
+}
+
+// Concentric rings for Резюме tab with % pointer lines
+function ResumeConcentricChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
+  const numericItems = items.filter(i => i.numeric !== undefined).slice(0, 3);
+  if (numericItems.length < 2) return null;
+  const max = Math.max(...numericItems.map(i => i.numeric!));
+  const cx = 130; const cy = 130; const maxR = 100;
+  const RINGS = [
+    { color: "#7c3aed", glow: "rgba(124,58,237,0.5)", label: "TAM", angle: -55 },
+    { color: "#22d3ee", glow: "rgba(34,211,238,0.5)", label: "SAM", angle: 25 },
+    { color: "#10b981", glow: "rgba(16,185,129,0.5)", label: "SOM", angle: 110 },
+  ];
+  const rings = numericItems.map((item, i) => {
+    const frac = Math.pow(item.numeric! / max, 0.45);
+    const r = Math.max(10, maxR * frac);
+    const ring = RINGS[i];
+    const rad = ring.angle * Math.PI / 180;
+    const dotX = cx + r * Math.cos(rad); const dotY = cy + r * Math.sin(rad);
+    const lineLen = 32;
+    const lx = cx + (r + lineLen) * Math.cos(rad); const ly = cy + (r + lineLen) * Math.sin(rad);
+    const pct = Math.round((item.numeric! / max) * 100);
+    return { ...item, r, ring, dotX, dotY, lx, ly, pct, i };
   });
-  const gridPoints = (frac: number) => scores.map((_, i) => {
-    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
-    return `${cx + Math.cos(angle) * r * frac},${cy + Math.sin(angle) * r * frac}`;
-  }).join(" ");
-  const dataPath = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x},${p.y}`).join(" ") + "Z";
 
   return (
-    <div className="flex flex-col items-center">
-      <svg viewBox="0 0 200 200" className="w-48 h-48">
-        {[0.25, 0.5, 0.75, 1].map(frac => (
-          <polygon key={frac} points={gridPoints(frac)} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+    <div className="relative rounded-2xl overflow-hidden p-5" style={{
+      background: "linear-gradient(135deg, rgba(124,58,237,0.07) 0%, rgba(15,15,20,0.88) 100%)",
+      border: "1px solid rgba(255,255,255,0.07)",
+    }}>
+      <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+      <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.45), transparent)" }} />
+      <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-2 relative">Структура рынка</div>
+      <svg viewBox="0 0 260 260" style={{ width: "100%", maxWidth: 260, margin: "0 auto", display: "block" }}>
+        <defs>
+          {rings.map((ri, i) => (
+            <radialGradient key={i} id={`rg2_${i}`} cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor={ri.ring.color} stopOpacity="0.18" />
+              <stop offset="100%" stopColor={ri.ring.color} stopOpacity="0.02" />
+            </radialGradient>
+          ))}
+        </defs>
+        {[...rings].reverse().map((ri, idx) => (
+          <g key={idx}>
+            <circle cx={cx} cy={cy} r={ri.r} fill={`url(#rg2_${rings.length - 1 - idx})`} />
+            <circle cx={cx} cy={cy} r={ri.r} fill="none" stroke={ri.ring.color} strokeWidth={ri.i === 0 ? 1.5 : 1}
+              strokeDasharray={ri.i === 0 ? undefined : "4 3"}
+              style={{ filter: `drop-shadow(0 0 8px ${ri.ring.glow})` }} />
+          </g>
         ))}
-        {scores.map((_, i) => {
-          const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
-          return <line key={i} x1={cx} y1={cy} x2={cx + Math.cos(angle) * r} y2={cy + Math.sin(angle) * r} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />;
-        })}
-        <polygon points={points.map(p => `${p.x},${p.y}`).join(" ")} fill="rgba(124,58,237,0.2)" stroke="#7c3aed" strokeWidth="1.5" />
-        {points.map((p, i) => (
-          <circle key={i} cx={p.x} cy={p.y} r="3" fill="#7c3aed" />
+        {rings.map((ri, i) => (
+          <g key={i}>
+            <circle cx={ri.dotX} cy={ri.dotY} r="4" fill={ri.ring.color} style={{ filter: `drop-shadow(0 0 5px ${ri.ring.glow})` }} />
+            <line x1={ri.dotX} y1={ri.dotY} x2={ri.lx} y2={ri.ly} stroke={ri.ring.color} strokeWidth="0.75" strokeDasharray="3 2" opacity="0.55" />
+            <rect x={ri.lx - 15} y={ri.ly - 9} width="30" height="18" rx="4" fill={ri.ring.color} fillOpacity="0.12" stroke={ri.ring.color} strokeOpacity="0.35" strokeWidth="0.75" />
+            <text x={ri.lx} y={ri.ly + 4.5} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={ri.ring.color} fontFamily="monospace">{ri.pct}%</text>
+          </g>
         ))}
+        <circle cx={cx} cy={cy} r="4.5" fill="#10b981" style={{ filter: "drop-shadow(0 0 8px rgba(16,185,129,0.9))" }} />
       </svg>
+      <div className="flex justify-center gap-6 mt-1">
+        {rings.map((ri, i) => (
+          <div key={i} className="flex items-center gap-1.5">
+            <div className="size-2 rounded-full flex-shrink-0" style={{ background: ri.ring.color, boxShadow: `0 0 6px ${ri.ring.glow}` }} />
+            <div>
+              <div className="text-[8px] text-white/30">{ri.ring.label}</div>
+              <div className="text-[10px] font-bold font-mono leading-tight" style={{ color: ri.ring.color }}>{ri.value}</div>
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -671,7 +742,7 @@ export default function ProjectPage() {
             </div>
           ))}
         </div>
-        <ScoreRadar scores={project.scores} />
+        <PremiumScoreGauge score={project.score} />
       </div>
 
       {/* Вкладки */}
@@ -688,23 +759,140 @@ export default function ProjectPage() {
       </div>
 
       {/* ── Резюме ── */}
-      {activeTab === "Резюме" && (
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-sm font-semibold text-white mb-4">Краткое резюме стратегии</h2>
-            <p className="text-sm text-white/60 leading-relaxed">{project.summary}</p>
-            {aiResults.length > 0 && (() => {
-              const ceo = aiResults.find(r => r.role === "CEO");
-              return ceo ? (
-                <div className="mt-5 pt-5 border-t border-white/[0.06]">
-                  <div className="text-[10px] font-semibold text-violet-400/70 uppercase tracking-widest mb-2">Вывод CEO</div>
-                  <p className="text-sm text-white/55 leading-relaxed">{ceo.summary}</p>
+      {activeTab === "Резюме" && (() => {
+        // Pick 4 key metrics for cards
+        const KEY_METRICS = ["LTV пользователя", "CAC", "Точка безубыточности", "LTV/CAC"];
+        const metricCards = KEY_METRICS.map(k => project.financials.find(f => f.label === k)).filter(Boolean) as typeof project.financials;
+        const CARD_CFG: Record<string, { color: string; glow: string; icon: React.ReactNode }> = {
+          "LTV пользователя": { color: "#a78bfa", glow: "rgba(167,139,250,0.35)", icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="1 10 4 6 7 8 10 4 15 7"/><line x1="1" y1="15" x2="15" y2="15"/></svg> },
+          "CAC":              { color: "#34d399", glow: "rgba(52,211,153,0.35)",  icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="6" r="3"/><rect x="3" y="11" width="10" height="3" rx="1"/><line x1="8" y1="9" x2="8" y2="11"/></svg> },
+          "Точка безубыточности": { color: "#60a5fa", glow: "rgba(96,165,250,0.35)", icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg> },
+          "LTV/CAC":          { color: "#f59e0b", glow: "rgba(245,158,11,0.35)",  icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="2" y1="14" x2="14" y2="2"/><circle cx="5" cy="5" r="2"/><circle cx="11" cy="11" r="2"/></svg> },
+        };
+        const ceo = aiResults.find(r => r.role === "CEO");
+        const cmo = aiResults.find(r => r.role === "CMO");
+        return (
+          <div className="space-y-4">
+            {/* Top row: market rings (left) + score panel (right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <ResumeConcentricChart items={project.market} />
+
+              {/* Score + mini progress bars */}
+              <div
+                className="relative rounded-2xl overflow-hidden p-5 flex flex-col justify-between"
+                style={{
+                  background: "linear-gradient(135deg, rgba(124,58,237,0.07) 0%, rgba(15,15,20,0.88) 100%)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                }}
+              >
+                <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
+                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(124,58,237,0.45),transparent)" }} />
+                <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-3 relative">Бизнес-оценка</div>
+                <div className="flex items-center gap-5 mb-5">
+                  <PremiumScoreGauge score={project.score} />
+                  <div className="flex-1 space-y-2.5">
+                    {project.scores.map((s) => (
+                      <div key={s.label} className="flex items-center gap-2">
+                        <span className="text-[10px] text-white/35 flex-1 min-w-0 truncate">{s.label}</span>
+                        <div className="w-20 h-1 bg-white/[0.06] rounded-full overflow-hidden">
+                          <div className="h-full rounded-full" style={{ width: `${s.value}%`, background: "linear-gradient(90deg,#7c3aed,#3b82f6)" }} />
+                        </div>
+                        <span className="text-[10px] font-mono text-white/45 w-5 text-right flex-shrink-0">{s.value}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-              ) : null;
-            })()}
-          </CardContent>
-        </Card>
-      )}
+                {/* summary excerpt */}
+                <div className="relative pt-4 border-t border-white/[0.05]">
+                  <div className="text-[9px] text-white/25 uppercase tracking-[0.2em] mb-1.5">Стратегическое резюме</div>
+                  <p className="text-[12px] text-white/55 leading-[1.75] line-clamp-4">{project.summary}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 4 key metric cards */}
+            {metricCards.length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {metricCards.map((m) => {
+                  const cfg = CARD_CFG[m.label] ?? { color: "#a78bfa", glow: "rgba(167,139,250,0.3)", icon: null };
+                  return (
+                    <div
+                      key={m.label}
+                      className="relative rounded-xl overflow-hidden p-4 group transition-all duration-300 hover:scale-[1.03]"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 100%)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                        backdropFilter: "blur(14px)",
+                        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 28px rgba(0,0,0,0.25)`,
+                      }}
+                    >
+                      <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg,transparent,${cfg.color}50,transparent)` }} />
+                      {/* metallic bevel */}
+                      <div className="absolute inset-x-0 bottom-0 h-px opacity-30" style={{ background: `linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)` }} />
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="text-2xl font-bold font-mono tracking-tight" style={{ color: cfg.color, textShadow: `0 0 20px ${cfg.glow}` }}>{m.value}</div>
+                        <div className="mt-0.5 opacity-40 group-hover:opacity-75 transition-opacity" style={{ color: cfg.color }}>{cfg.icon}</div>
+                      </div>
+                      <div className="text-[10px] text-white/30 leading-tight">{m.label}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* CEO + CMO premium analysis panels */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* CEO panel */}
+              <div
+                className="relative rounded-2xl overflow-hidden p-5"
+                style={{
+                  background: "linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(10,10,14,0.92) 100%)",
+                  border: "1px solid rgba(124,58,237,0.18)",
+                  backdropFilter: "blur(16px)",
+                  boxShadow: "inset 0 1px 0 rgba(124,58,237,0.14), 0 8px 32px rgba(0,0,0,0.3)",
+                }}
+              >
+                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(124,58,237,0.55),transparent)" }} />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="size-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ background: "rgba(124,58,237,0.18)", border: "1px solid rgba(124,58,237,0.3)", color: "#7c3aed" }}>C</div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-white/85">CEO — Стратегический вывод</div>
+                    <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · Общая стратегия</div>
+                  </div>
+                  {ceo && <CircularScore score={ceo.score} color="#7c3aed" />}
+                </div>
+                <p className="text-[12.5px] text-white/58 leading-[1.8]">
+                  {ceo?.summary ?? project.summary}
+                </p>
+              </div>
+
+              {/* CMO panel */}
+              <div
+                className="relative rounded-2xl overflow-hidden p-5"
+                style={{
+                  background: "linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(10,10,14,0.92) 100%)",
+                  border: "1px solid rgba(16,185,129,0.16)",
+                  backdropFilter: "blur(16px)",
+                  boxShadow: "inset 0 1px 0 rgba(16,185,129,0.12), 0 8px 32px rgba(0,0,0,0.3)",
+                }}
+              >
+                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(16,185,129,0.5),transparent)" }} />
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="size-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ background: "rgba(16,185,129,0.14)", border: "1px solid rgba(16,185,129,0.25)", color: "#10b981" }}>M</div>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-white/85">CMO — Маркетинговая стратегия</div>
+                    <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · Go-to-Market</div>
+                  </div>
+                  {cmo && <CircularScore score={cmo.score} color="#10b981" />}
+                </div>
+                <p className="text-[12.5px] text-white/58 leading-[1.8] line-clamp-6">
+                  {cmo?.summary ?? cmo?.analysis ?? "Запустите AI-анализ для получения маркетинговой стратегии от CMO."}
+                </p>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* ── AI Команда ── */}
       {activeTab === "AI Команда" && (
