@@ -126,7 +126,106 @@ const RISK_COLORS: Record<string, string> = {
   low: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
 };
 const RISK_LABELS: Record<string, string> = { high: "Высокий", medium: "Средний", low: "Низкий" };
-const RISK_ICONS: Record<string, string> = { high: "⚠", medium: "◈", low: "◉" };
+const RISK_ICONS_SVG: Record<string, React.ReactNode> = {
+  high: (
+    <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <path d="M8 2L14 13H2L8 2z"/><line x1="8" y1="7" x2="8" y2="10"/><circle cx="8" cy="12" r="0.5" fill="currentColor"/>
+    </svg>
+  ),
+  medium: (
+    <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <polyline points="2 10 5 6 8 8 11 4 14 6"/><line x1="2" y1="13" x2="14" y2="13"/>
+    </svg>
+  ),
+  low: (
+    <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
+      <circle cx="8" cy="8" r="5"/><polyline points="6 8 8 10 11 6"/>
+    </svg>
+  ),
+};
+
+// Risk radar chart
+function RiskRadarChart({ risks }: { risks: { level: string; title: string }[] }) {
+  const cx = 110; const cy = 110; const r = 80;
+  const axes = risks.length > 0 ? risks.slice(0, 6) : [
+    { title: "Конкуренция", level: "high" },
+    { title: "Рынок", level: "medium" },
+    { title: "Исполнение", level: "high" },
+    { title: "Финансы", level: "medium" },
+    { title: "Регуляторика", level: "low" },
+    { title: "Технологии", level: "medium" },
+  ];
+  const n = axes.length;
+  const levelVal: Record<string, number> = { high: 0.85, medium: 0.55, low: 0.3 };
+  const levelColor: Record<string, string> = { high: "#f87171", medium: "#fbbf24", low: "#34d399" };
+
+  const pts = axes.map((ax, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+    const frac = levelVal[ax.level] ?? 0.5;
+    return {
+      x: cx + Math.cos(angle) * r * frac,
+      y: cy + Math.sin(angle) * r * frac,
+      lx: cx + Math.cos(angle) * (r + 22),
+      ly: cy + Math.sin(angle) * (r + 22),
+      color: levelColor[ax.level] ?? "#a78bfa",
+      title: ax.title,
+      level: ax.level,
+    };
+  });
+  const poly = pts.map(p => `${p.x},${p.y}`).join(" ");
+
+  return (
+    <div
+      className="relative rounded-2xl overflow-hidden p-5"
+      style={{
+        background: "linear-gradient(135deg, rgba(251,146,60,0.05) 0%, rgba(15,15,20,0.85) 100%)",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
+      <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.4) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
+      <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(251,146,60,0.4),transparent)" }} />
+      <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-3 relative">Матрица угроз</div>
+      <div className="relative flex items-center justify-center">
+        <svg viewBox="0 0 220 220" style={{ width: 200, height: 200 }}>
+          <defs>
+            <radialGradient id="riskFill" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#f87171" stopOpacity="0.2"/>
+              <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.05"/>
+            </radialGradient>
+          </defs>
+          {/* grid rings */}
+          {[0.3, 0.55, 0.85].map((frac, gi) => {
+            const ringPts = Array.from({ length: n }, (_, i) => {
+              const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+              return `${cx + Math.cos(angle) * r * frac},${cy + Math.sin(angle) * r * frac}`;
+            }).join(" ");
+            const colors = ["rgba(52,211,153,0.12)", "rgba(251,191,36,0.12)", "rgba(248,113,113,0.12)"];
+            return <polygon key={gi} points={ringPts} fill={colors[gi]} stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>;
+          })}
+          {/* axis lines */}
+          {pts.map((p, i) => (
+            <line key={i} x1={cx} y1={cy} x2={cx + Math.cos((i/n)*2*Math.PI-Math.PI/2)*r} y2={cy + Math.sin((i/n)*2*Math.PI-Math.PI/2)*r} stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>
+          ))}
+          {/* data polygon */}
+          <polygon points={poly} fill="url(#riskFill)" stroke="rgba(248,113,113,0.6)" strokeWidth="1.5" strokeLinejoin="round"/>
+          {/* nodes */}
+          {pts.map((p, i) => (
+            <g key={i}>
+              <circle cx={p.x} cy={p.y} r="5" fill="#0a0a0a" stroke={p.color} strokeWidth="1.5" style={{ filter: `drop-shadow(0 0 4px ${p.color}80)` }}/>
+              <circle cx={p.x} cy={p.y} r="2" fill={p.color}/>
+            </g>
+          ))}
+          {/* labels */}
+          {pts.map((p, i) => (
+            <text key={i} x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle" fontSize="7" fill="rgba(255,255,255,0.35)" fontFamily="system-ui">
+              {p.title.length > 10 ? p.title.slice(0, 10) : p.title}
+            </text>
+          ))}
+        </svg>
+      </div>
+    </div>
+  );
+}
 
 // Concentric circles TAM/SAM/SOM visualization
 function MarketConcentricChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
@@ -924,39 +1023,84 @@ export default function ProjectPage() {
 
       {/* ── Риски ── */}
       {activeTab === "Риски" && (
-        <div className="space-y-3">
-          {/* AI risks from Legal Advisor and CEO if available */}
+        <div className="space-y-4">
+          {/* Radar threat matrix */}
+          <RiskRadarChart risks={project.risks} />
+
+          {/* Risk cards — glassmorphism */}
+          <div className="space-y-2.5">
+            {project.risks.map((r) => {
+              const cfg = {
+                high: { color: "#f87171", glow: "rgba(248,113,113,0.15)", border: "rgba(248,113,113,0.2)", bg: "rgba(248,113,113,0.05)" },
+                medium: { color: "#fbbf24", glow: "rgba(251,191,36,0.15)", border: "rgba(251,191,36,0.2)", bg: "rgba(251,191,36,0.05)" },
+                low: { color: "#34d399", glow: "rgba(52,211,153,0.15)", border: "rgba(52,211,153,0.2)", bg: "rgba(52,211,153,0.04)" },
+              }[r.level] ?? { color: "#a78bfa", glow: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.15)", bg: "rgba(167,139,250,0.04)" };
+              return (
+                <div
+                  key={r.title}
+                  className="relative rounded-xl overflow-hidden p-4 transition-all duration-200 hover:scale-[1.005]"
+                  style={{
+                    background: `linear-gradient(135deg, ${cfg.bg} 0%, rgba(255,255,255,0.02) 100%)`,
+                    border: `1px solid ${cfg.border}`,
+                    backdropFilter: "blur(8px)",
+                    boxShadow: `inset 0 1px 0 ${cfg.glow}`,
+                  }}
+                >
+                  <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${cfg.color}40, transparent)` }} />
+                  <div className="flex items-start gap-3">
+                    <div className="flex-shrink-0 mt-0.5" style={{ color: cfg.color }}>
+                      {RISK_ICONS_SVG[r.level]}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: cfg.color }}>{RISK_LABELS[r.level]}</span>
+                        <span className="text-sm font-semibold text-white/85">{r.title}</span>
+                      </div>
+                      <p className="text-[12px] text-white/45 leading-relaxed">{r.desc}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* CEO + Legal risks from AI — premium panels */}
           {aiResults.length > 0 && (() => {
             const legal = aiResults.find(r => r.role === "Legal Advisor");
             const ceo = aiResults.find(r => r.role === "CEO");
-            const risksFromAI = [
-              ...(ceo?.risks ? [{ role: "CEO", color: "#7c3aed", text: ceo.risks }] : []),
-              ...(legal?.risks ? [{ role: "Legal Advisor", color: "#64748b", text: legal.risks }] : []),
+            const panels = [
+              ...(ceo?.risks ? [{ label: "CEO — Риски", sub: "Стратегический риск-аудит", letter: "C", color: "#7c3aed", text: ceo.risks, score: ceo.score }] : []),
+              ...(legal?.risks ? [{ label: "Legal Advisor — Риски", sub: "Юридические и регуляторные риски", letter: "L", color: "#64748b", text: legal.risks, score: legal.score }] : []),
             ];
-            return risksFromAI.length > 0 ? (
-              <div className="space-y-3 mb-3">
-                {risksFromAI.map(item => (
-                  <div key={item.role} className="p-4 rounded-xl bg-white/[0.03] border border-white/[0.06]">
-                    <div className="text-[10px] font-semibold uppercase tracking-widest mb-2" style={{ color: item.color }}>
-                      {item.role} — Риски
+            return panels.length > 0 ? (
+              <div className="space-y-3">
+                {panels.map(p => (
+                  <div
+                    key={p.label}
+                    className="relative rounded-2xl overflow-hidden p-5"
+                    style={{
+                      background: `linear-gradient(135deg, ${p.color}0d 0%, rgba(15,15,20,0.7) 100%)`,
+                      border: `1px solid ${p.color}25`,
+                      backdropFilter: "blur(16px)",
+                      boxShadow: `inset 0 1px 0 ${p.color}18, 0 8px 32px rgba(0,0,0,0.25)`,
+                    }}
+                  >
+                    <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${p.color}50, transparent)` }} />
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="size-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
+                        style={{ background: `${p.color}18`, border: `1px solid ${p.color}28`, color: p.color }}>{p.letter}</div>
+                      <div className="flex-1">
+                        <div className="text-sm font-semibold text-white/80">{p.label}</div>
+                        <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · {p.sub}</div>
+                      </div>
+                      <CircularScore score={p.score} color={p.color} />
                     </div>
-                    <p className="text-[13px] text-white/55 leading-relaxed whitespace-pre-line">{item.text}</p>
+                    <p className="text-[13px] text-white/60 leading-[1.8] whitespace-pre-line">{p.text}</p>
                   </div>
                 ))}
               </div>
             ) : null;
           })()}
-
-          {project.risks.map((r) => (
-            <div key={r.title} className={`p-4 rounded-xl border ${RISK_COLORS[r.level]}`}>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="text-sm">{RISK_ICONS[r.level]}</span>
-                <span className="text-xs font-bold uppercase tracking-wide">{RISK_LABELS[r.level]}</span>
-                <span className="text-sm font-semibold text-white">{r.title}</span>
-              </div>
-              <p className="text-xs text-white/50">{r.desc}</p>
-            </div>
-          ))}
         </div>
       )}
     </div>
