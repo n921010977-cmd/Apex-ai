@@ -4,7 +4,15 @@ import { TOOL_DEFINITIONS, executeTool } from "@/lib/tools";
 import type { AgentResult, OrchestratorRequest, StreamEvent, AgentConfig } from "@/types";
 import type { AgentRole } from "@/types";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let _client: Anthropic | null = null;
+function getClient(): Anthropic {
+  if (!_client) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured. Add it to .env.local");
+    _client = new Anthropic({ apiKey });
+  }
+  return _client;
+}
 
 // ─── Single Agent Runner ──────────────────────────────────────────────────────
 
@@ -32,7 +40,7 @@ async function runAgent(
 
     while (continueLoop) {
       continueLoop = false;
-      const response = await client.messages.create({
+      const response = await getClient().messages.create({
         model: agent.model,
         max_tokens: agent.maxTokens,
         temperature: agent.temperature,
@@ -108,7 +116,7 @@ As CEO, synthesize all of this into ONE unified, professional executive report. 
   let tokensUsed = 0;
 
   if (onToken) {
-    const stream = await client.messages.stream({
+    const stream = await getClient().messages.stream({
       model: ceoConfig.model,
       max_tokens: ceoConfig.maxTokens,
       temperature: ceoConfig.temperature,
@@ -126,7 +134,7 @@ As CEO, synthesize all of this into ONE unified, professional executive report. 
       }
     }
   } else {
-    const response = await client.messages.create({
+    const response = await getClient().messages.create({
       model: ceoConfig.model,
       max_tokens: ceoConfig.maxTokens,
       system: ceoConfig.systemPrompt,
@@ -240,7 +248,7 @@ export async function directChat(opts: {
   let tokensUsed = 0;
 
   if (onToken) {
-    const stream = await client.messages.stream({
+    const stream = await getClient().messages.stream({
       model: agent.model,
       max_tokens: agent.maxTokens,
       temperature: agent.temperature,
@@ -258,7 +266,7 @@ export async function directChat(opts: {
       }
     }
   } else {
-    const response = await client.messages.create({
+    const response = await getClient().messages.create({
       model: agent.model,
       max_tokens: agent.maxTokens,
       system: agent.systemPrompt,

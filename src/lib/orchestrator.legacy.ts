@@ -3,7 +3,15 @@ import { createClient } from "@/lib/supabase/server";
 import { searchMemory, saveMemory } from "@/lib/memory";
 import { executeTool, TOOL_DEFINITIONS } from "@/lib/tools";
 
-const client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
+let _client: Anthropic | null = null;
+function getClient(): Anthropic {
+  if (!_client) {
+    const apiKey = process.env.ANTHROPIC_API_KEY;
+    if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured. Add it to .env.local");
+    _client = new Anthropic({ apiKey });
+  }
+  return _client;
+}
 
 const DEFAULT_AGENT_PROMPTS: Record<string, string> = {
   ceo: `You are the CEO advisor on the Apex AI Executive Team. You are a visionary-pragmatist who thinks in 3–10 year horizons but speaks in concrete, actionable terms.
@@ -176,7 +184,7 @@ export async function runOrchestrator(opts: OrchestratorOptions): Promise<Orches
 
     if (onToken) {
       // Streaming mode
-      const stream = await client.messages.stream({
+      const stream = await getClient().messages.stream({
         model: agentConfig.model,
         max_tokens: agentConfig.max_tokens,
         system: systemPrompt,
@@ -233,7 +241,7 @@ export async function runOrchestrator(opts: OrchestratorOptions): Promise<Orches
       }
     } else {
       // Non-streaming mode
-      const response = await client.messages.create({
+      const response = await getClient().messages.create({
         model: agentConfig.model,
         max_tokens: agentConfig.max_tokens,
         system: systemPrompt,

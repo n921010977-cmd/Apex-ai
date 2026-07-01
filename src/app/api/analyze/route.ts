@@ -4,9 +4,11 @@ import { AGENT_PROMPTS, AGENT_META, ProjectBrief, AgentResult } from "@/lib/agen
 
 export const maxDuration = 120;
 
-const client = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+function getClient(): Anthropic {
+  const apiKey = process.env.ANTHROPIC_API_KEY;
+  if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured. Add it to .env.local");
+  return new Anthropic({ apiKey });
+}
 
 function buildUserMessage(brief: ProjectBrief): string {
   return `
@@ -29,7 +31,7 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
   const meta = AGENT_META.find((a) => a.role === role)!;
 
   try {
-    const response = await client.messages.create({
+    const response = await getClient().messages.create({
       model: "claude-haiku-4-5-20251001",
       max_tokens: 4000,
       system: systemPrompt,

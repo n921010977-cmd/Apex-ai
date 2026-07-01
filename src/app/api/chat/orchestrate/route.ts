@@ -7,6 +7,13 @@ import type { StreamEvent } from "@/types";
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
+  if (!process.env.ANTHROPIC_API_KEY) {
+    return NextResponse.json(
+      { success: false, error: "ANTHROPIC_API_KEY is not configured. Add it to .env.local" },
+      { status: 503 }
+    );
+  }
+
   const identifier = getIdentifier(req);
   const limit = chatLimiter(identifier);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
