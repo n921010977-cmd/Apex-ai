@@ -1,0 +1,517 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Users ───────────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  avatarUrl     String?
+  passwordHash  String?
+  role          UserRole  @default(FREE)
+  emailVerified DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  organizationId String?
+
+  sessions      Session[]
+  projects      Project[]
+  messages      Message[]
+  reports       Report[]
+  tasks         Task[]
+  notifications Notification[]
+  activityLogs  ActivityLog[]
+  subscription  Subscription?
+  settings      UserSettings?
+  apiUsage      ApiUsage[]
+  files         File[]
+
+  @@index([email])
+  @@index([organizationId])
+}
+
+enum UserRole {
+  GUEST
+  FREE
+  PRO
+  BUSINESS
+  ENTERPRISE
+  ADMIN
+  FOUNDER
+}
+
+// ─── Organizations ────────────────────────────────────────────────────────────
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  logoUrl   String?
+  plan      Plan     @default(FREE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  projects  Project[]
+  agents    Agent[]
+  knowledge KnowledgeBase[]
+  settings  OrgSettings?
+}
+
+enum Plan {
+  FREE
+  PRO
+  BUSINESS
+  ENTERPRISE
+}
+
+// ─── Sessions ─────────────────────────────────────────────────────────────────
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ─── Projects ─────────────────────────────────────────────────────────────────
+
+model Project {
+  id             String        @id @default(cuid())
+  name           String
+  description    String?
+  industry       String?
+  stage          ProjectStage  @default(IDEA)
+  status         ProjectStatus @default(ACTIVE)
+  goals          String[]
+  timeframe      String?
+  analysis       Json?
+  userId         String
+  organizationId String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  messages     Message[]
+  reports      Report[]
+  tasks        Task[]
+  files        File[]
+
+  @@index([userId])
+  @@index([status])
+}
+
+enum ProjectStage {
+  IDEA
+  VALIDATION
+  MVP
+  GROWTH
+  SCALE
+  MATURE
+}
+
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  COMPLETED
+  ON_HOLD
+}
+
+// ─── Agents ───────────────────────────────────────────────────────────────────
+
+model Agent {
+  id             String      @id @default(cuid())
+  name           String
+  slug           String
+  description    String      @default("")
+  systemPrompt   String      @db.Text
+  model          String      @default("claude-sonnet-5")
+  temperature    Float       @default(0.7)
+  maxTokens      Int         @default(4000)
+  toolsEnabled   String[]
+  role           AgentRole
+  status         AgentStatus @default(ACTIVE)
+  isBuiltIn      Boolean     @default(false)
+  organizationId String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization Organization? @relation(fields: [organizationId], references: [id])
+  messages     Message[]
+  aiRequests   AiRequest[]
+
+  @@unique([slug, organizationId])
+  @@index([role])
+}
+
+enum AgentRole {
+  CEO
+  CFO
+  CMO
+  COO
+  CTO
+  ANALYST
+  SALES
+  LEGAL
+  GENERAL
+}
+
+enum AgentStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+// ─── Messages ─────────────────────────────────────────────────────────────────
+
+model Message {
+  id         String      @id @default(cuid())
+  role       MessageRole
+  content    String      @db.Text
+  tokensUsed Int         @default(0)
+  costUsd    Float       @default(0)
+  metadata   Json        @default("{}")
+  status     MsgStatus   @default(DELIVERED)
+  userId     String
+  projectId  String?
+  agentId    String?
+  createdAt  DateTime    @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  agent   Agent?  @relation(fields: [agentId], references: [id])
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([createdAt])
+}
+
+enum MessageRole {
+  USER
+  ASSISTANT
+  SYSTEM
+  TOOL
+}
+
+enum MsgStatus {
+  PENDING
+  PROCESSING
+  DELIVERED
+  FAILED
+}
+
+// ─── Reports ──────────────────────────────────────────────────────────────────
+
+model Report {
+  id        String       @id @default(cuid())
+  title     String
+  content   String       @db.Text
+  type      ReportType
+  status    ReportStatus @default(DRAFT)
+  version   Int          @default(1)
+  metadata  Json         @default("{}")
+  userId    String
+  projectId String?
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project  Project? @relation(fields: [projectId], references: [id])
+  versions ReportVersion[]
+  files    File[]
+
+  @@index([userId])
+  @@index([projectId])
+}
+
+enum ReportType {
+  STRATEGY
+  FINANCIAL
+  MARKETING
+  OPERATIONS
+  ANALYSIS
+  EXECUTIVE
+  CUSTOM
+}
+
+enum ReportStatus {
+  DRAFT
+  REVIEW
+  PUBLISHED
+  ARCHIVED
+}
+
+model ReportVersion {
+  id        String   @id @default(cuid())
+  reportId  String
+  version   Int
+  content   String   @db.Text
+  createdAt DateTime @default(now())
+
+  report Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+
+  @@index([reportId])
+}
+
+// ─── Tasks ────────────────────────────────────────────────────────────────────
+
+model Task {
+  id          String     @id @default(cuid())
+  title       String
+  description String?
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  dueDate     DateTime?
+  userId      String
+  projectId   String?
+  assigneeId  String?
+  metadata    Json       @default("{}")
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id])
+
+  @@index([userId])
+  @@index([projectId])
+  @@index([status])
+}
+
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  REVIEW
+  DONE
+  CANCELLED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+// ─── Subscriptions ────────────────────────────────────────────────────────────
+
+model Subscription {
+  id                   String             @id @default(cuid())
+  userId               String             @unique
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  stripePriceId        String?
+  plan                 Plan               @default(FREE)
+  status               SubscriptionStatus @default(ACTIVE)
+  currentPeriodStart   DateTime?
+  currentPeriodEnd     DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+
+  @@index([stripeCustomerId])
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  TRIALING
+  PAUSED
+}
+
+model Invoice {
+  id               String        @id @default(cuid())
+  subscriptionId   String
+  stripeInvoiceId  String        @unique
+  amount           Int
+  currency         String        @default("usd")
+  status           InvoiceStatus
+  paidAt           DateTime?
+  hostedInvoiceUrl String?
+  invoicePdf       String?
+  createdAt        DateTime      @default(now())
+
+  subscription Subscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId])
+}
+
+enum InvoiceStatus {
+  DRAFT
+  OPEN
+  PAID
+  VOID
+  UNCOLLECTIBLE
+}
+
+// ─── Files ────────────────────────────────────────────────────────────────────
+
+model File {
+  id           String   @id @default(cuid())
+  name         String
+  originalName String
+  mimeType     String
+  size         Int
+  url          String
+  storageKey   String   @unique
+  userId       String
+  projectId    String?
+  reportId     String?
+  createdAt    DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id])
+  report  Report? @relation(fields: [reportId], references: [id])
+
+  @@index([userId])
+}
+
+// ─── Knowledge Base ───────────────────────────────────────────────────────────
+
+model KnowledgeBase {
+  id             String   @id @default(cuid())
+  title          String
+  content        String   @db.Text
+  source         String?
+  embedding      Float[]
+  organizationId String
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+}
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      NotificationType
+  read      Boolean          @default(false)
+  metadata  Json             @default("{}")
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  BILLING
+  SYSTEM
+}
+
+// ─── Settings ─────────────────────────────────────────────────────────────────
+
+model UserSettings {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  language     String   @default("ru")
+  timezone     String   @default("UTC")
+  theme        String   @default("dark")
+  emailNotifs  Boolean  @default(true)
+  aiModel      String   @default("claude-sonnet-5")
+  preferences  Json     @default("{}")
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model OrgSettings {
+  id             String   @id @default(cuid())
+  organizationId String   @unique
+  allowedDomains String[]
+  maxUsers       Int      @default(5)
+  features       Json     @default("{}")
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+}
+
+// ─── Activity Logs ────────────────────────────────────────────────────────────
+
+model ActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  action    String
+  resource  String
+  resourceId String?
+  ipAddress String?
+  userAgent String?
+  metadata  Json     @default("{}")
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+// ─── API Usage ────────────────────────────────────────────────────────────────
+
+model ApiUsage {
+  id         String   @id @default(cuid())
+  userId     String
+  endpoint   String
+  method     String
+  statusCode Int
+  durationMs Int
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+// ─── AI Requests ──────────────────────────────────────────────────────────────
+
+model AiRequest {
+  id           String   @id @default(cuid())
+  agentId      String?
+  model        String
+  inputTokens  Int      @default(0)
+  outputTokens Int      @default(0)
+  totalTokens  Int      @default(0)
+  costUsd      Float    @default(0)
+  durationMs   Int      @default(0)
+  status       String   @default("success")
+  metadata     Json     @default("{}")
+  createdAt    DateTime @default(now())
+
+  agent Agent? @relation(fields: [agentId], references: [id])
+
+  @@index([agentId])
+  @@index([createdAt])
+}

@@ -1,27 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { directChat } from "@/lib/orchestrator";
+import { orchestrate } from "@/lib/orchestrator";
 import { validateBody, SendMessageSchema } from "@/lib/validators";
 import { chatLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import type { StreamEvent } from "@/types";
 
-export const maxDuration = 120;
+export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
-  // Rate limiting
   const identifier = getIdentifier(req);
   const limit = chatLimiter(identifier);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   let rawBody: unknown;
-  try {
-    rawBody = await req.json();
-  } catch {
+  try { rawBody = await req.json(); } catch {
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
   const { data, error } = validateBody(SendMessageSchema, rawBody);
   if (error || !data) return NextResponse.json({ success: false, error }, { status: 422 });
-
-  const { message, agentId, history } = data;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -30,16 +26,16 @@ export async function POST(req: NextRequest) {
         controller.enqueue(encoder.encode(`data: ${JSON.stringify(event)}\n\n`));
 
       try {
-        await directChat({
-          message,
-          agentId,
-          history,
-          onToken: (token) => send({ type: "token", token }),
-        });
-        send({ type: "done" });
+        await orchestrate(
+          { message: data.message, agentId: data.agentId, userId: "anonymous" },
+          {
+            onEvent: (evt: StreamEvent) => {
+              send(evt);
+            },
+          }
+        );
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        send({ type: "error", message: msg });
+        send({ type: "error", message: err instanceof Error ? err.message : String(err) });
       } finally {
         controller.close();
       }
@@ -51,7 +47,6 @@ export async function POST(req: NextRequest) {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
       "Connection": "keep-alive",
-      "X-RateLimit-Remaining": String(limit.remaining),
     },
   });
 }

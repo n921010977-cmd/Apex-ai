@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { runOrchestrator } from "@/lib/orchestrator";
+import { runOrchestrator } from "@/lib/orchestrator.legacy";
 
 export const maxDuration = 120;
 
