@@ -6,43 +6,108 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-  try {
-    const supabase = await createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any;
-    const userId = session.user.id!;
+  const supabase = await createClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const userId = session.user.id!;
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000).toISOString();
+  const sevenDaysAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
-    const [projects, messages, tasks] = await Promise.allSettled([
-      db.from("projects").select("id, status").eq("user_id", userId),
-      db.from("messages").select("id, tokens_used, created_at").eq("user_id", userId).gte("created_at", new Date(Date.now() - 30 * 86400000).toISOString()),
-      db.from("tasks").select("id, status").eq("user_id", userId),
-    ]);
+  const [
+    projectsRes,
+    messagesRes,
+    tasksRes,
+    strategiesRes,
+    risksRes,
+    notesRes,
+    meetingsRes,
+    notificationsRes,
+    recentProjectsRes,
+    recentStrategiesRes,
+  ] = await Promise.allSettled([
+    db.from("projects").select("id, status, title, updated_at").eq("user_id", userId),
+    db.from("messages").select("id, tokens_used, created_at").eq("user_id", userId).gte("created_at", thirtyDaysAgo),
+    db.from("tasks").select("id, status, title, updated_at").eq("user_id", userId),
+    db.from("strategies").select("id, status, title, updated_at").eq("user_id", userId),
+    db.from("risks").select("id, status, probability, impact").eq("user_id", userId),
+    db.from("notes").select("id, word_count, updated_at").eq("user_id", userId).eq("is_deleted", false),
+    db.from("board_meetings").select("id, status, title, completed_at").eq("user_id", userId),
+    db.from("notifications").select("id", { count: "exact", head: true }).eq("user_id", userId).eq("is_read", false),
+    db.from("projects").select("id, title, status, updated_at").eq("user_id", userId).order("updated_at", { ascending: false }).limit(5),
+    db.from("strategies").select("id, title, status, updated_at").eq("user_id", userId).order("updated_at", { ascending: false }).limit(5),
+  ]);
 
-    const projectsData = projects.status === "fulfilled" ? projects.value.data ?? [] : [];
-    const messagesData = messages.status === "fulfilled" ? messages.value.data ?? [] : [];
-    const tasksData = tasks.status === "fulfilled" ? tasks.value.data ?? [] : [];
+  const safe = <T>(r: PromiseSettledResult<{ data: T[] | null }>): T[] =>
+    r.status === "fulfilled" ? r.value.data ?? [] : [];
 
-    const totalTokens = messagesData.reduce((s: number, m: { tokens_used: number }) => s + (m.tokens_used ?? 0), 0);
+  const projects = safe<{ id: string; status: string; title: string; updated_at: string }>(projectsRes as PromiseSettledResult<{ data: { id: string; status: string; title: string; updated_at: string }[] | null }>);
+  const messages = safe<{ id: string; tokens_used: number; created_at: string }>(messagesRes as PromiseSettledResult<{ data: { id: string; tokens_used: number; created_at: string }[] | null }>);
+  const tasks = safe<{ id: string; status: string; title: string; updated_at: string }>(tasksRes as PromiseSettledResult<{ data: { id: string; status: string; title: string; updated_at: string }[] | null }>);
+  const strategies = safe<{ id: string; status: string; title: string; updated_at: string }>(strategiesRes as PromiseSettledResult<{ data: { id: string; status: string; title: string; updated_at: string }[] | null }>);
+  const risks = safe<{ id: string; status: string; probability: number; impact: number }>(risksRes as PromiseSettledResult<{ data: { id: string; status: string; probability: number; impact: number }[] | null }>);
+  const notes = safe<{ id: string; word_count: number; updated_at: string }>(notesRes as PromiseSettledResult<{ data: { id: string; word_count: number; updated_at: string }[] | null }>);
+  const meetings = safe<{ id: string; status: string; title: string; completed_at: string }>(meetingsRes as PromiseSettledResult<{ data: { id: string; status: string; title: string; completed_at: string }[] | null }>);
 
-    return NextResponse.json({
-      success: true,
-      data: {
+  const unreadNotifications =
+    notificationsRes.status === "fulfilled"
+      ? (notificationsRes.value as { count: number | null }).count ?? 0
+      : 0;
+
+  const recentProjects = safe<{ id: string; title: string; status: string; updated_at: string }>(recentProjectsRes as PromiseSettledResult<{ data: { id: string; title: string; status: string; updated_at: string }[] | null }>);
+  const recentStrategies = safe<{ id: string; title: string; status: string; updated_at: string }>(recentStrategiesRes as PromiseSettledResult<{ data: { id: string; title: string; status: string; updated_at: string }[] | null }>);
+
+  const totalTokens = messages.reduce((s, m) => s + (m.tokens_used ?? 0), 0);
+  const activeRisks = risks.filter(r => r.status === "active");
+  const criticalRisks = activeRisks.filter(r => r.probability * r.impact >= 16);
+  const recentNotes = notes.filter(n => n.updated_at >= sevenDaysAgo);
+
+  return NextResponse.json({
+    success: true,
+    data: {
+      kpis: {
         projects: {
-          total: projectsData.length,
-          active: projectsData.filter((p: { status: string }) => p.status === "ACTIVE").length,
-        },
-        messages: {
-          total: messagesData.length,
-          tokensUsed: totalTokens,
+          total: projects.length,
+          active: projects.filter(p => p.status === "ACTIVE").length,
+          completed: projects.filter(p => p.status === "COMPLETED").length,
         },
         tasks: {
-          total: tasksData.length,
-          todo: tasksData.filter((t: { status: string }) => t.status === "TODO").length,
-          done: tasksData.filter((t: { status: string }) => t.status === "DONE").length,
+          total: tasks.length,
+          todo: tasks.filter(t => t.status === "TODO").length,
+          in_progress: tasks.filter(t => t.status === "IN_PROGRESS").length,
+          done: tasks.filter(t => t.status === "DONE").length,
+        },
+        ai_usage: {
+          messages_30d: messages.length,
+          tokens_30d: totalTokens,
+        },
+        strategies: {
+          total: strategies.length,
+          generated: strategies.filter(s => s.status === "generated" || s.status === "published").length,
+          drafts: strategies.filter(s => s.status === "draft").length,
+        },
+        risks: {
+          total: risks.length,
+          active: activeRisks.length,
+          critical: criticalRisks.length,
+          mitigated: risks.filter(r => r.status === "mitigated").length,
+        },
+        board_meetings: {
+          total: meetings.length,
+          completed: meetings.filter(m => m.status === "completed").length,
+        },
+        notes: {
+          total: notes.length,
+          recent_7d: recentNotes.length,
+          total_words: notes.reduce((s, n) => s + (n.word_count ?? 0), 0),
+        },
+        notifications: {
+          unread: unreadNotifications,
         },
       },
-    });
-  } catch {
-    return NextResponse.json({ success: true, data: { projects: { total: 0, active: 0 }, messages: { total: 0, tokensUsed: 0 }, tasks: { total: 0, todo: 0, done: 0 } } });
-  }
+      recent: {
+        projects: recentProjects,
+        strategies: recentStrategies,
+      },
+    },
+  });
 }
