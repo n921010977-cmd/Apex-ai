@@ -24,8 +24,8 @@ const NAV_GROUPS = [
     items: [
       { label: "Исполн. совет",   href: "/dashboard/executives", icon: Users },
       { label: "Аналитика",       href: "/dashboard/analytics",  icon: BarChart3 },
-      { label: "Рост & Рынок",    href: "/dashboard/analytics",  icon: TrendingUp },
-      { label: "Риски",           href: "/dashboard/reports",    icon: Shield },
+      { label: "Рост & Рынок",    href: "/dashboard/growth",     icon: TrendingUp },
+      { label: "Риски",           href: "/dashboard/risks",      icon: Shield },
     ],
   },
   {
