@@ -2,24 +2,17 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FileText, DollarSign, Search, Target, Settings, AlertTriangle,
-  Clock, ChevronRight, Download, Share2, Plus, CheckCircle,
-  Loader2,
+  Clock, Download, Share2, Plus, CheckCircle, Loader2, Sparkles,
+  Brain, TrendingUp, Shield, BarChart2, Zap, ChevronRight,
+  ArrowUpRight, Eye, RefreshCw, Star, Globe,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type ReportStatus = "COMPLETED" | "PROCESSING" | "PENDING" | "FAILED";
-
-interface ReportSection {
-  id: string;
-  type: string;
-  title: string;
-  color: string;
-  glow: string;
-  icon: React.ReactNode;
-}
+type ReportStatus = "COMPLETED" | "PROCESSING";
 
 interface MockReport {
   id: string;
@@ -30,162 +23,148 @@ interface MockReport {
   score: number;
   time: string;
   summary: string;
+  market: string;
+  revenue: string;
+  risk: string;
+  agents: number;
+  growth: string;
+  color: string;
+  rgb: string;
 }
 
-// ─── Static data ──────────────────────────────────────────────────────────────
+// ─── Data ─────────────────────────────────────────────────────────────────────
 
 const REPORTS: MockReport[] = [
   {
     id: "r1",
-    title: "Фитнес-платформа на базе ИИ — Полный отчёт",
+    title: "Фитнес-платформа на базе ИИ",
     type: "Полный анализ",
     status: "COMPLETED",
     pages: 24,
     score: 87,
     time: "2 часа назад",
-    summary:
-      "Проект демонстрирует высокий потенциал в быстрорастущем рынке. Финансовая модель устойчива с прогнозом выхода на прибыль через 18 месяцев. Рекомендуется ускорить выход на рынок для захвата первичной доли.",
+    summary: "Проект демонстрирует высокий потенциал в быстрорастущем рынке. Финансовая модель устойчива с прогнозом выхода на прибыль через 18 месяцев. Рекомендуется ускорить выход на рынок для захвата первичной доли.",
+    market: "$4.2B",
+    revenue: "$2.4M",
+    risk: "Низкий",
+    agents: 20,
+    growth: "+24%",
+    color: "#7A5CFF",
+    rgb: "122,92,255",
   },
   {
     id: "r2",
-    title: "SaaS Invoice Platform — Стратегический отчёт",
+    title: "SaaS Invoice Platform",
     type: "Стратегический",
     status: "COMPLETED",
     pages: 18,
     score: 91,
     time: "Вчера",
-    summary:
-      "Продукт демонстрирует отличный product-market fit в сегменте малого бизнеса. Unit-экономика сильная: LTV/CAC = 4.2x. Рекомендуется инвестировать в SEO-канал для снижения CAC на 30%.",
+    summary: "Продукт демонстрирует отличный product-market fit в сегменте малого бизнеса. Unit-экономика сильная: LTV/CAC = 4.2x. Рекомендуется инвестировать в SEO-канал для снижения CAC на 30%.",
+    market: "$2.1B",
+    revenue: "$1.8M",
+    risk: "Минимальный",
+    agents: 20,
+    growth: "+18%",
+    color: "#10b981",
+    rgb: "16,185,129",
   },
   {
     id: "r3",
-    title: "Сеть ресторанов — Анализ расширения",
-    type: "В работе",
+    title: "Сеть ресторанов — Расширение",
+    type: "Анализ расширения",
     status: "PROCESSING",
     pages: 0,
     score: 72,
     time: "В процессе",
     summary: "",
+    market: "$890M",
+    revenue: "Считается…",
+    risk: "Средний",
+    agents: 20,
+    growth: "+9%",
+    color: "#f59e0b",
+    rgb: "245,158,11",
   },
 ];
 
-const SECTIONS: ReportSection[] = [
-  { id: "summary",   type: "SUMMARY",    title: "Резюме",            color: "#a78bfa", glow: "rgba(167,139,250,0.35)", icon: <FileText      size={15} /> },
-  { id: "finance",   type: "FINANCE",    title: "Финансовая модель", color: "#34d399", glow: "rgba(52,211,153,0.35)",  icon: <DollarSign    size={15} /> },
-  { id: "market",    type: "MARKET",     title: "Анализ рынка",      color: "#22d3ee", glow: "rgba(34,211,238,0.35)",  icon: <Search        size={15} /> },
-  { id: "marketing", type: "MARKETING",  title: "Маркетинг",         color: "#f472b6", glow: "rgba(244,114,182,0.35)", icon: <Target        size={15} /> },
-  { id: "ops",       type: "OPERATIONS", title: "Операции",          color: "#fbbf24", glow: "rgba(251,191,36,0.35)",  icon: <Settings      size={15} /> },
-  { id: "risks",     type: "RISKS",      title: "Риски",             color: "#f87171", glow: "rgba(248,113,113,0.35)", icon: <AlertTriangle size={15} /> },
-  { id: "roadmap",   type: "ROADMAP",    title: "Дорожная карта",    color: "#60a5fa", glow: "rgba(96,165,250,0.35)",  icon: <Clock         size={15} /> },
+// 7 sections for completed reports
+const SECTIONS = [
+  { id: "summary",   title: "Резюме CEO",         color: "#a78bfa", rgb: "167,139,250", icon: Brain,         size: "full",  desc: "Стратегическое видение и ключевые выводы" },
+  { id: "finance",   title: "Финансовая модель",   color: "#34d399", rgb: "52,211,153",  icon: DollarSign,    size: "half",  desc: "P&L, Cash Flow, Unit Economics" },
+  { id: "market",    title: "Анализ рынка",         color: "#38bdf8", rgb: "56,189,248",  icon: Globe,         size: "half",  desc: "TAM, SAM, SOM, конкуренты" },
+  { id: "marketing", title: "Маркетинг & Рост",     color: "#f472b6", rgb: "244,114,182", icon: TrendingUp,    size: "third", desc: "GTM, каналы, CAC/LTV" },
+  { id: "ops",       title: "Операции",             color: "#fbbf24", rgb: "251,191,36",  icon: Settings,      size: "third", desc: "Процессы, команда, KPI" },
+  { id: "risks",     title: "Риски",                color: "#f87171", rgb: "248,113,113", icon: Shield,        size: "third", desc: "Матрица рисков, митигация" },
+  { id: "roadmap",   title: "Дорожная карта",       color: "#60a5fa", rgb: "96,165,250",  icon: Clock,         size: "full",  desc: "Milestones, Q1–Q4 план действий" },
 ];
 
-// ─── Circular score gauge ──────────────────────────────────────────────────────
+// ─── Score ring ────────────────────────────────────────────────────────────────
 
-function ScoreGauge({ score, size = 72 }: { score: number; size?: number }) {
-  const r = (size - 10) / 2;
-  const circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
-  const color = score >= 85 ? "#34d399" : score >= 70 ? "#f59e0b" : "#f87171";
-  const cx = size / 2;
-
+function ScoreRing({ score, color, size = 64 }: { score: number; color: string; size?: number }) {
+  const r     = (size - 8) / 2;
+  const circ  = 2 * Math.PI * r;
+  const dash  = (score / 100) * circ;
   return (
-    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} className="flex-shrink-0">
-      <defs>
-        <filter id="sg-glow">
-          <feGaussianBlur stdDeviation="2" result="blur" />
-          <feMerge><feMergeNode in="blur" /><feMergeNode in="SourceGraphic" /></feMerge>
-        </filter>
-      </defs>
-      <circle cx={cx} cy={cx} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
-      <circle
-        cx={cx} cy={cx} r={r} fill="none"
-        stroke={color} strokeWidth="5"
-        strokeDasharray={`${dash} ${circ - dash}`}
-        strokeDashoffset={circ * 0.25}
-        strokeLinecap="round"
-        filter="url(#sg-glow)"
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)", flexShrink: 0 }}>
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
+      <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="4"
+        strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+        style={{ filter: `drop-shadow(0 0 5px ${color}90)` }}
       />
-      <text x={cx} y={cx + 5} textAnchor="middle" fontSize="16" fontWeight="800" fill="white" fontFamily="monospace">{score}</text>
-      <text x={cx} y={cx + 17} textAnchor="middle" fontSize="6" fill="rgba(255,255,255,0.35)" fontFamily="system-ui" letterSpacing="1">Бизнес-балл</text>
     </svg>
   );
 }
 
-// ─── Generating loader (skeleton) ─────────────────────────────────────────────
+// ─── Generating Loader ─────────────────────────────────────────────────────────
 
-function GeneratingLoader() {
+function GeneratingLoader({ color }: { color: string }) {
   const steps = [
-    { label: "Финансовый агент",    color: "#34d399", done: true  },
-    { label: "Маркетинговый агент", color: "#22d3ee", done: true  },
-    { label: "Операционный агент",  color: "#fbbf24", done: false },
-    { label: "Агент рисков",        color: "#f87171", done: false },
-    { label: "Оркестратор",         color: "#a78bfa", done: false },
+    { label: "Финансовый агент",     done: true  },
+    { label: "Маркетинговый агент",  done: true  },
+    { label: "Операционный агент",   done: false },
+    { label: "Агент рисков",         done: false },
+    { label: "Оркестратор CEO",      done: false },
   ];
   const activeIdx = steps.findIndex(s => !s.done);
-
   return (
-    <div className="flex flex-col items-center justify-center min-h-[420px] gap-7 py-6">
-      {/* Spinner rings */}
-      <div className="relative size-20">
-        <div className="absolute inset-0 rounded-full border-2 border-violet-500/20 animate-ping" />
-        <div
-          className="absolute inset-1 rounded-full border-2 border-violet-400/30 animate-spin"
-          style={{ animationDuration: "2s", borderTopColor: "#7c3aed" }}
-        />
-        <div
-          className="absolute inset-3 rounded-full border-2 border-violet-300/20 animate-spin"
-          style={{ animationDuration: "3s", animationDirection: "reverse", borderTopColor: "#a78bfa" }}
-        />
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Loader2 size={18} className="text-violet-400 animate-spin" />
+    <div className="flex flex-col items-center justify-center py-16 gap-8">
+      <div className="relative" style={{ width: 72, height: 72 }}>
+        <div style={{ position: "absolute", inset: 0, borderRadius: "50%", border: `2px solid ${color}20`, animation: "rp-ping 1.5s ease-out infinite" }} />
+        <div style={{ position: "absolute", inset: 4, borderRadius: "50%", border: `2px solid ${color}30`, borderTopColor: color, animation: "rp-spin 2s linear infinite" }} />
+        <div style={{ position: "absolute", inset: 12, borderRadius: "50%", border: `2px solid ${color}15`, borderTopColor: `${color}80`, animation: "rp-spin 3s linear infinite reverse" }} />
+        <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <Loader2 size={16} style={{ color, animation: "rp-spin 1s linear infinite" }} />
         </div>
       </div>
 
-      <div className="text-center">
-        <div className="text-base font-semibold text-white mb-1">Генерация отчёта</div>
-        <div className="text-xs text-white/35">AI-агенты анализируют ваш проект</div>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.85)", marginBottom: 6 }}>Генерация отчёта</div>
+        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>20 AI-агентов анализируют ваш проект параллельно</div>
       </div>
 
-      {/* Agent progress bars */}
-      <div className="w-full max-w-xs space-y-2.5">
+      <div style={{ width: "100%", maxWidth: 320, display: "flex", flexDirection: "column", gap: 8 }}>
         {steps.map((s, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <div
-              className="size-5 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{
-                background: s.done ? `${s.color}20` : "rgba(255,255,255,0.04)",
-                border: `1px solid ${s.done ? `${s.color}40` : "rgba(255,255,255,0.08)"}`,
-              }}
-            >
+          <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 18, height: 18, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, background: s.done ? `${color}15` : "rgba(255,255,255,0.04)", border: `1px solid ${s.done ? `${color}40` : "rgba(255,255,255,0.07)"}` }}>
               {s.done
-                ? <CheckCircle size={10} style={{ color: s.color }} />
-                : i === activeIdx
-                  ? <Loader2 size={9} className="animate-spin text-white/40" />
-                  : null}
+                ? <CheckCircle size={9} style={{ color }} />
+                : i === activeIdx ? <Loader2 size={8} style={{ color: "rgba(255,255,255,0.35)", animation: "rp-spin 1s linear infinite" }} /> : null
+              }
             </div>
-            <div className="flex-1 h-1.5 rounded-full overflow-hidden bg-white/[0.04]">
-              <div
-                className="h-full rounded-full transition-all duration-700"
-                style={{
-                  width: s.done ? "100%" : i === activeIdx ? "45%" : "0%",
-                  background: s.done ? s.color : `${s.color}55`,
-                  boxShadow: s.done ? `0 0 6px ${s.color}80` : "none",
-                }}
-              />
+            <div style={{ flex: 1, height: 2, borderRadius: 2, background: "rgba(255,255,255,0.04)", overflow: "hidden" }}>
+              <div style={{ height: "100%", borderRadius: 2, background: color, boxShadow: `0 0 6px ${color}80`, width: s.done ? "100%" : i === activeIdx ? "45%" : "0%", transition: "width 0.7s ease" }} />
             </div>
-            <span className="text-[10px] text-white/30 w-28 text-right truncate">{s.label}</span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", width: 130, textAlign: "right" }}>{s.label}</span>
           </div>
         ))}
       </div>
 
-      {/* Skeleton text lines */}
-      <div className="w-full space-y-2">
-        {[82, 58, 72, 44].map((w, i) => (
-          <div key={i} className="h-2.5 rounded-full bg-white/[0.04] overflow-hidden">
-            <div
-              className="h-full rounded-full animate-pulse"
-              style={{ width: `${w}%`, background: "rgba(124,58,237,0.2)", animationDelay: `${i * 220}ms` }}
-            />
+      {/* Skeleton shimmer */}
+      <div style={{ width: "100%", maxWidth: 400, display: "flex", flexDirection: "column", gap: 8 }}>
+        {[90, 70, 80, 50].map((w, i) => (
+          <div key={i} style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.03)", overflow: "hidden" }}>
+            <div style={{ height: "100%", width: `${w}%`, borderRadius: 4, background: `rgba(${REPORTS[2].rgb},0.15)`, animation: `rp-pulse 1.8s ease-in-out ${i * 200}ms infinite` }} />
           </div>
         ))}
       </div>
@@ -193,350 +172,316 @@ function GeneratingLoader() {
   );
 }
 
-// ─── Report card (left list) ──────────────────────────────────────────────────
+// ─── Bento Section card ────────────────────────────────────────────────────────
 
-function ReportCard({ report, active, onClick }: { report: MockReport; active: boolean; onClick: () => void }) {
-  const isProcessing = report.status === "PROCESSING";
-  const statusColor  = report.status === "COMPLETED" ? "#34d399" : isProcessing ? "#f59e0b" : "#f87171";
-  const statusLabel  = report.status === "COMPLETED" ? "Готов"   : isProcessing ? "В работе" : "Ошибка";
-
+function SectionBento({ section }: { section: typeof SECTIONS[0] }) {
+  const [hov, setHov] = useState(false);
+  const Icon = section.icon;
   return (
-    <button
+    <motion.button
+      whileHover={{ y: -2 }}
+      onHoverStart={() => setHov(true)}
+      onHoverEnd={() => setHov(false)}
+      style={{
+        padding: "16px 18px",
+        borderRadius: 16,
+        background: hov ? `rgba(${section.rgb},0.06)` : "rgba(255,255,255,0.025)",
+        border: `1px solid ${hov ? `rgba(${section.rgb},0.25)` : "rgba(255,255,255,0.06)"}`,
+        display: "flex",
+        alignItems: "center",
+        gap: 14,
+        cursor: "pointer",
+        width: "100%",
+        textAlign: "left",
+        transition: "background 0.2s, border-color 0.2s",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {hov && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, rgba(${section.rgb},0.6), transparent)` }} />}
+      <div style={{ width: 34, height: 34, borderRadius: 10, background: `rgba(${section.rgb},0.1)`, border: `1px solid rgba(${section.rgb},0.2)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: hov ? `0 0 12px rgba(${section.rgb},0.25)` : "none", transition: "box-shadow 0.2s" }}>
+        <Icon size={14} style={{ color: section.color }} />
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.78)", marginBottom: 2 }}>{section.title}</div>
+        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)" }}>{section.desc}</div>
+      </div>
+      <ArrowUpRight size={13} style={{ color: hov ? section.color : "rgba(255,255,255,0.15)", flexShrink: 0, transition: "color 0.2s" }} />
+    </motion.button>
+  );
+}
+
+// ─── Report list card ──────────────────────────────────────────────────────────
+
+function ReportListCard({ report, active, onClick }: { report: MockReport; active: boolean; onClick: () => void }) {
+  const done = report.status === "COMPLETED";
+  return (
+    <motion.button
+      whileHover={{ x: 2 }}
       onClick={onClick}
-      className="relative w-full text-left rounded-2xl p-4 transition-all duration-200 group hover:scale-[1.01] overflow-hidden"
       style={{
-        background: active
-          ? "linear-gradient(135deg, rgba(124,58,237,0.13) 0%, rgba(10,10,14,0.9) 100%)"
-          : "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(10,10,14,0.7) 100%)",
-        border: active ? "1px solid rgba(124,58,237,0.32)" : "1px solid rgba(255,255,255,0.07)",
-        backdropFilter: "blur(12px)",
-        boxShadow: active
-          ? "inset 0 1px 0 rgba(124,58,237,0.18), 0 8px 24px rgba(0,0,0,0.3)"
-          : "inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 12px rgba(0,0,0,0.2)",
+        width: "100%",
+        padding: "14px 16px",
+        borderRadius: 14,
+        background: active ? `rgba(${report.rgb},0.08)` : "rgba(255,255,255,0.025)",
+        border: `1px solid ${active ? `rgba(${report.rgb},0.28)` : "rgba(255,255,255,0.06)"}`,
+        textAlign: "left",
+        cursor: "pointer",
+        position: "relative",
+        overflow: "hidden",
+        transition: "background 0.2s, border-color 0.2s",
       }}
     >
-      {/* shimmer top edge */}
-      <div
-        className="absolute inset-x-0 top-0 h-px"
-        style={{ background: `linear-gradient(90deg, transparent, ${active ? "rgba(124,58,237,0.55)" : "rgba(255,255,255,0.08)"}, transparent)` }}
-      />
-
-      <div className="flex items-start justify-between mb-2 gap-2">
-        <span
-          className="inline-flex items-center gap-1.5 text-[9px] font-semibold px-2 py-0.5 rounded-full"
-          style={{ background: `${statusColor}15`, color: statusColor, border: `1px solid ${statusColor}30` }}
-        >
-          <span
-            className="size-1.5 rounded-full"
-            style={{ background: statusColor, boxShadow: `0 0 4px ${statusColor}` }}
-          />
-          {statusLabel}
+      {active && <div style={{ position: "absolute", left: 0, top: "50%", transform: "translateY(-50%)", width: 3, height: "60%", borderRadius: 2, background: report.color, boxShadow: `0 0 8px ${report.color}` }} />}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6, paddingLeft: active ? 8 : 0 }}>
+        <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20, background: done ? "rgba(16,185,129,0.08)" : "rgba(245,158,11,0.08)", color: done ? "#10b981" : "#f59e0b", border: `1px solid ${done ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}` }}>
+          {done ? "● Готов" : "● Генерация"}
         </span>
-        <span className="text-[9px] text-white/25 flex-shrink-0">{report.time}</span>
+        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>{report.time}</span>
       </div>
-
-      <div className="text-[12.5px] font-semibold text-white/85 leading-snug mb-2 group-hover:text-white transition-colors">
-        {report.title}
+      <div style={{ fontSize: 12, fontWeight: 600, color: active ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.6)", lineHeight: 1.4, marginBottom: 5, paddingLeft: active ? 8 : 0 }}>{report.title}</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 6, paddingLeft: active ? 8 : 0 }}>
+        <span style={{ fontSize: 9, color: "rgba(255,255,255,0.22)" }}>{report.type}</span>
+        {report.pages > 0 && <><span style={{ color: "rgba(255,255,255,0.12)" }}>·</span><span style={{ fontSize: 9, color: "rgba(255,255,255,0.22)" }}>{report.pages} стр.</span></>}
+        {report.score > 0 && <><span style={{ color: "rgba(255,255,255,0.12)" }}>·</span><span style={{ fontSize: 9, fontWeight: 700, color: report.color }}>{report.score}/100</span></>}
       </div>
-
-      <div className="flex items-center gap-2 text-[10px] text-white/30 flex-wrap">
-        <span>{report.type}</span>
-        {report.pages > 0 && (
-          <><span className="text-white/15">•</span><span>{report.pages} стр.</span></>
-        )}
-        {report.score > 0 && (
-          <>
-            <span className="text-white/15">•</span>
-            <span className="font-semibold" style={{ color: report.score >= 85 ? "#34d399" : "#f59e0b" }}>
-              {report.score}/100
-            </span>
-          </>
-        )}
-        {isProcessing && (
-          <span className="flex items-center gap-1 text-amber-400/60">
-            <Loader2 size={8} className="animate-spin" />
-            Генерация…
-          </span>
-        )}
-      </div>
-    </button>
+    </motion.button>
   );
 }
 
-// ─── Section tile ──────────────────────────────────────────────────────────────
-
-function SectionTile({ section }: { section: ReportSection }) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <button
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      className="relative flex items-center gap-3 px-4 py-3.5 rounded-xl text-left overflow-hidden transition-all duration-200 group"
-      style={{
-        background: hovered
-          ? `linear-gradient(135deg, ${section.color}14 0%, rgba(10,10,14,0.85) 100%)`
-          : "linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(10,10,14,0.7) 100%)",
-        border: hovered ? `1px solid ${section.color}35` : "1px solid rgba(255,255,255,0.06)",
-        backdropFilter: "blur(10px)",
-        boxShadow: hovered
-          ? `0 4px 16px rgba(0,0,0,0.25), inset 0 1px 0 ${section.color}18`
-          : "inset 0 1px 0 rgba(255,255,255,0.04)",
-      }}
-    >
-      {hovered && (
-        <div
-          className="absolute inset-x-0 top-0 h-px"
-          style={{ background: `linear-gradient(90deg, transparent, ${section.color}55, transparent)` }}
-        />
-      )}
-
-      <div
-        className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 transition-all duration-200"
-        style={{
-          background: hovered ? `${section.color}22` : `${section.color}10`,
-          border: `1px solid ${section.color}${hovered ? "38" : "20"}`,
-          color: section.color,
-          boxShadow: hovered ? `0 0 12px ${section.glow}` : "none",
-          transform: hovered ? "scale(1.08)" : "scale(1)",
-        }}
-      >
-        {section.icon}
-      </div>
-
-      <span className="flex-1 text-[12.5px] font-medium text-white/65 group-hover:text-white transition-colors">
-        {section.title}
-      </span>
-
-      <ChevronRight
-        size={13}
-        className="text-white/20 transition-all duration-200 group-hover:text-white/50 group-hover:translate-x-0.5"
-      />
-    </button>
-  );
-}
-
-// ─── Main page ────────────────────────────────────────────────────────────────
+// ─── Main ─────────────────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
-  const [activeReport, setActiveReport] = useState<MockReport>(REPORTS[0]);
+  const [active, setActive] = useState<MockReport>(REPORTS[0]);
   const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  const isProcessing = activeReport.status === "PROCESSING";
-  const used = 1; const total = 3;
+  const isProcessing = active.status === "PROCESSING";
+  const scoreColor = active.score >= 85 ? "#10b981" : active.score >= 70 ? "#f59e0b" : "#f87171";
 
   return (
-    <div className="p-6 max-w-[1200px] mx-auto">
-
-      {/* ── Page header ── */}
-      <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
-        <div>
-          <h1 className="text-xl font-bold text-white mb-0.5">Отчёты</h1>
-          <p className="text-sm text-white/35">Аналитические отчёты по вашим проектам</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="text-[11px] text-white/30">
-            Использовано: <span className="text-white/55 font-medium">{used} из {total}</span>
-          </div>
-          <button
-            className="flex items-center gap-2 px-4 py-2 rounded-xl text-[13px] font-semibold text-white transition-all duration-200 hover:scale-[1.03] hover:brightness-110"
-            style={{
-              background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%)",
-              boxShadow: "0 6px 20px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
-            }}
-          >
-            <Plus size={14} />
-            Создать отчёт
-          </button>
-        </div>
+    <div style={{ minHeight: "100vh", background: "#07090F", position: "relative" }}>
+      {/* Ambient background */}
+      <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
+        <div style={{ position: "absolute", top: "10%",  left:  "-5%", width: 500, height: 500, borderRadius: "50%", background: `radial-gradient(circle, rgba(${active.rgb},0.05) 0%, transparent 65%)`, transition: "all 1s ease" }} />
+        <div style={{ position: "absolute", bottom: "5%", right: "-5%", width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 65%)" }} />
       </div>
 
-      {/* ── Two-panel layout ── */}
-      <div className="grid grid-cols-1 xl:grid-cols-[340px_1fr] gap-5 items-start">
+      <div style={{ position: "relative", zIndex: 1, padding: "24px 28px 40px", maxWidth: 1300, margin: "0 auto" }}>
 
-        {/* ── Left: report list ── */}
-        <div className="space-y-2.5">
-          {REPORTS.map((r) => (
-            <ReportCard
-              key={r.id}
-              report={r}
-              active={activeReport.id === r.id}
-              onClick={() => setActiveReport(r)}
-            />
-          ))}
-
-          {/* Limit block */}
-          <div
-            className="rounded-2xl p-4 text-center"
-            style={{
-              background: "linear-gradient(135deg, rgba(255,255,255,0.02) 0%, rgba(10,10,14,0.6) 100%)",
-              border: "1px solid rgba(255,255,255,0.05)",
-              backdropFilter: "blur(10px)",
-            }}
-          >
-            <div className="text-[11px] text-white/30 mb-2">
-              Осталось <span className="text-white/55 font-semibold">{total - used} отчёта</span> в месяц
+        {/* ── Header ── */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 28 }}>
+          <div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", marginBottom: 4 }}>Отчёты</h1>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>Аналитические отчёты вашего Executive Board</p>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", padding: "6px 12px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              Использовано: <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 600 }}>1 из 3</span>
             </div>
-            <div className="h-1 rounded-full bg-white/[0.05] overflow-hidden mb-3">
-              <div
-                className="h-full rounded-full"
-                style={{
-                  width: `${(used / total) * 100}%`,
-                  background: "linear-gradient(90deg, #7c3aed, #6366f1)",
-                  boxShadow: "0 0 8px rgba(124,58,237,0.5)",
-                }}
-              />
-            </div>
-            <Link
-              href="/dashboard/settings"
-              className="text-[11px] text-violet-400/70 hover:text-violet-300 transition-colors"
-            >
-              Апгрейд для безлимита →
-            </Link>
+            <button style={{ display: "flex", alignItems: "center", gap: 7, height: 36, padding: "0 16px", borderRadius: 11, background: "linear-gradient(135deg, #7c3aed, #4f46e5)", fontSize: 12, fontWeight: 600, color: "#fff", border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.15)" }}>
+              <Plus size={13} /> Создать отчёт
+            </button>
           </div>
         </div>
 
-        {/* ── Right: detail panel ── */}
-        <div
-          className="relative rounded-2xl overflow-hidden"
-          style={{
-            background: "linear-gradient(135deg, rgba(255,255,255,0.035) 0%, rgba(10,10,14,0.95) 100%)",
-            border: "1px solid rgba(255,255,255,0.08)",
-            backdropFilter: "blur(20px)",
-            boxShadow: "inset 0 1px 0 rgba(255,255,255,0.07), 0 20px 60px rgba(0,0,0,0.4)",
-          }}
-        >
-          {/* shimmer top */}
-          <div
-            className="absolute inset-x-0 top-0 h-px"
-            style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.5), rgba(59,130,246,0.35), transparent)" }}
-          />
-          {/* radial bg glow */}
-          <div
-            className="absolute top-0 left-0 right-0 h-40 pointer-events-none"
-            style={{ background: "radial-gradient(ellipse at 40% 0%, rgba(124,58,237,0.07) 0%, transparent 70%)" }}
-          />
+        {/* ── Layout ── */}
+        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, alignItems: "start" }}>
 
-          <div className="relative p-6">
+          {/* ── Left: list ── */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {/* AI status */}
+            <div style={{ padding: "10px 14px", borderRadius: 12, background: "rgba(122,92,255,0.05)", border: "1px solid rgba(122,92,255,0.12)", display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+              <Sparkles size={12} style={{ color: "#7A5CFF", flexShrink: 0 }} />
+              <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)" }}>20 AI-агентов сформировали {REPORTS.filter(r => r.status === "COMPLETED").length} отчёта</span>
+            </div>
 
-            {/* Header */}
-            <div className="flex items-start justify-between gap-4 mb-5">
-              <div className="flex-1 min-w-0">
-                <h2 className="text-base font-bold text-white leading-snug mb-3">{activeReport.title}</h2>
-                <div className="flex items-center gap-2 flex-wrap">
-                  {/* status badge */}
-                  <span
-                    className="inline-flex items-center gap-1.5 text-[9px] font-semibold px-2.5 py-1 rounded-full"
-                    style={{
-                      background: isProcessing ? "rgba(245,158,11,0.12)" : "rgba(52,211,153,0.12)",
-                      color: isProcessing ? "#f59e0b" : "#34d399",
-                      border: `1px solid ${isProcessing ? "rgba(245,158,11,0.3)" : "rgba(52,211,153,0.3)"}`,
-                    }}
-                  >
-                    <span
-                      className="size-1.5 rounded-full animate-pulse"
-                      style={{ background: isProcessing ? "#f59e0b" : "#34d399" }}
-                    />
-                    {isProcessing ? "В работе" : "Готов"}
-                  </span>
+            {REPORTS.map(r => (
+              <ReportListCard key={r.id} report={r} active={active.id === r.id} onClick={() => setActive(r)} />
+            ))}
 
-                  {activeReport.pages > 0 && (
-                    <span className="inline-flex items-center gap-1 text-[9px] text-white/30 px-2 py-1 rounded-full border border-white/[0.06] bg-white/[0.02]">
-                      <FileText size={9} />
-                      {activeReport.pages} страниц
-                    </span>
-                  )}
-                  {!isProcessing && (
-                    <span className="inline-flex items-center gap-1 text-[9px] text-white/30 px-2 py-1 rounded-full border border-white/[0.06] bg-white/[0.02]">
-                      <Clock size={9} />
-                      {activeReport.time}
-                    </span>
-                  )}
-                </div>
+            {/* Quota */}
+            <div style={{ padding: "14px 16px", borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)", marginTop: 4 }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>Квота в месяц</span>
+                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.4)" }}>1 / 3</span>
               </div>
-
-              {!isProcessing && activeReport.score > 0 && (
-                <ScoreGauge score={activeReport.score} size={72} />
-              )}
+              <div style={{ height: 2, borderRadius: 2, background: "rgba(255,255,255,0.05)", overflow: "hidden", marginBottom: 10 }}>
+                <div style={{ height: "100%", width: "33%", borderRadius: 2, background: "linear-gradient(90deg, #7c3aed, #6366f1)", boxShadow: "0 0 8px rgba(124,58,237,0.5)" }} />
+              </div>
+              <Link href="/dashboard/settings" style={{ fontSize: 10, color: "rgba(122,92,255,0.7)", textDecoration: "none" }}>Upgrade для безлимита →</Link>
             </div>
-
-            {/* Divider */}
-            <div className="h-px bg-white/[0.05] mb-5" />
-
-            {/* ── Processing state ── */}
-            {isProcessing ? (
-              <GeneratingLoader />
-            ) : (
-              <>
-                {/* Summary */}
-                <div className="mb-5">
-                  <div className="text-[9px] font-semibold text-white/25 uppercase tracking-[0.2em] mb-2.5">
-                    Краткое резюме
-                  </div>
-                  <div
-                    className="relative rounded-xl p-4"
-                    style={{
-                      background: "rgba(255,255,255,0.025)",
-                      border: "1px solid rgba(255,255,255,0.06)",
-                    }}
-                  >
-                    <div
-                      className="absolute inset-x-0 top-0 h-px rounded-t-xl"
-                      style={{ background: "linear-gradient(90deg,transparent,rgba(124,58,237,0.3),transparent)" }}
-                    />
-                    <p className="text-[13px] text-white/60 leading-[1.75]">{activeReport.summary}</p>
-                  </div>
-                </div>
-
-                {/* Section grid */}
-                <div className="mb-5">
-                  <div className="text-[9px] font-semibold text-white/25 uppercase tracking-[0.2em] mb-2.5">
-                    Разделы отчёта
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {SECTIONS.map((s) => (
-                      <SectionTile key={s.id} section={s} />
-                    ))}
-                  </div>
-                </div>
-
-                {/* Action buttons */}
-                <div className="flex gap-2.5">
-                  <button
-                    className="flex-1 h-11 flex items-center justify-center gap-2 text-[13px] font-semibold text-white rounded-xl transition-all duration-200 hover:scale-[1.02] hover:brightness-110 relative overflow-hidden"
-                    style={{
-                      background: "linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)",
-                      boxShadow: "0 8px 28px rgba(124,58,237,0.45), 0 2px 8px rgba(59,130,246,0.3), inset 0 1px 0 rgba(255,255,255,0.18)",
-                    }}
-                  >
-                    <div
-                      className="absolute inset-x-0 top-0 h-px"
-                      style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.28),transparent)" }}
-                    />
-                    <Download size={15} />
-                    Скачать PDF
-                  </button>
-
-                  <button
-                    className="h-11 px-5 flex items-center gap-2 text-[13px] font-medium text-white/55 rounded-xl transition-all duration-200 hover:text-white hover:border-white/15"
-                    style={{
-                      background: "rgba(255,255,255,0.04)",
-                      border: "1px solid rgba(255,255,255,0.08)",
-                      backdropFilter: "blur(10px)",
-                    }}
-                  >
-                    <Share2 size={14} />
-                    Поделиться
-                  </button>
-                </div>
-              </>
-            )}
           </div>
+
+          {/* ── Right: detail ── */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={active.id}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.3 }}
+              style={{
+                borderRadius: 22,
+                background: "rgba(255,255,255,0.025)",
+                border: "1px solid rgba(255,255,255,0.07)",
+                backdropFilter: "blur(24px)",
+                overflow: "hidden",
+                boxShadow: "0 30px 80px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)",
+              }}
+            >
+              {/* Shimmer top */}
+              <div style={{ height: 1, background: `linear-gradient(90deg, transparent, rgba(${active.rgb},0.5), rgba(99,102,241,0.3), transparent)` }} />
+
+              {/* Ambient glow */}
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 200, pointerEvents: "none", background: `radial-gradient(ellipse at 30% 0%, rgba(${active.rgb},0.07) 0%, transparent 60%)` }} />
+
+              <div style={{ position: "relative", padding: "24px 28px 28px" }}>
+
+                {/* ── Report header ── */}
+                <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 22 }}>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    {/* Badges */}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 9, fontWeight: 700, padding: "3px 8px", borderRadius: 20, background: isProcessing ? "rgba(245,158,11,0.08)" : "rgba(16,185,129,0.08)", color: isProcessing ? "#f59e0b" : "#10b981", border: `1px solid ${isProcessing ? "rgba(245,158,11,0.2)" : "rgba(16,185,129,0.2)"}` }}>
+                        {isProcessing ? "● Генерация" : "● Готов"}
+                      </span>
+                      <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }}>{active.type}</span>
+                      {active.pages > 0 && <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }}>{active.pages} стр.</span>}
+                      <span style={{ fontSize: 9, padding: "3px 8px", borderRadius: 20, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)" }}>{active.time}</span>
+                    </div>
+                    <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.025em", lineHeight: 1.2, marginBottom: 0 }}>{active.title} — Полный отчёт</h2>
+                  </div>
+
+                  {/* Score ring */}
+                  {!isProcessing && active.score > 0 && (
+                    <div style={{ flexShrink: 0, position: "relative" }}>
+                      <ScoreRing score={active.score} color={scoreColor} size={68} />
+                      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>{active.score}</div>
+                        <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>Score</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* ── Processing or detail ── */}
+                {isProcessing ? (
+                  <GeneratingLoader color={active.color} />
+                ) : (
+                  <>
+                    {/* KPI strip */}
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 20 }}>
+                      {[
+                        { label: "Рынок (SAM)", value: active.market,  icon: Globe,       color: "#38bdf8" },
+                        { label: "Прогноз",     value: active.revenue, icon: DollarSign,  color: "#10b981" },
+                        { label: "Рост",         value: active.growth,  icon: TrendingUp,  color: "#a78bfa" },
+                        { label: "Риск",         value: active.risk,    icon: Shield,      color: active.risk === "Низкий" || active.risk === "Минимальный" ? "#10b981" : "#f59e0b" },
+                        { label: "AI Агентов",   value: `${active.agents}`,icon: Brain,   color: active.color },
+                      ].map(k => {
+                        const Icon = k.icon;
+                        return (
+                          <div key={k.label} style={{ padding: "12px 14px", borderRadius: 14, background: `rgba(${active.rgb},0.03)`, border: `1px solid rgba(${active.rgb},0.1)` }}>
+                            <Icon size={12} style={{ color: k.color, marginBottom: 6 }} />
+                            <div style={{ fontSize: 13, fontWeight: 800, color: k.color, marginBottom: 2 }}>{k.value}</div>
+                            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>{k.label}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* AI Summary */}
+                    <div style={{ padding: "16px 18px", borderRadius: 16, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", marginBottom: 20, position: "relative", overflow: "hidden" }}>
+                      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, rgba(${active.rgb},0.4), transparent)` }} />
+                      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                        <Sparkles size={11} style={{ color: active.color }} />
+                        <span style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Executive Summary</span>
+                      </div>
+                      <p style={{ fontSize: 13, color: "rgba(255,255,255,0.62)", lineHeight: 1.75, margin: 0 }}>{active.summary}</p>
+                    </div>
+
+                    {/* AI Insight row */}
+                    <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                      {[
+                        { icon: Star,          color: "#f59e0b", text: "Топ 8% среди аналогичных проектов" },
+                        { icon: TrendingUp,    color: "#10b981", text: `Рост выручки ${active.growth}/год` },
+                        { icon: CheckCircle,   color: active.color, text: "Стратегия готова к исполнению" },
+                      ].map((ins, i) => {
+                        const Icon = ins.icon;
+                        return (
+                          <div key={i} style={{ flex: 1, display: "flex", alignItems: "center", gap: 7, padding: "9px 12px", borderRadius: 12, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                            <Icon size={12} style={{ color: ins.color, flexShrink: 0 }} />
+                            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>{ins.text}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {/* Bento sections */}
+                    <div style={{ marginBottom: 20 }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.22)", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 12 }}>Разделы отчёта</div>
+
+                      {/* Full: Summary */}
+                      <div style={{ marginBottom: 8 }}>
+                        <SectionBento section={SECTIONS[0]} />
+                      </div>
+
+                      {/* Half: Finance + Market */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 8 }}>
+                        <SectionBento section={SECTIONS[1]} />
+                        <SectionBento section={SECTIONS[2]} />
+                      </div>
+
+                      {/* Third: Marketing + Ops + Risks */}
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
+                        <SectionBento section={SECTIONS[3]} />
+                        <SectionBento section={SECTIONS[4]} />
+                        <SectionBento section={SECTIONS[5]} />
+                      </div>
+
+                      {/* Full: Roadmap */}
+                      <SectionBento section={SECTIONS[6]} />
+                    </div>
+
+                    {/* Actions */}
+                    <div style={{ display: "flex", gap: 10 }}>
+                      <button style={{
+                        flex: 1, height: 44, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                        borderRadius: 13, background: "linear-gradient(135deg, #7c3aed, #3b82f6)", border: "none",
+                        fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer",
+                        boxShadow: "0 8px 28px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.18)",
+                        position: "relative", overflow: "hidden",
+                      }}>
+                        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent)" }} />
+                        <Download size={15} /> Скачать PDF
+                      </button>
+
+                      <button style={{ height: 44, padding: "0 18px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
+                        <Share2 size={14} /> Поделиться
+                      </button>
+
+                      <button style={{ height: 44, padding: "0 14px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
+                        <Eye size={14} /> Просмотр
+                      </button>
+
+                      <button style={{ height: 44, padding: "0 14px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
+                        <RefreshCw size={14} /> Реанализ
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </AnimatePresence>
         </div>
       </div>
+
+      <style>{`
+        @keyframes rp-spin  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes rp-ping  { 0%{transform:scale(1);opacity:0.6} 100%{transform:scale(1.5);opacity:0} }
+        @keyframes rp-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+      `}</style>
     </div>
   );
 }
