@@ -2,538 +2,113 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { Badge } from "@/components/ui/Badge";
-import { Progress } from "@/components/ui/Progress";
-import { Card, CardContent } from "@/components/ui/Card";
 
-const PROJECTS_DATA: Record<string, {
-  name: string;
-  subtitle: string;
-  score: number;
-  status: string;
+// ─── TYPES ────────────────────────────────────────────────────────────────────
+
+interface ProjectData {
+  name: string; subtitle: string; score: number; status: string;
   scores: { label: string; value: number }[];
   summary: string;
   financials: { label: string; value: string; numeric?: number }[];
   market: { label: string; value: string; numeric?: number }[];
   risks: { level: string; title: string; desc: string }[];
-}> = {
+}
+
+// ─── 20 DEMO AGENTS ───────────────────────────────────────────────────────────
+
+const DEMO_AGENTS = [
+  { id:"ceo", role:"CEO", name:"Victoria Sterling", color:"#7A5CFF", title:"Генеральный директор", score:82,
+    opinion:"Проект имеет чёткий стратегический потенциал в нише с растущим спросом. Бизнес-модель масштабируема и защищена за счёт сетевого эффекта. Рекомендую сконцентрироваться на одном ICP в первые 6 месяцев работы. Ключевой риск — расфокусировка в попытке охватить все сегменты сразу. Команда должна иметь чёткое распределение ролей до запуска. Инвестиции пропорционально делятся между продуктом и привлечением клиентов. Партнёрства с дополнительными игроками рынка существенно ускорят рост. OKR должны быть жёстко привязаны к финансовым целям на каждый квартал. Выход на операционную прибыль реален в горизонте 18–24 месяцев при правильном исполнении." },
+  { id:"cfo", role:"CFO", name:"James Hartley", color:"#5A8DFF", title:"Финансовый директор", score:79,
+    opinion:"Финансовая структура проекта в целом корректна, однако требует доработки в части прогнозирования выручки. Burn rate следует оптимизировать до уровня максимум 15% месячного MRR. CAC нужно снизить на 20% для достижения прибыльности в плановые сроки. Создайте runway минимум на 18 месяцев до следующего раунда привлечения. P&L должен выйти в плюс не позднее месяца 20 после запуска. Revenue-based financing стоит рассмотреть как альтернативу equity dilution. Unit economics жизнеспособны при достижении масштаба 1000+ активных клиентов. Финансовые KPI необходимо мониторить еженедельно для оперативного реагирования." },
+  { id:"coo", role:"COO", name:"Elena Vasquez", color:"#00E7A7", title:"Операционный директор", score:76,
+    opinion:"Операционная стратегия требует немедленной проработки процессов доставки ценности клиентам. Без чётких SOP команда потеряет 30–40% эффективности при масштабировании. Автоматизация рутинных задач должна начаться с первого месяца работы компании. KPI по операционной эффективности должны отслеживаться еженедельно на всех уровнях. Время отклика на запросы клиентов является критическим показателем NPS. Операционные расходы реалистично снизить на 18–25% при выходе на объём. Первые 3 месяца — критический период выстраивания операционной дисциплины. Поставщики и партнёры требуют формального договорного оформления до старта." },
+  { id:"cmo", role:"CMO", name:"Sarah Chen", color:"#FF5470", title:"Директор по маркетингу", score:84,
+    opinion:"Рыночное позиционирование требует более чёткой дифференциации от ключевых конкурентов. Контент-маркетинг рекомендую как основной acquisition channel на старте с минимальным бюджетом. Brand voice должен быть задокументирован до первого публичного контакта с аудиторией. CAC через органику может быть в 3–5 раз ниже paid при правильной SEO стратегии. Email retention программа способна снизить churn на 15–20% при правильной реализации. Партнёрство с инфлюенсерами в нише даст быстрый initial traction на первых 90 дней. Ретаргетинг должен быть настроен с первого месяца присутствия в платных каналах. A/B тестирование — обязательная практика для всех acquisition гипотез без исключения." },
+  { id:"cto", role:"CTO", name:"David Park", color:"#a78bfa", title:"Технический директор", score:71,
+    opinion:"Технологический стек выбран адекватно стадии и текущему масштабу проекта. Главный риск — накопление технического долга при агрессивном росте без рефакторинга. Архитектура должна быть спроектирована с расчётом на 10x текущей нагрузки системы. DevOps культура и CI/CD — обязательны с первого дня разработки команды. Безопасность данных требует приоритизации, особенно при работе с пользовательскими данными. Мониторинг и alerting должны быть настроены до производственного launch продукта. API-first подход обеспечит гибкость интеграций и будущего масштабирования системы. Инвестиция в автотесты окупится уже на 3-м месяце активной разработки продукта." },
+  { id:"ba", role:"Аналитик", name:"Michael Torres", color:"#FFB800", title:"Бизнес-аналитик", score:80,
+    opinion:"Рыночный анализ подтверждает наличие реального спроса в целевом сегменте аудитории. Конкуренты не полностью закрывают pain point, который адресует данный проект на рынке. TAM существенен, но реалистичная целевая доля рынка в 3 года составляет 1–3%. Тренды рынка положительные: CAGR 15–25% прогнозируется в следующие 5 лет. Барьеры входа умеренные — window of opportunity открыт для быстрого движения. Поведение потребителей меняется в пользу данного решения по всем ключевым метрикам. Сезонность требует отдельного учёта в финансовой модели при прогнозировании. Данные должны собираться с первого дня для обучения будущих аналитических моделей." },
+  { id:"legal", role:"Юрист", name:"Anna Petrova", color:"#94a3b8", title:"Юридический советник", score:68,
+    opinion:"Юридическая структура проекта требует проверки на соответствие регуляторным требованиям. Обработка персональных данных пользователей должна соответствовать GDPR и локальным нормам. Регистрация товарного знака необходима до публичного запуска продукта на рынок. Договоры с подрядчиками и сотрудниками должны быть составлены с полноценными NDA. Интеллектуальная собственность должна быть оформлена на юридическое лицо, а не физических лиц. Пользовательское соглашение и политика конфиденциальности являются юридическими требованиями. Потенциальные регуляторные риски в отрасли необходимо задокументировать заблаговременно. Создайте юридический резерв размером 5–10% операционного бюджета для минимизации рисков." },
+  { id:"sales", role:"Продажи", name:"Robert Kim", color:"#fb923c", title:"Директор по продажам", score:77,
+    opinion:"Воронка продаж требует чёткого определения метрик на каждом этапе customer journey. Conversion rate от лида к клиенту — ключевой KPI, который нужно отслеживать с первого дня. Сегментация по ICP позволит сфокусировать усилия на наиболее конвертируемых лидах. Ценовая стратегия выглядит конкурентоспособно, однако требует рыночного тестирования. CRM система обязательна с появления первого потенциального клиента в pipeline. Реферальная программа может обеспечить до 30% новых клиентов при правильной механике. Sales playbook должен быть документирован до найма первого sales-менеджера в команду. Среднее время закрытия сделки нужно оптимизировать к концу второго квартала работы." },
+  { id:"hr", role:"HR", name:"Lisa Johnson", color:"#f472b6", title:"Директор по персоналу", score:72,
+    opinion:"Команда — ключевое конкурентное преимущество на ранней стадии развития бизнеса. Культура компании закладывается в первые 10 нанятых сотрудников навсегда. Recruitment pipeline должен быть активным постоянно, а не только при острой необходимости. Onboarding процесс влияет на retention в первые 90 дней критически и определяет лояльность. Компенсационные пакеты должны быть конкурентными в рамках стадии и рынка труда. Employee NPS — важный ранний индикатор проблем с культурой внутри организации. Работа с выгоранием должна быть приоритетом для leadership с первого месяца. Разнообразие в команде коррелирует с качеством решений и уровнем инноваций." },
+  { id:"product", role:"Продукт", name:"Chris Wang", color:"#22d3ee", title:"Продукт-менеджер", score:85,
+    opinion:"Product-market fit — единственная метрика, которая имеет критическое значение на данной стадии. Пользовательский research должен проводиться еженедельно в первые 3 месяца без исключений. MVP должен быть запущен максимально быстро для получения реального рыночного feedback. Retention rate на 30-й день — главный индикатор достижения product-market fit. Roadmap должен строиться исключительно на основе данных и пользовательского feedback. Feature prioritization по ICE-score предотвратит распыление ресурсов на ненужные функции. NPS должен отслеживаться с первого активного пользователя продукта без задержки. Activation rate является критическим показателем эффективности onboarding процесса." },
+  { id:"risk", role:"Риски", name:"Igor Smirnov", color:"#ef4444", title:"Риск-менеджер", score:65,
+    opinion:"Профиль рисков проекта классифицирован как умеренно-высокий для текущей стадии идеи. Финансовый риск является главным: 60% стартапов умирают именно от нехватки денег. Рыночный риск снижается хорошим пониманием конкурентной среды и сегментации. Операционный риск связан с критической зависимостью от ключевых сотрудников компании. Технологический риск умеренный при правильном выборе стека и команды разработки. Регуляторный риск требует мониторинга в 6-месячном горизонте планирования. Сценарный анализ — обязательный инструмент финансового и операционного планирования. Резервный фонд в размере 20% бюджета минимизирует black swan сценарии развития." },
+  { id:"growth", role:"Growth", name:"Emma Davis", color:"#84cc16", title:"Growth Hacker", score:88,
+    opinion:"Самый быстрый путь к росту — нахождение одного масштабируемого acquisition channel в первые 3 месяца. Виральный коэффициент выше 1.0 кардинально трансформирует экономику всего проекта. Экспериментальный подход с еженедельными growth спринтами даёт наилучшие результаты на практике. Product-led growth возможен при правильном дизайне freemium воронки продукта. Community-led growth является самым дешёвым sustainable каналом привлечения клиентов. SEO при правильной стратегии обеспечивает ROI 10x+ в горизонте 12 месяцев работы. Referral loop должен быть зашит непосредственно в продукт, а не прикручен снаружи. Данные из первых 100 клиентов — золото для формирования долгосрочной growth стратегии." },
+  { id:"data", role:"Data", name:"Alex Chen", color:"#06b6d4", title:"Дата-саентист", score:74,
+    opinion:"Данные — главный актив, который нужно начинать собирать с самого первого дня работы. Структура данных должна быть спроектирована под будущие машинного обучения применения. Customer segmentation на основе поведенческих данных даст долгосрочное конкурентное преимущество. Churn prediction model начинает окупаться при базе от 500 активных клиентов системы. A/B тест инфраструктура необходима для масштабирования экспериментальной культуры. LTV prediction улучшает CAC оптимизацию на 30–40% при правильной реализации. Персонализация на основе данных повышает retention в среднем на 15–25% в первый год. Data-driven culture является конкурентным moat, который сложно скопировать конкурентам." },
+  { id:"brand", role:"Бренд", name:"Sofia Martinez", color:"#e879f9", title:"Бренд-менеджер", score:79,
+    opinion:"Brand positioning должен быть чётким и различимым на насыщенном конкурентами рынке. Визуальная идентичность компании создаёт первое впечатление, которое невозможно исправить второй раз. Tone of voice бренда должен точно соответствовать ценностям целевой аудитории продукта. Consistency во всех touchpoints является критической для построения доверия и лояльности. Brand equity строится медленно, но является долгосрочным стратегическим активом компании. Storytelling вокруг основателей и миссии работает значительно лучше корпоративного контента. Social proof в виде отзывов и кейсов должен появиться в первые 3 месяца присутствия. Brand guidelines обязательны до найма первого маркетолога и подрядчиков по контенту." },
+  { id:"cs", role:"CS", name:"Tom Wilson", color:"#4ade80", title:"Customer Success", score:73,
+    opinion:"Customer success — единственный отдел, который непосредственно влияет на retention метрики. Onboarding должен привести клиента к первой ценности за 7 дней максимально. Churn начинается задолго до отказа — триггеры нужно выявить в первые 3 месяца работы. Проактивный outreach при снижении активности снижает churn на 20–30% по данным индустрии. NPS опрос должен проводиться через 30, 60 и 90 дней после начала использования. Customer feedback является лучшим источником идей для product roadmap компании. Expansion revenue через upsell требует предварительного успеха клиента в текущем плане. SLA должен быть задокументирован и неукоснительно соблюдаться с первого клиента." },
+  { id:"eng", role:"Инжиниринг", name:"Pavel Novikov", color:"#7dd3fc", title:"Руководитель разработки", score:70,
+    opinion:"Технический долг — главная угроза скорости разработки после первого года активного роста. CI/CD pipeline должен быть настроен до первого production деплоя в любом случае. Code review культура предотвращает критические ошибки в production на ранней стадии. Test coverage минимум 70% является обязательным стандартом качества для команды. Документация кода должна быть обязательной практикой всей инженерной команды с первого спринта. Мониторинг и observability — первый приоритет сразу после запуска производственного окружения. Security-first подход в архитектурных решениях защищает от дорогостоящих инцидентов. Incident response playbook нужен до появления первого платящего клиента в системе." },
+  { id:"invest", role:"Инвестиции", name:"George Black", color:"#fde68a", title:"Инвестиционный аналитик", score:76,
+    opinion:"С точки зрения инвестиционной привлекательности проект находится в зелёной зоне оценки. Comparable companies показывают мультипликаторы 5–15x revenue при правильной бизнес-модели. ROI для seed инвесторов реалистичен при выходе через 3–5 лет при текущих метриках. Рынок имеет аналогичные успешные прецеденты с сопоставимыми входными параметрами. EBITDA margin при масштабировании должна превышать 20% для привлекательности. Burn multiple ниже 2.0 свидетельствует об эффективном расходовании привлечённого капитала. M&A потенциал компании значителен при достижении лидерства в целевой нише рынка. Investor updates должны быть ежемесячными и содержать 5 ключевых операционных метрик." },
+  { id:"strategy", role:"Стратегия", name:"Monica Lee", color:"#c4b5fd", title:"Стратегический консультант", score:83,
+    opinion:"Стратегическое позиционирование компании недостаточно дифференцировано от ключевых конкурентов. Sustainable competitive moat требует фокуса на одном из трёх: cost leadership, differentiation или niche. Blue ocean стратегия возможна при правильном пересмотре ценностного предложения компании. Стратегический фокус на первые 18 месяцев критически важен для выживания и роста. Конкурентный анализ должен обновляться ежеквартально для актуальности стратегических решений. Barriers to entry нужно активно строить и укреплять с первого дня операционной деятельности. Ecosystem стратегия через партнёрства существенно ускорит рост и снизит стоимость привлечения. Долгосрочная стратегия должна балансировать между Horizon 1 и Horizon 2 развития бизнеса." },
+  { id:"ops", role:"Операции", name:"Dmitry Volkov", color:"#6ee7b7", title:"Менеджер операций", score:69,
+    opinion:"Операционная эффективность является фундаментом устойчивого масштабирования любого бизнеса. Процессы должны быть задокументированы и стандартизированы до найма 5-го сотрудника команды. Автоматизация рутинных задач сэкономит 20–30% операционного времени всей команды. Vendor management требует формализации с появления первого значимого подрядчика. KPI дерево должно быть каскадировано на каждую функцию и роль в организации. Операционные ритмы — ежедневные standup, еженедельные reviews — являются критически важными. Quality control процессы влияют на NPS и retention клиентов напрямую и ощутимо. Операционная маржа является главным индикатором здоровья бизнеса на уровне unit economics." },
+  { id:"research", role:"Исследования", name:"Nina Kozlov", color:"#fdba74", title:"Аналитик рынка", score:77,
+    opinion:"Рыночные данные подтверждают наличие устойчивого потребительского спроса в целевом сегменте. Тенденции рынка благоприятны: растущий интерес к категории и снижение барьеров для входа. Потребительское поведение смещается в направлении, совпадающем с ценностным предложением компании. Конкурентная карта показывает незанятую нишу в средней ценовой категории рынка. CAGR в 15–25% на следующие 5 лет создаёт благоприятное окно возможностей для запуска. Сезонность рынка требует обязательного учёта при планировании cash flow и маркетинга. Географическая экспансия возможна после достижения PMF в локальном рынке присутствия. Исследования показывают высокую готовность платить среди целевой аудитории при правильном позиционировании." },
+];
+
+// ─── PROJECT STATIC DATA ─────────────────────────────────────────────────────
+
+const PROJECTS_DATA: Record<string, ProjectData> = {
   demo: {
-    name: "AI-Powered Fitness Platform",
-    subtitle: "SaaS · Mobile App · 8 AI Executives",
-    score: 87,
-    status: "Завершён",
-    scores: [
-      { label: "Рыночный потенциал", value: 91 },
-      { label: "Финансовая устойчивость", value: 83 },
-      { label: "Реализуемость", value: 87 },
-      { label: "Конкурентное преимущество", value: 79 },
-    ],
+    name: "AI-Powered Fitness Platform", subtitle: "SaaS · Mobile App · 8 AI Executives", score: 87, status: "Завершён",
+    scores: [{ label: "Рыночный потенциал", value: 91 }, { label: "Финансовая устойчивость", value: 83 }, { label: "Реализуемость", value: 87 }, { label: "Конкурентное преимущество", value: 79 }],
     summary: "AI-Powered Fitness Platform — высокопотенциальный продукт в быстрорастущем рынке персональных тренировок ($4.2B). Сильная дифференциация через AI-персонализацию. Рекомендуется B2C модель с freemium воронкой и монетизацией через Premium подписку ($19.99/мес).",
-    financials: [
-      { label: "Прогноз выручки (год 1)", value: "$240K", numeric: 240 },
-      { label: "Прогноз выручки (год 3)", value: "$2.4M", numeric: 2400 },
-      { label: "Точка безубыточности", value: "18 месяцев" },
-      { label: "LTV пользователя", value: "$180" },
-      { label: "CAC", value: "$22" },
-      { label: "LTV/CAC", value: "8.2x" },
-    ],
-    market: [
-      { label: "TAM (общий рынок)", value: "$4.2B", numeric: 4200 },
-      { label: "SAM (достижимый)", value: "$840M", numeric: 840 },
-      { label: "SOM (целевой)", value: "$42M", numeric: 42 },
-      { label: "Рост рынка", value: "+24%/год" },
-    ],
-    risks: [
-      { level: "high", title: "Высокая конкуренция", desc: "MyFitnessPal, Noom, Peloton — крупные игроки с большими бюджетами" },
-      { level: "medium", title: "Стоимость привлечения", desc: "CAC может вырасти при масштабировании платных каналов" },
-      { level: "low", title: "Технический риск", desc: "AI модели требуют постоянного обучения и данных" },
-    ],
+    financials: [{ label: "Прогноз выручки (год 1)", value: "$240K", numeric: 240 }, { label: "Прогноз выручки (год 3)", value: "$2.4M", numeric: 2400 }, { label: "Точка безубыточности", value: "18 месяцев" }, { label: "LTV пользователя", value: "$180" }, { label: "CAC", value: "$22" }, { label: "LTV/CAC", value: "8.2x" }],
+    market: [{ label: "TAM (общий рынок)", value: "$4.2B", numeric: 4200 }, { label: "SAM (достижимый)", value: "$840M", numeric: 840 }, { label: "SOM (целевой)", value: "$42M", numeric: 42 }, { label: "Рост рынка", value: "+24%/год" }],
+    risks: [{ level: "high", title: "Высокая конкуренция", desc: "MyFitnessPal, Noom, Peloton — крупные игроки с большими бюджетами." }, { level: "medium", title: "Стоимость привлечения", desc: "CAC может вырасти при масштабировании платных каналов." }, { level: "low", title: "Технический риск", desc: "AI модели требуют постоянного обучения и качественных данных." }],
   },
   "2": {
-    name: "SaaS Invoice Platform",
-    subtitle: "SaaS · FinTech · 8 AI Executives",
-    score: 91,
-    status: "Завершён",
-    scores: [
-      { label: "Рыночный потенциал", value: 94 },
-      { label: "Финансовая устойчивость", value: 90 },
-      { label: "Реализуемость", value: 88 },
-      { label: "Конкурентное преимущество", value: 85 },
-    ],
+    name: "SaaS Invoice Platform", subtitle: "SaaS · FinTech · 8 AI Executives", score: 91, status: "Завершён",
+    scores: [{ label: "Рыночный потенциал", value: 94 }, { label: "Финансовая устойчивость", value: 90 }, { label: "Реализуемость", value: 88 }, { label: "Конкурентное преимущество", value: 85 }],
     summary: "SaaS Invoice Platform решает реальную боль 59M фрилансеров в США. Высокая retention (78%) в категории, предсказуемый MRR. Рекомендуется запуск с фокусом на дизайн-агентства и IT-консультантов как первичный ICP.",
-    financials: [
-      { label: "Прогноз выручки (год 1)", value: "$180K", numeric: 180 },
-      { label: "Прогноз выручки (год 3)", value: "$1.8M", numeric: 1800 },
-      { label: "Точка безубыточности", value: "12 месяцев" },
-      { label: "LTV пользователя", value: "$540" },
-      { label: "CAC", value: "$48" },
-      { label: "LTV/CAC", value: "11.2x" },
-    ],
-    market: [
-      { label: "TAM (общий рынок)", value: "$2.1B", numeric: 2100 },
-      { label: "SAM (достижимый)", value: "$420M", numeric: 420 },
-      { label: "SOM (целевой)", value: "$21M", numeric: 21 },
-      { label: "Рост рынка", value: "+18%/год" },
-    ],
-    risks: [
-      { level: "medium", title: "FreshBooks / QuickBooks", desc: "Доминирующие игроки с высокой узнаваемостью бренда" },
-      { level: "low", title: "Интеграции", desc: "Нужны интеграции с банками и платёжными системами" },
-      { level: "low", title: "Регуляторные требования", desc: "Разные требования к счетам в разных странах" },
-    ],
+    financials: [{ label: "Прогноз выручки (год 1)", value: "$180K", numeric: 180 }, { label: "Прогноз выручки (год 3)", value: "$1.8M", numeric: 1800 }, { label: "Точка безубыточности", value: "12 месяцев" }, { label: "LTV пользователя", value: "$540" }, { label: "CAC", value: "$48" }, { label: "LTV/CAC", value: "11.2x" }],
+    market: [{ label: "TAM (общий рынок)", value: "$2.1B", numeric: 2100 }, { label: "SAM (достижимый)", value: "$420M", numeric: 420 }, { label: "SOM (целевой)", value: "$21M", numeric: 21 }, { label: "Рост рынка", value: "+18%/год" }],
+    risks: [{ level: "medium", title: "FreshBooks / QuickBooks", desc: "Доминирующие игроки с высокой узнаваемостью бренда." }, { level: "low", title: "Интеграции", desc: "Нужны интеграции с банками и платёжными системами." }, { level: "low", title: "Регуляторные требования", desc: "Разные требования к счетам в разных странах." }],
   },
   "3": {
-    name: "Local Restaurant Chain",
-    subtitle: "Restaurant · Food · 5 AI Executives · В процессе",
-    score: 72,
-    status: "В работе",
-    scores: [
-      { label: "Рыночный потенциал", value: 75 },
-      { label: "Финансовая устойчивость", value: 68 },
-      { label: "Реализуемость", value: 74 },
-      { label: "Конкурентное преимущество", value: 70 },
-    ],
-    summary: "Стратегия расширения ресторанной сети анализируется. Умеренный потенциал в конкурентном рынке fast-casual. Анализ ещё не завершён — рекомендуется добавить больше деталей о локациях и целевой аудитории.",
-    financials: [
-      { label: "Стартовые инвестиции", value: "$350K" },
-      { label: "Маржинальность", value: "~15-20%" },
-      { label: "Food cost %", value: "~28-32%" },
-    ],
-    market: [
-      { label: "TAM (общий рынок)", value: "$890M", numeric: 890 },
-      { label: "SAM (достижимый)", value: "$89M", numeric: 89 },
-      { label: "SOM (целевой)", value: "$4.5M", numeric: 4.5 },
-      { label: "Рост рынка", value: "+9%/год" },
-    ],
-    risks: [
-      { level: "high", title: "Операционная сложность", desc: "Управление несколькими точками требует систем и команды" },
-      { level: "high", title: "Высокая конкуренция", desc: "Насыщенный рынок fast-casual с низкими барьерами входа" },
-      { level: "medium", title: "Рост аренды", desc: "Стоимость коммерческой недвижимости растёт" },
-    ],
+    name: "Local Restaurant Chain", subtitle: "Restaurant · Food · 5 AI Executives", score: 72, status: "В работе",
+    scores: [{ label: "Рыночный потенциал", value: 75 }, { label: "Финансовая устойчивость", value: 68 }, { label: "Реализуемость", value: 74 }, { label: "Конкурентное преимущество", value: 70 }],
+    summary: "Стратегия расширения ресторанной сети анализируется. Умеренный потенциал в конкурентном рынке fast-casual.",
+    financials: [{ label: "Стартовые инвестиции", value: "$350K" }, { label: "Маржинальность", value: "~15-20%" }, { label: "Food cost %", value: "~28-32%" }],
+    market: [{ label: "TAM (общий рынок)", value: "$890M", numeric: 890 }, { label: "SAM (достижимый)", value: "$89M", numeric: 89 }, { label: "SOM (целевой)", value: "$4.5M", numeric: 4.5 }, { label: "Рост рынка", value: "+9%/год" }],
+    risks: [{ level: "high", title: "Операционная сложность", desc: "Управление несколькими точками требует систем." }, { level: "high", title: "Высокая конкуренция", desc: "Насыщенный рынок с низкими барьерами входа." }, { level: "medium", title: "Рост аренды", desc: "Стоимость коммерческой недвижимости растёт." }],
   },
 };
 
-const TABS = ["Резюме", "AI Команда", "Финансы", "Рынок", "Риски"];
-
-const AGENT_COLORS: Record<string, string> = {
-  "CEO": "#7c3aed", "CFO": "#3b82f6", "CMO": "#10b981",
-  "COO": "#f59e0b", "Business Analyst": "#f97316",
-  "CTO": "#ec4899", "Sales Director": "#6366f1", "Legal Advisor": "#64748b",
-};
-
-const RISK_COLORS: Record<string, string> = {
-  high: "text-red-400 bg-red-500/10 border-red-500/20",
-  medium: "text-amber-400 bg-amber-500/10 border-amber-500/20",
-  low: "text-emerald-400 bg-emerald-500/10 border-emerald-500/20",
-};
-const RISK_LABELS: Record<string, string> = { high: "Высокий", medium: "Средний", low: "Низкий" };
-const RISK_ICONS_SVG: Record<string, React.ReactNode> = {
-  high: (
-    <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <path d="M8 2L14 13H2L8 2z"/><line x1="8" y1="7" x2="8" y2="10"/><circle cx="8" cy="12" r="0.5" fill="currentColor"/>
-    </svg>
-  ),
-  medium: (
-    <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <polyline points="2 10 5 6 8 8 11 4 14 6"/><line x1="2" y1="13" x2="14" y2="13"/>
-    </svg>
-  ),
-  low: (
-    <svg viewBox="0 0 16 16" className="size-4" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="8" cy="8" r="5"/><polyline points="6 8 8 10 11 6"/>
-    </svg>
-  ),
-};
-
-// Risk radar chart
-function RiskRadarChart({ risks }: { risks: { level: string; title: string }[] }) {
-  const cx = 110; const cy = 110; const r = 80;
-  const axes = risks.length > 0 ? risks.slice(0, 6) : [
-    { title: "Конкуренция", level: "high" },
-    { title: "Рынок", level: "medium" },
-    { title: "Исполнение", level: "high" },
-    { title: "Финансы", level: "medium" },
-    { title: "Регуляторика", level: "low" },
-    { title: "Технологии", level: "medium" },
-  ];
-  const n = axes.length;
-  const levelVal: Record<string, number> = { high: 0.85, medium: 0.55, low: 0.3 };
-  const levelColor: Record<string, string> = { high: "#f87171", medium: "#fbbf24", low: "#34d399" };
-
-  const pts = axes.map((ax, i) => {
-    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
-    const frac = levelVal[ax.level] ?? 0.5;
-    return {
-      x: cx + Math.cos(angle) * r * frac,
-      y: cy + Math.sin(angle) * r * frac,
-      lx: cx + Math.cos(angle) * (r + 22),
-      ly: cy + Math.sin(angle) * (r + 22),
-      color: levelColor[ax.level] ?? "#a78bfa",
-      title: ax.title,
-      level: ax.level,
-    };
-  });
-  const poly = pts.map(p => `${p.x},${p.y}`).join(" ");
-
-  return (
-    <div
-      className="relative rounded-2xl overflow-hidden p-5"
-      style={{
-        background: "linear-gradient(135deg, rgba(251,146,60,0.05) 0%, rgba(15,15,20,0.85) 100%)",
-        border: "1px solid rgba(255,255,255,0.07)",
-      }}
-    >
-      <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.4) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
-      <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(251,146,60,0.4),transparent)" }} />
-      <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-3 relative">Матрица угроз</div>
-      <div className="relative flex items-center justify-center">
-        <svg viewBox="0 0 220 220" style={{ width: 200, height: 200 }}>
-          <defs>
-            <radialGradient id="riskFill" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#f87171" stopOpacity="0.2"/>
-              <stop offset="100%" stopColor="#fbbf24" stopOpacity="0.05"/>
-            </radialGradient>
-          </defs>
-          {/* grid rings */}
-          {[0.3, 0.55, 0.85].map((frac, gi) => {
-            const ringPts = Array.from({ length: n }, (_, i) => {
-              const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
-              return `${cx + Math.cos(angle) * r * frac},${cy + Math.sin(angle) * r * frac}`;
-            }).join(" ");
-            const colors = ["rgba(52,211,153,0.12)", "rgba(251,191,36,0.12)", "rgba(248,113,113,0.12)"];
-            return <polygon key={gi} points={ringPts} fill={colors[gi]} stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>;
-          })}
-          {/* axis lines */}
-          {pts.map((p, i) => (
-            <line key={i} x1={cx} y1={cy} x2={cx + Math.cos((i/n)*2*Math.PI-Math.PI/2)*r} y2={cy + Math.sin((i/n)*2*Math.PI-Math.PI/2)*r} stroke="rgba(255,255,255,0.06)" strokeWidth="1"/>
-          ))}
-          {/* data polygon */}
-          <polygon points={poly} fill="url(#riskFill)" stroke="rgba(248,113,113,0.6)" strokeWidth="1.5" strokeLinejoin="round"/>
-          {/* nodes */}
-          {pts.map((p, i) => (
-            <g key={i}>
-              <circle cx={p.x} cy={p.y} r="5" fill="#0a0a0a" stroke={p.color} strokeWidth="1.5" style={{ filter: `drop-shadow(0 0 4px ${p.color}80)` }}/>
-              <circle cx={p.x} cy={p.y} r="2" fill={p.color}/>
-            </g>
-          ))}
-          {/* labels */}
-          {pts.map((p, i) => (
-            <text key={i} x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle" fontSize="7" fill="rgba(255,255,255,0.35)" fontFamily="system-ui">
-              {p.title.length > 10 ? p.title.slice(0, 10) : p.title}
-            </text>
-          ))}
-        </svg>
-      </div>
-    </div>
-  );
-}
-
-// Concentric circles TAM/SAM/SOM visualization
-function MarketConcentricChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
-  const numericItems = items.filter(i => i.numeric !== undefined).slice(0, 3);
-  if (numericItems.length < 2) return null;
-  const max = Math.max(...numericItems.map(i => i.numeric!));
-  const RINGS = [
-    { color: "#7c3aed", glow: "rgba(124,58,237,0.4)", label: "TAM" },
-    { color: "#3b82f6", glow: "rgba(59,130,246,0.4)", label: "SAM" },
-    { color: "#10b981", glow: "rgba(16,185,129,0.5)", label: "SOM" },
-  ];
-  const cx = 120; const cy = 120;
-  const maxR = 90;
-
-  return (
-    <div
-      className="relative rounded-2xl overflow-hidden p-5"
-      style={{
-        background: "linear-gradient(135deg, rgba(124,58,237,0.05) 0%, rgba(15,15,20,0.8) 100%)",
-        border: "1px solid rgba(255,255,255,0.07)",
-      }}
-    >
-      {/* grid bg */}
-      <div className="absolute inset-0 opacity-[0.025]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)", backgroundSize: "32px 32px" }} />
-      <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.4), transparent)" }} />
-
-      <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-4 relative">Размер рынка (визуализация)</div>
-
-      <div className="relative flex items-center gap-8">
-        {/* SVG circles */}
-        <div className="flex-shrink-0">
-          <svg viewBox="0 0 240 240" style={{ width: 180, height: 180 }}>
-            <defs>
-              {RINGS.map((r, i) => (
-                <radialGradient key={i} id={`rg${i}`} cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor={r.color} stopOpacity="0.15" />
-                  <stop offset="100%" stopColor={r.color} stopOpacity="0.03" />
-                </radialGradient>
-              ))}
-            </defs>
-            {/* rings from outside in */}
-            {numericItems.map((item, i) => {
-              const frac = Math.pow(item.numeric! / max, 0.45);
-              const r = maxR * frac;
-              const ring = RINGS[i];
-              return (
-                <g key={i}>
-                  <circle cx={cx} cy={cy} r={r} fill={`url(#rg${i})`} />
-                  <circle cx={cx} cy={cy} r={r} fill="none" stroke={ring.color} strokeWidth={i === 0 ? 1.5 : 1}
-                    style={{ filter: `drop-shadow(0 0 6px ${ring.glow})` }} />
-                </g>
-              );
-            }).reverse()}
-            {/* center dot */}
-            <circle cx={cx} cy={cy} r="3" fill="#10b981" style={{ filter: "drop-shadow(0 0 6px rgba(16,185,129,0.8))" }} />
-          </svg>
-        </div>
-
-        {/* legend */}
-        <div className="flex-1 space-y-4">
-          {numericItems.map((item, i) => {
-            const ring = RINGS[i];
-            return (
-              <div key={i} className="flex items-center gap-3">
-                <div className="size-2.5 rounded-full flex-shrink-0" style={{ background: ring.color, boxShadow: `0 0 8px ${ring.glow}` }} />
-                <div className="flex-1 min-w-0">
-                  <div className="text-[10px] text-white/35 mb-0.5">{item.label}</div>
-                  <div className="text-base font-bold font-mono leading-tight" style={{ color: ring.color }}>{item.value}</div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Premium luxury gauge (replaces diamond radar)
-function PremiumScoreGauge({ score }: { score: number }) {
-  const cx = 65; const cy = 65; const r = 48;
-  const startDeg = 135; const totalDeg = 270;
-  const color = score >= 85 ? "#34d399" : score >= 70 ? "#f59e0b" : "#f87171";
-  const d2r = (d: number) => d * Math.PI / 180;
-  const pt = (deg: number) => ({ x: cx + r * Math.cos(d2r(deg)), y: cy + r * Math.sin(d2r(deg)) });
-  const arc = (s: number, e: number) => {
-    const sp = pt(s); const ep = pt(e);
-    const large = e - s > 180 ? 1 : 0;
-    return `M ${sp.x.toFixed(2)} ${sp.y.toFixed(2)} A ${r} ${r} 0 ${large} 1 ${ep.x.toFixed(2)} ${ep.y.toFixed(2)}`;
-  };
-  const scoreEnd = startDeg + (score / 100) * totalDeg;
-  return (
-    <svg viewBox="0 0 130 102" style={{ width: 130, height: 102 }}>
-      <defs>
-        <pattern id="gaugeGrid" x="0" y="0" width="8" height="8" patternUnits="userSpaceOnUse">
-          <circle cx="1" cy="1" r="0.9" fill="rgba(255,255,255,0.07)" />
-        </pattern>
-        <linearGradient id="gaugeGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#7c3aed" /><stop offset="100%" stopColor={color} />
-        </linearGradient>
-      </defs>
-      <circle cx={cx} cy={cy} r={r + 10} fill="url(#gaugeGrid)" />
-      <path d={arc(startDeg, startDeg + totalDeg)} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="7" strokeLinecap="round" />
-      {score > 0 && <path d={arc(startDeg, scoreEnd)} fill="none" stroke="url(#gaugeGrad)" strokeWidth="7" strokeLinecap="round" style={{ filter: `drop-shadow(0 0 8px ${color}90)` }} />}
-      <text x={cx} y={cy + 7} textAnchor="middle" fontSize="24" fontWeight="800" fill="white" fontFamily="monospace">{score}</text>
-      <text x={cx} y={cy + 20} textAnchor="middle" fontSize="7" fill="rgba(255,255,255,0.3)" fontFamily="system-ui" letterSpacing="1.5">Бизнес-балл</text>
-    </svg>
-  );
-}
-
-// Concentric rings for Резюме tab with % pointer lines
-function ResumeConcentricChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
-  const numericItems = items.filter(i => i.numeric !== undefined).slice(0, 3);
-  if (numericItems.length < 2) return null;
-  const max = Math.max(...numericItems.map(i => i.numeric!));
-  const cx = 130; const cy = 130; const maxR = 100;
-  const RINGS = [
-    { color: "#7c3aed", glow: "rgba(124,58,237,0.5)", label: "TAM", angle: -55 },
-    { color: "#22d3ee", glow: "rgba(34,211,238,0.5)", label: "SAM", angle: 25 },
-    { color: "#10b981", glow: "rgba(16,185,129,0.5)", label: "SOM", angle: 110 },
-  ];
-  const rings = numericItems.map((item, i) => {
-    const frac = Math.pow(item.numeric! / max, 0.45);
-    const r = Math.max(10, maxR * frac);
-    const ring = RINGS[i];
-    const rad = ring.angle * Math.PI / 180;
-    const dotX = cx + r * Math.cos(rad); const dotY = cy + r * Math.sin(rad);
-    const lineLen = 32;
-    const lx = cx + (r + lineLen) * Math.cos(rad); const ly = cy + (r + lineLen) * Math.sin(rad);
-    const pct = Math.round((item.numeric! / max) * 100);
-    return { ...item, r, ring, dotX, dotY, lx, ly, pct, i };
-  });
-
-  return (
-    <div className="relative rounded-2xl overflow-hidden p-5" style={{
-      background: "linear-gradient(135deg, rgba(124,58,237,0.07) 0%, rgba(15,15,20,0.88) 100%)",
-      border: "1px solid rgba(255,255,255,0.07)",
-    }}>
-      <div className="absolute inset-0 opacity-[0.02]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)", backgroundSize: "20px 20px" }} />
-      <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.45), transparent)" }} />
-      <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-2 relative">Структура рынка</div>
-      <svg viewBox="0 0 260 260" style={{ width: "100%", maxWidth: 260, margin: "0 auto", display: "block" }}>
-        <defs>
-          {rings.map((ri, i) => (
-            <radialGradient key={i} id={`rg2_${i}`} cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor={ri.ring.color} stopOpacity="0.18" />
-              <stop offset="100%" stopColor={ri.ring.color} stopOpacity="0.02" />
-            </radialGradient>
-          ))}
-        </defs>
-        {[...rings].reverse().map((ri, idx) => (
-          <g key={idx}>
-            <circle cx={cx} cy={cy} r={ri.r} fill={`url(#rg2_${rings.length - 1 - idx})`} />
-            <circle cx={cx} cy={cy} r={ri.r} fill="none" stroke={ri.ring.color} strokeWidth={ri.i === 0 ? 1.5 : 1}
-              strokeDasharray={ri.i === 0 ? undefined : "4 3"}
-              style={{ filter: `drop-shadow(0 0 8px ${ri.ring.glow})` }} />
-          </g>
-        ))}
-        {rings.map((ri, i) => (
-          <g key={i}>
-            <circle cx={ri.dotX} cy={ri.dotY} r="4" fill={ri.ring.color} style={{ filter: `drop-shadow(0 0 5px ${ri.ring.glow})` }} />
-            <line x1={ri.dotX} y1={ri.dotY} x2={ri.lx} y2={ri.ly} stroke={ri.ring.color} strokeWidth="0.75" strokeDasharray="3 2" opacity="0.55" />
-            <rect x={ri.lx - 15} y={ri.ly - 9} width="30" height="18" rx="4" fill={ri.ring.color} fillOpacity="0.12" stroke={ri.ring.color} strokeOpacity="0.35" strokeWidth="0.75" />
-            <text x={ri.lx} y={ri.ly + 4.5} textAnchor="middle" fontSize="8.5" fontWeight="700" fill={ri.ring.color} fontFamily="monospace">{ri.pct}%</text>
-          </g>
-        ))}
-        <circle cx={cx} cy={cy} r="4.5" fill="#10b981" style={{ filter: "drop-shadow(0 0 8px rgba(16,185,129,0.9))" }} />
-      </svg>
-      <div className="flex justify-center gap-6 mt-1">
-        {rings.map((ri, i) => (
-          <div key={i} className="flex items-center gap-1.5">
-            <div className="size-2 rounded-full flex-shrink-0" style={{ background: ri.ring.color, boxShadow: `0 0 6px ${ri.ring.glow}` }} />
-            <div>
-              <div className="text-[8px] text-white/30">{ri.ring.label}</div>
-              <div className="text-[10px] font-bold font-mono leading-tight" style={{ color: ri.ring.color }}>{ri.value}</div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Financial bar chart
-function FinancialAreaChart({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
-  const items = financials.filter(f => f.numeric !== undefined);
-  if (items.length < 2) return null;
-  const max = Math.max(...items.map(i => i.numeric!));
-  const W = 600; const H = 120; const PAD = 24;
-  const pts = items.map((item, i) => ({
-    x: PAD + (i / (items.length - 1)) * (W - PAD * 2),
-    y: H - PAD - ((item.numeric! / max) * (H - PAD * 2)),
-    ...item,
-  }));
-  const pathD = pts.map((p, i) => (i === 0 ? `M ${p.x} ${p.y}` : `C ${(pts[i-1].x + p.x)/2} ${pts[i-1].y} ${(pts[i-1].x + p.x)/2} ${p.y} ${p.x} ${p.y}`)).join(" ");
-  const areaD = `${pathD} L ${pts[pts.length-1].x} ${H} L ${pts[0].x} ${H} Z`;
-  const firstVal = items[0];
-  const lastVal = items[items.length - 1];
-
-  return (
-    <div className="relative rounded-2xl overflow-hidden" style={{ background: "linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(59,130,246,0.04) 100%)", border: "1px solid rgba(255,255,255,0.07)" }}>
-      {/* circuit pattern bg */}
-      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.4) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
-      <div className="relative p-5">
-        <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-4">Прогноз выручки</div>
-        {/* value labels */}
-        <div className="flex justify-between items-start mb-3">
-          <div>
-            <div className="text-xl font-bold font-mono" style={{ color: "#60a5fa" }}>{firstVal.value}</div>
-            <div className="text-[10px] text-white/30 mt-0.5">{firstVal.label}</div>
-          </div>
-          <div className="text-right">
-            <div className="text-xl font-bold font-mono" style={{ color: "#a78bfa" }}>{lastVal.value}</div>
-            <div className="text-[10px] text-white/30 mt-0.5">{lastVal.label}</div>
-          </div>
-        </div>
-        {/* SVG area chart */}
-        <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 120 }}>
-          <defs>
-            <linearGradient id="areaGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#3b82f6" />
-              <stop offset="100%" stopColor="#7c3aed" />
-            </linearGradient>
-            <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.25" />
-              <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-          {/* grid lines */}
-          {[0.25, 0.5, 0.75].map(t => (
-            <line key={t} x1={PAD} y1={PAD + t * (H - PAD * 2)} x2={W - PAD} y2={PAD + t * (H - PAD * 2)} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
-          ))}
-          {/* area fill */}
-          <path d={areaD} fill="url(#areaFill)" />
-          {/* line */}
-          <path d={pathD} fill="none" stroke="url(#areaGrad)" strokeWidth="2" strokeLinecap="round" />
-          {/* data points */}
-          {pts.map((p, i) => (
-            <g key={i}>
-              <circle cx={p.x} cy={p.y} r="5" fill="#0a0a0a" stroke={i === 0 ? "#3b82f6" : "#7c3aed"} strokeWidth="2" />
-              <circle cx={p.x} cy={p.y} r="2" fill={i === 0 ? "#3b82f6" : "#7c3aed"} />
-            </g>
-          ))}
-        </svg>
-      </div>
-    </div>
-  );
-}
-
-const METRIC_ICONS: Record<string, React.ReactNode> = {
-  "LTV пользователя": (
-    <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <polyline points="1 10 4 6 7 8 10 4 15 7" /><line x1="1" y1="15" x2="15" y2="15" />
-    </svg>
-  ),
-  "CAC": (
-    <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="8" cy="6" r="3"/><rect x="3" y="11" width="10" height="3" rx="1"/><line x1="8" y1="9" x2="8" y2="11"/>
-    </svg>
-  ),
-  "LTV/CAC": (
-    <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="8" cy="8" r="6"/><path d="M8 4v4l3 2"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/>
-    </svg>
-  ),
-};
-
-function CircularScore({ score, color }: { score: number; color: string }) {
-  const r = 22; const circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
-  return (
-    <svg viewBox="0 0 60 60" className="size-10">
-      <circle cx="30" cy="30" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
-      <circle cx="30" cy="30" r={r} fill="none" stroke={color} strokeWidth="4"
-        strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={circ * 0.25}
-        strokeLinecap="round" style={{ filter: `drop-shadow(0 0 4px ${color}80)` }} />
-      <text x="30" y="35" textAnchor="middle" fontSize="11" fontWeight="700" fill="white" fontFamily="monospace">{score}</text>
-    </svg>
-  );
-}
-
-type ProjectData = typeof PROJECTS_DATA["demo"];
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
 
 function buildProjectFromUser(raw: Record<string, unknown>): ProjectData {
   const score = Number(raw.score) || 78;
-  // Format revenue safely
   const rawRevenue = raw.revenue ? String(raw.revenue) : null;
   const revenueDisplay = rawRevenue && rawRevenue.length > 0 && rawRevenue !== "0"
-    ? rawRevenue.startsWith("$") ? rawRevenue : `$${rawRevenue}`
-    : `$${(score * 3).toFixed(0)}K`;
-  const rev1Numeric = score * 3;
-  const rev3Numeric = score * 30;
-
+    ? rawRevenue.startsWith("$") ? rawRevenue : `$${rawRevenue}` : `$${(score * 3).toFixed(0)}K`;
   return {
-    name: String(raw.name),
+    name: String(raw.name || "Проект"),
     subtitle: `${raw.industry || "Бизнес"} · ${raw.stage || "Идея"} · AI Executive Board`,
-    score,
-    status: "Завершён",
+    score, status: "Завершён",
     scores: [
       { label: "Рыночный потенциал", value: Math.min(99, score + 4) },
       { label: "Финансовая устойчивость", value: Math.max(50, score - 6) },
       { label: "Реализуемость", value: Math.min(99, score + 1) },
       { label: "Конкурентное преимущество", value: Math.max(50, score - 8) },
     ],
-    summary: `${raw.name} — бизнес-идея в сфере ${raw.industry || "вашей индустрии"}. ${raw.description ? String(raw.description).slice(0, 200) : ""} AI-команда проанализировала проект и подготовила стратегию с учётом рыночных условий, конкурентной среды и ваших целей.`,
+    summary: `${raw.name} — бизнес-идея в сфере ${raw.industry || "вашей индустрии"}. ${raw.description ? String(raw.description).slice(0, 200) : ""} AI-команда проанализировала проект и подготовила стратегию.`,
     financials: [
-      { label: "Прогноз выручки (год 1)", value: revenueDisplay, numeric: rev1Numeric },
-      { label: "Прогноз выручки (год 3)", value: `$${(rev3Numeric / 1000).toFixed(1)}M`, numeric: rev3Numeric },
+      { label: "Прогноз выручки (год 1)", value: revenueDisplay, numeric: score * 3 },
+      { label: "Прогноз выручки (год 3)", value: `$${(score * 0.03).toFixed(1)}M`, numeric: score * 30 },
       { label: "Точка безубыточности", value: score > 80 ? "14 месяцев" : "20 месяцев" },
       { label: "LTV пользователя", value: `$${(score * 2).toFixed(0)}` },
       { label: "CAC", value: `$${Math.floor(score / 3)}` },
@@ -554,745 +129,997 @@ function buildProjectFromUser(raw: Record<string, unknown>): ProjectData {
   };
 }
 
+// ─── ANIMATION HOOK ───────────────────────────────────────────────────────────
+
+function useAnimated(delay = 0) {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setReady(true), delay);
+    return () => clearTimeout(t);
+  }, [delay]);
+  return ready;
+}
+
+// ─── ANIMATED GAUGE ───────────────────────────────────────────────────────────
+
+function AnimatedGauge({ score, color, size = 72, delay = 0, showLabel = true }:
+  { score: number; color: string; size?: number; delay?: number; showLabel?: boolean }) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const t = setTimeout(() => setVal(score), delay + 80);
+    return () => clearTimeout(t);
+  }, [score, delay]);
+
+  const cx = size / 2, cy = size / 2;
+  const r = size * 0.37;
+  const circ = 2 * Math.PI * r;
+  const maxDash = circ * 0.75;
+  const drawn = (val / 100) * maxDash;
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} width={size} height={size} style={{ overflow: "visible" }}>
+      <g transform={`rotate(-135 ${cx} ${cy})`}>
+        <circle cx={cx} cy={cy} r={r} fill="none"
+          stroke="rgba(255,255,255,0.07)" strokeWidth={size * 0.075}
+          strokeDasharray={`${maxDash} ${circ}`} strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={color}
+          strokeWidth={size * 0.075}
+          strokeDasharray={`${drawn} ${circ}`} strokeLinecap="round"
+          style={{
+            transition: `stroke-dasharray 1.4s cubic-bezier(0.34,1.1,0.64,1) ${delay}ms`,
+            filter: `drop-shadow(0 0 ${size * 0.04}px ${color})`,
+          }} />
+      </g>
+      <text x={cx} y={cy + (showLabel ? size * 0.06 : size * 0.09)} textAnchor="middle"
+        fontSize={size * 0.26} fontWeight="800" fill="white"
+        fontFamily="ui-monospace,monospace">{val}</text>
+      {showLabel && (
+        <text x={cx} y={cy + size * 0.22} textAnchor="middle"
+          fontSize={size * 0.09} fill="rgba(255,255,255,0.25)"
+          fontFamily="system-ui" letterSpacing="1">БАЛЛ</text>
+      )}
+    </svg>
+  );
+}
+
+// ─── ANIMATED BAR ─────────────────────────────────────────────────────────────
+
+function AnimatedBar({ value, color, delay = 0, height = 6 }:
+  { value: number; color: string; delay?: number; height?: number }) {
+  const animated = useAnimated(delay + 100);
+  return (
+    <div style={{ height, background: "rgba(255,255,255,0.06)", borderRadius: 99, overflow: "hidden" }}>
+      <div style={{
+        height: "100%", width: animated ? `${value}%` : "0%",
+        background: `linear-gradient(90deg, ${color}, ${color}99)`,
+        transition: `width 1.3s cubic-bezier(0.34,1.1,0.64,1) ${delay}ms`,
+        borderRadius: 99,
+        boxShadow: `0 0 8px ${color}50`,
+      }} />
+    </div>
+  );
+}
+
+// ─── ANIMATED AREA CHART ──────────────────────────────────────────────────────
+
+function AnimatedAreaChart({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
+  const animated = useAnimated(200);
+  const items = financials.filter(f => f.numeric !== undefined);
+  if (items.length < 2) return null;
+  const W = 600, H = 130, PAD = 30;
+  const max = Math.max(...items.map(i => i.numeric!));
+  const pts = items.map((item, i) => ({
+    x: PAD + (i / (items.length - 1)) * (W - PAD * 2),
+    y: H - PAD - (item.numeric! / max) * (H - PAD * 2),
+    ...item,
+  }));
+  const pathD = pts.map((p, i) =>
+    i === 0 ? `M ${p.x} ${p.y}` :
+      `C ${(pts[i-1].x + p.x)/2} ${pts[i-1].y} ${(pts[i-1].x + p.x)/2} ${p.y} ${p.x} ${p.y}`
+  ).join(" ");
+  const areaD = `${pathD} L ${pts[pts.length-1].x} ${H - PAD} L ${pts[0].x} ${H - PAD} Z`;
+
+  return (
+    <div style={{
+      background: "linear-gradient(135deg,rgba(90,141,255,0.06) 0%,rgba(122,92,255,0.04) 100%)",
+      border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden", position: "relative",
+    }}>
+      <div style={{ position: "absolute", inset: "0 0 0 0", opacity: 0.025, backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.5) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
+      <div style={{ padding: "16px 20px 8px" }}>
+        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 12 }}>Прогноз выручки</div>
+        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#5A8DFF", fontFamily: "monospace" }}>{pts[0].value}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{pts[0].label}</div>
+          </div>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 20, fontWeight: 800, color: "#7A5CFF", fontFamily: "monospace" }}>{pts[pts.length-1].value}</div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{pts[pts.length-1].label}</div>
+          </div>
+        </div>
+        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 120 }}>
+          <defs>
+            <linearGradient id="lgLine" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stopColor="#5A8DFF" /><stop offset="100%" stopColor="#7A5CFF" />
+            </linearGradient>
+            <linearGradient id="lgArea" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7A5CFF" stopOpacity="0.28" />
+              <stop offset="100%" stopColor="#5A8DFF" stopOpacity="0.02" />
+            </linearGradient>
+          </defs>
+          {[0.25, 0.5, 0.75].map(t => (
+            <line key={t} x1={PAD} y1={PAD + t*(H-PAD*2)} x2={W-PAD} y2={PAD + t*(H-PAD*2)}
+              stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
+          ))}
+          <path d={areaD} fill="url(#lgArea)"
+            style={{ opacity: animated ? 1 : 0, transition: "opacity 1s ease-out 0.6s" }} />
+          <path d={pathD} fill="none" stroke="url(#lgLine)" strokeWidth="2.5" strokeLinecap="round"
+            strokeDasharray="10000" strokeDashoffset={animated ? "0" : "10000"}
+            style={{ transition: "stroke-dashoffset 2s cubic-bezier(0.25,0.46,0.45,0.94)" }} />
+          {pts.map((p, i) => (
+            <g key={i} style={{ opacity: animated ? 1 : 0, transition: `opacity 0.4s ${0.8 + i * 0.12}s` }}>
+              <circle cx={p.x} cy={p.y} r="5" fill="#070912" stroke={i === pts.length-1 ? "#7A5CFF" : "#5A8DFF"} strokeWidth="2" />
+              <circle cx={p.x} cy={p.y} r="2" fill={i === pts.length-1 ? "#7A5CFF" : "#5A8DFF"} />
+            </g>
+          ))}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ─── ANIMATED RINGS (TAM/SAM/SOM) ────────────────────────────────────────────
+
+function AnimatedRings({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
+  const animated = useAnimated(100);
+  const numericItems = items.filter(i => i.numeric !== undefined).slice(0, 3);
+  if (numericItems.length < 2) return null;
+  const max = Math.max(...numericItems.map(i => i.numeric!));
+  const RINGS = [
+    { color: "#7A5CFF", glow: "rgba(122,92,255,0.4)", label: "TAM" },
+    { color: "#5A8DFF", glow: "rgba(90,141,255,0.4)", label: "SAM" },
+    { color: "#00E7A7", glow: "rgba(0,231,167,0.5)", label: "SOM" },
+  ];
+  const cx = 110, cy = 110, maxR = 88;
+
+  return (
+    <div style={{
+      background: "linear-gradient(135deg,rgba(122,92,255,0.06) 0%,rgba(10,10,18,0.88) 100%)",
+      border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20, position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ position: "absolute", inset: 0, opacity: 0.02, backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)", backgroundSize: "20px 20px" }} />
+      <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 16, position: "relative" }}>Размер рынка</div>
+      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
+        <svg viewBox="0 0 220 220" width={180} height={180} style={{ flexShrink: 0 }}>
+          <defs>
+            {RINGS.map((ring, i) => (
+              <radialGradient key={i} id={`mrg${i}`} cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor={ring.color} stopOpacity="0.15" />
+                <stop offset="100%" stopColor={ring.color} stopOpacity="0.02" />
+              </radialGradient>
+            ))}
+          </defs>
+          {[...numericItems].reverse().map((item, idx) => {
+            const i = numericItems.length - 1 - idx;
+            const frac = Math.pow(item.numeric! / max, 0.42);
+            const r = Math.max(12, maxR * frac);
+            return (
+              <g key={i}>
+                <circle cx={cx} cy={cy} r={r} fill={`url(#mrg${i})`}
+                  style={{
+                    transformOrigin: `${cx}px ${cy}px`,
+                    transform: animated ? "scale(1)" : "scale(0)",
+                    transition: `transform 0.9s cubic-bezier(0.34,1.56,0.64,1) ${i * 180}ms`,
+                    opacity: animated ? 1 : 0,
+                  }} />
+                <circle cx={cx} cy={cy} r={r} fill="none" stroke={RINGS[i].color}
+                  strokeWidth={i === 0 ? 1.5 : 1}
+                  strokeDasharray={i > 0 ? "5 3" : undefined}
+                  style={{
+                    filter: `drop-shadow(0 0 6px ${RINGS[i].glow})`,
+                    transformOrigin: `${cx}px ${cy}px`,
+                    transform: animated ? "scale(1)" : "scale(0)",
+                    transition: `transform 0.9s cubic-bezier(0.34,1.56,0.64,1) ${i * 180}ms`,
+                    opacity: animated ? 1 : 0,
+                  }} />
+              </g>
+            );
+          })}
+          <circle cx={cx} cy={cy} r="4" fill="#00E7A7"
+            style={{ filter: "drop-shadow(0 0 6px rgba(0,231,167,0.9))", opacity: animated ? 1 : 0, transition: "opacity 0.4s 0.8s" }} />
+        </svg>
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
+          {numericItems.map((item, i) => (
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: RINGS[i].color, boxShadow: `0 0 8px ${RINGS[i].glow}` }} />
+              <div>
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>{item.label}</div>
+                <div style={{ fontSize: 18, fontWeight: 800, color: RINGS[i].color, fontFamily: "monospace", lineHeight: 1 }}>{item.value}</div>
+              </div>
+            </div>
+          ))}
+          {items.find(m => m.label.includes("Рост")) && (
+            <div style={{ paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>Рост рынка (CAGR)</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: "#FFB800", fontFamily: "monospace" }}>{items.find(m => m.label.includes("Рост"))?.value}</div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── ANIMATED RADAR ───────────────────────────────────────────────────────────
+
+function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] }) {
+  const animated = useAnimated(150);
+  const axes = risks.length >= 3 ? risks.slice(0, 6) : [
+    { title: "Конкуренция", level: "high" }, { title: "Рынок", level: "medium" },
+    { title: "Финансы", level: "high" }, { title: "Команда", level: "medium" },
+    { title: "Регуляторика", level: "low" }, { title: "Технологии", level: "medium" },
+  ];
+  const n = axes.length;
+  const cx = 110, cy = 110, r = 78;
+  const lv: Record<string, number> = { high: 0.88, medium: 0.55, low: 0.28 };
+  const lc: Record<string, string> = { high: "#FF5470", medium: "#FFB800", low: "#00E7A7" };
+
+  const pts = axes.map((ax, i) => {
+    const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+    const frac = lv[ax.level] ?? 0.5;
+    return {
+      x: cx + Math.cos(angle) * r * frac,
+      y: cy + Math.sin(angle) * r * frac,
+      lx: cx + Math.cos(angle) * (r + 24),
+      ly: cy + Math.sin(angle) * (r + 24),
+      color: lc[ax.level] ?? "#a78bfa",
+    };
+  });
+  const poly = pts.map(p => `${p.x},${p.y}`).join(" ");
+
+  return (
+    <div style={{
+      background: "linear-gradient(135deg,rgba(255,84,112,0.05) 0%,rgba(10,10,18,0.88) 100%)",
+      border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20, position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ position: "absolute", inset: 0, opacity: 0.02, backgroundImage: "linear-gradient(rgba(255,255,255,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.4) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
+      <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 4 }}>Матрица угроз</div>
+      <div style={{ display: "flex", justifyContent: "center" }}>
+        <svg viewBox="0 0 220 220" width={200} height={200}>
+          <defs>
+            <radialGradient id="radarFill" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#FF5470" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#FFB800" stopOpacity="0.04" />
+            </radialGradient>
+          </defs>
+          {[0.28, 0.55, 0.88].map((frac, gi) => {
+            const ringPts = Array.from({ length: n }, (_, i) => {
+              const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+              return `${cx + Math.cos(angle) * r * frac},${cy + Math.sin(angle) * r * frac}`;
+            }).join(" ");
+            const cs = ["rgba(0,231,167,0.1)", "rgba(255,184,0,0.1)", "rgba(255,84,112,0.1)"];
+            return <polygon key={gi} points={ringPts} fill={cs[gi]} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />;
+          })}
+          {axes.map((_, i) => {
+            const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
+            return <line key={i} x1={cx} y1={cy} x2={cx + Math.cos(angle)*r} y2={cy + Math.sin(angle)*r} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />;
+          })}
+          <polygon points={poly} fill="url(#radarFill)" stroke="rgba(255,84,112,0.6)" strokeWidth="1.5" strokeLinejoin="round"
+            style={{ opacity: animated ? 1 : 0, transition: "opacity 0.8s ease-out 0.3s" }} />
+          {pts.map((p, i) => (
+            <g key={i} style={{ opacity: animated ? 1 : 0, transition: `opacity 0.3s ${0.5 + i * 0.07}s` }}>
+              <circle cx={p.x} cy={p.y} r="5" fill="#07090F" stroke={p.color} strokeWidth="1.5"
+                style={{ filter: `drop-shadow(0 0 4px ${p.color}80)` }} />
+              <circle cx={p.x} cy={p.y} r="2" fill={p.color} />
+              <text x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle"
+                fontSize="7" fill="rgba(255,255,255,0.3)" fontFamily="system-ui">
+                {axes[i].title.slice(0, 10)}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
+    </div>
+  );
+}
+
+// ─── SCORE GAUGE (big) ────────────────────────────────────────────────────────
+
+function ScoreGauge({ score }: { score: number }) {
+  const [val, setVal] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setVal(score), 200); return () => clearTimeout(t); }, [score]);
+  const color = score >= 85 ? "#00E7A7" : score >= 70 ? "#FFB800" : "#FF5470";
+  const cx = 65, cy = 65, r = 50;
+  const circ = 2 * Math.PI * r;
+  const maxDash = circ * 0.75;
+  const drawn = (val / 100) * maxDash;
+
+  return (
+    <svg viewBox="0 0 130 104" width={130} height={104}>
+      <g transform="rotate(-135 65 65)">
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="8"
+          strokeDasharray={`${maxDash} ${circ}`} strokeLinecap="round" />
+        <circle cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="8"
+          strokeDasharray={`${drawn} ${circ}`} strokeLinecap="round"
+          style={{ transition: "stroke-dasharray 1.5s cubic-bezier(0.34,1.1,0.64,1) 0.2s", filter: `drop-shadow(0 0 6px ${color})` }} />
+      </g>
+      <text x={cx} y={cy + 8} textAnchor="middle" fontSize="26" fontWeight="800" fill="white" fontFamily="ui-monospace,monospace">{val}</text>
+      <text x={cx} y={cy + 23} textAnchor="middle" fontSize="7.5" fill="rgba(255,255,255,0.28)" fontFamily="system-ui" letterSpacing="1.5">БИЗНЕС-БАЛЛ</text>
+    </svg>
+  );
+}
+
+// ─── AGENT PANEL ──────────────────────────────────────────────────────────────
+
+function AgentPanel({ letter, name, subtitle, color, score, opinion, delay = 0 }:
+  { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string; delay?: number }) {
+  const animated = useAnimated(delay);
+  return (
+    <div style={{
+      background: `linear-gradient(135deg,${color}08 0%,rgba(10,10,18,0.92) 100%)`,
+      border: `1px solid ${color}22`, borderRadius: 14, padding: 18,
+      opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(14px)",
+      transition: `opacity 0.5s ${delay}ms, transform 0.5s ${delay}ms`,
+      position: "relative", overflow: "hidden",
+    }}>
+      <div style={{ position: "absolute", inset: "0 0 auto", height: 1, background: `linear-gradient(90deg,transparent,${color}50,transparent)` }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+        <div style={{
+          width: 38, height: 38, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 14, fontWeight: 800, flexShrink: 0,
+          background: `${color}18`, border: `1px solid ${color}30`, color,
+        }}>{letter}</div>
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>{name}</div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>AI Executive Board · {subtitle}</div>
+        </div>
+        <AnimatedGauge score={score} color={color} size={52} delay={delay + 200} showLabel={false} />
+      </div>
+      <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.58)", lineHeight: 1.78, margin: 0 }}>{opinion}</p>
+    </div>
+  );
+}
+
+// ─── CIRCULAR SCORE (small) ───────────────────────────────────────────────────
+
+function CircularScore({ score, color }: { score: number; color: string }) {
+  const r = 22; const circ = 2 * Math.PI * r;
+  const dash = (score / 100) * circ;
+  return (
+    <svg viewBox="0 0 60 60" width={40} height={40}>
+      <circle cx="30" cy="30" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="4" />
+      <circle cx="30" cy="30" r={r} fill="none" stroke={color} strokeWidth="4"
+        strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={circ * 0.25}
+        strokeLinecap="round" style={{ filter: `drop-shadow(0 0 4px ${color}80)` }} />
+      <text x="30" y="35" textAnchor="middle" fontSize="11" fontWeight="700" fill="white" fontFamily="ui-monospace,monospace">{score}</text>
+    </svg>
+  );
+}
+
+// ─── AGENT COLORS ─────────────────────────────────────────────────────────────
+
+const AGENT_COLORS: Record<string, string> = {
+  "CEO": "#7A5CFF", "CFO": "#5A8DFF", "CMO": "#FF5470", "COO": "#00E7A7",
+  "Business Analyst": "#FFB800", "CTO": "#a78bfa", "Legal Advisor": "#94a3b8",
+  "Sales Director": "#fb923c", "HR Director": "#f472b6",
+};
+function agentColor(role: string) {
+  return AGENT_COLORS[role] ?? DEMO_AGENTS.find(a => a.id === role?.toLowerCase().slice(0,3))?.color ?? "#7A5CFF";
+}
+
+// ─── TABS ─────────────────────────────────────────────────────────────────────
+
+const TABS = ["Диагностика", "AI Команда", "Финансы", "Рынок", "Риски"];
+
+// ─── DIAGNOSTICS TAB ──────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
+  const animated = useAnimated(100);
+  const agents = aiResults.length > 0
+    ? aiResults.map(r => ({
+        id: r.role, role: r.role, name: r.name || r.role,
+        color: agentColor(r.role), title: r.title || r.role, score: r.score,
+        opinion: [r.summary, r.analysis, r.recommendations].filter(Boolean).join(" ").slice(0, 600),
+      }))
+    : DEMO_AGENTS;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+      {/* KPI row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
+        {[
+          { label: "Бизнес-балл", value: project.score, color: project.score >= 85 ? "#00E7A7" : project.score >= 70 ? "#FFB800" : "#FF5470", suffix: "/100" },
+          { label: "Рыночный потенциал", value: project.scores[0]?.value, color: "#7A5CFF", suffix: "" },
+          { label: "Финансовая устойчивость", value: project.scores[1]?.value, color: "#5A8DFF", suffix: "" },
+          { label: "Реализуемость", value: project.scores[2]?.value, color: "#00E7A7", suffix: "" },
+        ].map((kpi, i) => (
+          <div key={i} style={{
+            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
+            borderRadius: 14, padding: "16px 18px",
+            opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
+            transition: `opacity 0.5s ${i * 80}ms, transform 0.5s ${i * 80}ms`,
+          }}>
+            <div style={{ fontSize: 28, fontWeight: 800, color: kpi.color, fontFamily: "monospace", lineHeight: 1 }}>
+              {kpi.value}{kpi.suffix}
+            </div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>{kpi.label}</div>
+            <div style={{ marginTop: 10 }}>
+              <AnimatedBar value={kpi.value ?? 0} color={kpi.color} delay={i * 80 + 200} height={4} />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Sub-scores chart */}
+      <div style={{
+        background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)",
+        borderRadius: 16, padding: 20,
+        opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
+        transition: "opacity 0.5s 320ms, transform 0.5s 320ms",
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 16 }}>Профиль бизнеса</div>
+        <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
+          <ScoreGauge score={project.score} />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
+            {project.scores.map((s, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 200, flexShrink: 0 }}>{s.label}</span>
+                <div style={{ flex: 1 }}>
+                  <AnimatedBar value={s.value} color={["#7A5CFF", "#5A8DFF", "#00E7A7", "#FFB800"][i]} delay={400 + i * 80} height={6} />
+                </div>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "monospace", width: 28, textAlign: "right", flexShrink: 0 }}>{s.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* 20 agents grid */}
+      <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>
+        Полная диагностика — {agents.length} специалистов
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
+        {agents.map((agent, i) => (
+          <AgentPanel
+            key={agent.id}
+            letter={(agent.name || agent.role)[0]}
+            name={agent.name || agent.role}
+            subtitle={agent.title}
+            color={agent.color}
+            score={agent.score}
+            opinion={agent.opinion || "Анализ проекта завершён. Рекомендации доступны после запуска полного AI-анализа."}
+            delay={500 + i * 60}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── AI TEAM TAB ──────────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress, onReanalyze }:
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  { aiResults: any[]; isUserProject: boolean; isReanalyzing: boolean; reanalyzeProgress: number; onReanalyze: () => void }) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [activeAgent, setActiveAgent] = useState<any>(null);
+  const detailRef = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (aiResults.length > 0 && !activeAgent) setActiveAgent(aiResults[0]); }, [aiResults]);
+
+  if (aiResults.length === 0) {
+    return (
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 20px" }}>
+        <div style={{ textAlign: "center", maxWidth: 360 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(122,92,255,0.1)", border: "1px solid rgba(122,92,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 16px" }}>🤖</div>
+          <div style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>AI-анализ ещё не запущен</div>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 20, lineHeight: 1.6 }}>Запустите анализ, чтобы получить полный разбор от AI-специалистов.</p>
+          {isUserProject && (
+            <button onClick={onReanalyze} disabled={isReanalyzing}
+              style={{ height: 36, padding: "0 24px", fontSize: 12, fontWeight: 600, background: "linear-gradient(135deg,#7A5CFF,#5A8DFF)", color: "white", border: "none", borderRadius: 10, cursor: "pointer" }}>
+              {isReanalyzing ? `Анализируем… ${reanalyzeProgress}/8` : "Запустить AI-анализ"}
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CONF: Record<string, string> = { высокая: "#00E7A7", средняя: "#FFB800", низкая: "#FF5470" };
+  const r = activeAgent;
+  const rColor = agentColor(r?.role ?? "");
+  const avgScore = Math.round(aiResults.reduce((s: number, x: { score: number }) => s + x.score, 0) / aiResults.length);
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 16 }}>
+      {/* Left: agent list */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        {aiResults.map((ag: { role: string; title: string; score: number; confidence: string }) => {
+          const color = agentColor(ag.role);
+          const isActive = activeAgent?.role === ag.role;
+          return (
+            <button key={ag.role} onClick={() => { setActiveAgent(ag); setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50); }}
+              style={{
+                width: "100%", textAlign: "left", padding: "10px 12px", borderRadius: 12,
+                background: isActive ? "rgba(122,92,255,0.12)" : "rgba(255,255,255,0.025)",
+                border: `1px solid ${isActive ? "rgba(122,92,255,0.35)" : "rgba(255,255,255,0.05)"}`,
+                cursor: "pointer", transition: "all 0.2s",
+              }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0, background: `${color}18`, border: `1px solid ${color}28`, color }}>{ag.role[0]}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>{ag.role}</div>
+                  <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.28)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ag.title}</div>
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 700, color, flexShrink: 0, fontFamily: "monospace" }}>{ag.score}</div>
+              </div>
+              {isActive && (
+                <div style={{ marginTop: 8 }}>
+                  <AnimatedBar value={ag.score} color={color} height={3} />
+                </div>
+              )}
+            </button>
+          );
+        })}
+        {/* avg */}
+        <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 6 }}>Средний балл</div>
+          <div style={{ fontSize: 22, fontWeight: 800, color: "#7A5CFF", fontFamily: "monospace", marginBottom: 6 }}>{avgScore}</div>
+          <AnimatedBar value={avgScore} color="#7A5CFF" delay={200} />
+        </div>
+      </div>
+
+      {/* Right: agent detail */}
+      <div ref={detailRef}>
+        {r && (
+          <div style={{
+            background: `linear-gradient(135deg,${rColor}08 0%,rgba(10,10,18,0.94) 100%)`,
+            border: `1px solid ${rColor}20`, borderRadius: 16, padding: 22, position: "relative", overflow: "hidden",
+          }}>
+            <div style={{ position: "absolute", inset: "0 0 auto", height: 1, background: `linear-gradient(90deg,transparent,${rColor}55,transparent)` }} />
+
+            {/* Header */}
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, background: `${rColor}20`, border: `1px solid ${rColor}30`, color: rColor }}>{r.role[0]}</div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: "white" }}>{r.role}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{r.title}</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontSize: 28, fontWeight: 800, color: rColor, fontFamily: "monospace" }}>{r.score}</div>
+                <div style={{ fontSize: 10, color: CONF[r.confidence] ?? "rgba(255,255,255,0.4)", fontWeight: 600 }}>{r.confidence} уверенность</div>
+              </div>
+            </div>
+
+            {/* Animated skill bars */}
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 12 }}>Оценка специалиста</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[
+                  { label: "Уровень экспертизы", v: r.score },
+                  { label: "Уверенность в оценке", v: r.confidence === "высокая" ? 88 : r.confidence === "средняя" ? 65 : 45 },
+                  { label: "Глубина анализа", v: Math.min(99, r.score + 5) },
+                  { label: "Практичность рекомендаций", v: Math.max(55, r.score - 4) },
+                ].map((bar, bi) => (
+                  <div key={bi} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", width: 200, flexShrink: 0 }}>{bar.label}</span>
+                    <div style={{ flex: 1 }}>
+                      <AnimatedBar value={bar.v} color={rColor} delay={bi * 80} />
+                    </div>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "monospace", width: 28, textAlign: "right", flexShrink: 0 }}>{bar.v}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Sections */}
+            {[
+              { label: "📌 Краткий вывод", text: r.summary },
+              { label: "📊 Подробный анализ", text: r.analysis },
+              { label: "📋 Факты и данные", text: r.facts },
+              { label: "⚠️ Риски", text: r.risks },
+              { label: "🚀 Рекомендации", text: r.recommendations },
+              { label: "📈 Прогноз", text: r.forecast },
+            ].filter(s => s.text).map((sec, si) => (
+              <div key={si} style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.04)", marginBottom: 10 }}>
+                <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 8 }}>{sec.label}</div>
+                <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.78, margin: 0, whiteSpace: "pre-line" }}>{sec.text}</p>
+              </div>
+            ))}
+
+            {/* Metrics */}
+            {r.metrics && r.metrics.success_probability !== "—" && (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: 12 }}>
+                {[
+                  { label: "Вероятность успеха", value: r.metrics.success_probability },
+                  { label: "Уровень риска", value: r.metrics.risk_level },
+                  { label: "Конкуренция", value: r.metrics.competition },
+                  { label: "Привлекательность", value: r.metrics.investment_appeal },
+                  { label: "Масштабируемость", value: r.metrics.scalability },
+                ].map((m, mi) => (
+                  <div key={mi} style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", marginBottom: 4 }}>{m.label}</div>
+                    <div style={{ fontSize: 13, fontWeight: 700, color: rColor }}>{m.value}</div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── FINANCE TAB ──────────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
+  const animated = useAnimated(100);
+  const cfo = aiResults.find((r: { role: string }) => r.role === "CFO" || r.role?.toLowerCase().includes("финанс"));
+  const coo = aiResults.find((r: { role: string }) => r.role === "COO" || r.role?.toLowerCase().includes("операц"));
+  const ceo = aiResults.find((r: { role: string }) => r.role === "CEO" || r.role?.toLowerCase().includes("ceo"));
+
+  const FIN_AGENTS = [
+    cfo ? { ...cfo, color: "#5A8DFF", letter: "J", subtitle: "Финансовый директор — прогноз", opinion: [cfo.analysis, cfo.recommendations, cfo.forecast].filter(Boolean).join(" ").slice(0, 500) } : null,
+    coo ? { ...coo, color: "#00E7A7", letter: "E", subtitle: "Операционный директор — бюджет", opinion: [coo.analysis, coo.recommendations].filter(Boolean).join(" ").slice(0, 450) } : null,
+    ceo ? { ...ceo, color: "#7A5CFF", letter: "V", subtitle: "Генеральный директор — стратегия", opinion: [ceo.summary, ceo.forecast].filter(Boolean).join(" ").slice(0, 450) } : null,
+  ].filter(Boolean) as { role: string; name: string; color: string; letter: string; subtitle: string; score: number; opinion: string }[];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <AnimatedAreaChart financials={project.financials} />
+
+      {/* Metric tiles */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
+        {project.financials.map((f, i) => {
+          const colors = ["#5A8DFF", "#7A5CFF", "#FFB800", "#a78bfa", "#00E7A7", "#FF5470", "#FFB800"];
+          const color = colors[i % colors.length];
+          return (
+            <div key={i} style={{
+              background: "linear-gradient(135deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.02) 100%)",
+              border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 18px",
+              position: "relative", overflow: "hidden",
+              opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(10px)",
+              transition: `opacity 0.45s ${i * 70}ms, transform 0.45s ${i * 70}ms`,
+            }}>
+              <div style={{ position: "absolute", inset: "0 0 auto", height: 1, background: `linear-gradient(90deg,transparent,${color}45,transparent)` }} />
+              <div style={{ fontSize: 22, fontWeight: 800, color, fontFamily: "monospace", lineHeight: 1, marginBottom: 6 }}>{f.value}</div>
+              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.32)" }}>{f.label}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Agent opinions */}
+      {FIN_AGENTS.length > 0 ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {FIN_AGENTS.map((ag, i) => (
+            <AgentPanel key={i} letter={ag.letter} name={ag.role} subtitle={ag.subtitle}
+              color={ag.color} score={ag.score} opinion={ag.opinion || "Финансовый анализ недоступен. Запустите AI-анализ."} delay={i * 120} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          {[
+            { letter: "J", name: "CFO", subtitle: "Финансовый директор — прогноз выручки", color: "#5A8DFF", score: 79,
+              opinion: "Финансовая структура проекта в целом корректна и требует только доработки в части прогнозирования выручки. Burn rate следует оптимизировать до уровня максимум 15% месячного MRR с первого дня. CAC нужно снизить на 20% для достижения прибыльности в плановые сроки. Создайте runway минимум на 18 месяцев до следующего раунда привлечения инвестиций. P&L должен выйти в плюс не позднее месяца 20 от даты запуска. Revenue-based financing стоит рассмотреть как альтернативу equity dilution на раннем этапе. Unit economics жизнеспособны при достижении масштаба 1000+ активных клиентов. Финансовые KPI необходимо мониторить еженедельно для оперативного реагирования на отклонения." },
+            { letter: "E", name: "COO", subtitle: "Операционный директор — операционные расходы", color: "#00E7A7", score: 76,
+              opinion: "С операционной точки зрения проект имеет реалистичную структуру затрат для выбранной стадии. Операционные расходы можно оптимизировать на 20–25% при внедрении автоматизации с первых месяцев. COGS следует контролировать еженедельно и не допускать роста выше 35% от выручки. Операционный рычаг начнёт проявляться после достижения 500 платящих клиентов в системе. Найм должен быть строго привязан к достижению конкретных revenue milestones. Fixed costs необходимо удерживать на минимуме в первые 18 месяцев операционной деятельности. Операционная маржа должна достигнуть 15% к концу второго года работы компании. Ежеквартальные OKR по операционной эффективности должны быть жёстко привязаны к P&L." },
+            { letter: "V", name: "CEO", subtitle: "Генеральный директор — стратегия роста", color: "#7A5CFF", score: 82,
+              opinion: "Стратегически проект движется в правильном направлении, однако требует чёткой расстановки приоритетов. Horizon 1 должен обеспечить операционную прибыль до начала активного масштабирования. Следующий раунд финансирования следует поднимать при достижении $100K MRR как минимум. Инвестиционная привлекательность проекта высокая при демонстрации устойчивого роста более 15% в месяц. Фокус на единственном ICP в первые 12 месяцев критически важен для достижения PMF. Партнёрства могут сократить CAC на 30–40% по сравнению с прямыми paid каналами. Capital efficiency должна превышать 1.5x MRR/burn на протяжении всего периода до прибыльности. Стратегический выход возможен через 4–6 лет при правильном исполнении и достижении $5M+ ARR." },
+          ].map((ag, i) => (
+            <AgentPanel key={i} letter={ag.letter} name={ag.name} subtitle={ag.subtitle}
+              color={ag.color} score={ag.score} opinion={ag.opinion} delay={i * 120} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── MARKET TAB ───────────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
+  const animated = useAnimated(100);
+  const ba = aiResults.find((r: { role: string }) => r.role === "Business Analyst" || r.role?.toLowerCase().includes("аналитик"));
+  const cmo = aiResults.find((r: { role: string }) => r.role === "CMO" || r.role?.toLowerCase().includes("маркетинг"));
+  const ceo = aiResults.find((r: { role: string }) => r.role === "CEO" || r.role?.toLowerCase().includes("ceo"));
+
+  const MKT_AGENTS = [
+    ba ? { letter: "M", name: "Business Analyst", subtitle: "Бизнес-аналитик — рыночный анализ", color: "#FFB800", score: ba.score, opinion: [ba.analysis, ba.facts].filter(Boolean).join(" ").slice(0, 500) } : null,
+    cmo ? { letter: "S", name: "CMO", subtitle: "Директор по маркетингу — стратегия", color: "#FF5470", score: cmo.score, opinion: [cmo.analysis, cmo.recommendations].filter(Boolean).join(" ").slice(0, 500) } : null,
+    ceo ? { letter: "V", name: "CEO", subtitle: "Генеральный директор — рыночная позиция", color: "#7A5CFF", score: ceo.score, opinion: [ceo.summary, ceo.analysis].filter(Boolean).join(" ").slice(0, 450) } : null,
+  ].filter(Boolean) as { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string }[];
+
+  const fallbackAgents = [
+    { letter: "M", name: "Бизнес-аналитик", subtitle: "Рыночный анализ и конкурентная среда", color: "#FFB800", score: 80,
+      opinion: "Рыночный анализ подтверждает наличие реального спроса в целевом сегменте аудитории. Конкуренты не полностью закрывают ключевой pain point, который адресует данный проект. Тренды рынка положительные: CAGR 15–25% прогнозируется на следующие 5 лет. Барьеры входа умеренные — window of opportunity открыт для быстрого движения на рынок. Поведение потребителей меняется в пользу данного решения по всем ключевым метрикам. Конкурентная карта показывает незанятую нишу в средней ценовой категории рынка. Сезонность требует отдельного учёта при планировании cashflow и маркетинговых активностей. Географическая экспансия возможна после достижения PMF в локальном рынке присутствия." },
+    { letter: "S", name: "CMO", subtitle: "Маркетинговая стратегия и GTM", color: "#FF5470", score: 84,
+      opinion: "Рыночное позиционирование требует более чёткой дифференциации от ключевых конкурентов в сегменте. Контент-маркетинг является оптимальным первичным acquisition channel для данного типа продукта. Brand voice должен быть задокументирован строго до первого публичного контакта с аудиторией. CAC через органику может быть в 3–5 раз ниже paid при правильной долгосрочной SEO стратегии. Email retention программа способна снизить churn на 15–20% при качественной реализации. Партнёрство с лидерами мнений в нише обеспечит быстрый initial traction в первые 90 дней. A/B тестирование landing page и онбординга обязательно с первого дня привлечения трафика. Community-building вокруг продукта создаёт органический acquisition loop с нулевым CAC." },
+    { letter: "V", name: "CEO", subtitle: "Стратегическая позиция на рынке", color: "#7A5CFF", score: 82,
+      opinion: "Рыночная позиция проекта выглядит сильно при условии правильного позиционирования в нише. Своевременный вход на рынок создаёт первопроходческое преимущество перед потенциальными конкурентами. Партнёрства с complementary продуктами ускорят market penetration без значительных затрат. Ecosystem стратегия через интеграции создаёт высокие switching costs для клиентов компании. Географическое масштабирование следует начинать только после достижения unit economics в первой локации. Network effects должны быть намеренно встроены в product roadmap с первой версии продукта. Доминирование в одной нише лучше слабого присутствия в нескольких направлениях одновременно. Стратегический партнёр с дистрибуцией может accelerate market share лучше, чем органический рост." },
+  ];
+
+  const agents = MKT_AGENTS.length >= 2 ? MKT_AGENTS : fallbackAgents;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <AnimatedRings items={project.market} />
+
+      {/* Market growth bar */}
+      <div style={{
+        background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 20px",
+        opacity: animated ? 1 : 0, transition: "opacity 0.5s 300ms",
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 14 }}>Рыночные показатели</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
+          {project.market.map((m, i) => {
+            const colors = ["#7A5CFF", "#5A8DFF", "#00E7A7", "#FFB800"];
+            const color = colors[i % 4];
+            return (
+              <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.38)" }}>{m.label}</span>
+                  <span style={{ fontSize: 13, fontWeight: 700, color, fontFamily: "monospace" }}>{m.value}</span>
+                </div>
+                {m.numeric && <AnimatedBar value={Math.min(100, (m.numeric / (project.market[0]?.numeric || 1)) * 100)} color={color} delay={200 + i * 80} height={4} />}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Agent opinions */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {agents.map((ag, i) => (
+          <AgentPanel key={i} letter={ag.letter} name={ag.name} subtitle={ag.subtitle}
+            color={ag.color} score={ag.score} opinion={ag.opinion} delay={i * 120} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── RISKS TAB ────────────────────────────────────────────────────────────────
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
+  const animated = useAnimated(100);
+  const ceo = aiResults.find((r: { role: string }) => r.role === "CEO" || r.role?.toLowerCase().includes("ceo"));
+  const legal = aiResults.find((r: { role: string }) => r.role === "Legal Advisor" || r.role?.toLowerCase().includes("юрид") || r.role?.toLowerCase().includes("legal"));
+  const coo = aiResults.find((r: { role: string }) => r.role === "COO" || r.role?.toLowerCase().includes("операц"));
+
+  const RISK_CFG: Record<string, { color: string; bg: string; border: string; label: string }> = {
+    high: { color: "#FF5470", bg: "rgba(255,84,112,0.06)", border: "rgba(255,84,112,0.2)", label: "ВЫСОКИЙ" },
+    medium: { color: "#FFB800", bg: "rgba(255,184,0,0.06)", border: "rgba(255,184,0,0.2)", label: "СРЕДНИЙ" },
+    low: { color: "#00E7A7", bg: "rgba(0,231,167,0.05)", border: "rgba(0,231,167,0.18)", label: "НИЗКИЙ" },
+  };
+
+  const riskAgents = [
+    ceo ? { letter: "V", name: "CEO", subtitle: "Стратегический риск-аудит", color: "#7A5CFF", score: ceo.score, opinion: (ceo.risks || ceo.analysis || "").slice(0, 500) } : null,
+    legal ? { letter: "A", name: "Legal Advisor", subtitle: "Юридические и регуляторные риски", color: "#94a3b8", score: legal.score, opinion: (legal.risks || legal.analysis || "").slice(0, 500) } : null,
+    coo ? { letter: "E", name: "COO", subtitle: "Операционные риски и митигация", color: "#00E7A7", score: coo.score, opinion: (coo.risks || coo.analysis || "").slice(0, 500) } : null,
+  ].filter(Boolean) as { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string }[];
+
+  const fallbackRiskAgents = [
+    { letter: "V", name: "CEO", subtitle: "Стратегический риск-аудит", color: "#7A5CFF", score: 82,
+      opinion: "Стратегические риски проекта находятся на управляемом уровне при правильном исполнении плана. Главная угроза — потеря фокуса и распыление ресурсов на несколько направлений одновременно. Конкурентный риск снижается за счёт первопроходческого преимущества и скорости выхода на рынок. Рыночный риск умеренный: спрос подтверждён исследованиями, но масштаб неизвестен до тестирования. Команда является критическим риск-фактором — уход ключевых людей может затормозить развитие. Fundraising риск реален: следующий раунд должен быть поднят до исчерпания runway. Регуляторный риск в данной отрасли требует постоянного мониторинга изменений законодательства. Сценарий B: при не достижении PMF к месяцу 12 необходим управляемый pivot стратегии." },
+    { letter: "A", name: "Legal Advisor", subtitle: "Юридические и регуляторные риски", color: "#94a3b8", score: 68,
+      opinion: "Юридическая структура требует проверки на соответствие всем регуляторным требованиям рынка. Обработка персональных данных должна строго соответствовать GDPR и локальному законодательству страны. Риски нарушения IP третьих сторон необходимо проверить до запуска продукта в production. Трудовые договоры и NDA должны быть подписаны со всеми сотрудниками и подрядчиками. Регуляторный ландшафт в отрасли может измениться — мониторинг необходим ежеквартально. Пользовательские соглашения должны быть составлены профессиональным юристом, а не из шаблонов. Налоговая структура компании требует оптимизации до начала активных операций и найма. Создайте юридический резерв: 8-10% операционного бюджета на непредвиденные расходы." },
+    { letter: "I", name: "Риск-менеджер", subtitle: "Операционные риски и митигация", color: "#ef4444", score: 65,
+      opinion: "Профиль рисков проекта классифицирован как умеренно-высокий для стадии pre-launch продукта. Финансовый риск является приоритетным: 60% стартапов умирают именно от нехватки операционных средств. Операционный риск связан с высокой зависимостью от ключевых сотрудников и подрядчиков. Технологический риск умеренный при правильном выборе стека и наличии опытной команды разработки. Резервный фонд в размере минимум 3 месяцев burn rate является обязательным условием устойчивости. Диверсификация каналов привлечения клиентов снижает зависимость от одного источника трафика. Страхование ключевых рисков (D&O, cyber liability) следует рассмотреть до масштабирования. Регулярный risk review ежеквартально позволит оперативно реагировать на изменение риск-профиля." },
+  ];
+
+  const agents = riskAgents.length >= 2 ? riskAgents : fallbackRiskAgents;
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      {/* Animated radar */}
+      <AnimatedRadar risks={project.risks} />
+
+      {/* Risk severity bars */}
+      <div style={{
+        background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 20px",
+        opacity: animated ? 1 : 0, transition: "opacity 0.5s 200ms",
+      }}>
+        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 14 }}>Уровни угроз</div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {project.risks.map((risk, i) => {
+            const cfg = RISK_CFG[risk.level] ?? RISK_CFG.medium;
+            const val = risk.level === "high" ? 88 : risk.level === "medium" ? 55 : 28;
+            return (
+              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 52, flexShrink: 0, display: "flex", alignItems: "center" }}>
+                  <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.12em", color: cfg.color }}>{cfg.label}</span>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.82)", marginBottom: 4 }}>{risk.title}</div>
+                  <AnimatedBar value={val} color={cfg.color} delay={200 + i * 80} height={4} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Agent opinions */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        {agents.map((ag, i) => (
+          <AgentPanel key={i} letter={ag.letter} name={ag.name} subtitle={ag.subtitle}
+            color={ag.color} score={ag.score}
+            opinion={ag.opinion || "Анализ рисков недоступен. Запустите AI-анализ для получения полного риск-аудита."}
+            delay={i * 120} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── MAIN PAGE ────────────────────────────────────────────────────────────────
+
 export default function ProjectPage() {
   const params = useParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : "demo";
-  const [activeTab, setActiveTab] = useState("Резюме");
+  const [activeTab, setActiveTab] = useState("Диагностика");
   const [project, setProject] = useState<ProjectData>(PROJECTS_DATA[id] ?? PROJECTS_DATA["demo"]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [aiResults, setAiResults] = useState<any[]>([]);
-  const [activeAgent, setActiveAgent] = useState<string>("");
   const [isReanalyzing, setIsReanalyzing] = useState(false);
   const [reanalyzeProgress, setReanalyzeProgress] = useState(0);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [rawProject, setRawProject] = useState<Record<string, any> | null>(null);
   const abortRef = useRef<AbortController | null>(null);
-  const agentDetailRef = useRef<HTMLDivElement | null>(null);
-
   const isUserProject = !PROJECTS_DATA[id];
 
   useEffect(() => {
     if (!isUserProject) return;
-
-    // Try Supabase API first
-    fetch(`/api/projects/${id}`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.project) {
-          const p = data.project;
-          const mapped = {
-            id: p.id, name: p.name, description: p.description,
-            industry: p.industry, stage: p.stage, goals: p.goals,
-            targetRevenue: p.target_revenue, timeframe: p.timeframe,
-            score: p.overall_score, aiResults: Array.isArray(p.ai_results) ? p.ai_results : [],
-          };
-          setRawProject(mapped);
-          setProject(buildProjectFromUser(mapped));
-          if (mapped.aiResults?.length > 0) { setAiResults(mapped.aiResults); setActiveAgent(mapped.aiResults[0].role); }
-          return;
-        }
-        throw new Error("not found");
-      })
-      .catch(() => {
-        // Fallback to localStorage
-        try {
-          const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const found = stored.find((p: any) => p.id === id);
-          if (found) {
-            setRawProject(found);
-            setProject(buildProjectFromUser(found));
-            if (found.aiResults && found.aiResults.length > 0) { setAiResults(found.aiResults); setActiveAgent(found.aiResults[0].role); }
-          }
-        } catch {}
-      });
+    fetch(`/api/projects/${id}`).then(r => r.json()).then(data => {
+      if (data.project) {
+        const p = data.project;
+        const mapped = { id: p.id, name: p.name, description: p.description, industry: p.industry, stage: p.stage, goals: p.goals, targetRevenue: p.target_revenue, timeframe: p.timeframe, score: p.overall_score, aiResults: Array.isArray(p.ai_results) ? p.ai_results : [] };
+        setRawProject(mapped);
+        setProject(buildProjectFromUser(mapped));
+        if (mapped.aiResults?.length > 0) setAiResults(mapped.aiResults);
+        return;
+      }
+      throw new Error("not found");
+    }).catch(() => {
+      try {
+        const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const found = stored.find((p: any) => p.id === id);
+        if (found) { setRawProject(found); setProject(buildProjectFromUser(found)); if (found.aiResults?.length > 0) setAiResults(found.aiResults); }
+      } catch { /* noop */ }
+    });
   }, [id, isUserProject]);
 
   async function handleReanalyze() {
     if (!rawProject) return;
-    setIsReanalyzing(true);
-    setReanalyzeProgress(0);
+    setIsReanalyzing(true); setReanalyzeProgress(0); setActiveTab("AI Команда");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const collected: any[] = [];
-
     abortRef.current = new AbortController();
     try {
-      const brief = {
-        name: rawProject.name || "",
-        description: rawProject.description || "",
-        industry: rawProject.industry || "",
-        stage: rawProject.stage || "",
-        goals: rawProject.goals || [],
-        targetRevenue: rawProject.targetRevenue || "",
-        timeframe: rawProject.timeframe || "12",
-      };
-
       const res = await fetch("/api/analyze", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(brief),
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: rawProject.name, description: rawProject.description, industry: rawProject.industry, stage: rawProject.stage, goals: rawProject.goals, targetRevenue: rawProject.targetRevenue, timeframe: rawProject.timeframe }),
         signal: abortRef.current.signal,
       });
-
-      const reader = res.body!.getReader();
-      const dec = new TextDecoder();
-      let buf = "";
-
+      const reader = res.body!.getReader(); const dec = new TextDecoder(); let buf = "";
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
         buf += dec.decode(value, { stream: true });
-        const lines = buf.split("\n");
-        buf = lines.pop() ?? "";
+        const lines = buf.split("\n"); buf = lines.pop() ?? "";
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           try {
             const evt = JSON.parse(line.slice(6));
-            if (evt.type === "agent_done") {
-              collected.push(evt.result);
-              setReanalyzeProgress(collected.length);
-              setAiResults([...collected]);
-              if (collected.length === 1) setActiveAgent(collected[0].role);
-            }
+            if (evt.type === "agent_done") { collected.push(evt.result); setReanalyzeProgress(collected.length); setAiResults([...collected]); }
             if (evt.type === "complete") {
-              // Update score in project
               setProject(prev => ({ ...prev, score: evt.overallScore }));
-              // Save to localStorage
               try {
                 const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                const updated = stored.map((p: any) =>
-                  p.id === id ? { ...p, aiResults: evt.results, score: evt.overallScore } : p
-                );
-                localStorage.setItem("apex-user-projects", JSON.stringify(updated));
-              } catch {}
+                localStorage.setItem("apex-user-projects", JSON.stringify(stored.map((p: any) => p.id === id ? { ...p, aiResults: evt.results, score: evt.overallScore } : p)));
+              } catch { /* noop */ }
             }
-          } catch {}
+          } catch { /* noop */ }
         }
       }
-    } catch (e) {
-      if ((e as Error).name !== "AbortError") console.error(e);
-    } finally {
-      setIsReanalyzing(false);
-    }
+    } catch (e) { if ((e as Error).name !== "AbortError") console.error(e); }
+    finally { setIsReanalyzing(false); }
   }
 
+  const headerBg = "linear-gradient(135deg,rgba(122,92,255,0.07) 0%,rgba(10,10,18,0.95) 100%)";
+  const scoreColor = project.score >= 85 ? "#00E7A7" : project.score >= 70 ? "#FFB800" : "#FF5470";
+
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Кнопка назад */}
-      <button
-        onClick={() => router.push("/dashboard/projects")}
-        className="flex items-center gap-1.5 text-xs text-white/30 hover:text-white/60 transition-colors mb-5"
-      >
-        <svg className="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M19 12H5M12 5l-7 7 7 7"/>
-        </svg>
+    <div style={{ padding: "24px 24px 48px", maxWidth: 1200, margin: "0 auto" }}>
+      {/* Back */}
+      <button onClick={() => router.push("/dashboard/projects")}
+        style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer", marginBottom: 20, padding: 0 }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Назад к проектам
       </button>
 
-      {/* Шапка */}
-      <div className="flex items-start justify-between mb-5">
+      {/* Header */}
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
         <div>
-          <div className="flex items-center gap-3 mb-1.5">
-            <h1 className="text-xl font-bold text-white">{project.name}</h1>
-            <Badge variant={project.status === "Завершён" ? "success" : "warning"} dot>{project.status}</Badge>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
+            <h1 style={{ fontSize: 20, fontWeight: 800, color: "white", margin: 0 }}>{project.name}</h1>
+            <span style={{
+              fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: "0.1em",
+              background: project.status === "Завершён" ? "rgba(0,231,167,0.12)" : "rgba(255,184,0,0.12)",
+              color: project.status === "Завершён" ? "#00E7A7" : "#FFB800",
+              border: `1px solid ${project.status === "Завершён" ? "rgba(0,231,167,0.25)" : "rgba(255,184,0,0.25)"}`,
+            }}>● {project.status}</span>
           </div>
-          <p className="text-sm text-white/35">{project.subtitle}</p>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>{project.subtitle}</p>
         </div>
-        <div className="flex items-center gap-2">
+        <div style={{ display: "flex", gap: 8 }}>
           {isUserProject && (
-            <button
-              onClick={() => { setActiveTab("AI Команда"); handleReanalyze(); }}
-              disabled={isReanalyzing}
-              className="h-9 px-4 text-xs font-medium border border-violet-500/30 text-violet-400 hover:bg-violet-600/10 rounded-xl transition-all disabled:opacity-50 flex items-center gap-2"
-            >
-              {isReanalyzing ? (
-                <>
-                  <svg className="size-3 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity="0.3"/>
-                    <path d="M21 12a9 9 0 00-9-9"/>
-                  </svg>
-                  {reanalyzeProgress}/8 агентов
-                </>
-              ) : "↻ Обновить анализ"}
+            <button onClick={() => handleReanalyze()} disabled={isReanalyzing}
+              style={{ height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600, border: "1px solid rgba(122,92,255,0.3)", color: "#7A5CFF", background: "rgba(122,92,255,0.07)", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+              {isReanalyzing ? `↻ ${reanalyzeProgress}/8 агентов` : "↻ Обновить анализ"}
             </button>
           )}
-          <button className="h-9 px-4 text-xs font-medium border border-white/[0.08] text-white/60 hover:text-white rounded-xl transition-all">
-            Экспорт PDF
-          </button>
-          <button className="h-9 px-4 text-xs font-medium bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all">
-            Уточнить стратегию
-          </button>
+          <button style={{ height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.03)", borderRadius: 10, cursor: "pointer" }}>Экспорт PDF</button>
+          <button style={{ height: 36, padding: "0 18px", fontSize: 11, fontWeight: 600, background: "linear-gradient(135deg,#7A5CFF,#5A8DFF)", color: "white", border: "none", borderRadius: 10, cursor: "pointer" }}>Уточнить стратегию</button>
         </div>
       </div>
 
-      {/* Бизнес-балл */}
-      <div className="p-5 rounded-2xl bg-white/[0.03] border border-white/[0.07] flex items-center gap-8 flex-wrap mb-6">
-        <div className="text-center">
-          <div className={`text-4xl font-bold mb-1 ${project.score >= 85 ? "text-emerald-400" : project.score >= 75 ? "text-amber-400" : "text-red-400"}`}>
-            {project.score}
-          </div>
-          <div className="text-xs text-white/35">Бизнес-балл</div>
+      {/* Score panel */}
+      <div style={{
+        background: headerBg, border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, padding: "20px 24px",
+        display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap", marginBottom: 24, position: "relative", overflow: "hidden",
+      }}>
+        <div style={{ position: "absolute", inset: "0 0 auto", height: 1, background: "linear-gradient(90deg,transparent,rgba(122,92,255,0.4),transparent)" }} />
+        <div style={{ textAlign: "center" }}>
+          <div style={{ fontSize: 44, fontWeight: 800, color: scoreColor, fontFamily: "monospace", lineHeight: 1 }}>{project.score}</div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>Бизнес-балл</div>
         </div>
-        <div className="flex-1 min-w-0 space-y-2.5">
-          {project.scores.map((item) => (
-            <div key={item.label} className="flex items-center gap-3">
-              <span className="text-xs text-white/40 w-52 flex-shrink-0">{item.label}</span>
-              <Progress value={item.value} size="sm" className="flex-1" />
-              <span className="text-xs text-white/50 w-8 text-right">{item.value}</span>
+        <div style={{ flex: 1, minWidth: 280, display: "flex", flexDirection: "column", gap: 12 }}>
+          {project.scores.map((item, i) => (
+            <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 210, flexShrink: 0 }}>{item.label}</span>
+              <div style={{ flex: 1 }}>
+                <AnimatedBar value={item.value} color={["#7A5CFF","#5A8DFF","#00E7A7","#FFB800"][i]} delay={i * 80} />
+              </div>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "monospace", width: 28, textAlign: "right", flexShrink: 0 }}>{item.value}</span>
             </div>
           ))}
         </div>
-        <PremiumScoreGauge score={project.score} />
+        <ScoreGauge score={project.score} />
       </div>
 
-      {/* Вкладки */}
-      <div className="flex gap-1 p-1 bg-white/[0.04] rounded-xl border border-white/[0.06] mb-6 w-fit">
-        {TABS.map((t) => (
-          <button
-            key={t}
-            onClick={() => setActiveTab(t)}
-            className={`px-4 py-1.5 text-xs rounded-lg transition-all ${activeTab === t ? "bg-violet-600 text-white" : "text-white/40 hover:text-white/70"}`}
-          >
-            {t}
-          </button>
+      {/* Tabs */}
+      <div style={{ display: "flex", gap: 4, padding: 4, background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)", width: "fit-content", marginBottom: 24 }}>
+        {TABS.map(t => (
+          <button key={t} onClick={() => setActiveTab(t)}
+            style={{
+              padding: "7px 18px", fontSize: 11.5, fontWeight: 600, borderRadius: 10, border: "none", cursor: "pointer",
+              background: activeTab === t ? "linear-gradient(135deg,#7A5CFF,#5A8DFF)" : "transparent",
+              color: activeTab === t ? "white" : "rgba(255,255,255,0.4)",
+              transition: "all 0.2s",
+            }}>{t}</button>
         ))}
       </div>
 
-      {/* ── Резюме ── */}
-      {activeTab === "Резюме" && (() => {
-        // Pick 4 key metrics for cards
-        const KEY_METRICS = ["LTV пользователя", "CAC", "Точка безубыточности", "LTV/CAC"];
-        const metricCards = KEY_METRICS.map(k => project.financials.find(f => f.label === k)).filter(Boolean) as typeof project.financials;
-        const CARD_CFG: Record<string, { color: string; glow: string; icon: React.ReactNode }> = {
-          "LTV пользователя": { color: "#a78bfa", glow: "rgba(167,139,250,0.35)", icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><polyline points="1 10 4 6 7 8 10 4 15 7"/><line x1="1" y1="15" x2="15" y2="15"/></svg> },
-          "CAC":              { color: "#34d399", glow: "rgba(52,211,153,0.35)",  icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="6" r="3"/><rect x="3" y="11" width="10" height="3" rx="1"/><line x1="8" y1="9" x2="8" y2="11"/></svg> },
-          "Точка безубыточности": { color: "#60a5fa", glow: "rgba(96,165,250,0.35)", icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg> },
-          "LTV/CAC":          { color: "#f59e0b", glow: "rgba(245,158,11,0.35)",  icon: <svg viewBox="0 0 16 16" className="size-3.5" fill="none" stroke="currentColor" strokeWidth="1.5"><line x1="2" y1="14" x2="14" y2="2"/><circle cx="5" cy="5" r="2"/><circle cx="11" cy="11" r="2"/></svg> },
-        };
-        const ceo = aiResults.find(r => r.role === "CEO" || r.role?.toLowerCase().includes("ceo") || r.role?.includes("директор") && r.role?.includes("исполн") || r.role?.includes("Генеральный"));
-        const cmo = aiResults.find(r => r.role === "CMO" || r.role?.toLowerCase().includes("cmo") || r.role?.toLowerCase().includes("маркетинг"));
-        return (
-          <div className="space-y-4">
-            {/* Top row: market rings (left) + score panel (right) */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <ResumeConcentricChart items={project.market} />
-
-              {/* Score + mini progress bars */}
-              <div
-                className="relative rounded-2xl overflow-hidden p-5 flex flex-col justify-between"
-                style={{
-                  background: "linear-gradient(135deg, rgba(124,58,237,0.07) 0%, rgba(15,15,20,0.88) 100%)",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                }}
-              >
-                <div className="absolute inset-0 opacity-[0.015]" style={{ backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.5) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
-                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(124,58,237,0.45),transparent)" }} />
-                <div className="text-[10px] font-semibold text-white/35 uppercase tracking-[0.2em] mb-3 relative">Бизнес-оценка</div>
-                <div className="flex items-center gap-5 mb-5">
-                  <PremiumScoreGauge score={project.score} />
-                  <div className="flex-1 space-y-2.5">
-                    {project.scores.map((s) => (
-                      <div key={s.label} className="flex items-center gap-2">
-                        <span className="text-[10px] text-white/35 flex-1 min-w-0 truncate">{s.label}</span>
-                        <div className="w-20 h-1 bg-white/[0.06] rounded-full overflow-hidden">
-                          <div className="h-full rounded-full" style={{ width: `${s.value}%`, background: "linear-gradient(90deg,#7c3aed,#3b82f6)" }} />
-                        </div>
-                        <span className="text-[10px] font-mono text-white/45 w-5 text-right flex-shrink-0">{s.value}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                {/* summary excerpt */}
-                <div className="relative pt-4 border-t border-white/[0.05]">
-                  <div className="text-[9px] text-white/25 uppercase tracking-[0.2em] mb-1.5">Стратегическое резюме</div>
-                  <p className="text-[12px] text-white/55 leading-[1.75] line-clamp-4">{project.summary}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* 4 key metric cards */}
-            {metricCards.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {metricCards.map((m) => {
-                  const cfg = CARD_CFG[m.label] ?? { color: "#a78bfa", glow: "rgba(167,139,250,0.3)", icon: null };
-                  return (
-                    <div
-                      key={m.label}
-                      className="relative rounded-xl overflow-hidden p-4 group transition-all duration-300 hover:scale-[1.03]"
-                      style={{
-                        background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.015) 100%)",
-                        border: "1px solid rgba(255,255,255,0.08)",
-                        backdropFilter: "blur(14px)",
-                        boxShadow: `inset 0 1px 0 rgba(255,255,255,0.07), 0 6px 28px rgba(0,0,0,0.25)`,
-                      }}
-                    >
-                      <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg,transparent,${cfg.color}50,transparent)` }} />
-                      {/* metallic bevel */}
-                      <div className="absolute inset-x-0 bottom-0 h-px opacity-30" style={{ background: `linear-gradient(90deg,transparent,rgba(255,255,255,0.15),transparent)` }} />
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="text-2xl font-bold font-mono tracking-tight" style={{ color: cfg.color, textShadow: `0 0 20px ${cfg.glow}` }}>{m.value}</div>
-                        <div className="mt-0.5 opacity-40 group-hover:opacity-75 transition-opacity" style={{ color: cfg.color }}>{cfg.icon}</div>
-                      </div>
-                      <div className="text-[10px] text-white/30 leading-tight">{m.label}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* CEO + CMO premium analysis panels */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* CEO panel */}
-              <div
-                className="relative rounded-2xl overflow-hidden p-5"
-                style={{
-                  background: "linear-gradient(135deg, rgba(124,58,237,0.08) 0%, rgba(10,10,14,0.92) 100%)",
-                  border: "1px solid rgba(124,58,237,0.18)",
-                  backdropFilter: "blur(16px)",
-                  boxShadow: "inset 0 1px 0 rgba(124,58,237,0.14), 0 8px 32px rgba(0,0,0,0.3)",
-                }}
-              >
-                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(124,58,237,0.55),transparent)" }} />
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="size-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ background: "rgba(124,58,237,0.18)", border: "1px solid rgba(124,58,237,0.3)", color: "#7c3aed" }}>C</div>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-white/85">CEO — Стратегический вывод</div>
-                    <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · Общая стратегия</div>
-                  </div>
-                  {ceo && <CircularScore score={ceo.score} color="#7c3aed" />}
-                </div>
-                <p className="text-[12.5px] text-white/58 leading-[1.8]">
-                  {ceo?.summary ?? project.summary}
-                </p>
-              </div>
-
-              {/* CMO panel */}
-              <div
-                className="relative rounded-2xl overflow-hidden p-5"
-                style={{
-                  background: "linear-gradient(135deg, rgba(16,185,129,0.07) 0%, rgba(10,10,14,0.92) 100%)",
-                  border: "1px solid rgba(16,185,129,0.16)",
-                  backdropFilter: "blur(16px)",
-                  boxShadow: "inset 0 1px 0 rgba(16,185,129,0.12), 0 8px 32px rgba(0,0,0,0.3)",
-                }}
-              >
-                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(16,185,129,0.5),transparent)" }} />
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="size-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0" style={{ background: "rgba(16,185,129,0.14)", border: "1px solid rgba(16,185,129,0.25)", color: "#10b981" }}>M</div>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-white/85">CMO — Маркетинговая стратегия</div>
-                    <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · Go-to-Market</div>
-                  </div>
-                  {cmo && <CircularScore score={cmo.score} color="#10b981" />}
-                </div>
-                <p className="text-[12.5px] text-white/58 leading-[1.8] line-clamp-6">
-                  {cmo?.summary ?? cmo?.analysis ?? "Запустите AI-анализ для получения маркетинговой стратегии от CMO."}
-                </p>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
-
-      {/* ── AI Команда ── */}
+      {/* Tab content */}
+      {activeTab === "Диагностика" && <DiagnosticsTab project={project} aiResults={aiResults} />}
       {activeTab === "AI Команда" && (
-        aiResults.length > 0 ? (
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-            {/* Agent list */}
-            <div className="space-y-1.5">
-              {aiResults.map((r) => {
-                const color = AGENT_COLORS[r.role] ?? "#7c3aed";
-                const isActive = activeAgent === r.role;
-                const CONF_DOT: Record<string, string> = { высокая: "bg-emerald-400", средняя: "bg-amber-400", низкая: "bg-red-400" };
-                return (
-                  <button
-                    key={r.role}
-                    onClick={() => { setActiveAgent(r.role); setTimeout(() => agentDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50); }}
-                    className={`w-full text-left rounded-xl border px-3 py-2.5 transition-all ${isActive ? "border-violet-500/40 bg-violet-600/10" : "border-white/[0.05] bg-white/[0.02] hover:border-white/[0.1]"}`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="size-8 rounded-lg flex items-center justify-center text-[11px] font-bold flex-shrink-0" style={{ background: `${color}18`, border: `1px solid ${color}30` }}>
-                        <span style={{ color }}>{r.role[0]}</span>
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12px] font-semibold text-white">{r.role}</div>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          <div className={`size-1.5 rounded-full ${CONF_DOT[r.confidence] ?? "bg-white/20"}`} />
-                          <span className="text-[10px] text-white/30 truncate">{r.title}</span>
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-sm font-bold" style={{ color }}>{r.score}</div>
-                        <div className="text-[9px] text-white/25">балл</div>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
-
-              {/* Average score card */}
-              <div className="mt-3 p-3 rounded-xl bg-white/[0.03] border border-white/[0.05]">
-                <div className="text-[9px] text-white/25 uppercase tracking-widest mb-1">Средний балл команды</div>
-                <div className="text-xl font-bold text-violet-400">
-                  {Math.round(aiResults.reduce((s, r) => s + r.score, 0) / aiResults.length)}
-                </div>
-                <Progress value={Math.round(aiResults.reduce((s, r) => s + r.score, 0) / aiResults.length)} size="sm" className="mt-1.5" />
-              </div>
-            </div>
-
-            {/* Agent detail */}
-            <div className="xl:col-span-2" ref={agentDetailRef}>
-              {(() => {
-                const r = aiResults.find((x) => x.role === activeAgent);
-                if (!r) return null;
-                const color = AGENT_COLORS[r.role] ?? "#7c3aed";
-                const CONF_COLOR: Record<string, string> = { высокая: "text-emerald-400", средняя: "text-amber-400", низкая: "text-red-400" };
-                return (
-                  <Card>
-                    <CardContent className="p-5 space-y-5">
-                      {/* Header */}
-                      <div className="flex items-center gap-3 pb-4 border-b border-white/[0.06]">
-                        <div className="size-12 rounded-xl flex items-center justify-center font-bold text-lg" style={{ background: `${color}20`, border: `1px solid ${color}30`, color }}>
-                          {r.role[0]}
-                        </div>
-                        <div className="flex-1">
-                          <div className="text-sm font-bold text-white">{r.role}</div>
-                          <div className="text-xs text-white/40">{r.title}</div>
-                        </div>
-                        <div className="text-right">
-                          <div className="text-2xl font-bold" style={{ color }}>{r.score}</div>
-                          <div className={`text-[10px] font-medium ${CONF_COLOR[r.confidence] ?? "text-white/50"}`}>
-                            {r.confidence} уверенность
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Score bar */}
-                      <div>
-                        <div className="flex justify-between text-[10px] text-white/30 mb-1">
-                          <span>Оценка специалиста</span>
-                          <span>{r.score}/100</span>
-                        </div>
-                        <div className="h-1.5 bg-white/[0.05] rounded-full overflow-hidden">
-                          <div className="h-full rounded-full transition-all" style={{ width: `${r.score}%`, background: `linear-gradient(90deg, ${color}, ${color}88)` }} />
-                        </div>
-                      </div>
-
-                      {[
-                        { label: "📌 Краткий вывод", text: r.summary, icon: "◆" },
-                        { label: "📊 Подробный анализ", text: r.analysis, icon: "◈" },
-                        { label: "📋 Факты и предположения", text: r.facts, icon: "◉" },
-                        { label: "⚠️ Возможные риски", text: r.risks, icon: "⚠" },
-                        { label: "🚀 Практический план действий", text: r.recommendations, icon: "→" },
-                        { label: "📈 Прогноз", text: r.forecast, icon: "↗" },
-                      ].map((sec) => sec.text ? (
-                        <div key={sec.label} className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                          <div className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-2.5">{sec.label}</div>
-                          <p className="text-[13px] text-white/65 leading-relaxed whitespace-pre-line">{sec.text}</p>
-                        </div>
-                      ) : null)}
-
-                      {/* Metrics grid */}
-                      {r.metrics && r.metrics.success_probability !== "—" && (
-                        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/[0.04]">
-                          <div className="text-[10px] font-semibold text-white/40 uppercase tracking-widest mb-3">🎯 Оценка</div>
-                          <div className="grid grid-cols-2 gap-2">
-                            {[
-                              { label: "Вероятность успеха", value: r.metrics.success_probability },
-                              { label: "Уровень риска", value: r.metrics.risk_level },
-                              { label: "Конкуренция", value: r.metrics.competition },
-                              { label: "Инвест. привлекательность", value: r.metrics.investment_appeal },
-                              { label: "Масштабируемость", value: r.metrics.scalability },
-                            ].map((m) => (
-                              <div key={m.label} className="p-2.5 rounded-lg bg-white/[0.03] border border-white/[0.04]">
-                                <div className="text-[9px] text-white/30 mb-0.5">{m.label}</div>
-                                <div className="text-sm font-bold" style={{ color }}>{m.value}</div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })()}
-            </div>
-          </div>
-        ) : (
-          <Card>
-            <CardContent className="p-10 text-center">
-              <div className="size-14 rounded-2xl bg-violet-600/10 border border-violet-500/20 flex items-center justify-center text-2xl mx-auto mb-4">
-                🤖
-              </div>
-              <div className="text-sm font-semibold text-white mb-2">AI-анализ ещё не запущен</div>
-              <p className="text-xs text-white/30 mb-5 max-w-xs mx-auto">
-                Этот проект был создан до подключения AI-движка. Запустите анализ, чтобы получить полный разбор от 8 специалистов.
-              </p>
-              {isUserProject ? (
-                <button
-                  onClick={handleReanalyze}
-                  disabled={isReanalyzing}
-                  className="h-9 px-6 text-xs font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all disabled:opacity-50 inline-flex items-center gap-2"
-                >
-                  {isReanalyzing ? (
-                    <>
-                      <svg className="size-3.5 animate-spin" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" opacity="0.3"/>
-                        <path d="M21 12a9 9 0 00-9-9"/>
-                      </svg>
-                      Анализируем… {reanalyzeProgress}/8
-                    </>
-                  ) : "Запустить AI-анализ"}
-                </button>
-              ) : (
-                <p className="text-xs text-white/20">Демо-проект: анализ встроен</p>
-              )}
-              {isReanalyzing && (
-                <div className="mt-4 max-w-xs mx-auto">
-                  <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
-                    <div className="h-full bg-violet-600 rounded-full transition-all duration-300" style={{ width: `${(reanalyzeProgress / 8) * 100}%` }} />
-                  </div>
-                  <p className="text-[10px] text-white/25 mt-1">{reanalyzeProgress} из 8 специалистов завершили анализ</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )
+        <AITeamTab aiResults={aiResults} isUserProject={isUserProject} isReanalyzing={isReanalyzing}
+          reanalyzeProgress={reanalyzeProgress} onReanalyze={handleReanalyze} />
       )}
-
-      {/* ── Финансы ── */}
-      {activeTab === "Финансы" && (
-        <div className="space-y-4">
-          {/* Premium area chart */}
-          <FinancialAreaChart financials={project.financials} />
-
-          {/* Glassmorphism metric cards */}
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-            {project.financials.map((f) => {
-              const icon = METRIC_ICONS[f.label];
-              const isRevenue = f.label.startsWith("Прогноз");
-              const accentColor = isRevenue ? "#60a5fa" : f.label === "LTV пользователя" ? "#a78bfa" : f.label === "CAC" ? "#34d399" : f.label === "LTV/CAC" ? "#f59e0b" : "rgba(255,255,255,0.7)";
-              return (
-                <div
-                  key={f.label}
-                  className="relative rounded-xl overflow-hidden p-4 group transition-all duration-300 hover:scale-[1.02]"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    backdropFilter: "blur(12px)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  {/* shimmer edge */}
-                  <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${accentColor}40, transparent)` }} />
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="text-xl font-bold font-mono" style={{ color: accentColor }}>{f.value}</div>
-                    {icon && (
-                      <div className="mt-0.5 opacity-40 group-hover:opacity-70 transition-opacity" style={{ color: accentColor }}>
-                        {icon}
-                      </div>
-                    )}
-                  </div>
-                  <div className="text-[11px] text-white/30 leading-tight">{f.label}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* CFO analysis — premium panel */}
-          {aiResults.length > 0 && (() => {
-            const cfo = aiResults.find(r => r.role === "CFO" || r.role?.toLowerCase().includes("cfo") || r.role?.toLowerCase().includes("финанс"));
-            return cfo ? (
-              <div
-                className="relative rounded-2xl overflow-hidden p-5"
-                style={{
-                  background: "linear-gradient(135deg, rgba(59,130,246,0.07) 0%, rgba(124,58,237,0.04) 100%)",
-                  border: "1px solid rgba(59,130,246,0.15)",
-                  backdropFilter: "blur(16px)",
-                  boxShadow: "inset 0 1px 0 rgba(59,130,246,0.12), 0 8px 32px rgba(0,0,0,0.3)",
-                }}
-              >
-                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(59,130,246,0.5), transparent)" }} />
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="size-9 rounded-xl flex items-center justify-center text-sm font-bold"
-                    style={{ background: "rgba(59,130,246,0.15)", border: "1px solid rgba(59,130,246,0.25)", color: "#3b82f6" }}
-                  >C</div>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-white/80">Финансовый директор (CFO) — Анализ</div>
-                    <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · Финансовый аудит</div>
-                  </div>
-                  <CircularScore score={cfo.score} color="#3b82f6" />
-                </div>
-                {cfo.analysis && <p className="text-[13px] text-white/60 leading-relaxed">{cfo.analysis}</p>}
-                {cfo.recommendations && (
-                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
-                    <div className="text-[9px] text-white/25 uppercase tracking-[0.2em] mb-2">Рекомендации CFO</div>
-                    <p className="text-[12px] text-white/50 leading-relaxed whitespace-pre-line">{cfo.recommendations}</p>
-                  </div>
-                )}
-              </div>
-            ) : null;
-          })()}
-        </div>
-      )}
-
-      {/* ── Рынок ── */}
-      {activeTab === "Рынок" && (
-        <div className="space-y-4">
-          {/* Concentric rings TAM/SAM/SOM */}
-          <MarketConcentricChart items={project.market} />
-
-          {/* Glassmorphism market metric cards */}
-          <div className="grid grid-cols-2 gap-3">
-            {project.market.map((m, i) => {
-              const colors = ["#a78bfa", "#60a5fa", "#34d399", "#f59e0b"];
-              const color = colors[i % colors.length];
-              return (
-                <div
-                  key={m.label}
-                  className="relative rounded-xl overflow-hidden p-5 group transition-all duration-300 hover:scale-[1.02]"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
-                    border: "1px solid rgba(255,255,255,0.08)",
-                    backdropFilter: "blur(12px)",
-                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.2)",
-                  }}
-                >
-                  <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${color}50, transparent)` }} />
-                  <div className="text-2xl font-bold font-mono mb-1.5" style={{ color }}>{m.value}</div>
-                  <div className="text-[11px] text-white/35">{m.label}</div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Business Analyst — premium panel */}
-          {aiResults.length > 0 && (() => {
-            const ba = aiResults.find(r => r.role === "Business Analyst" || r.role?.toLowerCase().includes("analyst") || r.role?.toLowerCase().includes("аналитик"));
-            return ba ? (
-              <div
-                className="relative rounded-2xl overflow-hidden p-5"
-                style={{
-                  background: "linear-gradient(135deg, rgba(249,115,22,0.06) 0%, rgba(15,15,20,0.6) 100%)",
-                  border: "1px solid rgba(249,115,22,0.14)",
-                  backdropFilter: "blur(16px)",
-                  boxShadow: "inset 0 1px 0 rgba(249,115,22,0.1), 0 8px 32px rgba(0,0,0,0.3)",
-                }}
-              >
-                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg, transparent, rgba(249,115,22,0.45), transparent)" }} />
-                {/* header */}
-                <div className="flex items-center gap-3 mb-4">
-                  <div
-                    className="size-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-                    style={{ background: "rgba(249,115,22,0.14)", border: "1px solid rgba(249,115,22,0.24)", color: "#f97316" }}
-                  >B</div>
-                  <div className="flex-1">
-                    <div className="text-sm font-semibold text-white/80">Бизнес-аналитик — Рыночный анализ</div>
-                    <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · Исследование рынка</div>
-                  </div>
-                  <CircularScore score={ba.score} color="#f97316" />
-                </div>
-                {/* analysis text — readable */}
-                {ba.analysis && (
-                  <p className="text-[13px] text-white/65 leading-[1.8] tracking-[0.01em]">{ba.analysis}</p>
-                )}
-                {ba.facts && (
-                  <div className="mt-4 pt-4 border-t border-white/[0.06]">
-                    <div className="text-[9px] text-white/25 uppercase tracking-[0.2em] mb-2">Факты и данные</div>
-                    <p className="text-[12px] text-white/50 leading-[1.8] whitespace-pre-line">{ba.facts}</p>
-                  </div>
-                )}
-              </div>
-            ) : null;
-          })()}
-        </div>
-      )}
-
-      {/* ── Риски ── */}
-      {activeTab === "Риски" && (
-        <div className="space-y-4">
-          {/* Radar threat matrix */}
-          <RiskRadarChart risks={project.risks} />
-
-          {/* Risk cards — glassmorphism */}
-          <div className="space-y-2.5">
-            {project.risks.map((r) => {
-              const cfg = {
-                high: { color: "#f87171", glow: "rgba(248,113,113,0.15)", border: "rgba(248,113,113,0.2)", bg: "rgba(248,113,113,0.05)" },
-                medium: { color: "#fbbf24", glow: "rgba(251,191,36,0.15)", border: "rgba(251,191,36,0.2)", bg: "rgba(251,191,36,0.05)" },
-                low: { color: "#34d399", glow: "rgba(52,211,153,0.15)", border: "rgba(52,211,153,0.2)", bg: "rgba(52,211,153,0.04)" },
-              }[r.level] ?? { color: "#a78bfa", glow: "rgba(167,139,250,0.1)", border: "rgba(167,139,250,0.15)", bg: "rgba(167,139,250,0.04)" };
-              return (
-                <div
-                  key={r.title}
-                  className="relative rounded-xl overflow-hidden p-4 transition-all duration-200 hover:scale-[1.005]"
-                  style={{
-                    background: `linear-gradient(135deg, ${cfg.bg} 0%, rgba(255,255,255,0.02) 100%)`,
-                    border: `1px solid ${cfg.border}`,
-                    backdropFilter: "blur(8px)",
-                    boxShadow: `inset 0 1px 0 ${cfg.glow}`,
-                  }}
-                >
-                  <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${cfg.color}40, transparent)` }} />
-                  <div className="flex items-start gap-3">
-                    <div className="flex-shrink-0 mt-0.5" style={{ color: cfg.color }}>
-                      {RISK_ICONS_SVG[r.level]}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-[10px] font-bold uppercase tracking-[0.15em]" style={{ color: cfg.color }}>{RISK_LABELS[r.level]}</span>
-                        <span className="text-sm font-semibold text-white/85">{r.title}</span>
-                      </div>
-                      <p className="text-[12px] text-white/45 leading-relaxed">{r.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* CEO + Legal risks from AI — premium panels */}
-          {aiResults.length > 0 && (() => {
-            const legal = aiResults.find(r => r.role === "Legal Advisor" || r.role?.toLowerCase().includes("legal") || r.role?.toLowerCase().includes("юрид"));
-            const ceo = aiResults.find(r => r.role === "CEO" || r.role?.toLowerCase().includes("ceo") || r.role?.includes("Генеральный"));
-            const panels = [
-              ...(ceo?.risks ? [{ label: "CEO — Риски", sub: "Стратегический риск-аудит", letter: "C", color: "#7c3aed", text: ceo.risks, score: ceo.score }] : []),
-              ...(legal?.risks ? [{ label: "Legal Advisor — Риски", sub: "Юридические и регуляторные риски", letter: "L", color: "#64748b", text: legal.risks, score: legal.score }] : []),
-            ];
-            return panels.length > 0 ? (
-              <div className="space-y-3">
-                {panels.map(p => (
-                  <div
-                    key={p.label}
-                    className="relative rounded-2xl overflow-hidden p-5"
-                    style={{
-                      background: `linear-gradient(135deg, ${p.color}0d 0%, rgba(15,15,20,0.7) 100%)`,
-                      border: `1px solid ${p.color}25`,
-                      backdropFilter: "blur(16px)",
-                      boxShadow: `inset 0 1px 0 ${p.color}18, 0 8px 32px rgba(0,0,0,0.25)`,
-                    }}
-                  >
-                    <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${p.color}50, transparent)` }} />
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="size-9 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-                        style={{ background: `${p.color}18`, border: `1px solid ${p.color}28`, color: p.color }}>{p.letter}</div>
-                      <div className="flex-1">
-                        <div className="text-sm font-semibold text-white/80">{p.label}</div>
-                        <div className="text-[10px] text-white/30 mt-0.5">AI Executive Board · {p.sub}</div>
-                      </div>
-                      <CircularScore score={p.score} color={p.color} />
-                    </div>
-                    <p className="text-[13px] text-white/60 leading-[1.8] whitespace-pre-line">{p.text}</p>
-                  </div>
-                ))}
-              </div>
-            ) : null;
-          })()}
-        </div>
-      )}
+      {activeTab === "Финансы" && <FinanceTab project={project} aiResults={aiResults} />}
+      {activeTab === "Рынок" && <MarketTab project={project} aiResults={aiResults} />}
+      {activeTab === "Риски" && <RisksTab project={project} aiResults={aiResults} />}
     </div>
   );
 }
