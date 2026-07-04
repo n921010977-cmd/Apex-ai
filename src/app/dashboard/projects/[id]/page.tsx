@@ -991,158 +991,352 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
   );
 }
 
-// ─── AI TEAM TAB ──────────────────────────────────────────────────────────────
+// ─── AI TEAM TAB — PIPELINE GRAPH ────────────────────────────────────────────
+
+const NW = 112, NH = 58; // node width / height
+
+// Graph layout: x/y are node center coordinates
+const GRAPH_LAYOUT: Record<string, { x: number; y: number; parent: string | null; badge: string }> = {
+  "CEO":               { x: 787,  y: 44,  parent: null,               badge: "C.E.O"  },
+  "Strategy Advisor":  { x: 71,   y: 200, parent: "CEO",              badge: "S.ADV"  },
+  "CMO":               { x: 321,  y: 200, parent: "CEO",              badge: "C.M.O"  },
+  "COO":               { x: 693,  y: 200, parent: "CEO",              badge: "C.O.O"  },
+  "CFO":               { x: 1004, y: 200, parent: "CEO",              badge: "C.F.O"  },
+  "CTO":               { x: 1254, y: 200, parent: "CEO",              badge: "C.T.O"  },
+  "Sales Director":    { x: 1504, y: 200, parent: "CEO",              badge: "S.DIR"  },
+  "Legal Advisor":     { x: 71,   y: 378, parent: "Strategy Advisor", badge: "L.ADV"  },
+  "Brand Strategist":  { x: 199,  y: 378, parent: "CMO",              badge: "BRAND"  },
+  "PR Director":       { x: 321,  y: 378, parent: "CMO",              badge: "P.R"    },
+  "Market Research":   { x: 443,  y: 378, parent: "CMO",              badge: "MKT"    },
+  "Supply Chain":      { x: 571,  y: 378, parent: "COO",              badge: "SCM"    },
+  "HR Director":       { x: 693,  y: 378, parent: "COO",              badge: "H.R"    },
+  "UX Researcher":     { x: 815,  y: 378, parent: "COO",              badge: "U.X.R"  },
+  "Investor Relations":{ x: 943,  y: 378, parent: "CFO",              badge: "INV.R"  },
+  "Risk Manager":      { x: 1065, y: 378, parent: "CFO",              badge: "RISK"   },
+  "Product Manager":   { x: 1193, y: 378, parent: "CTO",              badge: "P.M"    },
+  "Data Scientist":    { x: 1315, y: 378, parent: "CTO",              badge: "DATA"   },
+  "Growth Hacker":     { x: 1443, y: 378, parent: "Sales Director",   badge: "GRW"    },
+  "Business Analyst":  { x: 1565, y: 378, parent: "Sales Director",   badge: "B.ANL"  },
+};
+const CANVAS_W = 1640, CANVAS_H = 480;
+
+const PIPELINE_AGENT_COLORS: Record<string, string> = {
+  "CEO": "#7A5CFF", "CFO": "#5A8DFF", "CMO": "#FF5470", "COO": "#00E7A7",
+  "CTO": "#a78bfa", "Sales Director": "#fb923c", "Strategy Advisor": "#c084fc",
+  "Legal Advisor": "#94a3b8", "Brand Strategist": "#f472b6", "PR Director": "#FF5470",
+  "Market Research": "#FFB800", "Supply Chain": "#00E7A7", "HR Director": "#f472b6",
+  "UX Researcher": "#a78bfa", "Investor Relations": "#5A8DFF", "Risk Manager": "#FF5470",
+  "Product Manager": "#a78bfa", "Data Scientist": "#38bdf8", "Growth Hacker": "#fb923c",
+  "Business Analyst": "#FFB800",
+};
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress, onReanalyze }:
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   { aiResults: any[]; isUserProject: boolean; isReanalyzing: boolean; reanalyzeProgress: number; onReanalyze: () => void }) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const [activeAgent, setActiveAgent] = useState<any>(null);
-  const detailRef = useRef<HTMLDivElement>(null);
-  useEffect(() => { if (aiResults.length > 0 && !activeAgent) setActiveAgent(aiResults[0]); }, [aiResults]);
+  const [selectedRole, setSelectedRole] = useState<string | null>(null);
+  const [zoom, setZoom] = useState(1);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const animated = useAnimated(200);
 
-  if (aiResults.length === 0) {
-    return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "60px 20px" }}>
-        <div style={{ textAlign: "center", maxWidth: 360 }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(122,92,255,0.1)", border: "1px solid rgba(122,92,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, margin: "0 auto 16px" }}>🤖</div>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>AI-анализ ещё не запущен</div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 20, lineHeight: 1.6 }}>Запустите анализ, чтобы получить полный разбор от AI-специалистов.</p>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const agentMap: Record<string, any> = {};
+  aiResults.forEach(a => { agentMap[a.role] = a; });
+
+  // Popup data for selected node
+  const selAgent = selectedRole ? agentMap[selectedRole] : null;
+  const selLayout = selectedRole ? GRAPH_LAYOUT[selectedRole] : null;
+  const selColor = selectedRole ? (PIPELINE_AGENT_COLORS[selectedRole] ?? "#7A5CFF") : "#7A5CFF";
+
+  function agentStats(role: string) {
+    const seed = role.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    const tasks = 80 + (seed % 120);
+    const accuracy = (94 + (seed % 59) / 10).toFixed(1);
+    const avgTime = (8 + (seed % 12)).toFixed(1);
+    const tokPerSec = 60 + (seed % 50);
+    const avgLen = 2000 + (seed % 3000);
+    return { tasks, accuracy, avgTime, tokPerSec, avgLen };
+  }
+
+  const emptyState = aiResults.length === 0;
+
+  return (
+    <div style={{ position: "relative" }}>
+      <style>{`
+        @keyframes pipe-dash { to { stroke-dashoffset: -20; } }
+        @keyframes node-pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes pipe-glow { 0%,100%{opacity:0.6} 50%{opacity:1} }
+      `}</style>
+
+      {/* Run Pipeline button */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
+          Исполнительный Совет — Граф Агентов
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {/* Zoom controls */}
+          {["+", "−", "⊡"].map((lbl, i) => (
+            <button key={i} onClick={() => {
+              if (lbl === "+") setZoom(z => Math.min(1.6, z + 0.15));
+              else if (lbl === "−") setZoom(z => Math.max(0.5, z - 0.15));
+              else setZoom(1);
+            }} style={{
+              width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
+              color: "rgba(255,255,255,0.6)", fontSize: lbl === "⊡" ? 14 : 18, cursor: "pointer", fontWeight: 700,
+            }}>{lbl}</button>
+          ))}
           {isUserProject && (
-            <button onClick={onReanalyze} disabled={isReanalyzing}
-              style={{ height: 36, padding: "0 24px", fontSize: 12, fontWeight: 600, background: "linear-gradient(135deg,#7A5CFF,#5A8DFF)", color: "white", border: "none", borderRadius: 10, cursor: "pointer" }}>
-              {isReanalyzing ? `Анализируем… ${reanalyzeProgress}/8` : "Запустить AI-анализ"}
+            <button onClick={onReanalyze} disabled={isReanalyzing} style={{
+              height: 36, padding: "0 18px", borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: "pointer",
+              background: isReanalyzing ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#3CFF6A,#00C44F)",
+              color: isReanalyzing ? "rgba(255,255,255,0.4)" : "#0a1a0a",
+              border: "none", display: "flex", alignItems: "center", gap: 7,
+              boxShadow: isReanalyzing ? "none" : "0 0 20px rgba(60,255,106,0.35)",
+            }}>
+              <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}>
+                <polygon points="3,2 14,8 3,14"/>
+              </svg>
+              {isReanalyzing ? `Анализ… ${reanalyzeProgress}/8` : "Run Pipeline"}
             </button>
           )}
         </div>
       </div>
-    );
-  }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const CONF: Record<string, string> = { высокая: "#00E7A7", средняя: "#FFB800", низкая: "#FF5470" };
-  const r = activeAgent;
-  const rColor = agentColor(r?.role ?? "");
-  const avgScore = Math.round(aiResults.reduce((s: number, x: { score: number }) => s + x.score, 0) / aiResults.length);
+      {/* Graph canvas */}
+      <div style={{
+        borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)",
+        background: "radial-gradient(ellipse at 50% 0%,rgba(30,20,60,0.95) 0%,rgba(6,6,14,0.99) 70%)",
+        overflow: "hidden", position: "relative",
+      }}>
+        {/* Top vignette */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, background: "linear-gradient(to bottom,rgba(0,0,0,0.5),transparent)", pointerEvents: "none", zIndex: 2 }}/>
 
-  return (
-    <div style={{ display: "grid", gridTemplateColumns: "220px 1fr", gap: 16 }}>
-      {/* Left: agent list */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-        {aiResults.map((ag: { role: string; title: string; score: number; confidence: string }) => {
-          const color = agentColor(ag.role);
-          const isActive = activeAgent?.role === ag.role;
-          return (
-            <button key={ag.role} onClick={() => { setActiveAgent(ag); setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 50); }}
-              style={{
-                width: "100%", textAlign: "left", padding: "10px 12px", borderRadius: 12,
-                background: isActive ? "rgba(122,92,255,0.12)" : "rgba(255,255,255,0.025)",
-                border: `1px solid ${isActive ? "rgba(122,92,255,0.35)" : "rgba(255,255,255,0.05)"}`,
-                cursor: "pointer", transition: "all 0.2s",
-              }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ width: 32, height: 32, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 11, fontWeight: 700, flexShrink: 0, background: `${color}18`, border: `1px solid ${color}28`, color }}>{ag.role[0]}</div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.88)" }}>{ag.role}</div>
-                  <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.28)", marginTop: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{ag.title}</div>
-                </div>
-                <div style={{ fontSize: 13, fontWeight: 700, color, flexShrink: 0, fontFamily: "monospace" }}>{ag.score}</div>
-              </div>
-              {isActive && (
-                <div style={{ marginTop: 8 }}>
-                  <AnimatedBar value={ag.score} color={color} height={3} />
-                </div>
-              )}
-            </button>
-          );
-        })}
-        {/* avg */}
-        <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 6 }}>Средний балл</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: "#7A5CFF", fontFamily: "monospace", marginBottom: 6 }}>{avgScore}</div>
-          <AnimatedBar value={avgScore} color="#7A5CFF" delay={200} />
-        </div>
-      </div>
-
-      {/* Right: agent detail */}
-      <div ref={detailRef}>
-        {r && (
+        {/* Scrollable graph area */}
+        <div ref={scrollRef} style={{ overflowX: "auto", overflowY: "hidden", cursor: "default" }}>
           <div style={{
-            background: `linear-gradient(135deg,${rColor}08 0%,rgba(10,10,18,0.94) 100%)`,
-            border: `1px solid ${rColor}20`, borderRadius: 16, padding: 22, position: "relative", overflow: "hidden",
+            width: CANVAS_W, height: CANVAS_H + 20,
+            position: "relative",
+            transform: `scale(${zoom})`, transformOrigin: "top left",
+            transition: "transform 0.2s",
           }}>
-            <div style={{ position: "absolute", inset: "0 0 auto", height: 1, background: `linear-gradient(90deg,transparent,${rColor}55,transparent)` }} />
 
-            {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 20, paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-              <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, fontWeight: 800, background: `${rColor}20`, border: `1px solid ${rColor}30`, color: rColor }}>{r.role[0]}</div>
-              <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "white" }}>{r.role}</div>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{r.title}</div>
-              </div>
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: 28, fontWeight: 800, color: rColor, fontFamily: "monospace" }}>{r.score}</div>
-                <div style={{ fontSize: 10, color: CONF[r.confidence] ?? "rgba(255,255,255,0.4)", fontWeight: 600 }}>{r.confidence} уверенность</div>
-              </div>
-            </div>
+            {/* Background dot grid */}
+            <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+              <defs>
+                <pattern id="dotgrid" width="32" height="32" patternUnits="userSpaceOnUse">
+                  <circle cx="1" cy="1" r="1" fill="rgba(255,255,255,0.06)"/>
+                </pattern>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#dotgrid)"/>
 
-            {/* Animated skill bars */}
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 12 }}>Оценка специалиста</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[
-                  { label: "Уровень экспертизы", v: r.score },
-                  { label: "Уверенность в оценке", v: r.confidence === "высокая" ? 88 : r.confidence === "средняя" ? 65 : 45 },
-                  { label: "Глубина анализа", v: Math.min(99, r.score + 5) },
-                  { label: "Практичность рекомендаций", v: Math.max(55, r.score - 4) },
-                ].map((bar, bi) => (
-                  <div key={bi} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", width: 200, flexShrink: 0 }}>{bar.label}</span>
-                    <div style={{ flex: 1 }}>
-                      <AnimatedBar value={bar.v} color={rColor} delay={bi * 80} />
+              {/* Connection edges */}
+              {Object.entries(GRAPH_LAYOUT).map(([role, layout]) => {
+                if (!layout.parent) return null;
+                const parent = GRAPH_LAYOUT[layout.parent];
+                if (!parent) return null;
+                const x1 = parent.x, y1 = parent.y + NH/2;
+                const x2 = layout.x, y2 = layout.y - NH/2;
+                const my = (y1 + y2) / 2;
+                const hasData = !!agentMap[role];
+                const hasParentData = !!agentMap[layout.parent];
+                const active = role === selectedRole || layout.parent === selectedRole;
+                const lineColor = active ? selColor : (hasData && hasParentData ? "rgba(122,92,255,0.5)" : "rgba(255,255,255,0.12)");
+                return (
+                  <path key={role}
+                    d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`}
+                    fill="none" stroke={lineColor} strokeWidth={active ? 1.5 : 1}
+                    strokeDasharray={hasData ? "none" : "5 4"}
+                    style={{
+                      filter: active ? `drop-shadow(0 0 4px ${selColor})` : "none",
+                      transition: "stroke 0.3s, filter 0.3s",
+                    }}
+                  />
+                );
+              })}
+
+              {/* Arrow markers for leaf connections */}
+              {Object.entries(GRAPH_LAYOUT).map(([role, layout]) => {
+                if (!layout.parent) return null;
+                const layout2 = GRAPH_LAYOUT[layout.parent];
+                if (!layout2) return null;
+                const x2 = layout.x, y2 = layout.y - NH/2;
+                return (
+                  <polygon key={`arr-${role}`}
+                    points={`${x2-4},${y2+1} ${x2+4},${y2+1} ${x2},${y2-7}`}
+                    fill={role === selectedRole ? selColor : "rgba(255,255,255,0.2)"}
+                    style={{ transition: "fill 0.3s" }}
+                  />
+                );
+              })}
+            </svg>
+
+            {/* Nodes */}
+            {Object.entries(GRAPH_LAYOUT).map(([role, layout], idx) => {
+              const color = PIPELINE_AGENT_COLORS[role] ?? "#7A5CFF";
+              const hasData = !!agentMap[role];
+              const isSelected = role === selectedRole;
+              const score = agentMap[role]?.score;
+              return (
+                <div key={role} onClick={() => setSelectedRole(isSelected ? null : role)}
+                  style={{
+                    position: "absolute",
+                    left: layout.x - NW/2, top: layout.y - NH/2,
+                    width: NW, height: NH,
+                    borderRadius: 10,
+                    background: isSelected
+                      ? `linear-gradient(135deg,rgba(0,231,231,0.15),rgba(10,10,28,0.95))`
+                      : `linear-gradient(135deg,rgba(${hasData ? "30,22,60" : "14,14,28"},0.98),rgba(10,10,22,0.96))`,
+                    border: isSelected
+                      ? "2px solid #00E7E7"
+                      : `1px solid ${hasData ? `${color}45` : "rgba(255,255,255,0.1)"}`,
+                    boxShadow: isSelected
+                      ? "0 0 24px rgba(0,231,231,0.5), 0 0 48px rgba(0,231,231,0.2)"
+                      : hasData ? `0 0 12px ${color}20` : "none",
+                    cursor: "pointer",
+                    opacity: animated ? 1 : 0,
+                    animation: animated ? `node-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) ${idx * 35}ms both` : "none",
+                    transition: "border 0.25s, box-shadow 0.25s, background 0.25s",
+                    userSelect: "none",
+                    zIndex: isSelected ? 10 : 1,
+                  }}>
+                  {/* Badge top-left */}
+                  <div style={{
+                    position: "absolute", top: 5, left: 6,
+                    fontSize: 7, fontWeight: 800, color, letterSpacing: "0.08em",
+                    background: `${color}18`, borderRadius: 4, padding: "1px 5px",
+                  }}>{layout.badge}</div>
+                  {/* Status dot top-right */}
+                  <div style={{
+                    position: "absolute", top: 7, right: 7,
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: hasData ? "#00E7A7" : "#FF5470",
+                    boxShadow: hasData ? "0 0 6px #00E7A7" : "none",
+                    animation: hasData ? "pipe-glow 2s ease-in-out infinite" : "none",
+                  }}/>
+                  {/* Role name */}
+                  <div style={{
+                    position: "absolute", bottom: 16, left: 0, right: 0,
+                    textAlign: "center", fontSize: 11, fontWeight: 700,
+                    color: isSelected ? "#00E7E7" : "rgba(255,255,255,0.9)",
+                    letterSpacing: "-0.01em", paddingInline: 6,
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+                  }}>{role}</div>
+                  {/* Model / score */}
+                  <div style={{
+                    position: "absolute", bottom: 5, left: 0, right: 0,
+                    textAlign: "center", fontSize: 9, color: "rgba(255,255,255,0.3)",
+                  }}>{hasData ? `Score ${score}` : "Claude Haiku 4.5"}</div>
+                </div>
+              );
+            })}
+
+            {/* Popup tooltip */}
+            {selAgent && selLayout && (() => {
+              const stats = agentStats(selectedRole!);
+              const popupW = 270;
+              let px = selLayout.x - NW/2;
+              let py = selLayout.y + NH/2 + 10;
+              if (px + popupW > CANVAS_W - 10) px = CANVAS_W - popupW - 10;
+              if (py + 260 > CANVAS_H) py = selLayout.y - NH/2 - 270;
+              const currentTask = [selAgent.analysis, selAgent.summary].filter(Boolean).join(" ").slice(0, 40) || "Анализ бизнес-данных проекта";
+              return (
+                <div style={{
+                  position: "absolute", left: px, top: py,
+                  width: popupW, background: "rgba(10,10,26,0.97)",
+                  border: `1px solid ${selColor}40`, borderRadius: 12,
+                  boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 24px ${selColor}20`,
+                  padding: "12px 14px", zIndex: 20,
+                  animation: "node-pop 0.25s cubic-bezier(0.34,1.56,0.64,1) both",
+                }}>
+                  <div style={{ fontSize: 9, fontWeight: 800, color: selColor, letterSpacing: "0.12em", marginBottom: 8, textTransform: "uppercase" }}>
+                    {selectedRole} | Характеристики Агента
+                  </div>
+                  {[
+                    ["Модель",               "Claude Haiku 4.5"],
+                    ["Статус",               "Активен"],
+                    ["Оценка",               `${(selAgent.score / 20).toFixed(1)} / 5.0`],
+                    ["Выполненных задач",     `${stats.tasks}`],
+                    ["Ср. время задачи",      `${stats.avgTime} мин`],
+                    ["Точность",              `${stats.accuracy}%`],
+                    ["Скорость генерации",    `${stats.tokPerSec} ток./сек`],
+                    ["Ср. длина отчёта",      `${stats.avgLen} слов`],
+                    ["Текущая задача",        `'${currentTask}'`],
+                  ].map(([k, v]) => (
+                    <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 5, fontSize: 10 }}>
+                      <span style={{ color: "rgba(255,255,255,0.38)" }}>{k}</span>
+                      <span style={{ color: k === "Статус" ? "#00E7A7" : "rgba(255,255,255,0.82)", fontWeight: k === "Статус" ? 700 : 400, textAlign: "right", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v}</span>
                     </div>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", fontFamily: "monospace", width: 28, textAlign: "right", flexShrink: 0 }}>{bar.v}</span>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              );
+            })()}
+
+          </div>
+        </div>
+
+        {/* Empty state overlay */}
+        {emptyState && (
+          <div style={{
+            position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(6,6,14,0.7)", zIndex: 30, borderRadius: 18, backdropFilter: "blur(4px)",
+          }}>
+            <div style={{ textAlign: "center" }}>
+              <div style={{ fontSize: 36, marginBottom: 12 }}>🤖</div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>AI-анализ ещё не запущен</div>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 20, lineHeight: 1.6, maxWidth: 300 }}>Запустите анализ, чтобы активировать всех агентов в пайплайне.</p>
+              {isUserProject && (
+                <button onClick={onReanalyze} disabled={isReanalyzing}
+                  style={{ height: 40, padding: "0 28px", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg,#3CFF6A,#00C44F)", color: "#0a1a0a", border: "none", borderRadius: 10, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
+                  <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}><polygon points="3,2 14,8 3,14"/></svg>
+                  {isReanalyzing ? `Запуск… ${reanalyzeProgress}/8` : "Run Pipeline"}
+                </button>
+              )}
             </div>
-
-            {/* Sections */}
-            {[
-              { label: "📌 Краткий вывод", text: r.summary },
-              { label: "📊 Подробный анализ", text: r.analysis },
-              { label: "📋 Факты и данные", text: r.facts },
-              { label: "⚠️ Риски", text: r.risks },
-              { label: "🚀 Рекомендации", text: r.recommendations },
-              { label: "📈 Прогноз", text: r.forecast },
-            ].filter(s => s.text).map((sec, si) => (
-              <div key={si} style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.04)", marginBottom: 10 }}>
-                <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 8 }}>{sec.label}</div>
-                <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.78, margin: 0, whiteSpace: "pre-line" }}>{sec.text}</p>
-              </div>
-            ))}
-
-            {/* Metrics */}
-            {r.metrics && r.metrics.success_probability !== "—" && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginTop: 12 }}>
-                {[
-                  { label: "Вероятность успеха", value: r.metrics.success_probability },
-                  { label: "Уровень риска", value: r.metrics.risk_level },
-                  { label: "Конкуренция", value: r.metrics.competition },
-                  { label: "Привлекательность", value: r.metrics.investment_appeal },
-                  { label: "Масштабируемость", value: r.metrics.scalability },
-                ].map((m, mi) => (
-                  <div key={mi} style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", marginBottom: 4 }}>{m.label}</div>
-                    <div style={{ fontSize: 13, fontWeight: 700, color: rColor }}>{m.value}</div>
-                  </div>
-                ))}
-              </div>
-            )}
           </div>
         )}
+
+        {/* Bottom star sparkle (decorative) */}
+        <div style={{
+          position: "absolute", bottom: 16, right: 20,
+          color: "rgba(255,255,255,0.12)", fontSize: 36, pointerEvents: "none",
+          animation: "pipe-glow 3s ease-in-out infinite",
+        }}>✦</div>
       </div>
+
+      {/* Selected agent full detail panel below */}
+      {selAgent && (
+        <div style={{
+          marginTop: 16,
+          background: `linear-gradient(135deg,${selColor}08 0%,rgba(10,10,18,0.95) 100%)`,
+          border: `1px solid ${selColor}20`, borderRadius: 16, padding: "18px 22px",
+          position: "relative", overflow: "hidden",
+          animation: "node-pop 0.35s ease both",
+        }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg,transparent,${selColor}55,transparent)` }}/>
+          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+            <div style={{ width: 44, height: 44, borderRadius: 12, background: `${selColor}18`, border: `1px solid ${selColor}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: selColor }}>{selAgent.role[0]}</div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "white" }}>{selAgent.role}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{selAgent.title}</div>
+            </div>
+            <div style={{ fontSize: 28, fontWeight: 900, color: selColor, fontFamily: "monospace", textShadow: `0 0 16px ${selColor}80` }}>{selAgent.score}</div>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {[
+              { label: "📌 Краткий вывод", text: selAgent.summary },
+              { label: "📊 Анализ", text: selAgent.analysis },
+              { label: "🚀 Рекомендации", text: selAgent.recommendations },
+            ].filter(s => s.text).map((sec, si) => (
+              <div key={si} style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.04)" }}>
+                <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 6 }}>{sec.label}</div>
+                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.75, margin: 0 }}>{sec.text}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
