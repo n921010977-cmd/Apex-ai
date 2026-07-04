@@ -214,100 +214,289 @@ interface AgentResult {
   confidence: string; score: number;
 }
 
+// Individual animated agent card during analysis
+function AgentAnalysisCard({ agent, done, result }: {
+  agent: typeof AGENTS[0];
+  done: boolean;
+  result?: AgentResult;
+}) {
+  const Icon = agent.icon;
+  const thoughts = AGENT_THOUGHTS[agent.role] ?? ["Анализирует..."];
+  const [thoughtIdx, setThoughtIdx] = useState(0);
+  const [flash, setFlash] = useState(false);
+
+  // Cycle thoughts while working
+  useEffect(() => {
+    if (done) return;
+    const iv = setInterval(() => {
+      setThoughtIdx(i => (i + 1) % thoughts.length);
+    }, 2200 + Math.random() * 800);
+    return () => clearInterval(iv);
+  }, [done, thoughts.length]);
+
+  // Flash on completion
+  useEffect(() => {
+    if (!done) return;
+    setFlash(true);
+    const t = setTimeout(() => setFlash(false), 700);
+    return () => clearTimeout(t);
+  }, [done]);
+
+  return (
+    <motion.div
+      layout
+      initial={{ opacity: 0, scale: 0.92, y: 8 }}
+      animate={{
+        opacity: 1,
+        scale: flash ? 1.04 : 1,
+        y: 0,
+        background: done ? `rgba(${agent.rgb},0.07)` : "rgba(255,255,255,0.025)",
+      }}
+      transition={{ duration: flash ? 0.18 : 0.45, ease: [0.22, 1, 0.36, 1] }}
+      style={{
+        padding: "12px 13px",
+        borderRadius: 14,
+        border: `1px solid ${done ? `rgba(${agent.rgb},0.32)` : "rgba(255,255,255,0.06)"}`,
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Completion flash overlay */}
+      <AnimatePresence>
+        {flash && (
+          <motion.div
+            initial={{ opacity: 0.5 }}
+            animate={{ opacity: 0 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.6 }}
+            style={{
+              position: "absolute", inset: 0, borderRadius: 14,
+              background: `radial-gradient(circle at 50% 50%, rgba(${agent.rgb},0.35) 0%, transparent 70%)`,
+              pointerEvents: "none",
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+        {/* Icon */}
+        <motion.div
+          animate={done ? { scale: [1, 1.2, 1] } : { opacity: [1, 0.5, 1] }}
+          transition={done ? { duration: 0.4 } : { duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          style={{
+            width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: `rgba(${agent.rgb},${done ? 0.18 : 0.08})`,
+            border: `1px solid rgba(${agent.rgb},${done ? 0.4 : 0.2})`,
+            color: agent.color,
+          }}
+        >
+          {done ? <CheckCircle size={13} /> : <Icon size={13} />}
+        </motion.div>
+
+        {/* Text */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, color: done ? "#fff" : "rgba(255,255,255,0.6)", marginBottom: 2 }}>
+            {agent.name}
+          </div>
+          <AnimatePresence mode="wait">
+            {done ? (
+              <motion.div
+                key="score"
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                style={{ fontSize: 10, fontWeight: 700, color: agent.color }}
+              >
+                ✓ Балл: {result?.score ?? "—"}
+              </motion.div>
+            ) : (
+              <motion.div
+                key={thoughtIdx}
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.3 }}
+                style={{
+                  fontSize: 9, color: "rgba(255,255,255,0.32)",
+                  fontFamily: "ui-monospace, monospace",
+                  whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+                }}
+              >
+                {thoughts[thoughtIdx]}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* Live dot */}
+        {!done && (
+          <motion.span
+            animate={{ opacity: [1, 0.2, 1], scale: [1, 0.7, 1] }}
+            transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+            style={{ width: 5, height: 5, borderRadius: "50%", background: agent.color, flexShrink: 0, boxShadow: `0 0 6px rgba(${agent.rgb},0.8)` }}
+          />
+        )}
+      </div>
+
+      {/* Animated progress bar at bottom */}
+      <div style={{ marginTop: 8, height: 2, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+        {done ? (
+          <motion.div
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, rgba(${agent.rgb},0.5), ${agent.color})` }}
+          />
+        ) : (
+          <motion.div
+            animate={{ width: ["12%", "68%", "25%", "84%", "40%", "72%"] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+            style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, rgba(${agent.rgb},0.3), rgba(${agent.rgb},0.7))` }}
+          />
+        )}
+      </div>
+    </motion.div>
+  );
+}
+
 function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>; agentResults: AgentResult[] }) {
   const doneCount = doneAgents.size;
   const progress  = Math.round((doneCount / AGENTS.length) * 100);
 
+  // Latest completed agent for live feed
+  const latestDone = agentResults[agentResults.length - 1];
+
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-center p-8"
-      style={{ background: "radial-gradient(ellipse 80% 60% at 50% 30%, rgba(122,92,255,0.12) 0%, #040404 60%)" }}
+      className="min-h-screen flex flex-col items-center p-6 pt-10"
+      style={{ background: "radial-gradient(ellipse 90% 55% at 50% 0%, rgba(122,92,255,0.14) 0%, #040404 55%)" }}
     >
-      <style>{`@keyframes an-spin { from{transform:rotate(0deg)} to{transform:rotate(360deg)} } @keyframes an-pulse{0%,100%{opacity:1}50%{opacity:0.3}}`}</style>
+      <style>{`
+        @keyframes an-spin  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+        @keyframes an-spin2 { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
+        @keyframes an-breathe { 0%,100%{box-shadow:0 0 50px rgba(122,92,255,0.45),0 0 100px rgba(122,92,255,0.18)} 50%{box-shadow:0 0 80px rgba(122,92,255,0.65),0 0 150px rgba(122,92,255,0.28)} }
+      `}</style>
 
-      {/* Central orb */}
-      <div className="relative mb-10">
-        <div style={{ width: 80, height: 80, borderRadius: "50%", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", boxShadow: "0 0 60px rgba(122,92,255,0.5), 0 0 120px rgba(122,92,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Zap size={32} color="white" />
+      {/* ── HEADER ── */}
+      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginBottom: 28 }}>
+        {/* Central orb */}
+        <div style={{ position: "relative", marginBottom: 20 }}>
+          <div style={{
+            width: 72, height: 72, borderRadius: "50%",
+            background: "linear-gradient(135deg, #7A5CFF 0%, #5A8DFF 60%, #00E7A7 100%)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            animation: "an-breathe 2.8s ease-in-out infinite",
+          }}>
+            <Zap size={28} color="white" />
+          </div>
+          {/* Ring 1 */}
+          <div style={{ position: "absolute", inset: -10, borderRadius: "50%", border: "1px solid rgba(122,92,255,0.35)", animation: "an-spin 4s linear infinite" }}>
+            <div style={{ position: "absolute", top: -3, left: "50%", width: 6, height: 6, borderRadius: "50%", background: "#7A5CFF", transform: "translateX(-50%)", boxShadow: "0 0 8px #7A5CFF" }} />
+          </div>
+          {/* Ring 2 */}
+          <div style={{ position: "absolute", inset: -20, borderRadius: "50%", border: "1px dashed rgba(90,141,255,0.2)", animation: "an-spin2 7s linear infinite" }}>
+            <div style={{ position: "absolute", top: -3, left: "50%", width: 5, height: 5, borderRadius: "50%", background: "#5A8DFF", transform: "translateX(-50%)", boxShadow: "0 0 6px #5A8DFF" }} />
+          </div>
+          {/* Ring 3 */}
+          <div style={{ position: "absolute", inset: -32, borderRadius: "50%", border: "1px solid rgba(0,231,167,0.1)", animation: "an-spin 11s linear infinite" }}>
+            <div style={{ position: "absolute", top: -2.5, left: "50%", width: 4, height: 4, borderRadius: "50%", background: "#00E7A7", transform: "translateX(-50%)", boxShadow: "0 0 5px #00E7A7" }} />
+          </div>
         </div>
-        <div style={{ position: "absolute", inset: -12, borderRadius: "50%", border: "1px solid rgba(122,92,255,0.3)", animation: "an-spin 4s linear infinite" }} />
-        <div style={{ position: "absolute", inset: -22, borderRadius: "50%", border: "1px dashed rgba(90,141,255,0.15)", animation: "an-spin 8s linear infinite reverse" }} />
-      </div>
 
-      <div className="text-center mb-8">
-        <h2 style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", marginBottom: 8 }}>
+        <motion.h2
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+          style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", marginBottom: 6, textAlign: "center" }}
+        >
           Executive Board в работе
-        </h2>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.38)" }}>
+        </motion.h2>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.5 }}
+          style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", textAlign: "center" }}
+        >
           20 AI-директоров анализируют проект параллельно
-        </p>
+        </motion.p>
       </div>
 
-      {/* Progress */}
-      <div style={{ width: "100%", maxWidth: 480, marginBottom: 32 }}>
-        <div className="flex items-center justify-between mb-2">
-          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Прогресс анализа</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: "#7A5CFF" }}>{doneCount} / {AGENTS.length} агентов</span>
+      {/* ── PROGRESS BAR ── */}
+      <div style={{ width: "100%", maxWidth: 560, marginBottom: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
+          <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Прогресс анализа</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            {/* Live latest thought */}
+            <AnimatePresence mode="wait">
+              {latestDone && (
+                <motion.span
+                  key={latestDone.role}
+                  initial={{ opacity: 0, x: 8 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -8 }}
+                  transition={{ duration: 0.3 }}
+                  style={{ fontSize: 9.5, color: "rgba(255,255,255,0.22)", fontFamily: "ui-monospace, monospace" }}
+                >
+                  {latestDone.role} завершил
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#7A5CFF", fontVariantNumeric: "tabular-nums" }}>
+              {doneCount} / {AGENTS.length}
+            </span>
+          </div>
         </div>
-        <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 4, overflow: "hidden" }}>
+        <div style={{ position: "relative", height: 5, background: "rgba(255,255,255,0.05)", borderRadius: 5, overflow: "hidden" }}>
           <motion.div
             animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.6, ease: "easeOut" }}
-            style={{ height: "100%", borderRadius: 4, background: "linear-gradient(90deg, #7A5CFF, #5A8DFF, #00E7A7)" }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            style={{ position: "absolute", inset: 0, borderRadius: 5, background: "linear-gradient(90deg, #7A5CFF, #5A8DFF 50%, #00E7A7)" }}
+          />
+          {/* Shimmer */}
+          <motion.div
+            animate={{ x: ["-100%", "200%"] }}
+            transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut", repeatDelay: 0.4 }}
+            style={{ position: "absolute", top: 0, left: 0, width: "40%", height: "100%", background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.25), transparent)" }}
           />
         </div>
       </div>
 
-      {/* Agent grid */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, width: "100%", maxWidth: 860 }}>
-        {AGENTS.map((agent) => {
-          const done   = doneAgents.has(agent.role);
-          const result = agentResults.find(r => r.role === agent.role);
-          const Icon   = agent.icon;
-          return (
-            <motion.div
-              key={agent.role}
-              animate={{ borderColor: done ? `rgba(${agent.rgb},0.35)` : `rgba(255,255,255,0.06)` }}
-              style={{
-                padding:    "12px 14px",
-                borderRadius: 14,
-                background: done ? `rgba(${agent.rgb},0.06)` : "rgba(255,255,255,0.025)",
-                border:     `1px solid rgba(255,255,255,0.06)`,
-                transition: "background 0.4s",
-              }}
-            >
-              <div className="flex items-center gap-2.5">
-                <div style={{ width: 30, height: 30, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: `rgba(${agent.rgb},0.1)`, border: `1px solid rgba(${agent.rgb},0.2)`, color: agent.color, flexShrink: 0 }}>
-                  {done
-                    ? <CheckCircle size={13} />
-                    : <Icon size={13} style={{ animation: "an-pulse 1.4s ease-in-out infinite" }} />
-                  }
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.65)" }}>{agent.name}</div>
-                  <div style={{ fontSize: 10, marginTop: 1 }}>
-                    {done
-                      ? <span style={{ color: agent.color, fontWeight: 700 }}>Балл: {result?.score ?? "—"}</span>
-                      : <span style={{ color: "rgba(255,255,255,0.28)", fontFamily: "ui-monospace, monospace" }}>Анализирует…</span>
-                    }
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+      {/* ── AGENT GRID ── */}
+      <motion.div
+        initial="hidden"
+        animate="show"
+        variants={{ hidden: {}, show: { transition: { staggerChildren: 0.04 } } }}
+        style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 7, width: "100%", maxWidth: 920 }}
+      >
+        {AGENTS.map((agent) => (
+          <AgentAnalysisCard
+            key={agent.role}
+            agent={agent}
+            done={doneAgents.has(agent.role)}
+            result={agentResults.find(r => r.role === agent.role)}
+          />
+        ))}
+      </motion.div>
 
-      {doneCount === AGENTS.length && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          style={{ marginTop: 24, padding: "16px 24px", borderRadius: 16, background: "rgba(0,231,167,0.08)", border: "1px solid rgba(0,231,167,0.25)", textAlign: "center" }}
-        >
-          <div style={{ fontSize: 14, fontWeight: 700, color: "#00E7A7", marginBottom: 4 }}>Анализ завершён ✓</div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Перехожу к результатам…</div>
-        </motion.div>
-      )}
+      {/* ── COMPLETION BANNER ── */}
+      <AnimatePresence>
+        {doneCount === AGENTS.length && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            transition={{ duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{
+              marginTop: 22, padding: "16px 28px", borderRadius: 18,
+              background: "rgba(0,231,167,0.07)", border: "1px solid rgba(0,231,167,0.28)",
+              textAlign: "center",
+              boxShadow: "0 0 40px rgba(0,231,167,0.12)",
+            }}
+          >
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#00E7A7", marginBottom: 4 }}>Анализ завершён ✓</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Перехожу к результатам…</div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
