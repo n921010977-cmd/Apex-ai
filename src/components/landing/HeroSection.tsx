@@ -16,6 +16,31 @@ const ORBITERS = [
 const ORBIT_R    = 152; // capsule orbit radius px
 const ORBIT_SEC  = 26;  // revolution duration
 
+// ─── 20 converging agents ─────────────────────────────────────────────────────
+// Muted enterprise palette, cycled across 20 nodes on a ring that connect to core.
+const CONV_PALETTE = ["#8b5cf6", "#6366f1", "#3b82f6", "#06b6d4", "#10b981", "#f59e0b", "#ec4899", "#22d3ee"];
+const CONV_R = 172; // ring radius for the 20 nodes
+const NODE_20 = Array.from({ length: 20 }, (_, i) => {
+  const ang = (i / 20) * Math.PI * 2 - Math.PI / 2;
+  return {
+    color: CONV_PALETTE[i % CONV_PALETTE.length],
+    x: 210 + Math.cos(ang) * CONV_R,
+    y: 210 + Math.sin(ang) * CONV_R,
+  };
+});
+// 6 key roles get readable labels (rest stay as glowing nodes → no clutter)
+const LABELED = [
+  { role: "CEO", full: "Генеральный директор",   color: "#8b5cf6", idx: 0  },
+  { role: "CFO", full: "Финансовый директор",     color: "#3b82f6", idx: 3  },
+  { role: "CMO", full: "Директор по маркетингу",  color: "#10b981", idx: 7  },
+  { role: "CTO", full: "Технический директор",    color: "#ec4899", idx: 10 },
+  { role: "COO", full: "Операционный директор",   color: "#f59e0b", idx: 13 },
+  { role: "BA",  full: "Бизнес-аналитик",         color: "#06b6d4", idx: 17 },
+].map(l => {
+  const ang = (l.idx / 20) * Math.PI * 2 - Math.PI / 2;
+  return { ...l, x: 210 + Math.cos(ang) * CONV_R, y: 210 + Math.sin(ang) * CONV_R };
+});
+
 // Deterministic micro-particles (sin/cos of evenly spaced angles × varying radii)
 const PARTICLES = Array.from({ length: 22 }, (_, i) => {
   const a = (i / 22) * Math.PI * 2;
@@ -151,9 +176,9 @@ function OrbCore() {
       {/* Central glassmorphism core ──────────────────────────────────────── */}
       <motion.div
         className="relative z-10 flex items-center justify-center"
-        initial={{ opacity: 0, scale: 0.6 }}
+        initial={{ opacity: 0, scale: 0.4 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+        transition={{ duration: 0.7, delay: 1.25, ease: [0.34, 1.56, 0.64, 1] }}
       >
         {/* Core glow pulse */}
         <div
@@ -210,62 +235,74 @@ function OrbCore() {
         </div>
       </motion.div>
 
-      {/* Orbital capsules ────────────────────────────────────────────────── */}
-      {ORBITERS.map((o, i) => (
+      {/* ── Convergence layer: 20 agents connect into the core ─────────────── */}
+      <svg viewBox="0 0 420 420" className="absolute" style={{ width: 420, height: 420, overflow: "visible" }} aria-hidden>
+        {/* Connecting lines + inward energy pulses + node dots */}
+        {NODE_20.map((n, i) => {
+          const drawBegin = `${0.3 + i * 0.05}s`;
+          const pulseBegin = `${1.3 + i * 0.05}s`;
+          return (
+            <g key={i}>
+              {/* line draws from node toward center */}
+              <line
+                x1={n.x} y1={n.y} x2={210} y2={210}
+                stroke={n.color} strokeWidth="1" strokeOpacity="0.22"
+                strokeDasharray={CONV_R} strokeDashoffset={CONV_R}
+              >
+                <animate attributeName="stroke-dashoffset" from={CONV_R} to="0" dur="0.85s" begin={drawBegin} fill="freeze" />
+              </line>
+              {/* energy pulse travelling inward (loops) */}
+              <circle cx={n.x} cy={n.y} r="2" fill={n.color} opacity="0">
+                <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.1;0.85;1" dur="1.9s" begin={pulseBegin} repeatCount="indefinite" />
+                <animate attributeName="cx" from={n.x} to="210" dur="1.9s" begin={pulseBegin} repeatCount="indefinite" />
+                <animate attributeName="cy" from={n.y} to="210" dur="1.9s" begin={pulseBegin} repeatCount="indefinite" />
+              </circle>
+              {/* node halo */}
+              <circle cx={n.x} cy={n.y} r="7" fill={n.color} opacity="0">
+                <animate attributeName="opacity" values="0;0.16;0.07" dur="0.6s" begin={drawBegin} fill="freeze" />
+              </circle>
+              {/* node dot */}
+              <circle cx={n.x} cy={n.y} r="0" fill={n.color}>
+                <animate attributeName="r" values="0;3.6;3" dur="0.5s" begin={drawBegin} fill="freeze" />
+                <animate attributeName="opacity" values="0.55;1;0.55" dur="3s" begin={drawBegin} repeatCount="indefinite" />
+              </circle>
+            </g>
+          );
+        })}
+        {/* Ignition flash when the core is born */}
+        <circle cx="210" cy="210" r="8" fill="none" stroke="#a78bfa" strokeWidth="2" opacity="0">
+          <animate attributeName="r" values="8;130" dur="0.9s" begin="1.28s" fill="freeze" />
+          <animate attributeName="opacity" values="0.55;0" dur="0.9s" begin="1.28s" fill="freeze" />
+        </circle>
+        <circle cx="210" cy="210" r="8" fill="none" stroke="#38bdf8" strokeWidth="1.5" opacity="0">
+          <animate attributeName="r" values="8;95" dur="0.75s" begin="1.34s" fill="freeze" />
+          <animate attributeName="opacity" values="0.45;0" dur="0.75s" begin="1.34s" fill="freeze" />
+        </circle>
+      </svg>
+
+      {/* ── 6 labeled role capsules on the ring (fade in after ignition) ───── */}
+      {LABELED.map((l, i) => (
         <motion.div
-          key={o.shortRole}
+          key={l.role}
           className="absolute"
-          style={{ top: "50%", left: "50%", width: 0, height: 0 }}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 1.0 + i * 0.15 }}
+          style={{ left: l.x, top: l.y, transform: "translate(-50%, -50%)" }}
+          initial={{ opacity: 0, scale: 0.7 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 1.55 + i * 0.09, ease: [0.34, 1.4, 0.64, 1] }}
         >
           <div
+            className="relative flex items-center gap-1.5 pl-1.5 pr-2.5 py-1 rounded-lg whitespace-nowrap"
             style={{
-              position: "absolute",
-              top: 0, left: 0,
-              width: 0, height: 0,
-              transformOrigin: "0 0",
-              animation: `hero-orbit ${ORBIT_SEC}s linear infinite`,
-              animationDelay: `-${(o.startDeg / 360) * ORBIT_SEC}s`,
+              background: `linear-gradient(135deg, ${l.color}1f 0%, rgba(9,10,16,0.92) 100%)`,
+              border: `1px solid ${l.color}40`,
+              backdropFilter: "blur(12px)",
+              boxShadow: "0 4px 18px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.07)",
+              animation: `hero-cap-float 5s ease-in-out ${i * 0.4}s infinite`,
             }}
           >
-            <div
-              style={{
-                position: "absolute",
-                left: ORBIT_R,
-                top: 0,
-                animation: `hero-unspin ${ORBIT_SEC}s linear infinite`,
-                animationDelay: `-${(o.startDeg / 360) * ORBIT_SEC}s`,
-              }}
-            >
-              {/* Capsule glow */}
-              <div
-                className="absolute inset-0 rounded-xl"
-                style={{ filter: "blur(8px)", background: o.color, opacity: 0.25 }}
-              />
-              {/* Capsule body */}
-              <div
-                className="relative flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl whitespace-nowrap"
-                style={{
-                  background: `linear-gradient(135deg, ${o.color}22 0%, rgba(10,10,18,0.9) 100%)`,
-                  border: `1px solid ${o.color}45`,
-                  backdropFilter: "blur(14px)",
-                  boxShadow: `0 4px 20px ${o.glow.replace("0.7", "0.25")}, inset 0 1px 0 rgba(255,255,255,0.08)`,
-                  transform: "translate(-50%, -50%)",
-                }}
-              >
-                {/* Top shimmer */}
-                <div className="absolute inset-x-0 top-0 h-px rounded-t-xl" style={{ background: `linear-gradient(90deg, transparent, ${o.color}60, transparent)` }} />
-                {/* Colored dot indicator */}
-                <div
-                  className="size-1.5 rounded-full flex-shrink-0"
-                  style={{ background: o.color, boxShadow: `0 0 6px ${o.color}` }}
-                />
-                <span className="text-[11px] font-bold" style={{ color: o.color }}>{o.shortRole}</span>
-                <span className="text-[9px] text-white/35 font-medium">{o.fullRole}</span>
-              </div>
-            </div>
+            <span className="size-1.5 rounded-full flex-shrink-0" style={{ background: l.color, boxShadow: `0 0 5px ${l.color}` }} />
+            <span className="text-[10px] font-bold" style={{ color: l.color }}>{l.role}</span>
+            <span className="text-[8.5px] text-white/35 font-medium">{l.full}</span>
           </div>
         </motion.div>
       ))}
@@ -295,6 +332,13 @@ export function HeroSection() {
         @keyframes hero-badge-glow {
           0%, 100% { box-shadow: 0 0 8px rgba(124,58,237,0.12); }
           50%       { box-shadow: 0 0 16px rgba(124,58,237,0.24); }
+        }
+        @keyframes hero-cap-float {
+          0%, 100% { transform: translate(-50%, -50%); }
+          50%       { transform: translate(-50%, calc(-50% - 6px)); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          svg animate { animation-duration: 0.001s !important; }
         }
       `}</style>
 
