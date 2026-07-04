@@ -394,82 +394,177 @@ function DetailedRevenueChart({ financials, timeframe }: {
 
 // ─── ANIMATED RINGS (TAM/SAM/SOM) ────────────────────────────────────────────
 
-function AnimatedRings({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
-  const animated = useAnimated(100);
-  const numericItems = items.filter(i => i.numeric !== undefined).slice(0, 3);
-  if (numericItems.length < 2) return null;
-  const max = Math.max(...numericItems.map(i => i.numeric!));
-  const RINGS = [
-    { color: "#7A5CFF", glow: "rgba(122,92,255,0.4)", label: "TAM" },
-    { color: "#5A8DFF", glow: "rgba(90,141,255,0.4)", label: "SAM" },
-    { color: "#00E7A7", glow: "rgba(0,231,167,0.5)", label: "SOM" },
+function MarketSphereChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef    = useRef<number>(0);
+  const tRef      = useRef(0);
+
+  const tam  = items.find(m => m.label.toLowerCase().includes("tam") || m.label.toLowerCase().includes("общий"));
+  const sam  = items.find(m => m.label.toLowerCase().includes("sam") || m.label.toLowerCase().includes("достиж"));
+  const som  = items.find(m => m.label.toLowerCase().includes("som") || m.label.toLowerCase().includes("целевой"));
+  const cagr = items.find(m => m.label.toLowerCase().includes("рост") || m.label.toLowerCase().includes("cagr"));
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const DPR = Math.min(window.devicePixelRatio ?? 1, 2);
+    const W = 460, H = 370;
+    canvas.width  = W * DPR;
+    canvas.height = H * DPR;
+    canvas.style.width  = W + "px";
+    canvas.style.height = H + "px";
+    ctx.scale(DPR, DPR);
+
+    function drawSphere(
+      cx: number, cy: number, r: number,
+      hiColor: string, midColor: string, glowRgb: string,
+    ) {
+      // Outer glow bloom
+      const bloom = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r * 2.2);
+      bloom.addColorStop(0, `rgba(${glowRgb},0.22)`);
+      bloom.addColorStop(1, `rgba(${glowRgb},0)`);
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = bloom;
+      ctx.beginPath(); ctx.arc(cx, cy, r * 2.2, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+
+      // Sphere body
+      const hx = cx - r * 0.3, hy = cy - r * 0.32;
+      const body = ctx.createRadialGradient(hx, hy, r * 0.02, cx + r * 0.08, cy + r * 0.08, r * 1.15);
+      body.addColorStop(0,   hiColor);
+      body.addColorStop(0.45, midColor);
+      body.addColorStop(1,   `rgba(${glowRgb},0.08)`);
+      ctx.fillStyle = body;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+      // Specular highlight
+      const spec = ctx.createRadialGradient(hx, hy, 0, hx, hy, r * 0.55);
+      spec.addColorStop(0, "rgba(255,255,255,0.52)");
+      spec.addColorStop(0.6, "rgba(255,255,255,0.08)");
+      spec.addColorStop(1,  "rgba(255,255,255,0)");
+      ctx.fillStyle = spec;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+      // Bottom rim light
+      const rim = ctx.createRadialGradient(cx, cy + r * 0.7, 0, cx, cy + r * 0.7, r * 0.55);
+      rim.addColorStop(0, `rgba(${glowRgb},0.28)`);
+      rim.addColorStop(1, `rgba(${glowRgb},0)`);
+      ctx.fillStyle = rim;
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function drawPlatform(cy: number) {
+      const w = 280, h = 28;
+      const cx = W / 2;
+      // Glass platform ellipse
+      const g = ctx.createLinearGradient(cx - w / 2, cy, cx + w / 2, cy + h);
+      g.addColorStop(0,   "rgba(122,92,255,0.12)");
+      g.addColorStop(0.5, "rgba(90,141,255,0.18)");
+      g.addColorStop(1,   "rgba(122,92,255,0.06)");
+      ctx.save();
+      ctx.beginPath();
+      ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.fill();
+      // Edge highlight
+      ctx.strokeStyle = "rgba(180,160,255,0.22)";
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      tRef.current += 0.012;
+      const t = tRef.current;
+
+      const breathTam = 1 + Math.sin(t)         * 0.016;
+      const breathSam = 1 + Math.sin(t + 1.1)   * 0.018;
+      const breathSom = 1 + Math.sin(t + 2.3)   * 0.025;
+
+      const tamCx = W * 0.43, tamCy = 185, tamR = 132 * breathTam;
+      const samCx = W * 0.47, samCy = 310, samR = 78  * breathSam;
+      const somCx = W * 0.45, somCy = 356, somR = 26  * breathSom;
+
+      // Platform
+      drawPlatform(370);
+
+      // Platform reflection glow
+      const refGlow = ctx.createRadialGradient(W * 0.45, 368, 0, W * 0.45, 368, 120);
+      refGlow.addColorStop(0, "rgba(122,92,255,0.12)");
+      refGlow.addColorStop(1, "rgba(122,92,255,0)");
+      ctx.save(); ctx.globalCompositeOperation = "lighter";
+      ctx.fillStyle = refGlow;
+      ctx.beginPath(); ctx.ellipse(W * 0.45, 368, 120, 18, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.restore();
+
+      // Draw back-to-front: TAM, SAM, SOM
+      drawSphere(tamCx, tamCy, tamR, "#c4b5fd", "#7A5CFF", "122,92,255");
+      drawSphere(samCx, samCy, samR, "#93c5fd", "#3b82f6",  "90,141,255");
+      drawSphere(somCx, somCy, somR, "#6ee7b7", "#00E7A7",  "0,231,167");
+
+      rafRef.current = requestAnimationFrame(draw);
+    }
+    draw();
+
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  const cards = [
+    { key: "TAM", label: "TAM: " + (tam?.value ?? "—"), sub: "(Общий адресный рынок)", color: "#a78bfa", rgb: "167,139,250",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> },
+    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Достижимый рынок)", color: "#5A8DFF", rgb: "90,141,255",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> },
+    { key: "SOM", label: "SOM: " + (som?.value ?? "—"), sub: "(Достижимый рыночный охват)", color: "#00E7A7", rgb: "0,231,167",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M17 3l1 4-4 1"/></svg> },
+    { key: "CAGR", label: "CAGR: " + (cagr?.value ?? "+25%"), sub: "(Среднегодовой темп роста)", color: "#FFB800", rgb: "255,184,0",
+      icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/><rect x="2" y="14" width="4" height="7" rx="1"/><rect x="9" y="10" width="4" height="11" rx="1"/><rect x="16" y="6" width="4" height="15" rx="1"/></svg> },
   ];
-  const cx = 110, cy = 110, maxR = 88;
 
   return (
     <div style={{
-      background: "linear-gradient(135deg,rgba(122,92,255,0.06) 0%,rgba(10,10,18,0.88) 100%)",
-      border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20, position: "relative", overflow: "hidden",
+      background: "rgba(8,10,20,0.95)", border: "1px solid rgba(255,255,255,0.07)",
+      borderRadius: 16, overflow: "hidden", position: "relative",
     }}>
-      <div style={{ position: "absolute", inset: 0, opacity: 0.02, backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.6) 1px, transparent 0)", backgroundSize: "20px 20px" }} />
-      <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 16, position: "relative" }}>Размер рынка</div>
-      <div style={{ display: "flex", alignItems: "center", gap: 24 }}>
-        <svg viewBox="0 0 220 220" width={180} height={180} style={{ flexShrink: 0 }}>
-          <defs>
-            {RINGS.map((ring, i) => (
-              <radialGradient key={i} id={`mrg${i}`} cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor={ring.color} stopOpacity="0.15" />
-                <stop offset="100%" stopColor={ring.color} stopOpacity="0.02" />
-              </radialGradient>
-            ))}
-          </defs>
-          {[...numericItems].reverse().map((item, idx) => {
-            const i = numericItems.length - 1 - idx;
-            const frac = Math.pow(item.numeric! / max, 0.42);
-            const r = Math.max(12, maxR * frac);
-            return (
-              <g key={i}>
-                <circle cx={cx} cy={cy} r={r} fill={`url(#mrg${i})`}
-                  style={{
-                    transformOrigin: `${cx}px ${cy}px`,
-                    transform: animated ? "scale(1)" : "scale(0)",
-                    transition: `transform 0.9s cubic-bezier(0.34,1.56,0.64,1) ${i * 180}ms`,
-                    opacity: animated ? 1 : 0,
-                  }} />
-                <circle cx={cx} cy={cy} r={r} fill="none" stroke={RINGS[i].color}
-                  strokeWidth={i === 0 ? 1.5 : 1}
-                  strokeDasharray={i > 0 ? "5 3" : undefined}
-                  style={{
-                    filter: `drop-shadow(0 0 6px ${RINGS[i].glow})`,
-                    transformOrigin: `${cx}px ${cy}px`,
-                    transform: animated ? "scale(1)" : "scale(0)",
-                    transition: `transform 0.9s cubic-bezier(0.34,1.56,0.64,1) ${i * 180}ms`,
-                    opacity: animated ? 1 : 0,
-                  }} />
-              </g>
-            );
-          })}
-          <circle cx={cx} cy={cy} r="4" fill="#00E7A7"
-            style={{ filter: "drop-shadow(0 0 6px rgba(0,231,167,0.9))", opacity: animated ? 1 : 0, transition: "opacity 0.4s 0.8s" }} />
-        </svg>
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 16 }}>
-          {numericItems.map((item, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 8, height: 8, borderRadius: "50%", flexShrink: 0, background: RINGS[i].color, boxShadow: `0 0 8px ${RINGS[i].glow}` }} />
+      <div style={{ padding: "14px 20px 0", fontSize: 9, fontWeight: 800, letterSpacing: "0.22em", color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}>
+        Анализ объема рынка (TAM/SAM/SOM)
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", alignItems: "center" }}>
+        {/* Canvas left */}
+        <canvas ref={canvasRef} style={{ display: "block", maxWidth: "100%" }} />
+
+        {/* Cards right */}
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: "16px 20px 16px 0" }}>
+          {cards.map((c, i) => (
+            <div key={c.key} style={{
+              background: `rgba(${c.rgb},0.07)`,
+              border: `1px solid rgba(${c.rgb},0.22)`,
+              borderRadius: 14, padding: "14px 14px",
+              display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8,
+              opacity: 0, animation: `mkt-fadein 0.55s cubic-bezier(0.22,1,0.36,1) ${150 + i * 110}ms forwards`,
+            }}>
               <div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>{item.label}</div>
-                <div style={{ fontSize: 18, fontWeight: 800, color: RINGS[i].color, fontFamily: "monospace", lineHeight: 1 }}>{item.value}</div>
+                {c.key === "SOM" && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 4 }}>
+                    <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.color, boxShadow: `0 0 6px ${c.color}`, display: "inline-block" }} />
+                    <span style={{ fontSize: 11, fontWeight: 800, color: c.color }}>{c.label}</span>
+                  </div>
+                )}
+                {c.key !== "SOM" && (
+                  <div style={{ fontSize: 11, fontWeight: 800, color: c.color, marginBottom: 4, display: "flex", alignItems: "center", gap: 5 }}>
+                    {c.key === "TAM" && <span style={{ width: 7, height: 7, borderRadius: "50%", background: c.color, display: "inline-block" }} />}
+                    {c.label}
+                  </div>
+                )}
+                <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.3)", lineHeight: 1.4 }}>{c.sub}</div>
               </div>
+              <div style={{ color: c.color, opacity: 0.6, flexShrink: 0, marginTop: 1 }}>{c.icon}</div>
             </div>
           ))}
-          {items.find(m => m.label.includes("Рост")) && (
-            <div style={{ paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 2 }}>Рост рынка (CAGR)</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: "#FFB800", fontFamily: "monospace" }}>{items.find(m => m.label.includes("Рост"))?.value}</div>
-            </div>
-          )}
         </div>
       </div>
+      <style>{`@keyframes mkt-fadein { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }`}</style>
     </div>
   );
 }
@@ -1075,7 +1170,7 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <AnimatedRings items={project.market} />
+      <MarketSphereChart items={project.market} />
 
       {/* Market growth bar */}
       <div style={{
