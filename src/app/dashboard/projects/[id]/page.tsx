@@ -1383,7 +1383,131 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
 
 // ─── RISKS TAB ────────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+// ─── RISK CARD ILLUSTRATIONS ─────────────────────────────────────────────────
+
+function RiskIllustration({ index, color, rgb }: { index: number; color: string; rgb: string }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current; if (!canvas) return;
+    const ctx = canvas.getContext("2d")!;
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+    const [r, g, b] = rgb.split(",").map(Number);
+
+    // Background glow
+    const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, W*0.7);
+    bg.addColorStop(0, `rgba(${r},${g},${b},0.18)`);
+    bg.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+    if (index === 0) {
+      // Shield + chess pieces — competitive dynamics
+      const drawShield = (cx: number, cy: number, size: number, alpha: number) => {
+        ctx.save(); ctx.globalAlpha = alpha;
+        ctx.beginPath();
+        ctx.moveTo(cx, cy - size);
+        ctx.lineTo(cx + size * 0.7, cy - size * 0.3);
+        ctx.lineTo(cx + size * 0.7, cy + size * 0.3);
+        ctx.lineTo(cx, cy + size);
+        ctx.lineTo(cx - size * 0.7, cy + size * 0.3);
+        ctx.lineTo(cx - size * 0.7, cy - size * 0.3);
+        ctx.closePath();
+        const sg = ctx.createLinearGradient(cx - size, cy - size, cx + size, cy + size);
+        sg.addColorStop(0, `rgba(${r},${g},${b},0.6)`);
+        sg.addColorStop(1, `rgba(${r},${g},${b},0.15)`);
+        ctx.fillStyle = sg; ctx.fill();
+        ctx.strokeStyle = `rgba(${r},${g},${b},0.8)`; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.restore();
+      };
+      drawShield(W/2, H/2 - 8, 38, 1);
+      drawShield(W/2, H/2 - 8, 48, 0.3);
+      // Crown on shield
+      ctx.save(); ctx.globalAlpha = 0.9;
+      ctx.fillStyle = color;
+      ctx.font = "bold 28px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText("♛", W/2, H/2 - 6);
+      // Chess pieces around
+      ctx.font = "18px serif"; ctx.globalAlpha = 0.5;
+      ctx.fillText("♟", W*0.2, H*0.3); ctx.fillText("♟", W*0.78, H*0.7);
+      ctx.fillText("♜", W*0.75, H*0.28); ctx.fillText("♞", W*0.22, H*0.7);
+      ctx.restore();
+      // Globe grid lines
+      ctx.save(); ctx.globalAlpha = 0.15; ctx.strokeStyle = color; ctx.lineWidth = 0.8;
+      for (let i = 0; i < 4; i++) {
+        ctx.beginPath(); ctx.ellipse(W/2, H/2, 65, 20 + i * 12, 0, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.restore();
+    } else if (index === 1) {
+      // Funnel + magnet — acquisition optimization
+      // Magnet
+      ctx.save(); ctx.globalAlpha = 0.85;
+      ctx.strokeStyle = color; ctx.lineWidth = 7; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.arc(W/2 - 18, H/2 - 12, 22, Math.PI, 0); ctx.stroke();
+      ctx.strokeStyle = color; ctx.lineWidth = 5;
+      ctx.beginPath(); ctx.moveTo(W/2 - 40, H/2 - 12); ctx.lineTo(W/2 - 40, H/2 + 16); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W/2 + 4, H/2 - 12); ctx.lineTo(W/2 + 4, H/2 + 16); ctx.stroke();
+      // Magnet tips
+      ctx.fillStyle = "#FF5470";
+      ctx.fillRect(W/2 - 47, H/2 + 10, 14, 10);
+      ctx.fillStyle = "#5A8DFF";
+      ctx.fillRect(W/2 - 3, H/2 + 10, 14, 10);
+      ctx.restore();
+      // Funnel
+      ctx.save(); ctx.globalAlpha = 0.65;
+      ctx.beginPath();
+      ctx.moveTo(W*0.28, H*0.62); ctx.lineTo(W*0.72, H*0.62);
+      ctx.lineTo(W*0.55, H*0.85); ctx.lineTo(W*0.45, H*0.85);
+      ctx.closePath();
+      const fg = ctx.createLinearGradient(0, H*0.62, 0, H*0.85);
+      fg.addColorStop(0, `rgba(${r},${g},${b},0.5)`); fg.addColorStop(1, `rgba(${r},${g},${b},0.1)`);
+      ctx.fillStyle = fg; ctx.fill();
+      ctx.strokeStyle = `rgba(${r},${g},${b},0.8)`; ctx.lineWidth = 1.5; ctx.stroke();
+      // Metrics bubbles
+      [[W*0.68, H*0.38, "350"], [W*0.76, H*0.56, "975"], [W*0.62, H*0.68, "6"]].forEach(([x, y, t]) => {
+        ctx.beginPath(); ctx.arc(x as number, y as number, 14, 0, Math.PI*2);
+        ctx.fillStyle = `rgba(${r},${g},${b},0.25)`; ctx.fill();
+        ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.stroke();
+        ctx.fillStyle = "white"; ctx.font = "bold 9px monospace"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+        ctx.fillText(t as string, x as number, y as number);
+      });
+      ctx.restore();
+    } else {
+      // Server stack + AI — infrastructure
+      ctx.save();
+      const drawServer = (y: number, h: number, alpha: number) => {
+        ctx.globalAlpha = alpha;
+        ctx.beginPath(); ctx.roundRect(W*0.2, y, W*0.6, h, 4);
+        const sg = ctx.createLinearGradient(0, y, 0, y + h);
+        sg.addColorStop(0, `rgba(${r},${g},${b},0.3)`); sg.addColorStop(1, `rgba(${r},${g},${b},0.08)`);
+        ctx.fillStyle = sg; ctx.fill();
+        ctx.strokeStyle = `rgba(${r},${g},${b},0.5)`; ctx.lineWidth = 1; ctx.stroke();
+        // LED dots
+        for (let d = 0; d < 3; d++) {
+          ctx.beginPath(); ctx.arc(W*0.25 + d * 10, y + h/2, 2.5, 0, Math.PI*2);
+          ctx.fillStyle = d === 0 ? "#00E7A7" : d === 1 ? "#FFB800" : `rgba(${r},${g},${b},0.8)`;
+          ctx.globalAlpha = alpha * 0.9; ctx.fill();
+        }
+      };
+      drawServer(H*0.1, 20, 0.9);
+      drawServer(H*0.2, 20, 0.8);
+      drawServer(H*0.3, 20, 0.7);
+      // AI brain
+      ctx.globalAlpha = 0.85;
+      ctx.font = "36px serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillStyle = color; ctx.fillText("🧠", W/2, H*0.64);
+      // Shield
+      ctx.font = "22px serif"; ctx.globalAlpha = 0.7;
+      ctx.fillText("🛡️", W*0.28, H*0.64); ctx.fillText("🔒", W*0.72, H*0.64);
+      ctx.restore();
+      // Connection lines
+      ctx.save(); ctx.globalAlpha = 0.2; ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.setLineDash([3, 4]);
+      ctx.beginPath(); ctx.moveTo(W/2, H*0.4); ctx.lineTo(W/2, H*0.55); ctx.stroke();
+      ctx.setLineDash([]); ctx.restore();
+    }
+  }, [index, color, rgb]);
+  return <canvas ref={canvasRef} width={160} height={150} style={{ width: 160, height: 150, borderRadius: 8 }} />;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
   const animated = useAnimated(80);
@@ -1482,191 +1606,199 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
       {/* ── MAIN GRID: chart left + cards right ── */}
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
 
-        {/* LEFT: neon bar chart */}
+        {/* LEFT: nested-rect bar chart */}
         <div style={{
-          background: "rgba(8,10,20,0.95)", border: "1px solid rgba(255,255,255,0.07)",
-          borderRadius: 16, padding: "20px 20px 16px", position: "relative", overflow: "hidden",
+          background: "rgba(6,8,18,0.97)", border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: 16, padding: "20px 16px 16px", position: "relative", overflow: "hidden",
         }}>
-          {/* Grid lines */}
-          <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-            {[0, 25, 50, 75, 100].map(pct => (
-              <div key={pct} style={{
-                position: "absolute", left: 44, right: 16,
-                top: `${20 + (1 - pct / 100) * 68}%`,
-                borderTop: "1px solid rgba(255,255,255,0.05)",
-                display: "flex", alignItems: "center",
-              }}>
-                <span style={{ position: "absolute", left: -40, fontSize: 8.5, color: "rgba(255,255,255,0.2)", fontFamily: "ui-monospace,monospace" }}>{pct}%</span>
-              </div>
+          {/* Grid */}
+          <svg style={{ position: "absolute", left: 44, right: 12, top: 20, bottom: 80, width: "calc(100% - 56px)", height: "calc(100% - 120px)", pointerEvents: "none" }} preserveAspectRatio="none">
+            {[0,25,50,75,100].map(pct => (
+              <g key={pct}>
+                <line x1="0" y1={`${(1-pct/100)*100}%`} x2="100%" y2={`${(1-pct/100)*100}%`} stroke="rgba(255,255,255,0.05)" strokeWidth="1"/>
+                <text x="-4" y={`${(1-pct/100)*100}%`} textAnchor="end" dominantBaseline="middle" fontSize="8" fill="rgba(255,255,255,0.2)" fontFamily="ui-monospace,monospace">{pct}%</text>
+              </g>
             ))}
-          </div>
+          </svg>
 
           {/* Bars */}
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-around", height: 240, paddingLeft: 36, paddingRight: 8, gap: 16, position: "relative" }}>
+          <div style={{ display: "flex", alignItems: "flex-end", height: 260, paddingLeft: 40, paddingRight: 4, gap: 20, position: "relative" }}>
             {risks.map((risk, i) => {
               const meta = RISK_META[risk.level] ?? RISK_META.medium;
               const pct = lv[risk.level] ?? 50;
+              const barH = `${pct}%`;
+              const layers = [
+                { shrink: 0,  opacity: 0.12, blur: "12px" },
+                { shrink: 4,  opacity: 0.22, blur: "0"    },
+                { shrink: 8,  opacity: 0.35, blur: "0"    },
+                { shrink: 13, opacity: 0.55, blur: "0"    },
+                { shrink: 18, opacity: 0.80, blur: "0"    },
+              ];
               return (
                 <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end", gap: 8 }}>
-                  {/* Percentage label */}
+                  {/* % label */}
                   <div style={{
-                    fontSize: 18, fontWeight: 800, color: meta.color, fontFamily: "ui-monospace,monospace",
-                    textShadow: `0 0 16px rgba(${meta.rgb},0.8)`,
-                    opacity: animated ? 1 : 0,
-                    transition: `opacity 0.4s ${200 + i * 150}ms`,
+                    fontSize: 20, fontWeight: 900, color: meta.color, fontFamily: "ui-monospace,monospace",
+                    textShadow: `0 0 20px rgba(${meta.rgb},1), 0 0 40px rgba(${meta.rgb},0.5)`,
+                    opacity: animated ? 1 : 0, transition: `opacity 0.4s ${180 + i*130}ms`,
                   }}>{pct}%</div>
 
-                  {/* Bar wrapper */}
-                  <div style={{ width: "100%", height: `${pct}%`, position: "relative", transformOrigin: "bottom" }}>
-                    {/* Glow outer */}
-                    <div style={{
-                      position: "absolute", inset: -4, borderRadius: 10,
-                      background: `rgba(${meta.rgb},0.12)`,
-                      filter: "blur(8px)",
-                      opacity: animated ? 1 : 0, transition: `opacity 0.6s ${300 + i * 150}ms`,
-                    }} />
-                    {/* Bar body */}
-                    <div style={{
-                      position: "absolute", inset: 0, borderRadius: 8,
-                      background: `linear-gradient(180deg, rgba(${meta.rgb},0.9) 0%, rgba(${meta.rgb},0.25) 100%)`,
-                      border: `1px solid rgba(${meta.rgb},0.6)`,
-                      boxShadow: `inset 0 0 20px rgba(${meta.rgb},0.2), 0 0 20px rgba(${meta.rgb},0.3)`,
-                      transformOrigin: "bottom",
-                      animation: animated ? `bar-rise 0.9s cubic-bezier(0.34,1.56,0.64,1) ${100 + i * 180}ms both` : "none",
-                    }}>
-                      {/* Inner highlight streak */}
-                      <div style={{ position: "absolute", top: 0, left: "20%", width: "20%", bottom: 0, borderRadius: 4, background: `rgba(255,255,255,0.12)` }} />
-                      {/* Dot marker */}
-                      <div style={{
-                        position: "absolute", top: -5, left: "50%", transform: "translateX(-50%)",
-                        width: 8, height: 8, borderRadius: "50%",
-                        background: meta.color, boxShadow: `0 0 10px rgba(${meta.rgb},1)`,
-                        animation: "rsk-pulse 2s ease-in-out infinite",
-                      }} />
-                    </div>
+                  {/* Nested rect bar */}
+                  <div style={{ width: "100%", height: barH, position: "relative" }}>
+                    {layers.map((lay, li) => (
+                      <div key={li} style={{
+                        position: "absolute",
+                        left: lay.shrink, right: lay.shrink, top: 0, bottom: 0,
+                        borderRadius: 6 + lay.shrink * 0.3,
+                        background: `linear-gradient(180deg, rgba(${meta.rgb},${lay.opacity}) 0%, rgba(${meta.rgb},${lay.opacity * 0.2}) 100%)`,
+                        border: li > 0 ? `1px solid rgba(${meta.rgb},${lay.opacity * 0.8})` : "none",
+                        filter: lay.blur !== "0" ? `blur(${lay.blur})` : "none",
+                        boxShadow: li === 4 ? `inset 0 0 12px rgba(${meta.rgb},0.3), 0 0 24px rgba(${meta.rgb},0.4)` : "none",
+                        transformOrigin: "bottom",
+                        animation: animated ? `bar-rise ${0.7 + li*0.08}s cubic-bezier(0.34,1.4,0.64,1) ${60 + i*160 + li*30}ms both` : "none",
+                      }}>
+                        {li === 4 && (
+                          <>
+                            {/* Highlight streak */}
+                            <div style={{ position:"absolute", top:0, left:"18%", width:"16%", bottom:0, borderRadius:3, background:"rgba(255,255,255,0.15)" }}/>
+                            {/* Top dot */}
+                            <div style={{
+                              position:"absolute", top:-5, left:"50%", transform:"translateX(-50%)",
+                              width:9, height:9, borderRadius:"50%",
+                              background:meta.color, boxShadow:`0 0 14px rgba(${meta.rgb},1), 0 0 30px rgba(${meta.rgb},0.6)`,
+                              animation:"rsk-pulse 1.8s ease-in-out infinite",
+                            }}/>
+                          </>
+                        )}
+                      </div>
+                    ))}
                   </div>
                 </div>
               );
             })}
 
-            {/* Connecting curve between bars */}
-            {animated && (
-              <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} preserveAspectRatio="none">
-                <defs>
-                  <linearGradient id="risk-curve" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="#FF5470" stopOpacity="0.5" />
-                    <stop offset="50%" stopColor="#FFB800" stopOpacity="0.5" />
-                    <stop offset="100%" stopColor="#00E7A7" stopOpacity="0.5" />
-                  </linearGradient>
-                </defs>
-                <path
-                  d={`M ${(1/6)*100}% ${(1 - (lv[risks[0]?.level ?? "medium"]/100)) * 100}%
-                      C 40% ${(1 - (lv[risks[0]?.level ?? "medium"]/100)) * 100}%
-                        60% ${(1 - (lv[risks[1]?.level ?? "medium"]/100)) * 100}%
-                        ${(3/6)*100}% ${(1 - (lv[risks[1]?.level ?? "medium"]/100)) * 100}%
-                      C ${(4/6)*100}% ${(1 - (lv[risks[1]?.level ?? "medium"]/100)) * 100}%
-                        80% ${(1 - (lv[risks[2]?.level ?? "low"]/100)) * 100}%
-                        ${(5/6)*100}% ${(1 - (lv[risks[2]?.level ?? "low"]/100)) * 100}%`}
-                  fill="none" stroke="url(#risk-curve)" strokeWidth="1.5"
-                  strokeDasharray="5 3" opacity="0.6"
-                  style={{ opacity: animated ? 0.6 : 0, transition: "opacity 0.8s 1s" }}
-                />
-              </svg>
-            )}
+            {/* Connecting bezier curve */}
+            <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none", overflow:"visible" }} preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="rsk-curve-grad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor={risks[0] ? (RISK_META[risks[0].level]?.color ?? "#FFB800") : "#FF5470"} stopOpacity="0.7"/>
+                  <stop offset="50%" stopColor={risks[1] ? (RISK_META[risks[1].level]?.color ?? "#FFB800") : "#FFB800"} stopOpacity="0.7"/>
+                  <stop offset="100%" stopColor={risks[2] ? (RISK_META[risks[2].level]?.color ?? "#00E7A7") : "#00E7A7"} stopOpacity="0.7"/>
+                </linearGradient>
+                <filter id="rsk-glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              {animated && (() => {
+                const p0y = (1 - (lv[risks[0]?.level??"medium"]/100)) * 100;
+                const p1y = (1 - (lv[risks[1]?.level??"medium"]/100)) * 100;
+                const p2y = (1 - (lv[risks[2]?.level??"low"]/100)) * 100;
+                return (
+                  <path
+                    d={`M 16% ${p0y}% C 35% ${p0y}% 48% ${p1y}% 50% ${p1y}% C 52% ${p1y}% 65% ${p2y}% 84% ${p2y}%`}
+                    fill="none" stroke="url(#rsk-curve-grad)" strokeWidth="2"
+                    filter="url(#rsk-glow)"
+                    style={{ opacity: animated ? 0.9 : 0, transition: "opacity 1s 1.2s", strokeDasharray:"none" }}
+                  />
+                );
+              })()}
+            </svg>
           </div>
 
           {/* X-axis labels */}
-          <div style={{ display: "flex", justifyContent: "space-around", paddingLeft: 36, paddingRight: 8, marginTop: 10, gap: 16 }}>
+          <div style={{ display:"flex", paddingLeft:40, paddingRight:4, gap:20, marginTop:12 }}>
             {risks.map((risk, i) => {
               const meta = RISK_META[risk.level] ?? RISK_META.medium;
               return (
-                <div key={i} style={{ flex: 1, textAlign: "center" }}>
-                  <div style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.1em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", lineHeight: 1.3 }}>
+                <div key={i} style={{ flex:1, textAlign:"center" }}>
+                  <div style={{ fontSize:8, fontWeight:800, letterSpacing:"0.12em", color:"rgba(255,255,255,0.5)", textTransform:"uppercase", lineHeight:1.3 }}>
                     {risk.title.toUpperCase()}
                   </div>
-                  <div style={{ marginTop: 4, fontSize: 7.5, fontWeight: 700, color: meta.color, letterSpacing: "0.08em" }}>{meta.label}</div>
+                  <div style={{ marginTop:3, fontSize:7.5, fontWeight:700, color:meta.color, letterSpacing:"0.1em" }}>{meta.label}</div>
                 </div>
               );
             })}
           </div>
 
           {/* Global Risk Index */}
-          <div style={{ marginTop: 14, padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-              <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.75)" }}>
-                Глобальный Индекс Риска: <span style={{ color: "#FFB800" }}>{globalScore}/100</span>
-              </span>
-              <svg viewBox="0 0 28 28" fill="none" style={{ width: 22, height: 22 }}>
-                <circle cx="14" cy="14" r="11" stroke="rgba(255,184,0,0.3)" strokeWidth="2" />
-                <circle cx="14" cy="14" r="11" stroke="#FFB800" strokeWidth="2"
-                  strokeDasharray={`${2 * Math.PI * 11 * globalScore / 100} ${2 * Math.PI * 11}`}
-                  strokeLinecap="round" strokeDashoffset={2 * Math.PI * 11 * 0.25}
-                  style={{ transition: "stroke-dasharray 1.2s ease-out 0.8s" }} />
+          <div style={{ marginTop:14, padding:"12px 14px", borderRadius:10, background:"rgba(255,255,255,0.03)", border:"1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
+              <div>
+                <span style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.75)" }}>
+                  Глобальный Индекс Риска: <span style={{ color:"#FFB800" }}>{globalScore}/100</span>
+                </span>
+                <span style={{ marginLeft:8, fontSize:9, color:"rgba(255,255,255,0.3)" }}>(Снижение на 3 п.)</span>
+              </div>
+              <svg viewBox="0 0 28 28" fill="none" style={{ width:24, height:24 }}>
+                <circle cx="14" cy="14" r="11" stroke="rgba(255,184,0,0.2)" strokeWidth="2.5"/>
+                <circle cx="14" cy="14" r="11" stroke="#FFB800" strokeWidth="2.5"
+                  strokeDasharray={`${2*Math.PI*11*globalScore/100} ${2*Math.PI*11}`}
+                  strokeLinecap="round" strokeDashoffset={2*Math.PI*11*0.25}
+                  style={{ filter:"drop-shadow(0 0 4px #FFB800)", transition:"stroke-dasharray 1.5s ease-out 0.8s" }}/>
               </svg>
             </div>
-            <div style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Рекомендации ИИ по рискам</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
-              {[
-                "Увеличить LTV-фокус в сегменте SMB.",
-                "Оптимизировать конкуренцию в ключевых каналах.",
-                "Ввести ежеквартальный risk-review процесс.",
-                "Усилить рост охвата по ключевым сегментам.",
-              ].map((rec, i) => (
-                <div key={i} style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", display: "flex", gap: 5, alignItems: "flex-start" }}>
-                  <span style={{ color: "#7A5CFF", fontWeight: 700, flexShrink: 0 }}>ИИ:</span>
-                  <span>{rec}</span>
-                </div>
-              ))}
+            <div style={{ fontSize:9.5, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:6 }}>Рекомендации ИИ по рискам</div>
+            <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:5 }}>
+              {(() => {
+                const src = aiResults.find((r: {role:string}) => r.role==="Risk Manager")?.recommendations ||
+                            aiResults.find((r: {role:string}) => r.role==="CEO")?.recommendations || "";
+                const lines = src ? src.split(/[.!]\s+/).filter((s:string) => s.length > 15).slice(0,4)
+                  : ["Увеличить LTV-фокус в сегменте SMB.", "Оптимизировать конкуренцию в ключевых каналах.", "Ввести ежеквартальный risk-review процесс.", "Усилить рост охвата по ключевым сегментам."];
+                return lines.map((rec:string, i:number) => (
+                  <div key={i} style={{ fontSize:9, color:"rgba(255,255,255,0.3)", display:"flex", gap:5, alignItems:"flex-start" }}>
+                    <span style={{ color:"#7A5CFF", fontWeight:700, flexShrink:0 }}>ИИ:</span>
+                    <span>{rec.slice(0,60)}</span>
+                  </div>
+                ));
+              })()}
             </div>
           </div>
         </div>
 
-        {/* RIGHT: risk detail cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {risks.slice(0, 3).map((risk, i) => {
+        {/* RIGHT: illustrated risk cards */}
+        <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
+          {risks.slice(0,3).map((risk, i) => {
             const meta = RISK_META[risk.level] ?? RISK_META.medium;
             const plans = riskPlans[i] ?? [];
             return (
-              <div
-                key={i}
-                style={{
-                  background: `rgba(${meta.rgb},0.04)`,
-                  border: `1px solid rgba(${meta.rgb},0.2)`,
-                  borderRadius: 14, padding: "14px 16px",
-                  opacity: 0,
-                  animation: `risk-card-in 0.55s cubic-bezier(0.22,1,0.36,1) ${200 + i * 140}ms forwards`,
-                  position: "relative", overflow: "hidden",
-                }}
-              >
-                {/* Top accent line */}
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, rgba(${meta.rgb},0.7), transparent)` }} />
+              <div key={i} style={{
+                background: `linear-gradient(135deg, rgba(${meta.rgb},0.07) 0%, rgba(6,8,18,0.95) 100%)`,
+                border: `1px solid rgba(${meta.rgb},0.25)`,
+                borderRadius: 14, overflow:"hidden",
+                opacity: 0,
+                animation: `risk-card-in 0.6s cubic-bezier(0.22,1,0.36,1) ${150 + i*130}ms forwards`,
+                position:"relative",
+              }}>
+                {/* Top accent */}
+                <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg, transparent, rgba(${meta.rgb},0.8), transparent)` }}/>
 
-                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-                  {/* Icon box */}
+                <div style={{ display:"flex", gap:0 }}>
+                  {/* Illustration panel */}
                   <div style={{
-                    width: 52, height: 52, borderRadius: 12, flexShrink: 0,
-                    background: `rgba(${meta.rgb},0.1)`, border: `1px solid rgba(${meta.rgb},0.25)`,
-                    display: "flex", alignItems: "center", justifyContent: "center",
+                    width:160, flexShrink:0,
+                    background:`linear-gradient(135deg, rgba(${meta.rgb},0.12) 0%, rgba(0,0,0,0.4) 100%)`,
+                    borderRight:`1px solid rgba(${meta.rgb},0.15)`,
+                    display:"flex", alignItems:"center", justifyContent:"center",
+                    padding:8,
                   }}>
-                    {barIcons[i]}
+                    <RiskIllustration index={i} color={meta.color} rgb={meta.rgb}/>
                   </div>
 
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{risk.title}</span>
-                      <span style={{ fontSize: 8, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: `rgba(${meta.rgb},0.15)`, border: `1px solid rgba(${meta.rgb},0.35)`, color: meta.color, letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>
+                  {/* Content */}
+                  <div style={{ flex:1, padding:"14px 16px", minWidth:0 }}>
+                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6, flexWrap:"wrap" }}>
+                      <span style={{ fontSize:14, fontWeight:800, color:"#fff", letterSpacing:"-0.01em" }}>{risk.title}</span>
+                      <span style={{ fontSize:8, fontWeight:700, padding:"3px 9px", borderRadius:5, background:`rgba(${meta.rgb},0.15)`, border:`1px solid rgba(${meta.rgb},0.4)`, color:meta.color, letterSpacing:"0.1em", textTransform:"uppercase", flexShrink:0, whiteSpace:"nowrap" }}>
                         {meta.label} | {meta.badge}
                       </span>
                     </div>
-                    <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.38)", lineHeight: 1.5, marginBottom: 8 }}>
-                      {risk.desc || `Уровень угрозы: ${meta.label.toLowerCase()}. Мониторинг и контроль приоритетны.`}
+                    <div style={{ fontSize:9.5, color:"rgba(255,255,255,0.35)", lineHeight:1.55, marginBottom:10 }}>
+                      Описание: {risk.desc || `Уровень угрозы: ${meta.label.toLowerCase()}. Мониторинг и контроль приоритетны.`}
                     </div>
-                    <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 }}>Actionable Plan:</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
-                      {plans.map((step: string, si: number) => (
-                        <div key={si} style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", display: "flex", gap: 6, alignItems: "flex-start" }}>
-                          <span style={{ fontWeight: 800, color: meta.color, flexShrink: 0 }}>{si + 1}.</span>
-                          <span>{step}</span>
+                    <div style={{ fontSize:8.5, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.14em", marginBottom:6 }}>Actionable Plan:</div>
+                    <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
+                      {plans.map((step:string, si:number) => (
+                        <div key={si} style={{ fontSize:9.5, color:"rgba(255,255,255,0.6)", display:"flex", gap:7, alignItems:"flex-start" }}>
+                          <span style={{ fontWeight:800, color:meta.color, flexShrink:0, minWidth:14 }}>{si+1}.</span>
+                          <span><strong style={{ color:"rgba(255,255,255,0.85)", fontWeight:700 }}>{step.split(":")[0]}</strong>{step.includes(":") ? ": " + step.split(":").slice(1).join(":") : ""}</span>
                         </div>
                       ))}
                     </div>
