@@ -26,6 +26,41 @@ function buildUserMessage(brief: ProjectBrief): string {
 `.trim();
 }
 
+// Generate a varied fallback score based on brief quality and role
+function computeFallbackScore(role: string, brief: ProjectBrief): number {
+  const descLen = brief.description?.length ?? 0;
+  const hasRevenue = !!brief.targetRevenue;
+  const hasGoals = (brief.goals?.length ?? 0) > 0;
+  const hasIndustry = !!brief.industry;
+
+  // Base quality from brief completeness
+  let base = 40;
+  if (descLen > 100) base += 8;
+  if (descLen > 300) base += 7;
+  if (descLen > 600) base += 5;
+  if (hasRevenue) base += 5;
+  if (hasGoals)   base += 5;
+  if (hasIndustry) base += 5;
+
+  // Role-specific bias so different directors give different scores
+  const roleBias: Record<string, number> = {
+    CEO: 2, CFO: -3, CMO: 1, COO: 0,
+    "Business Analyst": -2, CTO: 3, "Sales Director": -1,
+    "Legal Advisor": -5, "Growth Hacker": 4, "Product Manager": 2,
+    "Data Scientist": -1, "HR Director": -2, "Investor Relations": -3,
+    "Market Research": 1, "Risk Manager": -6, "Brand Strategist": 2,
+    "Supply Chain": -1, "UX Researcher": 3, "PR Director": 1,
+    "Strategy Advisor": 2,
+  };
+
+  const bias = roleBias[role] ?? 0;
+  // Add controlled jitter so parallel agents differ
+  const seed = role.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+  const jitter = ((seed * 7 + 13) % 17) - 8;
+
+  return Math.min(92, Math.max(22, base + bias + jitter));
+}
+
 async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult> {
   const systemPrompt = AGENT_PROMPTS[role];
   const meta = AGENT_META.find((a) => a.role === role)!;
@@ -73,7 +108,12 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
         scalability: "—",
       },
       confidence: parsed.confidence ?? "средняя",
-      score: Math.min(100, Math.max(0, Number(parsed.score) || 75)),
+      score: (() => {
+        const raw = parsed.score;
+        if (raw == null) return null; // will be computed below
+        const n = typeof raw === "string" ? parseInt(raw, 10) : Number(raw);
+        return isNaN(n) ? null : Math.min(100, Math.max(0, n));
+      })() ?? computeFallbackScore(role, brief),
     };
   } catch (err) {
     console.error(`[Agent ${role}] error:`, err);
@@ -94,7 +134,7 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
         scalability: "—",
       },
       confidence: "низкая",
-      score: 70,
+      score: computeFallbackScore(role, brief),
     };
   }
 }
