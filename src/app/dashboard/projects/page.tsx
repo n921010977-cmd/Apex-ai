@@ -584,7 +584,7 @@ export default function ProjectsPage() {
         </div>
 
         {/* KPI row */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 10, marginBottom: 24 }}>
+        <div className="kpi-grid" style={{ display: "grid", gap: 10, marginBottom: 24 }}>
           {[
             { label: "Проектов",      value: ALL_PROJECTS.length, suffix: "", prefix: "",  color: "#7A5CFF", rgb: "122,92,255", icon: Layers,     sub: `+${userProjects.length} новых` },
             { label: "Прогноз",       value: Math.round(totalRevenue / 100000) / 10, suffix: "M", prefix: "$", color: "#00E7A7", rgb: "0,231,167",  icon: DollarSign, sub: "+24% vs Q1" },
@@ -617,7 +617,7 @@ export default function ProjectsPage() {
         </div>
 
         {/* Main layout */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 300px", gap: 20, alignItems: "start" }}>
+        <div className="proj-main-grid" style={{ display: "grid", gap: 20, alignItems: "start" }}>
 
           {/* Left: projects */}
           <div>
@@ -760,6 +760,17 @@ export default function ProjectsPage() {
 
       <style>{`
         @keyframes pf-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .kpi-grid { grid-template-columns: repeat(6, 1fr); }
+        .proj-main-grid { grid-template-columns: 1fr 300px; }
+        @media (max-width: 1100px) {
+          .proj-main-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 900px) {
+          .kpi-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 600px) {
+          .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+        }
       `}</style>
     </div>
   );

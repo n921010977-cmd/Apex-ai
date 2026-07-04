@@ -407,7 +407,7 @@ export default function DashboardPage() {
   const greeting = hour < 12 ? "Доброе утро" : hour < 17 ? "Добрый день" : "Добрый вечер";
 
   return (
-    <div className="min-h-full" style={{ background: "#040404", padding: "0 0 60px" }}>
+    <div className="min-h-full" style={{ background: "#05060A", paddingBottom: "max(60px, env(safe-area-inset-bottom))" }}>
 
       {/* ═══════════ HERO COMMAND CENTER ═══════════ */}
       <div
@@ -420,7 +420,7 @@ export default function DashboardPage() {
         {/* Background mesh */}
         <div style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(ellipse 60% 80% at 70% 50%, rgba(122,92,255,0.08) 0%, transparent 60%), radial-gradient(ellipse 40% 60% at 20% 30%, rgba(90,141,255,0.05) 0%, transparent 60%)", pointerEvents: "none" }} />
 
-        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px 36px", display: "grid", gridTemplateColumns: "1fr 380px", gap: 40, alignItems: "center" }}>
+        <div className="hero-grid" style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px 36px", display: "grid", gap: 40, alignItems: "center" }}>
 
           {/* Left: headline */}
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
@@ -508,11 +508,21 @@ export default function DashboardPage() {
 
         <style>{`
           @keyframes hero-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.6)} }
+          .hero-grid { grid-template-columns: 1fr 380px; }
+          .main-grid { grid-template-columns: 1fr 340px; }
+          @media (max-width: 1023px) {
+            .hero-grid { grid-template-columns: 1fr; }
+            .main-grid { grid-template-columns: 1fr; }
+            .hero-grid > *:last-child { display: none; }
+          }
+          @media (max-width: 640px) {
+            .hero-grid, .main-grid, .page-section { padding-left: 16px !important; padding-right: 16px !important; }
+          }
         `}</style>
       </div>
 
       {/* ═══════════ EXECUTIVE BOARD ═══════════ */}
-      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "36px 32px 0" }}>
+      <div className="page-section" style={{ maxWidth: 1280, margin: "0 auto", padding: "36px 32px 0" }}>
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>Executive AI Board</h2>
@@ -541,7 +551,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ═══════════ MAIN CONTENT ═══════════ */}
-      <div style={{ maxWidth: 1280, margin: "36px auto 0", padding: "0 32px", display: "grid", gridTemplateColumns: "1fr 340px", gap: 24 }}>
+      <div className="main-grid page-section" style={{ maxWidth: 1280, margin: "36px auto 0", padding: "0 32px", display: "grid", gap: 24 }}>
 
         {/* Left column */}
         <div className="space-y-6">

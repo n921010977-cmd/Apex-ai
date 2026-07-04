@@ -604,9 +604,14 @@ export default function NewStrategyPage() {
       <style>{`
         @keyframes lp-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
         @keyframes np-drift  { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-55%) scale(1.08)} }
-        .np-input { width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:14px; color:#fff; font-size:14px; outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
+        .np-input { width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:14px; color:#fff; font-size:14px; outline:none; transition:border-color 0.2s, box-shadow 0.2s; -webkit-appearance:none; }
         .np-input:focus { border-color:rgba(122,92,255,0.45); box-shadow:0 0 0 3px rgba(122,92,255,0.08); }
         .np-input::placeholder { color:rgba(255,255,255,0.2); }
+        .new-content-grid { grid-template-columns: 1fr 320px; }
+        @media (max-width: 1023px) { .new-content-grid { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) {
+          .new-content-grid { padding-left: 16px !important; padding-right: 16px !important; }
+        }
       `}</style>
 
       {/* Background */}
@@ -701,7 +706,7 @@ export default function NewStrategyPage() {
         </div>
 
         {/* ─── CONTENT ─── */}
-        <div style={{ maxWidth:1200, margin:"0 auto", padding:"32px 40px", display:"grid", gridTemplateColumns:"1fr 320px", gap:28, alignItems:"start" }}>
+        <div className="new-content-grid" style={{ maxWidth:1200, margin:"0 auto", padding:"32px 40px", display:"grid", gap:28, alignItems:"start" }}>
 
           {/* FORM COLUMN */}
           <div>

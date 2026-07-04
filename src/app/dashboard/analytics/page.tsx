@@ -326,7 +326,7 @@ export default function AnalyticsPage() {
         </div>
 
         {/* ── Growth Chart + AI Insights ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: 16, marginBottom: 16 }}>
+        <div className="an-main" style={{ display: "grid", gap: 16, marginBottom: 16 }}>
           {/* Growth chart */}
           <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
             style={{ padding: "22px 24px", borderRadius: 22, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", position: "relative", overflow: "hidden" }}
@@ -541,7 +541,7 @@ export default function AnalyticsPage() {
         </motion.div>
 
         {/* ── Forecast + Timeline + Widgets ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+        <div className="an-bottom" style={{ display: "grid", gap: 16 }}>
 
           {/* AI Forecast */}
           <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32 }}
@@ -655,6 +655,15 @@ export default function AnalyticsPage() {
 
       <style>{`
         @keyframes an-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        .an-main { grid-template-columns: 1fr 340px; }
+        .an-bottom { grid-template-columns: 1fr 1fr 1fr; }
+        @media (max-width: 1100px) {
+          .an-main { grid-template-columns: 1fr; }
+          .an-bottom { grid-template-columns: 1fr 1fr; }
+        }
+        @media (max-width: 640px) {
+          .an-bottom { grid-template-columns: 1fr; }
+        }
       `}</style>
     </div>
   );
