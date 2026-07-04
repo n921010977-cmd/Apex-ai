@@ -1,6 +1,40 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, useInView } from "framer-motion";
+
+// Animated count-up that parses values like "2,400+", "$140M+", "4.9 / 5"
+function AnimatedStatValue({ value }: { value: string }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const [display, setDisplay] = useState(value);
+  useEffect(() => {
+    if (!inView) return;
+    const match = value.match(/^([^0-9]*)([\d,.]+)(.*)$/);
+    if (!match) { setDisplay(value); return; }
+    const [, prefix, numStr, suffix] = match;
+    const hasComma = numStr.includes(",");
+    const target = parseFloat(numStr.replace(/,/g, ""));
+    const decimals = numStr.includes(".") ? (numStr.split(".")[1] ?? "").length : 0;
+    let raf = 0;
+    const start = performance.now();
+    const dur = 1500;
+    const fmt = (n: number) => {
+      const fixed = n.toFixed(decimals);
+      return hasComma ? Number(fixed).toLocaleString("en-US", { minimumFractionDigits: decimals }) : fixed;
+    };
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / dur, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(`${prefix}${fmt(eased * target)}${suffix}`);
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    setDisplay(`${prefix}${fmt(0)}${suffix}`);
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, value]);
+  return <span ref={ref} style={{ fontVariantNumeric: "tabular-nums" }}>{display}</span>;
+}
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -298,7 +332,7 @@ function StatCard({ stat, index }: { stat: typeof STATS[number]; index: number }
           filter:        `drop-shadow(0 0 18px rgba(${stat.rgb},0.45))`,
         }}
       >
-        {stat.value}
+        <AnimatedStatValue value={stat.value} />
       </div>
 
       {/* Label */}
@@ -431,13 +465,41 @@ export function TestimonialsSection() {
           </p>
         </motion.div>
 
-        {/* ── Testimonial grid ── */}
-        <div
-          className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3"
-          style={{ gap: 14 }}
-        >
+        {/* ── Testimonials: mobile grid ── */}
+        <div className="grid grid-cols-1 md:hidden" style={{ gap: 14 }}>
           {TESTIMONIALS.map((t, i) => (
             <TestimonialCard key={i} t={t} index={i} />
+          ))}
+        </div>
+
+        {/* ── Testimonials: desktop infinite marquee (2 rows, opposite directions) ── */}
+        <style>{`
+          @keyframes tm-marquee-l { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+          @keyframes tm-marquee-r { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+          .tm-track:hover { animation-play-state: paused; }
+          @media (prefers-reduced-motion: reduce) { .tm-track { animation: none !important; } }
+        `}</style>
+        <div className="hidden md:flex flex-col" style={{ gap: 14 }}>
+          {[
+            { items: TESTIMONIALS.slice(0, 3), anim: "tm-marquee-l 42s linear infinite" },
+            { items: TESTIMONIALS.slice(3, 6), anim: "tm-marquee-r 48s linear infinite" },
+          ].map((row, ri) => (
+            <div
+              key={ri}
+              style={{
+                overflow: "hidden",
+                maskImage: "linear-gradient(90deg, transparent, black 6%, black 94%, transparent)",
+                WebkitMaskImage: "linear-gradient(90deg, transparent, black 6%, black 94%, transparent)",
+              }}
+            >
+              <div className="tm-track" style={{ display: "flex", gap: 14, width: "max-content", animation: row.anim }}>
+                {[...row.items, ...row.items].map((t, i) => (
+                  <div key={i} style={{ width: 420, flexShrink: 0 }}>
+                    <TestimonialCard t={t} index={i % row.items.length} />
+                  </div>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
 

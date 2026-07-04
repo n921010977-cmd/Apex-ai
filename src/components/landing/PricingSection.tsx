@@ -50,17 +50,26 @@ export function PricingSection() {
           </h2>
           <p className="text-lg text-white/40 max-w-lg mx-auto">One McKinsey project costs $250,000+. Business Command Center costs less than a business lunch.</p>
 
-          <div className="inline-flex items-center gap-3 mt-8 p-1 rounded-xl glass border border-white/[0.08]">
-            <button
-              onClick={() => setAnnual(false)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${!annual ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25" : "text-white/40 hover:text-white"}`}
-            >Monthly</button>
-            <button
-              onClick={() => setAnnual(true)}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${annual ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25" : "text-white/40 hover:text-white"}`}
-            >
-              Annual<span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">-20%</span>
-            </button>
+          <div className="inline-flex items-center gap-1 mt-8 p-1 rounded-xl glass border border-white/[0.08]">
+            {[
+              { key: false, label: <>Monthly</> },
+              { key: true,  label: <>Annual<span className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400">-20%</span></> },
+            ].map((opt) => (
+              <button
+                key={String(opt.key)}
+                onClick={() => setAnnual(opt.key)}
+                className={`relative px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 ${annual === opt.key ? "text-white" : "text-white/40 hover:text-white"}`}
+              >
+                {annual === opt.key && (
+                  <motion.span
+                    layoutId="pricing-toggle-pill"
+                    className="absolute inset-0 rounded-lg bg-violet-600 shadow-lg shadow-violet-500/25"
+                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
+                  />
+                )}
+                <span className="relative z-10">{opt.label}</span>
+              </button>
+            ))}
           </div>
         </motion.div>
 
@@ -68,13 +77,25 @@ export function PricingSection() {
           {PLANS.map((plan, i) => (
             <motion.div
               key={plan.name}
-              className={`relative rounded-2xl p-px overflow-hidden ${plan.popular ? "shadow-2xl shadow-violet-500/20" : ""}`}
+              className={`relative rounded-2xl p-px ${plan.popular ? "md:scale-105 z-10" : ""}`}
               initial={{ opacity: 0, y: 30 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: i * 0.1, ease: "easeOut" }}
               whileHover={{ y: -6, transition: { duration: 0.2 } }}
             >
+              {/* Deep indigo ambient glow radiating from behind the Pro card */}
+              {plan.popular && (
+                <div
+                  aria-hidden
+                  className="absolute -inset-8 rounded-[32px] pointer-events-none transition-opacity duration-500"
+                  style={{
+                    background: "radial-gradient(ellipse at 50% 60%, rgba(99,102,241,0.35) 0%, rgba(124,58,237,0.18) 45%, transparent 75%)",
+                    filter: "blur(28px)",
+                    zIndex: -1,
+                  }}
+                />
+              )}
               {plan.popular && <div className={`absolute inset-0 rounded-2xl bg-gradient-to-b ${plan.gradient} opacity-40`} />}
               <div className={`relative rounded-[15px] p-6 flex flex-col h-full ${plan.popular ? "bg-[#0d0d14]" : "bg-[#0f0f0f] border border-white/[0.07]"}`}>
                 {plan.popular && <div className="absolute -top-px inset-x-6"><div className="h-px bg-gradient-to-r from-transparent via-violet-500 to-transparent" /></div>}

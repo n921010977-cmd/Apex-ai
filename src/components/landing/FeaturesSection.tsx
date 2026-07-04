@@ -1,7 +1,28 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useRef, useEffect } from "react";
+import { motion, useInView } from "framer-motion";
 import type { Variants } from "framer-motion";
+
+// Count-up number that starts when scrolled into view
+function CountUp({ to, duration = 1400 }: { to: number; duration?: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / duration, 1);
+      setVal(Math.round((1 - Math.pow(1 - p, 3)) * to));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, to, duration]);
+  return <span ref={ref} style={{ fontVariantNumeric: "tabular-nums" }}>{val}</span>;
+}
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -245,7 +266,7 @@ function ReportCard() {
                 backgroundClip:       "text",
               }}
             >
-              87<span style={{ fontSize: 22, opacity: 0.75 }}>/100</span>
+              <CountUp to={87} /><span style={{ fontSize: 22, opacity: 0.75 }}>/100</span>
             </span>
           </div>
 

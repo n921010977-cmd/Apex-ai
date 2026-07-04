@@ -300,6 +300,16 @@ export function HeroSection() {
 
       {/* ── Background layers ── */}
       <div className="grid-pattern opacity-30" />
+      {/* Digital noise texture for tactile matte feel */}
+      <div
+        aria-hidden
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          opacity: 0.35,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.05'/%3E%3C/svg%3E")`,
+          mixBlendMode: "overlay",
+        }}
+      />
       {/* Primary violet bloom */}
       <div
         className="absolute rounded-full pointer-events-none"
@@ -389,13 +399,13 @@ export function HeroSection() {
           {/* Metric chips */}
           <motion.div variants={it} className="flex flex-wrap gap-3 mb-10 justify-center lg:justify-start">
             {[
-              { val: "10 000+", label: "Стратегий запущено" },
-              { val: "< 5 минут", label: "Полный анализ" },
-              { val: "8 Экспертов", label: "AI-директоров" },
+              { val: "10 000+", label: "Стратегий запущено", spark: [3, 5, 4, 7, 6, 9, 11], color: "#a78bfa" },
+              { val: "< 5 минут", label: "Полный анализ", spark: [10, 8, 9, 6, 5, 4, 3], color: "#38bdf8" },
+              { val: "8 Экспертов", label: "AI-директоров", spark: [4, 6, 5, 8, 7, 9, 10], color: "#34d399" },
             ].map((m) => (
               <div
                 key={m.val}
-                className="px-4 py-2.5 rounded-2xl"
+                className="relative px-4 py-2.5 rounded-2xl overflow-hidden"
                 style={{
                   background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)",
                   border: "1px solid rgba(255,255,255,0.08)",
@@ -403,6 +413,28 @@ export function HeroSection() {
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
                 }}
               >
+                {/* micro-sparkline in the corner */}
+                <svg
+                  aria-hidden
+                  viewBox="0 0 60 24"
+                  className="absolute bottom-1.5 right-2 pointer-events-none"
+                  style={{ width: 44, height: 18, opacity: 0.5 }}
+                >
+                  <polyline
+                    points={m.spark.map((v, i) => `${(i / (m.spark.length - 1)) * 58 + 1},${22 - (v / 12) * 20}`).join(" ")}
+                    fill="none"
+                    stroke={m.color}
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <circle
+                    cx={59}
+                    cy={22 - (m.spark[m.spark.length - 1] / 12) * 20}
+                    r="1.8"
+                    fill={m.color}
+                  />
+                </svg>
                 {/* shimmer */}
                 <div
                   className="text-[22px] font-bold font-mono leading-tight"

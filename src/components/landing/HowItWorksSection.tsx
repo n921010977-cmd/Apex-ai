@@ -155,6 +155,7 @@ function StepCard({ step, index }: { step: typeof STEPS[number]; index: number }
       whileInView="show"
       viewport={{ once: true, margin: "-60px" }}
       transition={{ duration: 0.75, delay: index * 0.12, ease: [0.22, 1, 0.36, 1] }}
+      whileHover={{ y: -8, transition: { type: "spring", stiffness: 260, damping: 20 } }}
       // flex-1 on desktop so all cards share equal width
       style={{ flex: 1, minWidth: 0 }}
     >
