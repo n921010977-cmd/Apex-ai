@@ -182,7 +182,7 @@ function OrbCore() {
             background: "linear-gradient(135deg, rgba(124,58,237,0.22) 0%, rgba(59,130,246,0.14) 50%, rgba(6,182,212,0.08) 100%)",
             border: "1px solid rgba(255,255,255,0.14)",
             backdropFilter: "blur(20px)",
-            boxShadow: "0 0 48px rgba(124,58,237,0.5), 0 0 96px rgba(124,58,237,0.2), inset 0 1px 0 rgba(255,255,255,0.2)",
+            boxShadow: "0 0 40px rgba(124,58,237,0.3), 0 0 80px rgba(124,58,237,0.12), inset 0 1px 0 rgba(255,255,255,0.16)",
           }}
         >
           {/* Top shimmer */}
@@ -293,8 +293,8 @@ export function HeroSection() {
           50%       { opacity: 0.45; transform: scale(1.6); }
         }
         @keyframes hero-badge-glow {
-          0%, 100% { box-shadow: 0 0 10px rgba(124,58,237,0.2); }
-          50%       { box-shadow: 0 0 22px rgba(124,58,237,0.45); }
+          0%, 100% { box-shadow: 0 0 8px rgba(124,58,237,0.12); }
+          50%       { box-shadow: 0 0 16px rgba(124,58,237,0.24); }
         }
       `}</style>
 

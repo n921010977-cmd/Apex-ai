@@ -329,7 +329,7 @@ function StatCard({ stat, index }: { stat: typeof STATS[number]; index: number }
           WebkitBackgroundClip: "text",
           WebkitTextFillColor:  "transparent",
           backgroundClip: "text",
-          filter:        `drop-shadow(0 0 18px rgba(${stat.rgb},0.45))`,
+          filter:        `drop-shadow(0 0 14px rgba(${stat.rgb},0.22))`,
         }}
       >
         <AnimatedStatValue value={stat.value} />

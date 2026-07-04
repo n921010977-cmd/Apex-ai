@@ -104,7 +104,7 @@ function FaqItem({
           width:      3,
           borderRadius: 4,
           background: `linear-gradient(180deg, ${color}, rgba(${rgb},0.3))`,
-          boxShadow:  `0 0 12px rgba(${rgb},0.6)`,
+          boxShadow:  `0 0 8px rgba(${rgb},0.3)`,
           opacity:    isOpen ? 1 : 0,
           transition: "opacity 0.3s",
         }}
