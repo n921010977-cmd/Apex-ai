@@ -99,18 +99,181 @@ const SECTIONS = [
   { id: "roadmap",   title: "Дорожная карта",       color: "#60a5fa", rgb: "96,165,250",  icon: Clock,         size: "full",  desc: "Milestones, Q1–Q4 план действий" },
 ];
 
+// ─── Report body builder (for exports) ─────────────────────────────────────────
+
+function buildSectionBodies(report: MockReport): { title: string; body: string }[] {
+  const s = report.score;
+  return [
+    { title: "Резюме CEO", body: report.summary || "Стратегический анализ проекта по методологии Executive Board. Проект оценён 20 AI-агентами по ключевым направлениям бизнеса." },
+    { title: "Финансовая модель", body: `Прогноз выручки: ${report.revenue}. Годовой рост: ${report.growth}. Unit-экономика устойчива, модель предполагает выход на операционную прибыль в горизонте 12–18 месяцев. Рекомендуется контроль burn rate и оптимизация CAC.` },
+    { title: "Анализ рынка", body: `Объём целевого рынка (SAM): ${report.market}. Динамика рынка положительная (${report.growth} в год). Конкурентная среда умеренная, присутствует окно возможностей для быстрого захвата доли.` },
+    { title: "Маркетинг и рост", body: `Основные каналы привлечения: органический SEO, реферальная программа, контент-маркетинг. Приоритет — снижение стоимости привлечения клиента и рост виральности продукта.` },
+    { title: "Операции", body: `Операционная модель требует стандартизации процессов и автоматизации рутинных задач. Ключевые KPI отслеживаются еженедельно. Команда масштабируется под целевую нагрузку.` },
+    { title: "Риски", body: `Общий уровень риска: ${report.risk}. Основные категории: рыночные, финансовые, операционные и технологические риски. Для каждой предусмотрены меры митигации и резервный фонд.` },
+    { title: "Дорожная карта", body: `Q1 — запуск MVP и первые клиенты. Q2 — product-market fit и оптимизация воронки. Q3 — масштабирование каналов роста. Q4 — привлечение раунда и выход на новые сегменты.` },
+  ];
+}
+
+function triggerDownload(blob: Blob, filename: string) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function safeName(title: string) {
+  return title.replace(/[^\p{L}\p{N}]+/gu, "_").replace(/^_+|_+$/g, "").slice(0, 60) || "report";
+}
+
+// Word export (.doc) — Word opens HTML-based .doc natively
+function downloadWord(report: MockReport) {
+  const sections = buildSectionBodies(report);
+  const rows = sections.map(s => `
+    <h2 style="color:#4f46e5;font-size:16pt;margin:18pt 0 6pt;">${s.title}</h2>
+    <p style="font-size:11pt;line-height:1.6;color:#222;">${s.body}</p>`).join("");
+  const html = `<!DOCTYPE html><html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"><title>${report.title}</title></head>
+  <body style="font-family:Calibri,Arial,sans-serif;padding:24pt;">
+    <div style="border-bottom:3px solid #7c3aed;padding-bottom:10pt;margin-bottom:16pt;">
+      <div style="font-size:9pt;letter-spacing:2pt;color:#7c3aed;text-transform:uppercase;">Apex AI · Executive Board</div>
+      <h1 style="font-size:24pt;margin:6pt 0;color:#111;">${report.title}</h1>
+      <div style="font-size:10pt;color:#666;">${report.type} · Оценка ${report.score}/100 · ${report.time}</div>
+    </div>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:16pt;font-size:11pt;">
+      <tr>
+        <td style="padding:8pt;background:#f3f0ff;border:1px solid #ddd;"><b>Рынок (SAM)</b><br>${report.market}</td>
+        <td style="padding:8pt;background:#f0fff5;border:1px solid #ddd;"><b>Прогноз выручки</b><br>${report.revenue}</td>
+        <td style="padding:8pt;background:#fff8f0;border:1px solid #ddd;"><b>Рост</b><br>${report.growth}</td>
+        <td style="padding:8pt;background:#fff0f3;border:1px solid #ddd;"><b>Риск</b><br>${report.risk}</td>
+      </tr>
+    </table>
+    ${rows}
+    <p style="margin-top:24pt;font-size:9pt;color:#999;border-top:1px solid #eee;padding-top:8pt;">Сформировано Apex AI · 20 AI-агентов · ${new Date().toLocaleDateString("ru-RU")}</p>
+  </body></html>`;
+  triggerDownload(new Blob(["﻿" + html], { type: "application/msword" }), `${safeName(report.title)}.doc`);
+}
+
+// Excel export (.xls) — Excel opens HTML-table-based .xls natively
+function downloadExcel(report: MockReport) {
+  const sections = buildSectionBodies(report);
+  const metricRows = [
+    ["Название", report.title],
+    ["Тип отчёта", report.type],
+    ["Оценка", `${report.score}/100`],
+    ["Рынок (SAM)", report.market],
+    ["Прогноз выручки", report.revenue],
+    ["Годовой рост", report.growth],
+    ["Уровень риска", report.risk],
+    ["AI-агентов", String(report.agents)],
+    ["Страниц", String(report.pages)],
+    ["Дата", new Date().toLocaleDateString("ru-RU")],
+  ].map(([k, v]) => `<tr><td style="font-weight:bold;background:#f3f0ff;">${k}</td><td>${v}</td></tr>`).join("");
+  const sectionRows = sections.map(s => `<tr><td style="font-weight:bold;vertical-align:top;background:#eef;">${s.title}</td><td>${s.body}</td></tr>`).join("");
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"></head><body>
+    <table border="1" style="border-collapse:collapse;font-family:Calibri,Arial;font-size:11pt;">
+      <tr><td colspan="2" style="font-size:16pt;font-weight:bold;background:#7c3aed;color:#fff;">Apex AI — ${report.title}</td></tr>
+      ${metricRows}
+      <tr><td colspan="2" style="height:8pt;"></td></tr>
+      <tr><td colspan="2" style="font-size:13pt;font-weight:bold;background:#4f46e5;color:#fff;">Разделы отчёта</td></tr>
+      ${sectionRows}
+    </table></body></html>`;
+  triggerDownload(new Blob(["﻿" + html], { type: "application/vnd.ms-excel" }), `${safeName(report.title)}.xls`);
+}
+
+// PDF export — open a print-ready window; user saves as PDF
+function downloadPDF(report: MockReport) {
+  const sections = buildSectionBodies(report);
+  const rows = sections.map(s => `
+    <section><h2>${s.title}</h2><p>${s.body}</p></section>`).join("");
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${report.title}</title>
+    <style>
+      *{box-sizing:border-box}body{font-family:-apple-system,Segoe UI,Arial,sans-serif;color:#1a1a1a;padding:40px;max-width:760px;margin:0 auto;}
+      .eyebrow{font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#7c3aed;font-weight:700;}
+      h1{font-size:30px;margin:8px 0 4px;} .meta{color:#777;font-size:13px;margin-bottom:24px;}
+      .kpis{display:flex;gap:10px;margin:20px 0;} .kpi{flex:1;padding:12px;border-radius:10px;background:#f5f3ff;border:1px solid #e5e0ff;}
+      .kpi b{display:block;font-size:16px;color:#4f46e5;} .kpi span{font-size:11px;color:#888;}
+      h2{font-size:17px;color:#4f46e5;margin:22px 0 6px;border-left:4px solid #7c3aed;padding-left:10px;}
+      p{line-height:1.7;font-size:13px;color:#333;} footer{margin-top:32px;border-top:1px solid #eee;padding-top:10px;color:#aaa;font-size:11px;}
+      @media print{body{padding:0;}}
+    </style></head><body>
+    <div class="eyebrow">Apex AI · Executive Board</div>
+    <h1>${report.title}</h1>
+    <div class="meta">${report.type} · Оценка ${report.score}/100 · ${report.time}</div>
+    <div class="kpis">
+      <div class="kpi"><b>${report.market}</b><span>Рынок (SAM)</span></div>
+      <div class="kpi"><b>${report.revenue}</b><span>Прогноз</span></div>
+      <div class="kpi"><b>${report.growth}</b><span>Рост</span></div>
+      <div class="kpi"><b>${report.risk}</b><span>Риск</span></div>
+    </div>
+    ${rows}
+    <footer>Сформировано Apex AI · 20 AI-агентов · ${new Date().toLocaleDateString("ru-RU")}</footer>
+    <script>window.onload=function(){setTimeout(function(){window.print();},300);};</script>
+    </body></html>`;
+  const w = window.open("", "_blank");
+  if (!w) return;
+  w.document.write(html);
+  w.document.close();
+}
+
+// ─── Animated number (count-up) ─────────────────────────────────────────────────
+
+function AnimatedNumber({ value, duration = 1100, className, style }: { value: number; duration?: number; className?: string; style?: React.CSSProperties }) {
+  const [display, setDisplay] = useState(0);
+  useEffect(() => {
+    let raf = 0;
+    const start = performance.now();
+    const tick = (now: number) => {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setDisplay(Math.round(eased * value));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [value, duration]);
+  return <span className={className} style={style}>{display}</span>;
+}
+
+// ─── Animated meter bar ─────────────────────────────────────────────────────────
+
+function MeterBar({ label, value, color, delay = 0 }: { label: string; value: number; color: string; delay?: number }) {
+  const [w, setW] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setW(value), delay + 120); return () => clearTimeout(t); }, [value, delay]);
+  return (
+    <div style={{ marginBottom: 12 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{label}</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color, fontVariantNumeric: "tabular-nums" }}><AnimatedNumber value={value} />%</span>
+      </div>
+      <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+        <div style={{ height: "100%", width: `${w}%`, borderRadius: 99, background: `linear-gradient(90deg, ${color}, ${color}aa)`, boxShadow: `0 0 10px ${color}55`, transition: `width 1.3s cubic-bezier(0.34,1.1,0.64,1) ${delay}ms` }} />
+      </div>
+    </div>
+  );
+}
+
 // ─── Score ring ────────────────────────────────────────────────────────────────
 
-function ScoreRing({ score, color, size = 64 }: { score: number; color: string; size?: number }) {
+function ScoreRing({ score, color, size = 64, animate = false }: { score: number; color: string; size?: number; animate?: boolean }) {
   const r     = (size - 8) / 2;
   const circ  = 2 * Math.PI * r;
-  const dash  = (score / 100) * circ;
+  const [shown, setShown] = useState(animate ? 0 : score);
+  useEffect(() => {
+    if (!animate) { setShown(score); return; }
+    setShown(0);
+    const t = setTimeout(() => setShown(score), 120);
+    return () => clearTimeout(t);
+  }, [score, animate]);
+  const dash = (shown / 100) * circ;
   return (
     <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)", flexShrink: 0 }}>
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="4" />
       <circle cx={size/2} cy={size/2} r={r} fill="none" stroke={color} strokeWidth="4"
         strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
-        style={{ filter: `drop-shadow(0 0 5px ${color}90)` }}
+        style={{ filter: `drop-shadow(0 0 5px ${color}90)`, transition: animate ? "stroke-dasharray 1.3s cubic-bezier(0.34,1.1,0.64,1)" : "none" }}
       />
     </svg>
   );
@@ -254,7 +417,13 @@ function ReportListCard({ report, active, onClick }: { report: MockReport; activ
 export default function ReportsPage() {
   const [active, setActive] = useState<MockReport>(REPORTS[0]);
   const [mounted, setMounted] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
   useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    if (!toast) return;
+    const t = setTimeout(() => setToast(null), 2200);
+    return () => clearTimeout(t);
+  }, [toast]);
   if (!mounted) return null;
 
   const isProcessing = active.status === "PROCESSING";
@@ -262,6 +431,15 @@ export default function ReportsPage() {
 
   return (
     <div style={{ minHeight: "100vh", background: "#07090F", position: "relative" }}>
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+            style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, padding: "9px 18px", borderRadius: 12, background: "rgba(20,18,32,0.95)", border: "1px solid rgba(124,58,237,0.35)", color: "#fff", fontSize: 12, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}>
+            {toast}
+          </motion.div>
+        )}
+      </AnimatePresence>
       {/* Ambient background */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
         <div style={{ position: "absolute", top: "10%",  left:  "-5%", width: 500, height: 500, borderRadius: "50%", background: `radial-gradient(circle, rgba(${active.rgb},0.05) 0%, transparent 65%)`, transition: "all 1s ease" }} />
@@ -357,9 +535,9 @@ export default function ReportsPage() {
                   {/* Score ring */}
                   {!isProcessing && active.score > 0 && (
                     <div style={{ flexShrink: 0, position: "relative" }}>
-                      <ScoreRing score={active.score} color={scoreColor} size={68} />
+                      <ScoreRing score={active.score} color={scoreColor} size={68} animate />
                       <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                        <div style={{ fontSize: 18, fontWeight: 800, color: scoreColor, lineHeight: 1 }}>{active.score}</div>
+                        <div style={{ fontSize: 18, fontWeight: 800, color: scoreColor, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}><AnimatedNumber value={active.score} /></div>
                         <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>Score</div>
                       </div>
                     </div>
@@ -379,16 +557,32 @@ export default function ReportsPage() {
                         { label: "Рост",         value: active.growth,  icon: TrendingUp,  color: "#a78bfa" },
                         { label: "Риск",         value: active.risk,    icon: Shield,      color: active.risk === "Низкий" || active.risk === "Минимальный" ? "#10b981" : "#f59e0b" },
                         { label: "AI Агентов",   value: `${active.agents}`,icon: Brain,   color: active.color },
-                      ].map(k => {
+                      ].map((k, ki) => {
                         const Icon = k.icon;
                         return (
-                          <div key={k.label} style={{ padding: "12px 14px", borderRadius: 14, background: `rgba(${active.rgb},0.03)`, border: `1px solid rgba(${active.rgb},0.1)` }}>
+                          <motion.div key={k.label} initial={{ opacity: 0, y: 12, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ delay: ki * 0.07, duration: 0.4, ease: [0.34, 1.1, 0.64, 1] }}
+                            style={{ padding: "12px 14px", borderRadius: 14, background: `rgba(${active.rgb},0.03)`, border: `1px solid rgba(${active.rgb},0.1)` }}>
                             <Icon size={12} style={{ color: k.color, marginBottom: 6 }} />
                             <div style={{ fontSize: 13, fontWeight: 800, color: k.color, marginBottom: 2 }}>{k.value}</div>
                             <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>{k.label}</div>
-                          </div>
+                          </motion.div>
                         );
                       })}
+                    </div>
+
+                    {/* Animated breakdown meters */}
+                    <div style={{ padding: "16px 18px", borderRadius: 16, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", marginBottom: 20 }}>
+                      <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 14 }}>Оценка по направлениям</div>
+                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0 24px" }}>
+                        {[
+                          { label: "Рыночный потенциал", v: Math.min(99, active.score + 4), c: "#38bdf8" },
+                          { label: "Финансовая модель",  v: Math.max(40, active.score - 3), c: "#10b981" },
+                          { label: "Реализуемость",       v: Math.min(99, active.score + 1), c: "#a78bfa" },
+                          { label: "Конкурентоспособность", v: Math.max(40, active.score - 6), c: "#f59e0b" },
+                        ].map((m, i) => (
+                          <MeterBar key={m.label} label={m.label} value={m.v} color={m.c} delay={i * 130} />
+                        ))}
+                      </div>
                     </div>
 
                     {/* AI Summary */}
@@ -445,9 +639,9 @@ export default function ReportsPage() {
                     </div>
 
                     {/* Actions */}
-                    <div style={{ display: "flex", gap: 10 }}>
-                      <button style={{
-                        flex: 1, height: 44, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+                      <button onClick={() => downloadPDF(active)} style={{
+                        flex: 1, minWidth: 150, height: 44, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                         borderRadius: 13, background: "linear-gradient(135deg, #7c3aed, #3b82f6)", border: "none",
                         fontSize: 13, fontWeight: 700, color: "#fff", cursor: "pointer",
                         boxShadow: "0 8px 28px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.18)",
@@ -457,16 +651,23 @@ export default function ReportsPage() {
                         <Download size={15} /> Скачать PDF
                       </button>
 
-                      <button style={{ height: 44, padding: "0 18px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
+                      <button onClick={() => { downloadWord(active); setToast("Файл Word (.doc) скачан"); }} style={{ height: 44, padding: "0 16px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(37,99,235,0.12)", border: "1px solid rgba(37,99,235,0.3)", fontSize: 12, fontWeight: 600, color: "#60a5fa", cursor: "pointer" }}>
+                        <FileText size={14} /> Word
+                      </button>
+
+                      <button onClick={() => { downloadExcel(active); setToast("Файл Excel (.xls) скачан"); }} style={{ height: 44, padding: "0 16px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)", fontSize: 12, fontWeight: 600, color: "#34d399", cursor: "pointer" }}>
+                        <BarChart2 size={14} /> Excel
+                      </button>
+
+                      <button onClick={async () => {
+                        const url = typeof window !== "undefined" ? window.location.href : "";
+                        try {
+                          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                          if ((navigator as any).share) { await (navigator as any).share({ title: active.title, text: `Отчёт Apex AI: ${active.title}`, url }); }
+                          else { await navigator.clipboard.writeText(url); setToast("Ссылка скопирована"); }
+                        } catch { /* user cancelled */ }
+                      }} style={{ height: 44, padding: "0 16px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
                         <Share2 size={14} /> Поделиться
-                      </button>
-
-                      <button style={{ height: 44, padding: "0 14px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
-                        <Eye size={14} /> Просмотр
-                      </button>
-
-                      <button style={{ height: 44, padding: "0 14px", display: "flex", alignItems: "center", gap: 7, borderRadius: 13, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
-                        <RefreshCw size={14} /> Реанализ
                       </button>
                     </div>
                   </>

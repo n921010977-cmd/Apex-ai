@@ -233,11 +233,13 @@ export async function orchestrate(
 export async function directChat(opts: {
   message: string;
   agentId?: string;
+  persona?: string;
   history?: { role: "user" | "assistant"; content: string }[];
   onToken?: (token: string) => void;
 }): Promise<{ content: string; tokensUsed: number }> {
-  const { message, agentId, history = [], onToken } = opts;
+  const { message, agentId, persona, history = [], onToken } = opts;
   const agent = (agentId && AGENT_REGISTRY[agentId]) ? AGENT_REGISTRY[agentId] : AGENT_REGISTRY.general ?? Object.values(AGENT_REGISTRY)[0];
+  const systemPrompt = persona && persona.trim().length > 0 ? persona : agent.systemPrompt;
 
   const messages: Anthropic.MessageParam[] = [
     ...history.map(m => ({ role: m.role, content: m.content })),
@@ -252,7 +254,7 @@ export async function directChat(opts: {
       model: agent.model,
       max_tokens: agent.maxTokens,
       temperature: agent.temperature,
-      system: agent.systemPrompt,
+      system: systemPrompt,
       messages,
     });
 
@@ -269,7 +271,7 @@ export async function directChat(opts: {
     const response = await getClient().messages.create({
       model: agent.model,
       max_tokens: agent.maxTokens,
-      system: agent.systemPrompt,
+      system: systemPrompt,
       messages,
     });
     for (const block of response.content) {

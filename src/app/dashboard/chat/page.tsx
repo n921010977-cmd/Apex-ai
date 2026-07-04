@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Search, Plus, Star, Pin, Archive, Users, MessageSquare,
   Send, Paperclip, Mic, Image, Globe, FileText,
@@ -170,8 +169,19 @@ function AgentCard({ agent, onStart, compact }: { agent: typeof AGENTS[0]; onSta
 
 // ─── MAIN PAGE ────────────────────────────────────────────────────────────────
 
+function buildPersona(agent: typeof AGENTS[0]): string {
+  return `Ты — ${agent.name} (${agent.role}) в элитной AI-команде руководителей Apex AI. Твоя специализация: ${agent.desc}.
+
+ПРАВИЛА:
+- Отвечай СТРОГО в рамках своей роли и экспертизы (${agent.role}).
+- Пиши по-русски, профессионально, по делу, без воды и лести.
+- Используй markdown: заголовки, списки, выделения где уместно.
+- Давай конкретику: цифры, метрики, фреймворки, чёткие шаги.
+- Никогда не выдумывай факты о бизнесе пользователя — если данных нет, задай уточняющий вопрос.
+- Заканчивай ответ конкретным действием или рекомендацией.`;
+}
+
 export default function ChatPage() {
-  const router = useRouter();
   const [dept, setDept] = useState("Все");
   const [search, setSearch] = useState("");
   const [chatSearch, setChatSearch] = useState("");
@@ -180,8 +190,19 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<{role:"user"|"ai";text:string;agent?:string}[]>([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
-  const [creating, setCreating] = useState(false);
+  const [webSearch, setWebSearch] = useState(false);
+  const [deepResearch, setDeepResearch] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [favorites, setFavorites] = useState<Set<string>>(new Set(["ceo","cfo","ai","startup","pm","fs"]));
+  const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
+  const [archivedIds, setArchivedIds] = useState<Set<string>>(new Set());
+  const [attachments, setAttachments] = useState<string[]>([]);
+  const [toast, setToast] = useState<string | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<unknown>(null);
 
   const filtered = AGENTS.filter(a =>
     (dept === "Все" || a.dept === dept) &&
@@ -190,28 +211,154 @@ export default function ChatPage() {
 
   useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
+  const showToast = (msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2200);
+  };
+
   const startChat = async (agent: typeof AGENTS[0]) => {
     setActiveAgent(agent);
+    setAttachments([]);
     setMessages([{ role: "ai", text: `Привет! Я ${agent.name} — ${agent.role}. ${agent.desc}. Чем могу помочь?`, agent: agent.name }]);
   };
 
+  const openChatByAgentName = (agentName: string) => {
+    const found = AGENTS.find(a => a.name === agentName)
+      ?? AGENTS.find(a => agentName.toLowerCase().includes(a.name.toLowerCase()))
+      ?? AGENTS[0];
+    startChat(found);
+  };
+
+  const toggleFavorite = (id: string) => {
+    setFavorites(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); showToast("Удалено из избранного"); }
+      else { next.add(id); showToast("Добавлено в избранное ⭐"); }
+      return next;
+    });
+  };
+
+  const togglePin = (id: string) => {
+    setPinnedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) { next.delete(id); showToast("Чат откреплён"); }
+      else { next.add(id); showToast("Чат закреплён 📌"); }
+      return next;
+    });
+  };
+
+  const archiveChat = (id: string) => {
+    setArchivedIds(prev => new Set(prev).add(id));
+    showToast("Чат архивирован");
+    setActiveAgent(null);
+    setMessages([]);
+  };
+
+  const onFilePicked = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length) {
+      setAttachments(prev => [...prev, ...files.map(f => f.name)]);
+      showToast(`Прикреплено: ${files.map(f => f.name).join(", ")}`);
+    }
+    e.target.value = "";
+  };
+
+  const toggleMic = () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SR = (typeof window !== "undefined" && ((window as any).SpeechRecognition || (window as any).webkitSpeechRecognition)) as any;
+    if (!SR) { showToast("Голосовой ввод не поддерживается браузером"); return; }
+    if (recording) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (recognitionRef.current as any)?.stop?.();
+      setRecording(false);
+      return;
+    }
+    const rec = new SR();
+    rec.lang = "ru-RU";
+    rec.interimResults = true;
+    rec.continuous = false;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    rec.onresult = (ev: any) => {
+      const text = Array.from(ev.results).map((r: any) => r[0].transcript).join("");
+      setInput(text);
+    };
+    rec.onend = () => setRecording(false);
+    rec.onerror = () => { setRecording(false); showToast("Ошибка распознавания речи"); };
+    recognitionRef.current = rec;
+    rec.start();
+    setRecording(true);
+    showToast("🎤 Говорите...");
+  };
+
   const sendMessage = async () => {
-    if (!input.trim() || !activeAgent) return;
+    if (!input.trim() || !activeAgent || sending) return;
     const userMsg = input;
+    const attachNote = attachments.length ? `\n\n[Прикреплённые файлы: ${attachments.join(", ")}]` : "";
+    const modeNote = [webSearch ? "Используй актуальные данные из интернета." : "", deepResearch ? "Проведи глубокий структурированный анализ с источниками." : ""].filter(Boolean).join(" ");
     setInput("");
-    setMessages(m => [...m, { role: "user", text: userMsg }]);
+    setAttachments([]);
+    setMessages(m => [...m, { role: "user", text: userMsg }, { role: "ai", text: "", agent: activeAgent.name }]);
     setSending(true);
+
+    // history mapping: ai -> assistant, keep last 6 exchanges
+    const history = messages
+      .filter(m => m.text.trim().length > 0)
+      .slice(-8)
+      .map(m => ({ role: m.role === "user" ? ("user" as const) : ("assistant" as const), content: m.text }));
 
     try {
       const res = await fetch("/api/chat/direct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg, agentId: activeAgent.id, history: messages.slice(-6) }),
+        body: JSON.stringify({
+          message: (modeNote ? modeNote + "\n\n" : "") + userMsg + attachNote,
+          agentId: activeAgent.id,
+          persona: buildPersona(activeAgent),
+          history,
+        }),
       });
-      const data = await res.json();
-      setMessages(m => [...m, { role: "ai", text: data.response ?? "Анализирую данные...", agent: activeAgent.name }]);
+
+      if (!res.ok || !res.body) {
+        let errMsg = "Сервис временно недоступен";
+        try { const j = await res.json(); errMsg = j.error ?? errMsg; } catch {}
+        setMessages(m => { const c = [...m]; c[c.length - 1] = { role: "ai", text: `⚠️ ${errMsg}`, agent: activeAgent.name }; return c; });
+        return;
+      }
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+      let acc = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? "";
+        for (const part of parts) {
+          const line = part.trim();
+          if (!line.startsWith("data:")) continue;
+          const payload = line.slice(5).trim();
+          if (!payload) continue;
+          try {
+            const ev = JSON.parse(payload);
+            if (ev.type === "token") {
+              acc += ev.token;
+              setMessages(m => { const c = [...m]; c[c.length - 1] = { role: "ai", text: acc, agent: activeAgent.name }; return c; });
+            } else if (ev.type === "error") {
+              acc = `⚠️ ${ev.message ?? "Ошибка генерации"}`;
+              setMessages(m => { const c = [...m]; c[c.length - 1] = { role: "ai", text: acc, agent: activeAgent.name }; return c; });
+            }
+          } catch { /* ignore malformed chunk */ }
+        }
+      }
+
+      if (!acc.trim()) {
+        setMessages(m => { const c = [...m]; c[c.length - 1] = { role: "ai", text: "Не удалось получить ответ. Попробуйте ещё раз.", agent: activeAgent.name }; return c; });
+      }
     } catch {
-      setMessages(m => [...m, { role: "ai", text: "Получен ваш запрос. Обрабатываю данные с учётом специализации " + activeAgent.role + ".", agent: activeAgent.name }]);
+      setMessages(m => { const c = [...m]; c[c.length - 1] = { role: "ai", text: "⚠️ Ошибка соединения с AI-сервисом.", agent: activeAgent!.name }; return c; });
     } finally {
       setSending(false);
     }
@@ -219,6 +366,14 @@ export default function ChatPage() {
 
   return (
     <div style={{ height: "100vh", display: "flex", background: "#07090F", overflow: "hidden" }}>
+
+      {/* Toast */}
+      {toast && (
+        <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+          style={{ position: "fixed", top: 16, left: "50%", transform: "translateX(-50%)", zIndex: 9999, padding: "9px 18px", borderRadius: 12, background: "rgba(20,18,32,0.95)", border: "1px solid rgba(122,92,255,0.3)", color: "#fff", fontSize: 12, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}>
+          {toast}
+        </motion.div>
+      )}
 
       {/* ── LEFT SIDEBAR ── */}
       <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", height: "100%" }}>
@@ -242,7 +397,7 @@ export default function ChatPage() {
               <Pin size={9} />Закреплённые
             </div>
             {PINNED_CHATS.map(c => (
-              <button key={c.id} style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 9, border: "1px solid transparent", background: "transparent", cursor: "pointer", textAlign: "left", marginBottom: 2 }}
+              <button key={c.id} onClick={() => openChatByAgentName(c.agent)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 9, border: "1px solid transparent", background: "transparent", cursor: "pointer", textAlign: "left", marginBottom: 2 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}>
                 <div style={{ width: 6, height: 6, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
@@ -260,7 +415,7 @@ export default function ChatPage() {
               <Clock size={9} />Недавние
             </div>
             {RECENT_CHATS.map(c => (
-              <button key={c.id} style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 9, border: "1px solid transparent", background: "transparent", cursor: "pointer", textAlign: "left", marginBottom: 2 }}
+              <button key={c.id} onClick={() => openChatByAgentName(c.agent)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 9, border: "1px solid transparent", background: "transparent", cursor: "pointer", textAlign: "left", marginBottom: 2 }}
                 onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}>
                 <div style={{ width: 5, height: 5, borderRadius: "50%", background: c.color, flexShrink: 0, opacity: 0.7 }} />
@@ -278,9 +433,12 @@ export default function ChatPage() {
               <Star size={9} />Избранные агенты
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {AGENTS.filter(a => ["ceo","cfo","ai","startup","pm","fs"].includes(a.id)).map(a => (
+              {AGENTS.filter(a => favorites.has(a.id)).map(a => (
                 <AgentCard key={a.id} agent={a} onStart={startChat} compact />
               ))}
+              {AGENTS.filter(a => favorites.has(a.id)).length === 0 && (
+                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", padding: "6px 8px" }}>Нет избранных агентов</div>
+              )}
             </div>
           </div>
         </div>
@@ -302,10 +460,12 @@ export default function ChatPage() {
                 </div>
               </div>
               <div style={{ marginLeft: "auto", display: "flex", gap: 8 }}>
-                <button style={{ padding: "6px 12px", borderRadius: 8, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                <button onClick={() => { setWebSearch(v => !v); showToast(webSearch ? "Поиск в интернете выключен" : "Поиск в интернете включён"); }}
+                  style={{ padding: "6px 12px", borderRadius: 8, fontSize: 11, fontWeight: 600, border: `1px solid ${webSearch ? "rgba(90,141,255,0.5)" : "rgba(255,255,255,0.08)"}`, background: webSearch ? "rgba(90,141,255,0.15)" : "transparent", color: webSearch ? "#5A8DFF" : "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, transition: "all 0.15s" }}>
                   <Globe size={11} />Интернет
                 </button>
-                <button style={{ padding: "6px 12px", borderRadius: 8, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5 }}>
+                <button onClick={() => { setDeepResearch(v => !v); showToast(deepResearch ? "Deep Research выключен" : "Deep Research включён"); }}
+                  style={{ padding: "6px 12px", borderRadius: 8, fontSize: 11, fontWeight: 600, border: `1px solid ${deepResearch ? "rgba(167,139,250,0.5)" : "rgba(255,255,255,0.08)"}`, background: deepResearch ? "rgba(167,139,250,0.15)" : "transparent", color: deepResearch ? "#a78bfa" : "rgba(255,255,255,0.4)", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, transition: "all 0.15s" }}>
                   <Brain size={11} />Deep Research
                 </button>
               </div>
@@ -320,22 +480,18 @@ export default function ChatPage() {
                     {m.role === "ai" && (
                       <div style={{ width: 30, height: 30, borderRadius: 9, background: `${activeAgent.color}18`, border: `1px solid ${activeAgent.color}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, flexShrink: 0, marginRight: 10, marginTop: 2 }}>{activeAgent.icon}</div>
                     )}
-                    <div style={{ maxWidth: "72%", padding: "12px 16px", borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", background: m.role === "user" ? "rgba(122,92,255,0.18)" : "rgba(255,255,255,0.04)", border: m.role === "user" ? "1px solid rgba(122,92,255,0.3)" : "1px solid rgba(255,255,255,0.07)", fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.7 }}>
-                      {m.text}
+                    <div style={{ maxWidth: "72%", padding: "12px 16px", borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", background: m.role === "user" ? "rgba(122,92,255,0.18)" : "rgba(255,255,255,0.04)", border: m.role === "user" ? "1px solid rgba(122,92,255,0.3)" : "1px solid rgba(255,255,255,0.07)", fontSize: 13, color: "rgba(255,255,255,0.85)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                      {m.role === "ai" && m.text === "" ? (
+                        <span style={{ display: "flex", gap: 5, padding: "2px 0" }}>
+                          {[0,1,2].map(j => (
+                            <motion.span key={j} animate={{ opacity: [0.3,1,0.3] }} transition={{ duration: 1.2, repeat: Infinity, delay: j*0.3 }}
+                              style={{ width: 6, height: 6, borderRadius: "50%", background: activeAgent.color, display: "inline-block" }} />
+                          ))}
+                        </span>
+                      ) : m.text}
                     </div>
                   </motion.div>
                 ))}
-                {sending && (
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 20 }}>
-                    <div style={{ width: 30, height: 30, borderRadius: 9, background: `${activeAgent.color}18`, border: `1px solid ${activeAgent.color}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15 }}>{activeAgent.icon}</div>
-                    <div style={{ padding: "12px 16px", borderRadius: "18px 18px 18px 4px", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", display: "flex", gap: 5 }}>
-                      {[0,1,2].map(j => (
-                        <motion.div key={j} animate={{ opacity: [0.3,1,0.3] }} transition={{ duration: 1.2, repeat: Infinity, delay: j*0.3 }}
-                          style={{ width: 6, height: 6, borderRadius: "50%", background: activeAgent.color }} />
-                      ))}
-                    </div>
-                  </div>
-                )}
                 <div ref={messagesEnd} />
               </div>
             </div>
@@ -350,6 +506,21 @@ export default function ChatPage() {
                       style={{ padding: "4px 10px", borderRadius: 20, fontSize: 10, fontWeight: 500, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.4)", cursor: "pointer" }}>{p}</button>
                   ))}
                 </div>
+                {/* Attachment chips */}
+                {attachments.length > 0 && (
+                  <div style={{ display: "flex", gap: 6, marginBottom: 8, flexWrap: "wrap" }}>
+                    {attachments.map((name, i) => (
+                      <span key={i} style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 8px", borderRadius: 8, fontSize: 10, fontWeight: 500, background: "rgba(122,92,255,0.12)", border: "1px solid rgba(122,92,255,0.25)", color: "#a78bfa" }}>
+                        <Paperclip size={10} />{name.length > 22 ? name.slice(0, 20) + "…" : name}
+                        <button onClick={() => setAttachments(a => a.filter((_, j) => j !== i))} style={{ background: "transparent", border: "none", color: "#a78bfa", cursor: "pointer", padding: 0, display: "flex" }}>×</button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                {/* Hidden file inputs */}
+                <input ref={fileInputRef} type="file" multiple onChange={onFilePicked} style={{ display: "none" }} />
+                <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={onFilePicked} style={{ display: "none" }} />
+                <input ref={pdfInputRef} type="file" accept=".pdf,application/pdf" multiple onChange={onFilePicked} style={{ display: "none" }} />
                 <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", overflow: "hidden" }}>
                   <textarea value={input} onChange={e => setInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
@@ -360,16 +531,16 @@ export default function ChatPage() {
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                     <div style={{ display: "flex", gap: 4 }}>
                       {[
-                        { icon: Paperclip, tip: "Файл" },
-                        { icon: Image,     tip: "Изображение" },
-                        { icon: FileText,  tip: "PDF" },
-                        { icon: Globe,     tip: "Поиск в сети" },
-                        { icon: Mic,       tip: "Голос" },
+                        { icon: Paperclip, tip: "Файл",        onClick: () => fileInputRef.current?.click(),  active: false },
+                        { icon: Image,     tip: "Изображение", onClick: () => imageInputRef.current?.click(), active: false },
+                        { icon: FileText,  tip: "PDF",         onClick: () => pdfInputRef.current?.click(),   active: false },
+                        { icon: Globe,     tip: "Поиск в сети", onClick: () => { setWebSearch(v => !v); showToast(webSearch ? "Поиск в интернете выключен" : "Поиск в интернете включён"); }, active: webSearch },
+                        { icon: Mic,       tip: "Голос",       onClick: toggleMic, active: recording },
                       ].map(b => (
-                        <button key={b.tip} title={b.tip} style={{ width: 30, height: 30, borderRadius: 8, background: "transparent", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "rgba(255,255,255,0.25)" }}
-                          onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
-                          onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.25)")}>
-                          <b.icon size={14} />
+                        <button key={b.tip} title={b.tip} onClick={b.onClick} style={{ width: 30, height: 30, borderRadius: 8, background: b.active ? "rgba(122,92,255,0.16)" : "transparent", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: b.active ? "#a78bfa" : "rgba(255,255,255,0.25)", transition: "all 0.15s" }}
+                          onMouseEnter={e => { if (!b.active) e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
+                          onMouseLeave={e => { if (!b.active) e.currentTarget.style.color = "rgba(255,255,255,0.25)"; }}>
+                          <b.icon size={14} style={b.tip === "Голос" && recording ? { animation: "sb-pulse 1s ease-in-out infinite" } : undefined} />
                         </button>
                       ))}
                     </div>
@@ -528,13 +699,13 @@ export default function ChatPage() {
             <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Быстрые действия</div>
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {[
-                { icon: Star,    label: "Добавить в избранное" },
-                { icon: Pin,     label: "Закрепить чат" },
-                { icon: Archive, label: "Архивировать" },
+                { icon: Star,    label: favorites.has(activeAgent.id) ? "В избранном ✓" : "Добавить в избранное", active: favorites.has(activeAgent.id), onClick: () => toggleFavorite(activeAgent.id) },
+                { icon: Pin,     label: pinnedIds.has(activeAgent.id) ? "Закреплён ✓" : "Закрепить чат",          active: pinnedIds.has(activeAgent.id), onClick: () => togglePin(activeAgent.id) },
+                { icon: Archive, label: "Архивировать", active: false, onClick: () => archiveChat(activeAgent.id) },
               ].map(a => (
-                <button key={a.label} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 9, fontSize: 11, fontWeight: 500, border: "1px solid rgba(255,255,255,0.06)", background: "transparent", color: "rgba(255,255,255,0.45)", cursor: "pointer", textAlign: "left" }}
-                  onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)"; }}
-                  onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.45)"; }}>
+                <button key={a.label} onClick={a.onClick} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 9, fontSize: 11, fontWeight: 500, border: `1px solid ${a.active ? "rgba(122,92,255,0.25)" : "rgba(255,255,255,0.06)"}`, background: a.active ? "rgba(122,92,255,0.1)" : "transparent", color: a.active ? "#a78bfa" : "rgba(255,255,255,0.45)", cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}
+                  onMouseEnter={e => { if (!a.active) { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)"; } }}
+                  onMouseLeave={e => { if (!a.active) { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.45)"; } }}>
                   <a.icon size={12} />{a.label}
                 </button>
               ))}

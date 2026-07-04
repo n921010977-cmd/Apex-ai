@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = validateBody(SendMessageSchema, rawBody);
   if (error || !data) return NextResponse.json({ success: false, error }, { status: 422 });
 
-  const { message, agentId, history } = data;
+  const { message, agentId, persona, history } = data;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
         await directChat({
           message,
           agentId,
+          persona,
           history,
           onToken: (token) => send({ type: "token", token }),
         });

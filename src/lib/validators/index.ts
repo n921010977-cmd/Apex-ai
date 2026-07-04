@@ -34,6 +34,7 @@ export const SendMessageSchema = z.object({
   message: z.string().min(1).max(10_000),
   projectId: z.string().optional(),
   agentId: z.string().optional(),
+  persona: z.string().max(4000).optional(),
   history: z.array(z.object({
     role: z.enum(["user", "assistant"]),
     content: z.string(),
