@@ -1209,73 +1209,298 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
 // ─── RISKS TAB ────────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
-  const animated = useAnimated(100);
-  const ceo = aiResults.find((r: { role: string }) => r.role === "CEO" || r.role?.toLowerCase().includes("ceo"));
-  const legal = aiResults.find((r: { role: string }) => r.role === "Legal Advisor" || r.role?.toLowerCase().includes("юрид") || r.role?.toLowerCase().includes("legal"));
-  const coo = aiResults.find((r: { role: string }) => r.role === "COO" || r.role?.toLowerCase().includes("операц"));
+  const animated = useAnimated(80);
+  const [period, setPeriod] = useState<"month"|"quarter"|"year">("quarter");
 
-  const RISK_CFG: Record<string, { color: string; bg: string; border: string; label: string }> = {
-    high: { color: "#FF5470", bg: "rgba(255,84,112,0.06)", border: "rgba(255,84,112,0.2)", label: "ВЫСОКИЙ" },
-    medium: { color: "#FFB800", bg: "rgba(255,184,0,0.06)", border: "rgba(255,184,0,0.2)", label: "СРЕДНИЙ" },
-    low: { color: "#00E7A7", bg: "rgba(0,231,167,0.05)", border: "rgba(0,231,167,0.18)", label: "НИЗКИЙ" },
+  const RISK_META: Record<string, { color: string; rgb: string; label: string; badge: string; badgeColor: string }> = {
+    high:   { color: "#FF5470", rgb: "255,84,112",  label: "ВЫСОКИЙ",  badge: "Требует Внимания",  badgeColor: "#FF5470" },
+    medium: { color: "#FFB800", rgb: "255,184,0",   label: "СРЕДНИЙ",  badge: "Приоритет",          badgeColor: "#FFB800" },
+    low:    { color: "#00E7A7", rgb: "0,231,167",   label: "НИЗКИЙ",   badge: "Стабильно",          badgeColor: "#00E7A7" },
   };
 
-  const riskAgents = [
-    ceo ? { letter: "V", name: "CEO", subtitle: "Стратегический риск-аудит", color: "#7A5CFF", score: ceo.score, opinion: (ceo.risks || ceo.analysis || "").slice(0, 500) } : null,
-    legal ? { letter: "A", name: "Legal Advisor", subtitle: "Юридические и регуляторные риски", color: "#94a3b8", score: legal.score, opinion: (legal.risks || legal.analysis || "").slice(0, 500) } : null,
-    coo ? { letter: "E", name: "COO", subtitle: "Операционные риски и митигация", color: "#00E7A7", score: coo.score, opinion: (coo.risks || coo.analysis || "").slice(0, 500) } : null,
-  ].filter(Boolean) as { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string }[];
-
-  const fallbackRiskAgents = [
-    { letter: "V", name: "CEO", subtitle: "Стратегический риск-аудит", color: "#7A5CFF", score: 82,
-      opinion: "Стратегические риски проекта находятся на управляемом уровне при правильном исполнении плана. Главная угроза — потеря фокуса и распыление ресурсов на несколько направлений одновременно. Конкурентный риск снижается за счёт первопроходческого преимущества и скорости выхода на рынок. Рыночный риск умеренный: спрос подтверждён исследованиями, но масштаб неизвестен до тестирования. Команда является критическим риск-фактором — уход ключевых людей может затормозить развитие. Fundraising риск реален: следующий раунд должен быть поднят до исчерпания runway. Регуляторный риск в данной отрасли требует постоянного мониторинга изменений законодательства. Сценарий B: при не достижении PMF к месяцу 12 необходим управляемый pivot стратегии." },
-    { letter: "A", name: "Legal Advisor", subtitle: "Юридические и регуляторные риски", color: "#94a3b8", score: 68,
-      opinion: "Юридическая структура требует проверки на соответствие всем регуляторным требованиям рынка. Обработка персональных данных должна строго соответствовать GDPR и локальному законодательству страны. Риски нарушения IP третьих сторон необходимо проверить до запуска продукта в production. Трудовые договоры и NDA должны быть подписаны со всеми сотрудниками и подрядчиками. Регуляторный ландшафт в отрасли может измениться — мониторинг необходим ежеквартально. Пользовательские соглашения должны быть составлены профессиональным юристом, а не из шаблонов. Налоговая структура компании требует оптимизации до начала активных операций и найма. Создайте юридический резерв: 8-10% операционного бюджета на непредвиденные расходы." },
-    { letter: "I", name: "Риск-менеджер", subtitle: "Операционные риски и митигация", color: "#ef4444", score: 65,
-      opinion: "Профиль рисков проекта классифицирован как умеренно-высокий для стадии pre-launch продукта. Финансовый риск является приоритетным: 60% стартапов умирают именно от нехватки операционных средств. Операционный риск связан с высокой зависимостью от ключевых сотрудников и подрядчиков. Технологический риск умеренный при правильном выборе стека и наличии опытной команды разработки. Резервный фонд в размере минимум 3 месяцев burn rate является обязательным условием устойчивости. Диверсификация каналов привлечения клиентов снижает зависимость от одного источника трафика. Страхование ключевых рисков (D&O, cyber liability) следует рассмотреть до масштабирования. Регулярный risk review ежеквартально позволит оперативно реагировать на изменение риск-профиля." },
+  const risks = project.risks.length >= 2 ? project.risks : [
+    { level: "medium", title: "Конкурентная динамика",    desc: "Высокая активность конкурентов. Риск потери доли рынка без чёткого УТП." },
+    { level: "medium", title: "Оптимизация привлечения",  desc: "CAC растёт. Необходима диверсификация каналов и улучшение retention." },
+    { level: "low",    title: "Инфраструктурная устойчивость", desc: "Технический стек стабилен. Требуется планирование disaster recovery." },
   ];
 
-  const agents = riskAgents.length >= 2 ? riskAgents : fallbackRiskAgents;
+  const lv: Record<string, number> = { high: 72, medium: 55, low: 28 };
+  const riskManager = aiResults.find((r: { role: string }) => r.role === "Risk Manager");
+  const ceo         = aiResults.find((r: { role: string }) => r.role === "CEO");
+  const legal       = aiResults.find((r: { role: string }) => r.role === "Legal Advisor");
+
+  // Build actionable plans from AI data or use defaults
+  const riskPlans = risks.map((risk, i) => {
+    const source = i === 0 ? ceo : i === 1 ? riskManager : legal;
+    const rawRecs = source?.recommendations || "";
+    const steps = rawRecs
+      .split(/\d+\.\s+/)
+      .filter(Boolean)
+      .slice(0, 3)
+      .map((s: string) => s.trim().slice(0, 80));
+    const defaultSteps = [
+      ["Формализовать УТП: Ревизия ценностного предложения.", "Оптимизировать LTV: Запуск программы лояльности.", "Конкурентная разведка: Еженедельный мониторинг."],
+      ["Аудит CAC: Анализ эффективности каналов.", "Ремаркетинг: Запуск A/B тестов для удержания.", "Чат-бот ИИ: Внедрение ИИ-поддержки."],
+      ["Проактивный мониторинг: ИИ-прогнозирование сбоев.", "Облачное дублирование: Тестирование аварийного восстановления.", "Кибер-аудит: Регулярный вудит и обучение команды."],
+    ];
+    return steps.length >= 2 ? steps : defaultSteps[i] ?? defaultSteps[0];
+  });
+
+  const globalScore = Math.round(risks.reduce((s, r) => s + (lv[r.level] ?? 50), 0) / risks.length);
+
+  // Bar chart icons (SVG glyphs for each risk type)
+  const barIcons = [
+    <svg key="0" viewBox="0 0 32 32" fill="none" style={{width:28,height:28}}>
+      <path d="M16 4l-10 8v16h7v-8h6v8h7V12L16 4z" stroke="#FF5470" strokeWidth="1.5" fill="rgba(255,84,112,0.1)"/>
+      <path d="M12 20h8M12 15h8" stroke="#FF5470" strokeWidth="1" opacity="0.6"/>
+    </svg>,
+    <svg key="1" viewBox="0 0 32 32" fill="none" style={{width:28,height:28}}>
+      <circle cx="16" cy="12" r="6" stroke="#FFB800" strokeWidth="1.5" fill="rgba(255,184,0,0.1)"/>
+      <path d="M10 24c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#FFB800" strokeWidth="1.5"/>
+      <path d="M22 8l3-3M10 8l-3-3" stroke="#FFB800" strokeWidth="1" opacity="0.6"/>
+    </svg>,
+    <svg key="2" viewBox="0 0 32 32" fill="none" style={{width:28,height:28}}>
+      <rect x="6" y="8" width="20" height="16" rx="2" stroke="#00E7A7" strokeWidth="1.5" fill="rgba(0,231,167,0.08)"/>
+      <path d="M10 14h12M10 18h8" stroke="#00E7A7" strokeWidth="1.2" opacity="0.7"/>
+      <circle cx="24" cy="10" r="3" fill="rgba(0,231,167,0.3)" stroke="#00E7A7" strokeWidth="1"/>
+    </svg>,
+  ];
+
+  const now = new Date();
+  const dateStr = `Q${Math.ceil((now.getMonth()+1)/3)}.${String(now.getDate()).padStart(2,"0")}.${now.getFullYear()}`;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      {/* Animated radar */}
-      <AnimatedRadar risks={project.risks} />
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <style>{`
+        @keyframes bar-rise { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+        @keyframes risk-card-in { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
+        @keyframes rsk-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+      `}</style>
 
-      {/* Risk severity bars */}
-      <div style={{
-        background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 20px",
-        opacity: animated ? 1 : 0, transition: "opacity 0.5s 200ms",
-      }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 14 }}>Уровни угроз</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {project.risks.map((risk, i) => {
-            const cfg = RISK_CFG[risk.level] ?? RISK_CFG.medium;
-            const val = risk.level === "high" ? 88 : risk.level === "medium" ? 55 : 28;
-            return (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 52, flexShrink: 0, display: "flex", alignItems: "center" }}>
-                  <span style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.12em", color: cfg.color }}>{cfg.label}</span>
+      {/* ── HEADER ── */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+        <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.85)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+          Глобальная оценка рисков проекта
+          <span style={{ marginLeft: 10, fontSize: 10, fontWeight: 600, color: "#7A5CFF" }}>Отчёт {dateStr}</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ padding: "5px 12px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 10, color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
+            <svg viewBox="0 0 14 14" fill="none" style={{width:11,height:11}}><rect x="1" y="2" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M5 1v2M9 1v2M1 6h12" stroke="currentColor" strokeWidth="1.2"/></svg>
+            {dateStr}
+          </div>
+          {(["month","quarter","year"] as const).map(p => (
+            <button key={p} onClick={() => setPeriod(p)} style={{
+              padding: "5px 12px", borderRadius: 8, fontSize: 10, fontWeight: 700, cursor: "pointer",
+              background: period === p ? "rgba(122,92,255,0.2)" : "rgba(255,255,255,0.03)",
+              border: period === p ? "1px solid rgba(122,92,255,0.5)" : "1px solid rgba(255,255,255,0.07)",
+              color: period === p ? "#a78bfa" : "rgba(255,255,255,0.35)",
+              transition: "all 0.15s",
+            }}>
+              {p === "month" ? "Месяц" : p === "quarter" ? "Квартал" : "Год"}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* ── MAIN GRID: chart left + cards right ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14, alignItems: "start" }}>
+
+        {/* LEFT: neon bar chart */}
+        <div style={{
+          background: "rgba(8,10,20,0.95)", border: "1px solid rgba(255,255,255,0.07)",
+          borderRadius: 16, padding: "20px 20px 16px", position: "relative", overflow: "hidden",
+        }}>
+          {/* Grid lines */}
+          <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+            {[0, 25, 50, 75, 100].map(pct => (
+              <div key={pct} style={{
+                position: "absolute", left: 44, right: 16,
+                top: `${20 + (1 - pct / 100) * 68}%`,
+                borderTop: "1px solid rgba(255,255,255,0.05)",
+                display: "flex", alignItems: "center",
+              }}>
+                <span style={{ position: "absolute", left: -40, fontSize: 8.5, color: "rgba(255,255,255,0.2)", fontFamily: "ui-monospace,monospace" }}>{pct}%</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Bars */}
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-around", height: 240, paddingLeft: 36, paddingRight: 8, gap: 16, position: "relative" }}>
+            {risks.map((risk, i) => {
+              const meta = RISK_META[risk.level] ?? RISK_META.medium;
+              const pct = lv[risk.level] ?? 50;
+              return (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "flex-end", gap: 8 }}>
+                  {/* Percentage label */}
+                  <div style={{
+                    fontSize: 18, fontWeight: 800, color: meta.color, fontFamily: "ui-monospace,monospace",
+                    textShadow: `0 0 16px rgba(${meta.rgb},0.8)`,
+                    opacity: animated ? 1 : 0,
+                    transition: `opacity 0.4s ${200 + i * 150}ms`,
+                  }}>{pct}%</div>
+
+                  {/* Bar wrapper */}
+                  <div style={{ width: "100%", height: `${pct}%`, position: "relative", transformOrigin: "bottom" }}>
+                    {/* Glow outer */}
+                    <div style={{
+                      position: "absolute", inset: -4, borderRadius: 10,
+                      background: `rgba(${meta.rgb},0.12)`,
+                      filter: "blur(8px)",
+                      opacity: animated ? 1 : 0, transition: `opacity 0.6s ${300 + i * 150}ms`,
+                    }} />
+                    {/* Bar body */}
+                    <div style={{
+                      position: "absolute", inset: 0, borderRadius: 8,
+                      background: `linear-gradient(180deg, rgba(${meta.rgb},0.9) 0%, rgba(${meta.rgb},0.25) 100%)`,
+                      border: `1px solid rgba(${meta.rgb},0.6)`,
+                      boxShadow: `inset 0 0 20px rgba(${meta.rgb},0.2), 0 0 20px rgba(${meta.rgb},0.3)`,
+                      transformOrigin: "bottom",
+                      animation: animated ? `bar-rise 0.9s cubic-bezier(0.34,1.56,0.64,1) ${100 + i * 180}ms both` : "none",
+                    }}>
+                      {/* Inner highlight streak */}
+                      <div style={{ position: "absolute", top: 0, left: "20%", width: "20%", bottom: 0, borderRadius: 4, background: `rgba(255,255,255,0.12)` }} />
+                      {/* Dot marker */}
+                      <div style={{
+                        position: "absolute", top: -5, left: "50%", transform: "translateX(-50%)",
+                        width: 8, height: 8, borderRadius: "50%",
+                        background: meta.color, boxShadow: `0 0 10px rgba(${meta.rgb},1)`,
+                        animation: "rsk-pulse 2s ease-in-out infinite",
+                      }} />
+                    </div>
+                  </div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.82)", marginBottom: 4 }}>{risk.title}</div>
-                  <AnimatedBar value={val} color={cfg.color} delay={200 + i * 80} height={4} />
+              );
+            })}
+
+            {/* Connecting curve between bars */}
+            {animated && (
+              <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }} preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="risk-curve" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#FF5470" stopOpacity="0.5" />
+                    <stop offset="50%" stopColor="#FFB800" stopOpacity="0.5" />
+                    <stop offset="100%" stopColor="#00E7A7" stopOpacity="0.5" />
+                  </linearGradient>
+                </defs>
+                <path
+                  d={`M ${(1/6)*100}% ${(1 - (lv[risks[0]?.level ?? "medium"]/100)) * 100}%
+                      C 40% ${(1 - (lv[risks[0]?.level ?? "medium"]/100)) * 100}%
+                        60% ${(1 - (lv[risks[1]?.level ?? "medium"]/100)) * 100}%
+                        ${(3/6)*100}% ${(1 - (lv[risks[1]?.level ?? "medium"]/100)) * 100}%
+                      C ${(4/6)*100}% ${(1 - (lv[risks[1]?.level ?? "medium"]/100)) * 100}%
+                        80% ${(1 - (lv[risks[2]?.level ?? "low"]/100)) * 100}%
+                        ${(5/6)*100}% ${(1 - (lv[risks[2]?.level ?? "low"]/100)) * 100}%`}
+                  fill="none" stroke="url(#risk-curve)" strokeWidth="1.5"
+                  strokeDasharray="5 3" opacity="0.6"
+                  style={{ opacity: animated ? 0.6 : 0, transition: "opacity 0.8s 1s" }}
+                />
+              </svg>
+            )}
+          </div>
+
+          {/* X-axis labels */}
+          <div style={{ display: "flex", justifyContent: "space-around", paddingLeft: 36, paddingRight: 8, marginTop: 10, gap: 16 }}>
+            {risks.map((risk, i) => {
+              const meta = RISK_META[risk.level] ?? RISK_META.medium;
+              return (
+                <div key={i} style={{ flex: 1, textAlign: "center" }}>
+                  <div style={{ fontSize: 8, fontWeight: 800, letterSpacing: "0.1em", color: "rgba(255,255,255,0.45)", textTransform: "uppercase", lineHeight: 1.3 }}>
+                    {risk.title.toUpperCase()}
+                  </div>
+                  <div style={{ marginTop: 4, fontSize: 7.5, fontWeight: 700, color: meta.color, letterSpacing: "0.08em" }}>{meta.label}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Global Risk Index */}
+          <div style={{ marginTop: 14, padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+              <span style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.75)" }}>
+                Глобальный Индекс Риска: <span style={{ color: "#FFB800" }}>{globalScore}/100</span>
+              </span>
+              <svg viewBox="0 0 28 28" fill="none" style={{ width: 22, height: 22 }}>
+                <circle cx="14" cy="14" r="11" stroke="rgba(255,184,0,0.3)" strokeWidth="2" />
+                <circle cx="14" cy="14" r="11" stroke="#FFB800" strokeWidth="2"
+                  strokeDasharray={`${2 * Math.PI * 11 * globalScore / 100} ${2 * Math.PI * 11}`}
+                  strokeLinecap="round" strokeDashoffset={2 * Math.PI * 11 * 0.25}
+                  style={{ transition: "stroke-dasharray 1.2s ease-out 0.8s" }} />
+              </svg>
+            </div>
+            <div style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", marginBottom: 5 }}>Рекомендации ИИ по рискам</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
+              {[
+                "Увеличить LTV-фокус в сегменте SMB.",
+                "Оптимизировать конкуренцию в ключевых каналах.",
+                "Ввести ежеквартальный risk-review процесс.",
+                "Усилить рост охвата по ключевым сегментам.",
+              ].map((rec, i) => (
+                <div key={i} style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", display: "flex", gap: 5, alignItems: "flex-start" }}>
+                  <span style={{ color: "#7A5CFF", fontWeight: 700, flexShrink: 0 }}>ИИ:</span>
+                  <span>{rec}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* RIGHT: risk detail cards */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {risks.slice(0, 3).map((risk, i) => {
+            const meta = RISK_META[risk.level] ?? RISK_META.medium;
+            const plans = riskPlans[i] ?? [];
+            return (
+              <div
+                key={i}
+                style={{
+                  background: `rgba(${meta.rgb},0.04)`,
+                  border: `1px solid rgba(${meta.rgb},0.2)`,
+                  borderRadius: 14, padding: "14px 16px",
+                  opacity: 0,
+                  animation: `risk-card-in 0.55s cubic-bezier(0.22,1,0.36,1) ${200 + i * 140}ms forwards`,
+                  position: "relative", overflow: "hidden",
+                }}
+              >
+                {/* Top accent line */}
+                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, rgba(${meta.rgb},0.7), transparent)` }} />
+
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  {/* Icon box */}
+                  <div style={{
+                    width: 52, height: 52, borderRadius: 12, flexShrink: 0,
+                    background: `rgba(${meta.rgb},0.1)`, border: `1px solid rgba(${meta.rgb},0.25)`,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                  }}>
+                    {barIcons[i]}
+                  </div>
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                      <span style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{risk.title}</span>
+                      <span style={{ fontSize: 8, fontWeight: 700, padding: "2px 8px", borderRadius: 5, background: `rgba(${meta.rgb},0.15)`, border: `1px solid rgba(${meta.rgb},0.35)`, color: meta.color, letterSpacing: "0.08em", textTransform: "uppercase", flexShrink: 0 }}>
+                        {meta.label} | {meta.badge}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.38)", lineHeight: 1.5, marginBottom: 8 }}>
+                      {risk.desc || `Уровень угрозы: ${meta.label.toLowerCase()}. Мониторинг и контроль приоритетны.`}
+                    </div>
+                    <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 5 }}>Actionable Plan:</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+                      {plans.map((step: string, si: number) => (
+                        <div key={si} style={{ fontSize: 10, color: "rgba(255,255,255,0.55)", display: "flex", gap: 6, alignItems: "flex-start" }}>
+                          <span style={{ fontWeight: 800, color: meta.color, flexShrink: 0 }}>{si + 1}.</span>
+                          <span>{step}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             );
           })}
         </div>
-      </div>
-
-      {/* Agent opinions */}
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {agents.map((ag, i) => (
-          <AgentPanel key={i} letter={ag.letter} name={ag.name} subtitle={ag.subtitle}
-            color={ag.color} score={ag.score}
-            opinion={ag.opinion || "Анализ рисков недоступен. Запустите AI-анализ для получения полного риск-аудита."}
-            delay={i * 120} />
-        ))}
       </div>
     </div>
   );
