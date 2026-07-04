@@ -170,7 +170,7 @@ function StepCard({ step, index }: { step: typeof STEPS[number]; index: number }
           border:         `1px solid rgba(${step.rgb},0.24)`,
           boxShadow:      [
             `0 0 0 1px rgba(${step.rgb},0.06)`,
-            `0 0 48px rgba(${step.rgb},0.09)`,
+            `0 8px 32px rgba(0,0,0,0.35)`,
             `inset 0 1px 0 rgba(255,255,255,0.09)`,
           ].join(", "),
           backdropFilter: "blur(20px) saturate(180%)",
@@ -228,7 +228,7 @@ function StepCard({ step, index }: { step: typeof STEPS[number]; index: number }
             color:          step.color,
             background:     `linear-gradient(135deg, rgba(${step.rgb},0.2) 0%, rgba(${step.rgb},0.06) 100%)`,
             border:         `1px solid rgba(${step.rgb},0.32)`,
-            boxShadow:      `0 0 24px rgba(${step.rgb},0.2), inset 0 1px 0 rgba(${step.rgb},0.25)`,
+            boxShadow:      `0 2px 12px rgba(${step.rgb},0.12), inset 0 1px 0 rgba(${step.rgb},0.18)`,
           }}
         >
           {step.icon}
@@ -282,8 +282,8 @@ export function HowItWorksSection() {
           100% { left: calc(100% + 6px); opacity: 0; }
         }
         @keyframes hiw-badge-glow {
-          0%, 100% { box-shadow: 0 0 0 0   rgba(139,92,246,0.28), inset 0 0 8px  rgba(139,92,246,0.06); }
-          50%       { box-shadow: 0 0 0 6px rgba(139,92,246,0),   inset 0 0 16px rgba(139,92,246,0.18); }
+          0%, 100% { box-shadow: 0 0 0 0   rgba(139,92,246,0.14), inset 0 0 6px  rgba(139,92,246,0.04); }
+          50%       { box-shadow: 0 0 0 4px rgba(139,92,246,0),   inset 0 0 10px rgba(139,92,246,0.1); }
         }
         @keyframes hiw-dot-blink {
           0%, 100% { opacity: 1;   transform: scale(1);   }
