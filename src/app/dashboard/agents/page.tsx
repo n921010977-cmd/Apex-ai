@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Bot, Plus, Search, Play, MessageSquare, Settings2, BarChart2, Copy,
@@ -115,7 +116,10 @@ function StatusDot({ status }: { status: AgentStatus }) {
   );
 }
 
-function AgentCard({ agent, selected, onClick }: { agent: Agent; selected: boolean; onClick: () => void }) {
+function AgentCard({ agent, selected, onClick, onRun, onChat, onConfigure }: {
+  agent: Agent; selected: boolean; onClick: () => void;
+  onRun: () => void; onChat: () => void; onConfigure: () => void;
+}) {
   return (
     <motion.div
       layout
@@ -161,18 +165,25 @@ function AgentCard({ agent, selected, onClick }: { agent: Agent; selected: boole
         </span>
       </div>
       <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
-        {(["Запуск","Чат","Настроить"] as const).map((action) => (
+        {([
+          { label: "Запуск",    handler: onRun },
+          { label: "Чат",       handler: onChat },
+          { label: "Настроить", handler: onConfigure },
+        ] as const).map(({ label, handler }) => (
           <button
-            key={action}
-            onClick={(e) => e.stopPropagation()}
+            key={label}
+            onClick={(e) => { e.stopPropagation(); handler(); }}
             style={{
               flex: 1, padding: "6px 0", borderRadius: 8, fontSize: 11, fontWeight: 500, cursor: "pointer",
-              background: action === "Запуск" ? `linear-gradient(135deg, ${agent.color}33, ${agent.color}1a)` : "rgba(255,255,255,0.04)",
-              border: action === "Запуск" ? `1px solid ${agent.color}44` : "1px solid rgba(255,255,255,0.08)",
-              color: action === "Запуск" ? agent.color : "rgba(255,255,255,0.45)",
+              background: label === "Запуск" ? `linear-gradient(135deg, ${agent.color}33, ${agent.color}1a)` : "rgba(255,255,255,0.04)",
+              border: label === "Запуск" ? `1px solid ${agent.color}44` : "1px solid rgba(255,255,255,0.08)",
+              color: label === "Запуск" ? agent.color : "rgba(255,255,255,0.45)",
+              transition: "filter 0.15s",
             }}
+            onMouseEnter={(e) => (e.currentTarget.style.filter = "brightness(1.25)")}
+            onMouseLeave={(e) => (e.currentTarget.style.filter = "brightness(1)")}
           >
-            {action}
+            {label}
           </button>
         ))}
       </div>
@@ -180,7 +191,10 @@ function AgentCard({ agent, selected, onClick }: { agent: Agent; selected: boole
   );
 }
 
-function AgentDetail({ agent, onClose }: { agent: Agent; onClose: () => void }) {
+function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
+  agent: Agent; onClose: () => void;
+  onRun: () => void; onChat: () => void; onConfigure: () => void; onClone: () => void;
+}) {
   const [tab, setTab] = useState<"overview"|"prompt"|"tools"|"stats">("overview");
   const { label: statusLabel, color: statusColor, Icon: StatusIcon } = STATUS_CONFIG[agent.status];
 
@@ -286,16 +300,16 @@ function AgentDetail({ agent, onClose }: { agent: Agent; onClose: () => void }) 
       </div>
 
       <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        <button style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", border: "none", color: "white", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+        <button onClick={onRun} style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", border: "none", color: "white", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <Play size={12} /> Запустить
         </button>
-        <button style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+        <button onClick={onChat} style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <MessageSquare size={12} /> Чат
         </button>
-        <button style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+        <button onClick={onConfigure} style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <Settings2 size={12} /> Настроить
         </button>
-        <button style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+        <button onClick={onClone} style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", color: "rgba(255,255,255,0.5)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <Copy size={12} /> Клонировать
         </button>
       </div>
@@ -304,6 +318,7 @@ function AgentDetail({ agent, onClose }: { agent: Agent; onClose: () => void }) 
 }
 
 export default function AgentsPage() {
+  const router = useRouter();
   const [dept, setDept] = useState("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Agent | null>(null);
@@ -311,7 +326,117 @@ export default function AgentsPage() {
   const [createStep, setCreateStep] = useState(0);
   const [newAgent, setNewAgent] = useState({ name: "", role: "", dept: "exec", model: MODELS[0], description: "", prompt: "" });
 
-  const filtered = AGENTS.filter((a) => {
+  const [agents, setAgents] = useState<Agent[]>(AGENTS);
+  const [toast, setToast] = useState<string | null>(null);
+  const [runAgent, setRunAgent] = useState<Agent | null>(null);
+  const [runInput, setRunInput] = useState("");
+  const [runOutput, setRunOutput] = useState("");
+  const [running, setRunning] = useState(false);
+  const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // load user-created/cloned agents from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("apex-custom-agents");
+      if (saved) {
+        const custom: Agent[] = JSON.parse(saved);
+        if (Array.isArray(custom) && custom.length) setAgents([...custom, ...AGENTS]);
+      }
+    } catch { /* ignore */ }
+  }, []);
+
+  const persistCustom = (list: Agent[]) => {
+    const custom = list.filter((a) => a.id.startsWith("c"));
+    try { localStorage.setItem("apex-custom-agents", JSON.stringify(custom)); } catch { /* ignore */ }
+  };
+
+  const showToast = (msg: string) => {
+    setToast(msg);
+    if (toastTimer.current) clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2400);
+  };
+
+  const openChat = (a: Agent) => {
+    try { localStorage.setItem("apex-chat-agent", JSON.stringify({ id: a.id, name: a.name, role: a.role, prompt: a.prompt })); } catch { /* ignore */ }
+    router.push("/dashboard/chat");
+  };
+
+  const configureAgent = (a: Agent) => { setSelected(a); showToast(`Открыты настройки: ${a.name}`); };
+
+  const cloneAgent = (a: Agent) => {
+    const copy: Agent = { ...a, id: `c${Date.now()}`, name: `${a.name} (копия)`, runs: 0, status: "idle" };
+    setAgents((prev) => { const next = [copy, ...prev]; persistCustom(next); return next; });
+    showToast(`Клонирован: ${copy.name}`);
+  };
+
+  const createAgent = () => {
+    if (!newAgent.name.trim() || !newAgent.role.trim()) { showToast("Заполните имя и роль"); return; }
+    const created: Agent = {
+      id: `c${Date.now()}`, name: newAgent.name.trim(), role: newAgent.role.trim(), dept: newAgent.dept,
+      emoji: "🤖", color: "#7A5CFF", description: newAgent.description.trim() || "Пользовательский AI-агент.",
+      model: newAgent.model, status: "active", runs: 0, rating: 5.0, speed: "fast", cost: "$$",
+      tools: ["web", "docs"], memory: true, created: new Date().toISOString().slice(0, 10),
+      prompt: newAgent.prompt.trim() || `Ты — ${newAgent.name}, ${newAgent.role}. Помогаешь профессионально решать задачи.`,
+    };
+    setAgents((prev) => { const next = [created, ...prev]; persistCustom(next); return next; });
+    setShowCreate(false);
+    setNewAgent({ name: "", role: "", dept: "exec", model: MODELS[0], description: "", prompt: "" });
+    showToast(`Агент создан: ${created.name}`);
+  };
+
+  // ── real backend run: stream AI response via /api/chat/direct ──
+  const openRun = (a: Agent) => {
+    setRunAgent(a);
+    setRunOutput("");
+    setRunInput("Проведи экспресс-анализ по своей зоне ответственности и дай 3 конкретные рекомендации.");
+  };
+
+  const executeRun = async () => {
+    if (!runAgent || !runInput.trim() || running) return;
+    setRunning(true);
+    setRunOutput("");
+    const persona = `${runAgent.prompt}\n\nОтвечай по-русски, профессионально и конкретно. Используй markdown, давай чёткие шаги и цифры где уместно.`;
+    try {
+      const res = await fetch("/api/chat/direct", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: runInput, agentId: runAgent.id, persona, history: [] }),
+      });
+      if (!res.ok || !res.body) {
+        let err = "Сервис недоступен";
+        try { const j = await res.json(); err = j.error ?? err; } catch {}
+        setRunOutput(`⚠️ ${err}`);
+        return;
+      }
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "", acc = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? "";
+        for (const part of parts) {
+          const line = part.trim();
+          if (!line.startsWith("data:")) continue;
+          try {
+            const ev = JSON.parse(line.slice(5).trim());
+            if (ev.type === "token") { acc += ev.token; setRunOutput(acc); }
+            else if (ev.type === "error") { acc = `⚠️ ${ev.message ?? "Ошибка"}`; setRunOutput(acc); }
+          } catch { /* ignore */ }
+        }
+      }
+      if (!acc.trim()) setRunOutput("Пустой ответ. Попробуйте ещё раз.");
+      setAgents((prev) => prev.map((x) => x.id === runAgent.id ? { ...x, runs: x.runs + 1 } : x));
+    } catch {
+      setRunOutput("⚠️ Ошибка соединения с AI-сервисом.");
+    } finally {
+      setRunning(false);
+    }
+  };
+
+  const filtered = agents.filter((a) => {
     if (dept !== "all" && a.dept !== dept) return false;
     if (search) {
       const q = search.toLowerCase();
@@ -337,7 +462,7 @@ export default function AgentsPage() {
               </div>
               <h1 style={{ fontSize: 20, fontWeight: 700, color: "rgba(255,255,255,0.92)", margin: 0 }}>AI Agent Studio</h1>
               <span style={{ fontSize: 11, background: "rgba(0,231,167,0.1)", border: "1px solid rgba(0,231,167,0.2)", color: "#00E7A7", borderRadius: 6, padding: "2px 8px", fontWeight: 600 }}>
-                {AGENTS.filter(a => a.status === "active").length} активно
+                {agents.filter(a => a.status === "active").length} активно
               </span>
             </div>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>Управляйте, настраивайте и запускайте интеллектуальных AI-агентов</p>
@@ -359,13 +484,16 @@ export default function AgentsPage() {
         <div style={{ display: "flex", gap: 14, marginBottom: 16 }}>
           {KPI.map((k) => {
             const Icon = k.icon;
+            const value = k.label === "Всего агентов" ? String(agents.length)
+              : k.label === "Активны сейчас" ? String(agents.filter(a => a.status === "active").length)
+              : k.value;
             return (
               <div key={k.label} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)", flex: 1 }}>
                 <div style={{ width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", background: `${k.color}15`, flexShrink: 0 }}>
                   <Icon size={14} style={{ color: k.color }} />
                 </div>
                 <div>
-                  <div style={{ fontSize: 15, fontWeight: 700, color: k.color }}>{k.value}</div>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: k.color }}>{value}</div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{k.label}</div>
                 </div>
               </div>
@@ -427,6 +555,9 @@ export default function AgentsPage() {
                     agent={agent}
                     selected={selected?.id === agent.id}
                     onClick={() => setSelected(selected?.id === agent.id ? null : agent)}
+                    onRun={() => openRun(agent)}
+                    onChat={() => openChat(agent)}
+                    onConfigure={() => configureAgent(agent)}
                   />
                 ))}
               </AnimatePresence>
@@ -441,7 +572,16 @@ export default function AgentsPage() {
         </div>
 
         <AnimatePresence>
-          {selected && <AgentDetail agent={selected} onClose={() => setSelected(null)} />}
+          {selected && (
+            <AgentDetail
+              agent={selected}
+              onClose={() => setSelected(null)}
+              onRun={() => openRun(selected)}
+              onChat={() => openChat(selected)}
+              onConfigure={() => showToast("Редактирование в панели «Промпт»")}
+              onClone={() => cloneAgent(selected)}
+            />
+          )}
         </AnimatePresence>
       </div>
 
@@ -548,11 +688,86 @@ export default function AgentsPage() {
                 <button onClick={() => createStep > 0 ? setCreateStep(createStep - 1) : setShowCreate(false)} style={{ padding: "9px 20px", borderRadius: 10, fontSize: 12, cursor: "pointer", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
                   {createStep > 0 ? "Назад" : "Отмена"}
                 </button>
-                <button onClick={() => createStep < 2 ? setCreateStep(createStep + 1) : setShowCreate(false)} style={{ padding: "9px 20px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", border: "none", color: "white", display: "flex", alignItems: "center", gap: 6 }}>
+                <button onClick={() => createStep < 2 ? setCreateStep(createStep + 1) : createAgent()} style={{ padding: "9px 20px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", border: "none", color: "white", display: "flex", alignItems: "center", gap: 6 }}>
                   {createStep < 2 ? "Далее" : "Создать агента"} <ChevronRight size={13} />
                 </button>
               </div>
             </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Run Modal — real AI execution */}
+      <AnimatePresence>
+        {runAgent && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ position: "fixed", inset: 0, zIndex: 100, background: "rgba(0,0,0,0.72)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}
+            onClick={() => !running && setRunAgent(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: 620, maxWidth: "100%", maxHeight: "86vh", display: "flex", flexDirection: "column", background: "#0d0f17", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, boxShadow: "0 32px 80px rgba(0,0,0,0.8)", overflow: "hidden" }}
+            >
+              <div style={{ padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 12 }}>
+                <div style={{ width: 40, height: 40, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: `linear-gradient(135deg, ${runAgent.color}25, ${runAgent.color}10)`, border: `1px solid ${runAgent.color}40` }}>
+                  {runAgent.emoji}
+                </div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{runAgent.name}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{runAgent.role} · {runAgent.model}</div>
+                </div>
+                <button onClick={() => !running && setRunAgent(null)} style={{ background: "none", border: "none", cursor: running ? "not-allowed" : "pointer", color: "rgba(255,255,255,0.3)", padding: 4 }}><X size={16} /></button>
+              </div>
+
+              <div style={{ padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Задача агенту</div>
+                <textarea
+                  value={runInput}
+                  onChange={(e) => setRunInput(e.target.value)}
+                  rows={2}
+                  disabled={running}
+                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, fontSize: 12.5, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "white", outline: "none", resize: "none", lineHeight: 1.6, boxSizing: "border-box" }}
+                />
+                <button
+                  onClick={executeRun}
+                  disabled={running || !runInput.trim()}
+                  style={{ marginTop: 10, padding: "9px 18px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: running ? "not-allowed" : "pointer", background: running ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #7A5CFF, #5A8DFF)", border: "none", color: running ? "rgba(255,255,255,0.4)" : "white", display: "inline-flex", alignItems: "center", gap: 6 }}
+                >
+                  <Play size={12} /> {running ? "Выполняется…" : "Запустить агента"}
+                </button>
+              </div>
+
+              <div style={{ flex: 1, overflowY: "auto", padding: "18px 22px", minHeight: 160 }}>
+                {runOutput ? (
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.75, whiteSpace: "pre-wrap", margin: 0 }}>{runOutput}</p>
+                ) : running ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.4)", fontSize: 12 }}>
+                    {[0,1,2].map((j) => (
+                      <motion.span key={j} animate={{ opacity: [0.3,1,0.3] }} transition={{ duration: 1.2, repeat: Infinity, delay: j*0.3 }} style={{ width: 7, height: 7, borderRadius: "50%", background: runAgent.color, display: "inline-block" }} />
+                    ))}
+                    Агент анализирует…
+                  </div>
+                ) : (
+                  <div style={{ color: "rgba(255,255,255,0.28)", fontSize: 12.5, textAlign: "center", paddingTop: 40 }}>
+                    Нажмите «Запустить», чтобы {runAgent.name} выполнил задачу.
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+            style={{ position: "fixed", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 200, padding: "9px 18px", borderRadius: 12, background: "rgba(20,18,32,0.96)", border: "1px solid rgba(122,92,255,0.32)", color: "white", fontSize: 12.5, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}
+          >
+            {toast}
           </motion.div>
         )}
       </AnimatePresence>

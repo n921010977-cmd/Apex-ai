@@ -229,6 +229,24 @@ export default function ChatPage() {
     startChat(found);
   };
 
+  // open a specific agent handed off from the Agents Studio ("Чат" button)
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("apex-chat-agent");
+      if (!raw) return;
+      localStorage.removeItem("apex-chat-agent");
+      const a = JSON.parse(raw) as { id: string; name: string; role: string; prompt?: string };
+      const synth = {
+        id: a.id, dept: "Универсальные", name: a.name, role: a.role,
+        desc: a.prompt ? a.prompt.slice(0, 120) : a.role,
+        icon: "🤖", color: "#7A5CFF", model: "Claude Opus",
+        tasks: 0, rating: 5, speed: "1.2s", online: true,
+      } as typeof AGENTS[0];
+      startChat(synth);
+    } catch { /* ignore */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const toggleFavorite = (id: string) => {
     setFavorites(prev => {
       const next = new Set(prev);
