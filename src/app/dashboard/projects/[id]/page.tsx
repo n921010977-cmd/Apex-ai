@@ -969,9 +969,6 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Score banner */}
-      <ScoreBanner project={project} aiResults={aiResults} />
-
       {/* 20 agents grid */}
       <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>
         Полная диагностика — {agents.length} специалистов
@@ -1799,29 +1796,8 @@ export default function ProjectPage() {
         </div>
       </div>
 
-      {/* Score panel */}
-      <div style={{
-        background: headerBg, border: "1px solid rgba(255,255,255,0.07)", borderRadius: 18, padding: "20px 24px",
-        display: "flex", alignItems: "center", gap: 32, flexWrap: "wrap", marginBottom: 24, position: "relative", overflow: "hidden",
-      }}>
-        <div style={{ position: "absolute", inset: "0 0 auto", height: 1, background: "linear-gradient(90deg,transparent,rgba(122,92,255,0.4),transparent)" }} />
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: 44, fontWeight: 800, color: scoreColor, fontFamily: "monospace", lineHeight: 1 }}>{project.score}</div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>Бизнес-балл</div>
-        </div>
-        <div style={{ flex: 1, minWidth: 280, display: "flex", flexDirection: "column", gap: 12 }}>
-          {project.scores.map((item, i) => (
-            <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 210, flexShrink: 0 }}>{item.label}</span>
-              <div style={{ flex: 1 }}>
-                <AnimatedBar value={item.value} color={["#7A5CFF","#5A8DFF","#00E7A7","#FFB800"][i]} delay={i * 80} />
-              </div>
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "monospace", width: 28, textAlign: "right", flexShrink: 0 }}>{item.value}</span>
-            </div>
-          ))}
-        </div>
-        <ScoreGauge score={project.score} />
-      </div>
+      {/* Score banner */}
+      <ScoreBanner project={project} aiResults={aiResults} />
 
       {/* Tabs */}
       <div style={{ display: "flex", gap: 4, padding: 4, background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)", width: "fit-content", marginBottom: 24 }}>
