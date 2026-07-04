@@ -726,6 +726,230 @@ function agentColor(role: string) {
   return AGENT_COLORS[role] ?? DEMO_AGENTS.find(a => a.id === role?.toLowerCase().slice(0,3))?.color ?? "#7A5CFF";
 }
 
+// ─── SCORE BANNER ─────────────────────────────────────────────────────────────
+
+const SCORE_METRICS = [
+  {
+    key: 0, label: "РЫНОЧНЫЙ ПОТЕНЦИАЛ", color: "#7A5CFF", rgb: "122,92,255",
+    icon: (
+      <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
+        <circle cx="24" cy="24" r="22" fill="url(#mg1)" opacity={0.18}/>
+        <defs><radialGradient id="mg1" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#7A5CFF"/><stop offset="100%" stopColor="#3a1cff" stopOpacity="0"/></radialGradient></defs>
+        <ellipse cx="24" cy="24" rx="14" ry="14" stroke="#7A5CFF" strokeWidth="1.5" opacity={0.5}/>
+        <ellipse cx="24" cy="24" rx="14" ry="6" stroke="#7A5CFF" strokeWidth="1" opacity={0.4}/>
+        <line x1="10" y1="24" x2="38" y2="24" stroke="#7A5CFF" strokeWidth="1" opacity={0.4}/>
+        <line x1="24" y1="10" x2="24" y2="38" stroke="#7A5CFF" strokeWidth="1" opacity={0.4}/>
+        <path d="M18 30 L24 16 L30 26 L26 22 L24 30" stroke="#a78bfa" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
+        <circle cx="24" cy="16" r="2" fill="#7A5CFF"/>
+        <path d="M28 32 l4 4" stroke="#FFB800" strokeWidth="2" strokeLinecap="round"/>
+        <circle cx="32" cy="36" r="3" stroke="#FFB800" strokeWidth="1.5" fill="none"/>
+      </svg>
+    ),
+    desc: "Оценка объёма рынка и темпов роста.",
+  },
+  {
+    key: 1, label: "ФИНАНСОВАЯ УСТОЙЧИВОСТЬ", color: "#5A8DFF", rgb: "90,141,255",
+    icon: (
+      <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
+        <defs><radialGradient id="mg2" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#5A8DFF"/><stop offset="100%" stopColor="#1c4fff" stopOpacity="0"/></radialGradient></defs>
+        <circle cx="24" cy="24" r="22" fill="url(#mg2)" opacity={0.18}/>
+        <path d="M14 34 L20 26 L26 30 L34 18" stroke="#5A8DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+        <circle cx="34" cy="18" r="2.5" fill="#5A8DFF"/>
+        <path d="M12 38 L12 20 M18 38 L18 28 M24 38 L24 24 M30 38 L30 16 M36 38 L36 10" stroke="#5A8DFF" strokeWidth="3.5" strokeLinecap="round" opacity={0.35}/>
+        <path d="M24 8 v6 M24 38 v4 M20 12 c0-2.2 1.8-4 4-4 s4 1.8 4 4 c0 2-1.2 3.5-3 4 v2 h-2 v-2 c-1.8-.5-3-2-3-4z" stroke="#FFB800" strokeWidth="1.2" fill="none"/>
+      </svg>
+    ),
+    desc: "Коэффициент ликвидности и долговой нагрузки.",
+  },
+  {
+    key: 2, label: "РЕАЛИЗУЕМОСТЬ", color: "#00E7A7", rgb: "0,231,167",
+    icon: (
+      <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
+        <defs><radialGradient id="mg3" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#00E7A7"/><stop offset="100%" stopColor="#00e7a7" stopOpacity="0"/></radialGradient></defs>
+        <circle cx="24" cy="24" r="22" fill="url(#mg3)" opacity={0.15}/>
+        <circle cx="24" cy="24" r="14" stroke="#00E7A7" strokeWidth="1.5" opacity={0.4}/>
+        <circle cx="24" cy="24" r="10" stroke="#00E7A7" strokeWidth="1" opacity={0.3}/>
+        <path d="M16 24 l5 5 l9-9" stroke="#00E7A7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M24 10 a14 14 0 0 1 9.9 4.1" stroke="#00E7A7" strokeWidth="1.5" opacity={0.6} strokeLinecap="round"/>
+        <circle cx="33.9" cy="14.1" r="2" fill="#00E7A7" opacity={0.8}/>
+      </svg>
+    ),
+    desc: "Техническая и операционная готовность.",
+  },
+  {
+    key: 3, label: "КОНКУРЕНТНОЕ ПРЕИМУЩЕСТВО", color: "#FFB800", rgb: "255,184,0",
+    icon: (
+      <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
+        <defs><radialGradient id="mg4" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#FFB800"/><stop offset="100%" stopColor="#ff8800" stopOpacity="0"/></radialGradient></defs>
+        <circle cx="24" cy="24" r="22" fill="url(#mg4)" opacity={0.15}/>
+        <path d="M24 10 l2.4 7.2 h7.6 l-6 4.4 2.2 7-6.2-4.4-6.2 4.4 2.2-7-6-4.4h7.6z" stroke="#FFB800" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(255,184,0,0.12)"/>
+        <path d="M18 32 l-2 6 M30 32 l2 6 M16 38 l8-3 8 3" stroke="#FFB800" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity={0.7}/>
+        <text x="24" y="40" textAnchor="middle" fontSize="7" fill="#FFB800" fontWeight="700" letterSpacing="0.5" opacity={0.6}>MARKET</text>
+      </svg>
+    ),
+    desc: "Уникальность продукта и барьеры входа.",
+  },
+];
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
+  const animated = useAnimated(120);
+  const [tick, setTick] = useState(0);
+  useEffect(() => { const id = setInterval(() => setTick(t => t + 1), 60); return () => clearInterval(id); }, []);
+
+  const r = 68; const circ = 2 * Math.PI * r;
+  const dash = (project.score / 100) * circ;
+  const scoreColor = project.score >= 85 ? "#00E7A7" : project.score >= 70 ? "#FFB800" : "#FF5470";
+
+  const ceoSummary = aiResults.find(r => r.role === "CEO")?.recommendations ||
+    aiResults.find(r => r.role === "Strategy Advisor")?.recommendations || "";
+  const recLines = ceoSummary
+    ? ceoSummary.replace(/\d+\./g, "|").split("|").map((s: string) => s.trim()).filter((s: string) => s.length > 12).slice(0, 3)
+    : ["Оптимизировать CAC для улучшения финансовой устойчивости.", "Усилить барьеры входа.", "Ускорить выход на рынок."];
+
+  const growthFactors = aiResults.find(r => r.role === "CEO")?.analysis || "";
+  const factors = growthFactors
+    ? growthFactors.replace(/\d+\./g, "|").split("|").map((s: string) => s.trim()).filter((s: string) => s.length > 10).slice(0, 3)
+    : ["Сильный рыночный спрос.", "Инновационная технология.", "Масштабируемая модель."];
+
+  const now = new Date();
+  const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+
+  return (
+    <div style={{
+      background: "linear-gradient(135deg,rgba(20,18,40,0.98) 0%,rgba(14,14,28,0.98) 100%)",
+      border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20,
+      overflow: "hidden", marginBottom: 4,
+      opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(16px)",
+      transition: "opacity 0.5s, transform 0.5s",
+    }}>
+      {/* Main row */}
+      <div style={{ display: "flex", alignItems: "stretch", padding: "24px 20px 20px" }}>
+
+        {/* Left: large circular score */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingRight: 24, minWidth: 160 }}>
+          <div style={{ position: "relative", width: 160, height: 160 }}>
+            {/* Glow */}
+            <div style={{
+              position: "absolute", inset: 0, borderRadius: "50%",
+              boxShadow: `0 0 48px 12px ${scoreColor}30, inset 0 0 24px ${scoreColor}18`,
+            }}/>
+            <svg viewBox="0 0 160 160" width={160} height={160} style={{ position: "absolute", inset: 0 }}>
+              <defs>
+                <linearGradient id="scArc" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stopColor={scoreColor}/>
+                  <stop offset="100%" stopColor={scoreColor} stopOpacity="0.5"/>
+                </linearGradient>
+              </defs>
+              {/* Track */}
+              <circle cx="80" cy="80" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8"/>
+              {/* Arc */}
+              <circle cx="80" cy="80" r={r} fill="none" stroke="url(#scArc)" strokeWidth="8"
+                strokeDasharray={`${dash} ${circ - dash}`}
+                strokeDashoffset={circ * 0.25}
+                strokeLinecap="round"
+                style={{ filter: `drop-shadow(0 0 8px ${scoreColor})` }}/>
+              {/* Score text */}
+              <text x="80" y="72" textAnchor="middle" fontSize="36" fontWeight="900" fill={scoreColor} fontFamily="ui-monospace,monospace"
+                style={{ filter: `drop-shadow(0 0 10px ${scoreColor})` }}>{project.score}</text>
+              <text x="80" y="90" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="rgba(255,255,255,0.5)" letterSpacing="1.5">ИНТЕГРАЛЬНЫЙ</text>
+              <text x="80" y="101" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="rgba(255,255,255,0.5)" letterSpacing="1.5">БИЗНЕС-ПОКАЗАТЕЛЬ</text>
+            </svg>
+          </div>
+        </div>
+
+        {/* Middle: 4 metric cards */}
+        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
+          {SCORE_METRICS.map((m, i) => {
+            const val = project.scores[m.key]?.value ?? project.score;
+            return (
+              <div key={m.key} style={{
+                background: `linear-gradient(135deg,rgba(${m.rgb},0.10) 0%,rgba(${m.rgb},0.03) 100%)`,
+                border: `1px solid rgba(${m.rgb},0.25)`,
+                borderRadius: 14, padding: "14px 12px",
+                opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
+                transition: `opacity 0.45s ${80 + i * 70}ms, transform 0.45s ${80 + i * 70}ms`,
+                display: "flex", flexDirection: "column", gap: 8,
+              }}>
+                {/* Icon + score */}
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ filter: `drop-shadow(0 0 8px rgba(${m.rgb},0.7))` }}>{m.icon}</div>
+                  <div style={{ textAlign: "right" }}>
+                    <div style={{ fontSize: 26, fontWeight: 900, color: m.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, filter: `drop-shadow(0 0 8px ${m.color}80)` }}>{val}</div>
+                    <div style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, letterSpacing: 1 }}>БАЛЛОВ</div>
+                  </div>
+                </div>
+                {/* Title */}
+                <div style={{ fontSize: 8.5, fontWeight: 800, color: m.color, letterSpacing: "0.12em", lineHeight: 1.3 }}>{m.label}</div>
+                {/* Desc */}
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>{m.desc}</div>
+                {/* Progress bar */}
+                <div style={{ marginTop: "auto" }}>
+                  <div style={{ height: 4, borderRadius: 2, background: `rgba(${m.rgb},0.12)`, overflow: "hidden" }}>
+                    <div style={{
+                      height: "100%", width: `${val}%`,
+                      background: `linear-gradient(90deg,rgba(${m.rgb},0.6),${m.color})`,
+                      borderRadius: 2, boxShadow: `0 0 6px ${m.color}`,
+                      transition: "width 1.2s cubic-bezier(.4,0,.2,1)",
+                    }}/>
+                  </div>
+                  <div style={{ textAlign: "right", fontSize: 8, color: m.color, marginTop: 2, fontFamily: "monospace" }}>{val}%</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Right: AI recommendations */}
+        <div style={{
+          minWidth: 180, maxWidth: 200, marginLeft: 14,
+          background: "rgba(122,92,255,0.07)", border: "1px solid rgba(122,92,255,0.2)",
+          borderRadius: 14, padding: "14px 14px", display: "flex", flexDirection: "column", gap: 8,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+            <svg viewBox="0 0 16 16" width={14} height={14} fill="none">
+              <polygon points="8,1 10,6 15,6 11,9.5 12.5,15 8,11.5 3.5,15 5,9.5 1,6 6,6" fill="#7A5CFF" opacity={0.9}/>
+            </svg>
+            <span style={{ fontSize: 8.5, fontWeight: 800, color: "#7A5CFF", letterSpacing: "0.15em" }}>РЕКОМЕНДАЦИИ ИИ</span>
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
+            {recLines.map((line: string, i: number) => (
+              <div key={i} style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, borderLeft: "2px solid rgba(122,92,255,0.4)", paddingLeft: 7 }}>
+                {line.slice(0, 90)}
+              </div>
+            ))}
+          </div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginTop: "auto", fontFamily: "monospace" }}>{ts}</div>
+        </div>
+      </div>
+
+      {/* Bottom strip: growth factors */}
+      <div style={{
+        borderTop: "1px solid rgba(255,255,255,0.05)",
+        background: "rgba(0,0,0,0.25)",
+        padding: "10px 24px", display: "flex", alignItems: "center", gap: 16,
+      }}>
+        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>
+          <span>Счёт на основе</span>
+          <br/>
+          <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>4 ключевых метрик</span>
+        </div>
+        <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.08)" }}/>
+        <div style={{ fontSize: 8.5, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>СВОДКА ФАКТОРОВ РОСТА</div>
+        <div style={{ display: "flex", gap: 20, overflow: "hidden" }}>
+          {factors.map((f: string, i: number) => (
+            <div key={i} style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
+              <span style={{ fontSize: 10, color: ["#7A5CFF","#5A8DFF","#00E7A7"][i] }}>⬡</span>
+              <span style={{ color: "rgba(255,255,255,0.3)", marginRight: 2 }}>{i+1}.</span>
+              {f.slice(0, 55)}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 
 const TABS = ["Диагностика", "AI Команда", "Финансы", "Рынок", "Риски"];
@@ -745,54 +969,8 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* KPI row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12 }}>
-        {[
-          { label: "Бизнес-балл", value: project.score, color: project.score >= 85 ? "#00E7A7" : project.score >= 70 ? "#FFB800" : "#FF5470", suffix: "/100" },
-          { label: "Рыночный потенциал", value: project.scores[0]?.value, color: "#7A5CFF", suffix: "" },
-          { label: "Финансовая устойчивость", value: project.scores[1]?.value, color: "#5A8DFF", suffix: "" },
-          { label: "Реализуемость", value: project.scores[2]?.value, color: "#00E7A7", suffix: "" },
-        ].map((kpi, i) => (
-          <div key={i} style={{
-            background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)",
-            borderRadius: 14, padding: "16px 18px",
-            opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
-            transition: `opacity 0.5s ${i * 80}ms, transform 0.5s ${i * 80}ms`,
-          }}>
-            <div style={{ fontSize: 28, fontWeight: 800, color: kpi.color, fontFamily: "monospace", lineHeight: 1 }}>
-              {kpi.value}{kpi.suffix}
-            </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>{kpi.label}</div>
-            <div style={{ marginTop: 10 }}>
-              <AnimatedBar value={kpi.value ?? 0} color={kpi.color} delay={i * 80 + 200} height={4} />
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Sub-scores chart */}
-      <div style={{
-        background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)",
-        borderRadius: 16, padding: 20,
-        opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
-        transition: "opacity 0.5s 320ms, transform 0.5s 320ms",
-      }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 16 }}>Профиль бизнеса</div>
-        <div style={{ display: "flex", gap: 32, alignItems: "center" }}>
-          <ScoreGauge score={project.score} />
-          <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 14 }}>
-            {project.scores.map((s, i) => (
-              <div key={i} style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", width: 200, flexShrink: 0 }}>{s.label}</span>
-                <div style={{ flex: 1 }}>
-                  <AnimatedBar value={s.value} color={["#7A5CFF", "#5A8DFF", "#00E7A7", "#FFB800"][i]} delay={400 + i * 80} height={6} />
-                </div>
-                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "monospace", width: 28, textAlign: "right", flexShrink: 0 }}>{s.value}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+      {/* Score banner */}
+      <ScoreBanner project={project} aiResults={aiResults} />
 
       {/* 20 agents grid */}
       <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>
