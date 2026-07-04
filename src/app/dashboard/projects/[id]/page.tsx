@@ -202,68 +202,192 @@ function AnimatedBar({ value, color, delay = 0, height = 6 }:
 
 // ─── ANIMATED AREA CHART ──────────────────────────────────────────────────────
 
-function AnimatedAreaChart({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
-  const animated = useAnimated(200);
-  const items = financials.filter(f => f.numeric !== undefined);
-  if (items.length < 2) return null;
-  const W = 600, H = 130, PAD = 30;
-  const max = Math.max(...items.map(i => i.numeric!));
-  const pts = items.map((item, i) => ({
-    x: PAD + (i / (items.length - 1)) * (W - PAD * 2),
-    y: H - PAD - (item.numeric! / max) * (H - PAD * 2),
-    ...item,
-  }));
-  const pathD = pts.map((p, i) =>
-    i === 0 ? `M ${p.x} ${p.y}` :
-      `C ${(pts[i-1].x + p.x)/2} ${pts[i-1].y} ${(pts[i-1].x + p.x)/2} ${p.y} ${p.x} ${p.y}`
-  ).join(" ");
-  const areaD = `${pathD} L ${pts[pts.length-1].x} ${H - PAD} L ${pts[0].x} ${H - PAD} Z`;
+function DetailedRevenueChart({ financials, timeframe }: {
+  financials: { label: string; value: string; numeric?: number }[];
+  timeframe?: string;
+}) {
+  const animated = useAnimated(100);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const [hoverIdx, setHoverIdx] = useState<number | null>(null);
+
+  const yr1 = financials.find(f => f.label.toLowerCase().includes("год 1") || f.label.toLowerCase().includes("year 1"));
+  const yr3 = financials.find(f => f.label.toLowerCase().includes("год 3") || f.label.toLowerCase().includes("year 3"));
+  const v1 = yr1?.numeric ?? 100;
+  const v3 = yr3?.numeric ?? v1 * 10;
+
+  // Generate 28 monthly data points with accelerating growth curve
+  const months = 28;
+  const pts28 = Array.from({ length: months }, (_, i) => {
+    const t = i / (months - 1);
+    const eased = t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    return Math.round(v1 + (v3 - v1) * eased);
+  });
+
+  // Date labels starting 6 months before "now"
+  const now = new Date(2026, 0, 1);
+  const RU_MONTHS = ["ЯНВ","ФЕВ","МАР","АПР","МАЙ","ИЮН","ИЮЛ","АВГ","СЕН","ОКТ","НОЯ","ДЕК"];
+  const dateLabels = Array.from({ length: months }, (_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() + i - 2, 1);
+    return `${RU_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  });
+
+  const W = 600, H = 220;
+  const PL = 54, PR = 18, PT = 16, PB = 36;
+  const chartW = W - PL - PR;
+  const chartH = H - PT - PB;
+  const maxV = Math.max(...pts28);
+  const yTicks = 5;
+
+  const toX = (i: number) => PL + (i / (months - 1)) * chartW;
+  const toY = (v: number) => PT + chartH - (v / maxV) * chartH;
+
+  const linePath = pts28.map((v, i) => {
+    const x = toX(i), y = toY(v);
+    if (i === 0) return `M ${x} ${y}`;
+    const px = toX(i - 1), py = toY(pts28[i - 1]);
+    const cx = (px + x) / 2;
+    return `C ${cx} ${py} ${cx} ${y} ${x} ${y}`;
+  }).join(" ");
+  const areaPath = `${linePath} L ${toX(months - 1)} ${PT + chartH} L ${toX(0)} ${PT + chartH} Z`;
+
+  const xTickIdxs = [0, 4, 8, 12, 16, 20, 24, 27];
+
+  const formatVal = (v: number) => {
+    if (v >= 1000) return `$${(v / 1000).toFixed(1)}M`;
+    return `$${v}K`;
+  };
+
+  const hovered = hoverIdx !== null ? { x: toX(hoverIdx), y: toY(pts28[hoverIdx]), val: pts28[hoverIdx], label: dateLabels[hoverIdx] } : null;
+
+  const handleMouseMove = (e: React.MouseEvent<SVGSVGElement>) => {
+    const rect = svgRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const relX = ((e.clientX - rect.left) / rect.width) * W;
+    const chartX = relX - PL;
+    const idx = Math.max(0, Math.min(months - 1, Math.round((chartX / chartW) * (months - 1))));
+    setHoverIdx(idx);
+  };
 
   return (
     <div style={{
-      background: "linear-gradient(135deg,rgba(90,141,255,0.06) 0%,rgba(122,92,255,0.04) 100%)",
-      border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, overflow: "hidden", position: "relative",
+      background: "rgba(14,16,26,0.9)", border: "1px solid rgba(255,255,255,0.07)",
+      borderRadius: 16, overflow: "hidden", position: "relative",
     }}>
-      <div style={{ position: "absolute", inset: "0 0 0 0", opacity: 0.025, backgroundImage: "radial-gradient(circle at 1px 1px, rgba(255,255,255,0.5) 1px, transparent 0)", backgroundSize: "24px 24px" }} />
-      <div style={{ padding: "16px 20px 8px" }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 12 }}>Прогноз выручки</div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#5A8DFF", fontFamily: "monospace" }}>{pts[0].value}</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{pts[0].label}</div>
-          </div>
-          <div style={{ textAlign: "right" }}>
-            <div style={{ fontSize: 20, fontWeight: 800, color: "#7A5CFF", fontFamily: "monospace" }}>{pts[pts.length-1].value}</div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>{pts[pts.length-1].label}</div>
-          </div>
+      <div style={{ padding: "16px 20px 0" }}>
+        <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.22em", color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 4 }}>
+          Детализированный прогноз выручки
         </div>
-        <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: 120 }}>
-          <defs>
-            <linearGradient id="lgLine" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stopColor="#5A8DFF" /><stop offset="100%" stopColor="#7A5CFF" />
-            </linearGradient>
-            <linearGradient id="lgArea" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#7A5CFF" stopOpacity="0.28" />
-              <stop offset="100%" stopColor="#5A8DFF" stopOpacity="0.02" />
-            </linearGradient>
-          </defs>
-          {[0.25, 0.5, 0.75].map(t => (
-            <line key={t} x1={PAD} y1={PAD + t*(H-PAD*2)} x2={W-PAD} y2={PAD + t*(H-PAD*2)}
-              stroke="rgba(255,255,255,0.04)" strokeWidth="1" />
-          ))}
-          <path d={areaD} fill="url(#lgArea)"
-            style={{ opacity: animated ? 1 : 0, transition: "opacity 1s ease-out 0.6s" }} />
-          <path d={pathD} fill="none" stroke="url(#lgLine)" strokeWidth="2.5" strokeLinecap="round"
-            strokeDasharray="10000" strokeDashoffset={animated ? "0" : "10000"}
-            style={{ transition: "stroke-dashoffset 2s cubic-bezier(0.25,0.46,0.45,0.94)" }} />
-          {pts.map((p, i) => (
-            <g key={i} style={{ opacity: animated ? 1 : 0, transition: `opacity 0.4s ${0.8 + i * 0.12}s` }}>
-              <circle cx={p.x} cy={p.y} r="5" fill="#070912" stroke={i === pts.length-1 ? "#7A5CFF" : "#5A8DFF"} strokeWidth="2" />
-              <circle cx={p.x} cy={p.y} r="2" fill={i === pts.length-1 ? "#7A5CFF" : "#5A8DFF"} />
-            </g>
-          ))}
-        </svg>
       </div>
+      <svg
+        ref={svgRef}
+        viewBox={`0 0 ${W} ${H}`}
+        style={{ width: "100%", height: "auto", display: "block", cursor: "crosshair" }}
+        onMouseMove={handleMouseMove}
+        onMouseLeave={() => setHoverIdx(null)}
+      >
+        <defs>
+          <linearGradient id="fin-line" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stopColor="#5A8DFF" />
+            <stop offset="100%" stopColor="#7A5CFF" />
+          </linearGradient>
+          <linearGradient id="fin-area" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#7A5CFF" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#5A8DFF" stopOpacity="0.02" />
+          </linearGradient>
+          <clipPath id="fin-clip">
+            <rect x={PL} y={PT} width={chartW} height={chartH} />
+          </clipPath>
+        </defs>
+
+        {/* Y-axis grid + labels */}
+        {Array.from({ length: yTicks + 1 }, (_, i) => {
+          const frac = i / yTicks;
+          const v = maxV * frac;
+          const y = PT + chartH * (1 - frac);
+          return (
+            <g key={i}>
+              <line x1={PL} y1={y} x2={W - PR} y2={y} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+              <text x={PL - 6} y={y + 4} textAnchor="end" fill="rgba(255,255,255,0.25)" fontSize="9" fontFamily="ui-monospace,monospace">
+                {formatVal(v)}
+              </text>
+            </g>
+          );
+        })}
+
+        {/* Y-axis label rotated */}
+        <text x={10} y={H / 2} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="8"
+          fontFamily="ui-monospace,monospace" transform={`rotate(-90, 10, ${H / 2})`}>
+          ВЫРУЧКА ($)
+        </text>
+
+        {/* X-axis labels */}
+        {xTickIdxs.map(i => (
+          <text key={i} x={toX(i)} y={H - 6} textAnchor="middle" fill="rgba(255,255,255,0.22)" fontSize="8" fontFamily="ui-monospace,monospace">
+            {dateLabels[i]}
+          </text>
+        ))}
+        <text x={W / 2} y={H - 0} textAnchor="middle" fill="rgba(255,255,255,0.15)" fontSize="7.5" fontFamily="ui-monospace,monospace">
+          ВРЕМЯ (МЕСЯЦЫ/ГОДЫ)
+        </text>
+
+        {/* Area + line (clipped) */}
+        <g clipPath="url(#fin-clip)">
+          <path d={areaPath} fill="url(#fin-area)"
+            style={{ opacity: animated ? 1 : 0, transition: "opacity 1.1s ease-out 0.6s" }} />
+          <path d={linePath} fill="none" stroke="url(#fin-line)" strokeWidth="2.2" strokeLinecap="round"
+            strokeDasharray="3000" strokeDashoffset={animated ? "0" : "3000"}
+            style={{ transition: "stroke-dashoffset 2.4s cubic-bezier(0.25,0.46,0.45,0.94) 0.2s" }} />
+        </g>
+
+        {/* Data dots every 4th */}
+        {pts28.map((v, i) => {
+          if (i % 4 !== 0 && i !== months - 1) return null;
+          const x = toX(i), y = toY(v);
+          return (
+            <g key={i} style={{ opacity: animated ? 1 : 0, transition: `opacity 0.3s ${0.9 + i * 0.03}s` }}>
+              <circle cx={x} cy={y} r="4" fill="#070912" stroke={i === months - 1 ? "#7A5CFF" : "#5A8DFF"} strokeWidth="1.5" />
+              <circle cx={x} cy={y} r="1.8" fill={i === months - 1 ? "#7A5CFF" : "#5A8DFF"} />
+            </g>
+          );
+        })}
+
+        {/* Peak label */}
+        {animated && (
+          <g style={{ opacity: animated ? 1 : 0, transition: "opacity 0.5s 2s" }}>
+            <text x={toX(months - 1) - 6} y={toY(pts28[months - 1]) - 10}
+              textAnchor="end" fill="#7A5CFF" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace">
+              {yr3?.value ?? formatVal(v3)}
+            </text>
+          </g>
+        )}
+
+        {/* Hover cursor */}
+        {hovered && (
+          <g>
+            <line x1={hovered.x} y1={PT} x2={hovered.x} y2={PT + chartH}
+              stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4 3" />
+            <circle cx={hovered.x} cy={hovered.y} r="5" fill="#070912" stroke="#5A8DFF" strokeWidth="2" />
+            <circle cx={hovered.x} cy={hovered.y} r="2.5" fill="#5A8DFF" />
+            {/* Tooltip */}
+            <g transform={`translate(${Math.min(hovered.x + 10, W - 130)}, ${Math.max(hovered.y - 46, PT + 4)})`}>
+              <rect width="118" height="38" rx="7" fill="rgba(14,18,34,0.95)" stroke="rgba(90,141,255,0.3)" strokeWidth="1" />
+              <text x="10" y="14" fill="rgba(255,255,255,0.5)" fontSize="8.5" fontFamily="ui-monospace,monospace">{hovered.label}</text>
+              <text x="10" y="28" fill="#5A8DFF" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace">
+                {formatVal(hovered.val)}
+              </text>
+            </g>
+          </g>
+        )}
+
+        {/* Start label */}
+        {animated && (
+          <text x={toX(0)} y={toY(pts28[0]) - 10} textAnchor="start"
+            fill="#5A8DFF" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace"
+            style={{ opacity: animated ? 1 : 0, transition: "opacity 0.5s 2s" }}>
+            {yr1?.value ?? formatVal(v1)}
+          </text>
+        )}
+      </svg>
     </div>
   );
 }
@@ -756,6 +880,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
 // ─── FINANCE TAB ──────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
   const animated = useAnimated(100);
   const cfo = aiResults.find((r: { role: string }) => r.role === "CFO" || r.role?.toLowerCase().includes("финанс"));
@@ -768,32 +893,134 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
     ceo ? { ...ceo, color: "#7A5CFF", letter: "V", subtitle: "Генеральный директор — стратегия", opinion: [ceo.summary, ceo.forecast].filter(Boolean).join(" ").slice(0, 450) } : null,
   ].filter(Boolean) as { role: string; name: string; color: string; letter: string; subtitle: string; score: number; opinion: string }[];
 
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <AnimatedAreaChart financials={project.financials} />
+  const yr1 = project.financials.find(f => f.label.toLowerCase().includes("год 1") || f.label.toLowerCase().includes("year 1"));
+  const yr3 = project.financials.find(f => f.label.toLowerCase().includes("год 3") || f.label.toLowerCase().includes("year 3"));
+  const breakeven = project.financials.find(f => f.label.toLowerCase().includes("безубыточ"));
+  const ltv = project.financials.find(f => f.label.toLowerCase().includes("ltv"));
+  const cac = project.financials.find(f => f.label.toLowerCase().includes("cac") && !f.label.toLowerCase().includes("/"));
+  const ltvcac = project.financials.find(f => f.label.toLowerCase().includes("ltv/cac") || f.label.toLowerCase().includes("ltv/"));
+  const timeframeVal = project.financials.find(f => f.label.toLowerCase().includes("таймфрейм") || f.label.toLowerCase().includes("timeframe"));
 
-      {/* Metric tiles */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 12 }}>
-        {project.financials.map((f, i) => {
-          const colors = ["#5A8DFF", "#7A5CFF", "#FFB800", "#a78bfa", "#00E7A7", "#FF5470", "#FFB800"];
-          const color = colors[i % colors.length];
-          return (
-            <div key={i} style={{
-              background: "linear-gradient(135deg,rgba(255,255,255,0.05) 0%,rgba(255,255,255,0.02) 100%)",
-              border: "1px solid rgba(255,255,255,0.08)", borderRadius: 14, padding: "16px 18px",
-              position: "relative", overflow: "hidden",
-              opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(10px)",
-              transition: `opacity 0.45s ${i * 70}ms, transform 0.45s ${i * 70}ms`,
-            }}>
-              <div style={{ position: "absolute", inset: "0 0 auto", height: 1, background: `linear-gradient(90deg,transparent,${color}45,transparent)` }} />
-              <div style={{ fontSize: 22, fontWeight: 800, color, fontFamily: "monospace", lineHeight: 1, marginBottom: 6 }}>{f.value}</div>
-              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.32)" }}>{f.label}</div>
+  // Icon SVGs as inline components
+  const IconRevYear = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 22, height: 22 }}>
+      <rect x="2" y="3" width="20" height="14" rx="2" /><path d="M8 21h8M12 17v4" />
+      <path d="M7 7h10M7 11h6" />
+    </svg>
+  );
+  const IconTrendUp = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 22, height: 22 }}>
+      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" />
+    </svg>
+  );
+  const IconClock = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 22, height: 22 }}>
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+  const IconUser = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 22, height: 22 }}>
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+  const IconFilter = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 22, height: 22 }}>
+      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+    </svg>
+  );
+  const IconCalc = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 22, height: 22 }}>
+      <rect x="4" y="2" width="16" height="20" rx="2" /><line x1="8" y1="6" x2="16" y2="6" />
+      <line x1="8" y1="10" x2="8" y2="10" strokeLinecap="round" strokeWidth="2" />
+      <line x1="12" y1="10" x2="12" y2="10" strokeLinecap="round" strokeWidth="2" />
+      <line x1="16" y1="10" x2="16" y2="10" strokeLinecap="round" strokeWidth="2" />
+      <line x1="8" y1="14" x2="8" y2="14" strokeLinecap="round" strokeWidth="2" />
+      <line x1="12" y1="14" x2="16" y2="14" strokeLinecap="round" strokeWidth="2" />
+    </svg>
+  );
+  const IconCalendar = () => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" style={{ width: 22, height: 22 }}>
+      <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  );
+
+  const rightCards = [
+    { label: "ПРОГНОЗ (ГОД 1):", value: yr1?.value ?? "—", color: "#5A8DFF", rgb: "90,141,255", Icon: IconRevYear },
+    { label: "ПРОГНОЗ (ГОД 3):", value: yr3?.value ?? "—", color: "#7A5CFF", rgb: "122,92,255", Icon: IconTrendUp },
+    { label: "ТОЧКА БЕЗУБЫТОЧНОСТИ:", value: breakeven?.value ?? "—", color: "#00E7A7", rgb: "0,231,167", Icon: IconClock },
+  ];
+  const bottomCards = [
+    { label: "LTV ПОЛЬЗОВАТЕЛЯ:", value: ltv?.value ?? "—", color: "#a78bfa", rgb: "167,139,250", Icon: IconUser },
+    { label: "CAC:", value: cac?.value ?? "—", color: "#5A8DFF", rgb: "90,141,255", Icon: IconFilter },
+    { label: "LTV/CAC RATIO:", value: ltvcac?.value ?? "—", suffix: true, color: "#00E7A7", rgb: "0,231,167", Icon: IconCalc },
+    { label: "ТАЙМФРЕЙМ:", value: timeframeVal?.value ?? (project.financials[5]?.value ?? "—"), color: "#FFB800", rgb: "255,184,0", Icon: IconCalendar },
+  ];
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+      {/* ── TOP ROW: chart + right KPI cards ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 14, alignItems: "start" }}>
+        <DetailedRevenueChart financials={project.financials} />
+
+        {/* Right stacked cards */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {rightCards.map((c, i) => (
+            <div
+              key={i}
+              style={{
+                background: `rgba(${c.rgb},0.06)`,
+                border: `1px solid rgba(${c.rgb},0.18)`,
+                borderRadius: 14, padding: "14px 16px",
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                opacity: animated ? 1 : 0, transform: animated ? "translateX(0)" : "translateX(14px)",
+                transition: `opacity 0.5s ${200 + i * 90}ms, transform 0.5s ${200 + i * 90}ms`,
+                position: "relative", overflow: "hidden",
+              }}
+            >
+              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, borderRadius: "14px 0 0 14px", background: c.color }} />
+              <div style={{ paddingLeft: 8 }}>
+                <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: "0.16em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 4 }}>{c.label}</div>
+                <div style={{ fontSize: 20, fontWeight: 800, color: c.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, letterSpacing: "-0.02em" }}>{c.value}</div>
+              </div>
+              <div style={{ color: c.color, opacity: 0.5, flexShrink: 0 }}><c.Icon /></div>
             </div>
-          );
-        })}
+          ))}
+        </div>
       </div>
 
-      {/* Agent opinions */}
+      {/* ── BOTTOM ROW: 4 metric tiles ── */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
+        {bottomCards.map((c, i) => (
+          <div
+            key={i}
+            style={{
+              background: `rgba(${c.rgb},0.05)`,
+              border: `1px solid rgba(${c.rgb},0.15)`,
+              borderRadius: 14, padding: "16px 18px",
+              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+              opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
+              transition: `opacity 0.5s ${400 + i * 80}ms, transform 0.5s ${400 + i * 80}ms`,
+            }}
+          >
+            <div>
+              <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.18em", color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
+              <div style={{ fontSize: 18, fontWeight: 800, color: c.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, display: "flex", alignItems: "center", gap: 4 }}>
+                {c.value}
+                {c.suffix && (
+                  <svg viewBox="0 0 16 12" fill="none" style={{ width: 18, height: 14, color: c.color }}>
+                    <polyline points="1 11 5 5 9 7 15 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                )}
+              </div>
+            </div>
+            <div style={{ color: c.color, opacity: 0.45, flexShrink: 0 }}><c.Icon /></div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── AGENT PANELS ── */}
       {FIN_AGENTS.length > 0 ? (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {FIN_AGENTS.map((ag, i) => (
@@ -804,12 +1031,12 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {[
-            { letter: "J", name: "CFO", subtitle: "Финансовый директор — прогноз выручки", color: "#5A8DFF", score: 79,
+            { letter: "J", name: "CFO", subtitle: "Спец. Оценка финансового директора", color: "#5A8DFF", score: 79,
               opinion: "Финансовая структура проекта в целом корректна и требует только доработки в части прогнозирования выручки. Burn rate следует оптимизировать до уровня максимум 15% месячного MRR с первого дня. CAC нужно снизить на 20% для достижения прибыльности в плановые сроки. Создайте runway минимум на 18 месяцев до следующего раунда привлечения инвестиций. P&L должен выйти в плюс не позднее месяца 20 от даты запуска. Revenue-based financing стоит рассмотреть как альтернативу equity dilution на раннем этапе. Unit economics жизнеспособны при достижении масштаба 1000+ активных клиентов. Финансовые KPI необходимо мониторить еженедельно для оперативного реагирования на отклонения." },
             { letter: "E", name: "COO", subtitle: "Операционный директор — операционные расходы", color: "#00E7A7", score: 76,
-              opinion: "С операционной точки зрения проект имеет реалистичную структуру затрат для выбранной стадии. Операционные расходы можно оптимизировать на 20–25% при внедрении автоматизации с первых месяцев. COGS следует контролировать еженедельно и не допускать роста выше 35% от выручки. Операционный рычаг начнёт проявляться после достижения 500 платящих клиентов в системе. Найм должен быть строго привязан к достижению конкретных revenue milestones. Fixed costs необходимо удерживать на минимуме в первые 18 месяцев операционной деятельности. Операционная маржа должна достигнуть 15% к концу второго года работы компании. Ежеквартальные OKR по операционной эффективности должны быть жёстко привязаны к P&L." },
+              opinion: "С операционной точки зрения проект имеет реалистичную структуру затрат для выбранной стадии. Операционные расходы можно оптимизировать на 20–25% при внедрении автоматизации с первых месяцев. COGS следует контролировать еженедельно и не допускать роста выше 35% от выручки. Операционный рычаг начнёт проявляться после достижения 500 платящих клиентов в системе. Fixed costs необходимо удерживать на минимуме в первые 18 месяцев операционной деятельности." },
             { letter: "V", name: "CEO", subtitle: "Генеральный директор — стратегия роста", color: "#7A5CFF", score: 82,
-              opinion: "Стратегически проект движется в правильном направлении, однако требует чёткой расстановки приоритетов. Horizon 1 должен обеспечить операционную прибыль до начала активного масштабирования. Следующий раунд финансирования следует поднимать при достижении $100K MRR как минимум. Инвестиционная привлекательность проекта высокая при демонстрации устойчивого роста более 15% в месяц. Фокус на единственном ICP в первые 12 месяцев критически важен для достижения PMF. Партнёрства могут сократить CAC на 30–40% по сравнению с прямыми paid каналами. Capital efficiency должна превышать 1.5x MRR/burn на протяжении всего периода до прибыльности. Стратегический выход возможен через 4–6 лет при правильном исполнении и достижении $5M+ ARR." },
+              opinion: "Стратегически проект движется в правильном направлении, однако требует чёткой расстановки приоритетов. Следующий раунд финансирования следует поднимать при достижении $100K MRR. Инвестиционная привлекательность проекта высокая при демонстрации устойчивого роста более 15% в месяц. Capital efficiency должна превышать 1.5x MRR/burn на протяжении всего периода до прибыльности." },
           ].map((ag, i) => (
             <AgentPanel key={i} letter={ag.letter} name={ag.name} subtitle={ag.subtitle}
               color={ag.color} score={ag.score} opinion={ag.opinion} delay={i * 120} />
