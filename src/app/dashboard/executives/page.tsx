@@ -1,487 +1,479 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
-import { Badge } from "@/components/ui/Badge";
+
+// ─── DATA ─────────────────────────────────────────────────────────────────────
 
 const EXECUTIVES = [
   {
-    role: "CEO", shortRole: "CEO",
-    title: "Исполнительный директор",
-    name: "Sophia Reeves",
-    years: "20+",
-    color: "#7c3aed", glow: "rgba(124,58,237,0.35)",
-    gradient: "from-violet-600 to-purple-700",
+    role: "CEO", shortRole: "CEO", title: "Исполнительный директор", name: "Sophia Reeves", years: "20+",
+    color: "#7c3aed", rgb: "124,58,237",
     expertise: ["Стратегия роста", "Видение продукта", "Инвесторы"],
     bio: "Координирует всю команду, синтезирует инсайты в единую стратегию и формирует финальное решение. 20+ лет опыта масштабирования стартапов от идеи до Series B.",
-    insights: [
-      "Фокусируйтесь на одном ключевом сегменте в первые 12 месяцев",
-      "Привлекайте инвесторов только при наличии чётких метрик роста",
-      "Командная культура важнее любой стратегии — нанимайте тщательно",
-    ],
+    insights: ["Фокусируйтесь на одном ключевом сегменте в первые 12 месяцев", "Привлекайте инвесторов только при наличии чётких метрик роста", "Командная культура важнее любой стратегии — нанимайте тщательно"],
     completedProjects: 3, avgScore: 87,
   },
   {
-    role: "CFO", shortRole: "CFO",
-    title: "Финансовый директор",
-    name: "Marcus Chen",
-    years: "25+",
-    color: "#3b82f6", glow: "rgba(59,130,246,0.35)",
-    gradient: "from-blue-600 to-cyan-700",
+    role: "CFO", shortRole: "CFO", title: "Финансовый директор", name: "Marcus Chen", years: "25+",
+    color: "#3b82f6", rgb: "59,130,246",
     expertise: ["Финансовое моделирование", "Unit-экономика", "Капитал"],
-    bio: "Строит финансовые модели, прогнозы выручки, анализирует затраты и инвестиционные требования. Помог 20+ компаниям привлечь финансирование на общую сумму $500M+.",
-    insights: [
-      "LTV/CAC > 3:1 — минимальный порог для масштабирования",
-      "Runway минимум 18 месяцев перед следующим раундом",
-      "Gross margin с первого дня — ключевой сигнал для инвесторов",
-    ],
+    bio: "Строит финансовые модели, прогнозы выручки, анализирует затраты и инвестиционные требования. Помог 20+ компаниям привлечь $500M+.",
+    insights: ["LTV/CAC > 3:1 — минимальный порог для масштабирования", "Runway минимум 18 месяцев перед следующим раундом", "Gross margin с первого дня — ключевой сигнал для инвесторов"],
     completedProjects: 3, avgScore: 91,
   },
   {
-    role: "CMO", shortRole: "CMO",
-    title: "Директор по маркетингу",
-    name: "Elena Torres",
-    years: "18+",
-    color: "#10b981", glow: "rgba(16,185,129,0.35)",
-    gradient: "from-emerald-600 to-teal-700",
+    role: "CMO", shortRole: "CMO", title: "Директор по маркетингу", name: "Elena Torres", years: "18+",
+    color: "#10b981", rgb: "16,185,129",
     expertise: ["Go-to-market", "Brand building", "Performance"],
     bio: "Разрабатывает позиционирование бренда, стратегию выхода на рынок, воронки привлечения и контент-план. Вывела 10+ продуктов от 0 до 1M пользователей.",
-    insights: [
-      "Начинайте с 1-2 каналов привлечения, не распыляйтесь",
-      "Контент-маркетинг даёт лучший ROI в долгосрочной перспективе",
-      "NPS и word-of-mouth — самые дешёвые источники роста",
-    ],
+    insights: ["Начинайте с 1-2 каналов привлечения, не распыляйтесь", "Контент-маркетинг даёт лучший ROI в долгосрочной перспективе", "NPS и word-of-mouth — самые дешёвые источники роста"],
     completedProjects: 3, avgScore: 84,
   },
   {
-    role: "COO", shortRole: "COO",
-    title: "Операционный директор",
-    name: "James Wright",
-    years: "22+",
-    color: "#f59e0b", glow: "rgba(245,158,11,0.35)",
-    gradient: "from-amber-500 to-orange-600",
+    role: "COO", shortRole: "COO", title: "Операционный директор", name: "James Wright", years: "22+",
+    color: "#f59e0b", rgb: "245,158,11",
     expertise: ["Операционная эффективность", "Процессы", "Масштабирование"],
     bio: "Создаёт операционный роадмап, план запуска, дизайн процессов и структуру команды. Строил операционные системы для компаний от 5 до 500 сотрудников.",
-    insights: [
-      "Документируйте процессы с первого дня — масштабирование без них невозможно",
-      "Автоматизируйте всё, что повторяется более 3 раз в неделю",
-      "OKR работают только если команда понимает зачем они нужны",
-    ],
+    insights: ["Документируйте процессы с первого дня — масштабирование без них невозможно", "Автоматизируйте всё, что повторяется более 3 раз в неделю", "OKR работают только если команда понимает зачем они нужны"],
     completedProjects: 3, avgScore: 79,
   },
   {
-    role: "CTO", shortRole: "CTO",
-    title: "Технический директор",
-    name: "Aiden Park",
-    years: "15+",
-    color: "#ec4899", glow: "rgba(236,72,153,0.35)",
-    gradient: "from-pink-600 to-rose-700",
+    role: "CTO", shortRole: "CTO", title: "Технический директор", name: "Aiden Park", years: "15+",
+    color: "#ec4899", rgb: "236,72,153",
     expertise: ["Архитектура систем", "AI/ML", "DevOps"],
     bio: "Рекомендует оптимальный технологический стек, дизайн инфраструктуры и технический роадмап. 15 лет строил масштабируемые системы для продуктов с миллионами пользователей.",
-    insights: [
-      "MVP должен быть ugly — красота приходит с пониманием пользователей",
-      "Технический долг убивает стартапы — рефакторьте постоянно",
-      "Безопасность данных с первого дня — потом будет в 10 раз дороже",
-    ],
+    insights: ["MVP должен быть ugly — красота приходит с пониманием пользователей", "Технический долг убивает стартапы — рефакторьте постоянно", "Безопасность данных с первого дня — потом будет в 10 раз дороже"],
     completedProjects: 3, avgScore: 90,
   },
   {
-    role: "Business Analyst", shortRole: "BA",
-    title: "Бизнес-аналитик",
-    name: "Priya Sharma",
-    years: "12+",
-    color: "#f97316", glow: "rgba(249,115,22,0.35)",
-    gradient: "from-orange-500 to-amber-600",
+    role: "Business Analyst", shortRole: "BA", title: "Бизнес-аналитик", name: "Priya Sharma", years: "12+",
+    color: "#f97316", rgb: "249,115,22",
     expertise: ["Исследование рынка", "SWOT-анализ", "Конкуренты"],
     bio: "Глубокий анализ рынка, конкурентная разведка, сегментация аудитории и маппинг возможностей. Специализируется на поиске незанятых ниш и голубых океанов.",
-    insights: [
-      "Изучите 10 конкурентов перед запуском — найдите их слабые места",
-      "TAM > $1B — минимальный рынок для привлечения венчурных инвестиций",
-      "Один детальный customer interview стоит 100 опросов",
-    ],
+    insights: ["Изучите 10 конкурентов перед запуском — найдите их слабые места", "TAM > $1B — минимальный рынок для венчурных инвестиций", "Один детальный customer interview стоит 100 опросов"],
     completedProjects: 3, avgScore: 85,
   },
   {
-    role: "Sales Director", shortRole: "SD",
-    title: "Директор по продажам",
-    name: "Carlos Mendes",
-    years: "20+",
-    color: "#6366f1", glow: "rgba(99,102,241,0.35)",
-    gradient: "from-indigo-600 to-violet-700",
+    role: "Sales Director", shortRole: "SD", title: "Директор по продажам", name: "Carlos Mendes", years: "20+",
+    color: "#6366f1", rgb: "99,102,241",
     expertise: ["Sales funnel", "Pricing", "Lead generation"],
     bio: "Разрабатывает воронки продаж, модели ценообразования, стратегии лидогенерации и системы удержания клиентов. Закрыл сделки на суммарно $50M+.",
-    insights: [
-      "Первые 10 продаж делайте лично — это ваш лучший источник фидбека",
-      "Цена слишком низкая — ошибка большинства стартапов на старте",
-      "Follow-up решает: 80% продаж закрываются после 5-го контакта",
-    ],
+    insights: ["Первые 10 продаж делайте лично — это ваш лучший источник фидбека", "Цена слишком низкая — ошибка большинства стартапов на старте", "Follow-up решает: 80% продаж закрываются после 5-го контакта"],
     completedProjects: 3, avgScore: 83,
   },
   {
-    role: "Legal Advisor", shortRole: "LA",
-    title: "Юридический советник",
-    name: "Diana Volkov",
-    years: "30+",
-    color: "#64748b", glow: "rgba(100,116,139,0.3)",
-    gradient: "from-slate-600 to-gray-700",
+    role: "Legal Advisor", shortRole: "LA", title: "Юридический советник", name: "Diana Volkov", years: "30+",
+    color: "#64748b", rgb: "100,116,139",
     expertise: ["Структура бизнеса", "IP-стратегия", "Compliance"],
     bio: "Рекомендации по структуре бизнеса, защите интеллектуальной собственности и соответствию требованиям регуляторов. 30+ лет практики в корпоративном праве.",
-    insights: [
-      "Выбор юрисдикции важен: Delaware C-Corp — стандарт для венчурных инвестиций",
-      "Зарегистрируйте торговую марку до запуска, не после",
-      "NDA имеют смысл только при раскрытии реально конфиденциальных данных",
-    ],
+    insights: ["Delaware C-Corp — стандарт для венчурных инвестиций", "Зарегистрируйте торговую марку до запуска, не после", "NDA имеют смысл только при раскрытии реально конфиденциальных данных"],
     completedProjects: 3, avgScore: 81,
   },
   {
-    role: "CISO", shortRole: "CI",
-    title: "Директор по кибербезопасности",
-    name: "Viktor Stern",
-    years: "20+",
-    color: "#ef4444", glow: "rgba(239,68,68,0.35)",
-    gradient: "from-red-600 to-rose-700",
+    role: "CISO", shortRole: "CI", title: "Директор по кибербезопасности", name: "Viktor Stern", years: "20+",
+    color: "#ef4444", rgb: "239,68,68",
     expertise: ["Кибербезопасность", "Управление рисками", "Compliance"],
-    bio: "Оценивает угрозы информационной безопасности, разрабатывает политики защиты данных и стратегию соответствия стандартам. Защитил системы 40+ корпораций от кибератак.",
-    insights: [
-      "Zero-trust архитектура — стандарт для любого SaaS продукта в 2024",
-      "GDPR и SOC2 проще внедрить с нуля, чем retrofit в существующую систему",
-      "Фишинг — причина 90% взломов: обучайте команду постоянно",
-    ],
+    bio: "Оценивает угрозы информационной безопасности, разрабатывает политики защиты данных и стратегию соответствия стандартам. Защитил системы 40+ корпораций.",
+    insights: ["Zero-trust архитектура — стандарт для любого SaaS в 2024", "GDPR и SOC2 проще внедрить с нуля, чем retrofit", "Фишинг — причина 90% взломов: обучайте команду постоянно"],
     completedProjects: 2, avgScore: 88,
   },
   {
-    role: "CPO", shortRole: "CP",
-    title: "Директор по продукту",
-    name: "Yuki Tanaka",
-    years: "15+",
-    color: "#8b5cf6", glow: "rgba(139,92,246,0.35)",
-    gradient: "from-violet-500 to-purple-600",
+    role: "CPO", shortRole: "CP", title: "Директор по продукту", name: "Yuki Tanaka", years: "15+",
+    color: "#8b5cf6", rgb: "139,92,246",
     expertise: ["Product strategy", "UX Research", "Roadmap"],
     bio: "Формирует продуктовую стратегию, приоритизирует фичи и выстраивает OKR-систему. Создал продукты с аудиторией 5M+ пользователей в B2C и B2B сегментах.",
-    insights: [
-      "Jobs-to-be-done важнее любых демографических метрик",
-      "Не добавляйте фичи без данных: каждая стоит дороже, чем вы думаете",
-      "Product-market fit — это когда 40%+ пользователей расстроятся, если продукт исчезнет",
-    ],
+    insights: ["Jobs-to-be-done важнее любых демографических метрик", "Не добавляйте фичи без данных: каждая стоит дороже, чем вы думаете", "Product-market fit — это когда 40%+ пользователей расстроятся, если продукт исчезнет"],
     completedProjects: 2, avgScore: 86,
   },
   {
-    role: "CHRO", shortRole: "HR",
-    title: "Директор по персоналу",
-    name: "Sarah Mitchell",
-    years: "25+",
-    color: "#f43f5e", glow: "rgba(244,63,94,0.35)",
-    gradient: "from-rose-600 to-pink-700",
+    role: "CHRO", shortRole: "HR", title: "Директор по персоналу", name: "Sarah Mitchell", years: "25+",
+    color: "#f43f5e", rgb: "244,63,94",
     expertise: ["Talent acquisition", "Культура", "Орг. дизайн"],
     bio: "Строит HR-систему, культуру компании и программы удержания талантов. Помогла 30+ стартапам масштабировать команды от 5 до 200+ человек без потери качества найма.",
-    insights: [
-      "Культурный fit важнее навыков — навыки можно обучить, характер нет",
-      "Прозрачность зарплат снижает текучку на 40% — данные не лгут",
-      "Нанимайте медленно, увольняйте быстро — каждый человек задаёт стандарт",
-    ],
+    insights: ["Культурный fit важнее навыков — навыки можно обучить, характер нет", "Прозрачность зарплат снижает текучку на 40%", "Нанимайте медленно, увольняйте быстро — каждый человек задаёт стандарт"],
     completedProjects: 2, avgScore: 82,
   },
   {
-    role: "CDO", shortRole: "CD",
-    title: "Директор по данным",
-    name: "Alex Rivera",
-    years: "18+",
-    color: "#06b6d4", glow: "rgba(6,182,212,0.35)",
-    gradient: "from-cyan-600 to-sky-700",
+    role: "CDO", shortRole: "CD", title: "Директор по данным", name: "Alex Rivera", years: "18+",
+    color: "#06b6d4", rgb: "6,182,212",
     expertise: ["Data strategy", "Analytics", "ML Ops"],
     bio: "Формирует стратегию работы с данными, архитектуру аналитики и модели машинного обучения. Построил data-платформы для компаний с объёмом данных 10TB+.",
-    insights: [
-      "Начните с одной ключевой метрики — North Star metric задаёт вектор роста",
-      "Data governance с первого дня избавит от головной боли при масштабировании",
-      "Не строите хранилища данных — строите продукты на данных",
-    ],
+    insights: ["Начните с одной ключевой метрики — North Star metric задаёт вектор роста", "Data governance с первого дня избавит от головной боли при масштабировании", "Не строите хранилища данных — строите продукты на данных"],
     completedProjects: 2, avgScore: 88,
   },
   {
-    role: "VP Engineering", shortRole: "VP",
-    title: "Вице-президент по инженерии",
-    name: "Noah Kim",
-    years: "20+",
-    color: "#84cc16", glow: "rgba(132,204,22,0.35)",
-    gradient: "from-lime-600 to-green-700",
+    role: "VP Engineering", shortRole: "VP", title: "Вице-президент по инженерии", name: "Noah Kim", years: "20+",
+    color: "#84cc16", rgb: "132,204,22",
     expertise: ["Engineering management", "Agile", "Платформы"],
     bio: "Управляет инженерными командами, процессами разработки и технической культурой. Руководил командами 50+ инженеров в компаниях уровня Series C и выше.",
-    insights: [
-      "Скорость разработки падает без Code Review — не срезайте углы",
-      "Психологическая безопасность — основа высокопроизводительной команды",
-      "Мониторинг и алёртинг важнее новых фичей в production-среде",
-    ],
+    insights: ["Скорость разработки падает без Code Review — не срезайте углы", "Психологическая безопасность — основа высокопроизводительной команды", "Мониторинг и алёртинг важнее новых фичей в production"],
     completedProjects: 2, avgScore: 86,
   },
   {
-    role: "Growth Hacker", shortRole: "GH",
-    title: "Специалист по росту",
-    name: "Mia Patel",
-    years: "10+",
-    color: "#fb923c", glow: "rgba(251,146,60,0.35)",
-    gradient: "from-orange-500 to-red-600",
+    role: "Growth Hacker", shortRole: "GH", title: "Специалист по росту", name: "Mia Patel", years: "10+",
+    color: "#fb923c", rgb: "251,146,60",
     expertise: ["Viral loops", "A/B тестирование", "Retention"],
     bio: "Находит нестандартные точки роста, строит вирусные механики и оптимизирует конверсию воронки. За карьеру обеспечила рост x10 для 8 стартапов на стадии pre-PMF.",
-    insights: [
-      "Retention — самый важный показатель: дырявое ведро не наполнишь",
-      "Сначала ищите product-channel fit, потом масштабируйте канал",
-      "Каждый эксперимент должен иметь гипотезу и метрику успеха до запуска",
-    ],
+    insights: ["Retention — самый важный показатель: дырявое ведро не наполнишь", "Сначала ищите product-channel fit, потом масштабируйте канал", "Каждый эксперимент должен иметь гипотезу и метрику успеха до запуска"],
     completedProjects: 2, avgScore: 89,
   },
   {
-    role: "IR Manager", shortRole: "IR",
-    title: "Директор по связям с инвесторами",
-    name: "Christopher Lee",
-    years: "35+",
-    color: "#a855f7", glow: "rgba(168,85,247,0.35)",
-    gradient: "from-purple-600 to-fuchsia-700",
+    role: "IR Manager", shortRole: "IR", title: "Директор по связям с инвесторами", name: "Christopher Lee", years: "35+",
+    color: "#a855f7", rgb: "168,85,247",
     expertise: ["Investor relations", "Due diligence", "Питч-деки"],
     bio: "Специализируется на подготовке к раундам финансирования, построении отношений с инвесторами и прохождении due diligence. Участвовал в сделках на $2B+ суммарно.",
-    insights: [
-      "Инвесторы покупают команду на ранних стадиях, продукт — на поздних",
-      "Питч-дек — это история с числами, не слайды с буллетами",
-      "Тёплое знакомство через общих контактов повышает шанс встречи в 5 раз",
-    ],
+    insights: ["Инвесторы покупают команду на ранних стадиях, продукт — на поздних", "Питч-дек — это история с числами, не слайды с буллетами", "Тёплое знакомство через общих контактов повышает шанс встречи в 5 раз"],
     completedProjects: 2, avgScore: 84,
   },
 ];
 
-// Score arc indicator for card
-function ScoreArc({ score, color }: { score: number; color: string }) {
-  const r = 14; const circ = 2 * Math.PI * r;
-  const dash = (score / 100) * circ;
-  return (
-    <svg viewBox="0 0 36 36" className="size-9">
-      <circle cx="18" cy="18" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="3" />
-      <circle cx="18" cy="18" r={r} fill="none" stroke={color} strokeWidth="3"
-        strokeDasharray={`${dash} ${circ - dash}`} strokeDashoffset={circ * 0.25}
-        strokeLinecap="round" style={{ filter: `drop-shadow(0 0 3px ${color}80)` }} />
-      <text x="18" y="22" textAnchor="middle" fontSize="9" fontWeight="700" fill="white" fontFamily="monospace">{score}</text>
-    </svg>
-  );
-}
+// ─── GRAPH LAYOUT ─────────────────────────────────────────────────────────────
+// x/y = node center. Node size: NW × NH
+const NW = 118, NH = 60;
+
+// Hierarchy: CEO → CFO, CMO, COO, CTO → children
+// Under CFO: Business Analyst, IR Manager
+// Under CMO: Sales Director, Growth Hacker
+// Under COO: Legal Advisor, CHRO, VP Engineering
+// Under CTO: CISO, CPO, CDO
+const GRAPH_LAYOUT: Record<string, { x: number; y: number; parent: string | null; badge: string }> = {
+  "CEO":              { x: 664,  y: 44,  parent: null,   badge: "C.E.O" },
+  "CFO":              { x: 148,  y: 200, parent: "CEO",  badge: "C.F.O" },
+  "CMO":              { x: 424,  y: 200, parent: "CEO",  badge: "C.M.O" },
+  "COO":              { x: 720,  y: 200, parent: "CEO",  badge: "C.O.O" },
+  "CTO":              { x: 1060, y: 200, parent: "CEO",  badge: "C.T.O" },
+  "Business Analyst": { x: 80,   y: 374, parent: "CFO",  badge: "B.ANL" },
+  "IR Manager":       { x: 214,  y: 374, parent: "CFO",  badge: "I.R"   },
+  "Sales Director":   { x: 356,  y: 374, parent: "CMO",  badge: "S.DIR" },
+  "Growth Hacker":    { x: 490,  y: 374, parent: "CMO",  badge: "GRW"   },
+  "Legal Advisor":    { x: 588,  y: 374, parent: "COO",  badge: "L.ADV" },
+  "CHRO":             { x: 720,  y: 374, parent: "COO",  badge: "H.R"   },
+  "VP Engineering":   { x: 852,  y: 374, parent: "COO",  badge: "V.P.E" },
+  "CISO":             { x: 950,  y: 374, parent: "CTO",  badge: "CISO"  },
+  "CPO":              { x: 1060, y: 374, parent: "CTO",  badge: "C.P.O" },
+  "CDO":              { x: 1170, y: 374, parent: "CTO",  badge: "C.D.O" },
+};
+
+const CANVAS_W = 1300, CANVAS_H = 470;
+
+const execByRole = Object.fromEntries(EXECUTIVES.map(e => [e.role, e]));
+
+// ─── PAGE ─────────────────────────────────────────────────────────────────────
 
 export default function ExecutivesPage() {
-  const [active, setActive] = useState(EXECUTIVES[0]);
+  const [selectedRole, setSelectedRole] = useState<string | null>("CEO");
+  const [zoom, setZoom] = useState(1);
+  const [entered, setEntered] = useState(false);
+  useEffect(() => { const t = setTimeout(() => setEntered(true), 60); return () => clearTimeout(t); }, []);
+
+  const selExec = selectedRole ? execByRole[selectedRole] : null;
+  const selLayout = selectedRole ? GRAPH_LAYOUT[selectedRole] : null;
+  const selColor = selExec?.color ?? "#7c3aed";
+  const selRgb = selExec?.rgb ?? "124,58,237";
 
   return (
-    <div className="p-6 max-w-[1400px] mx-auto">
+    <div style={{ padding: "20px 24px 48px", maxWidth: 1340, margin: "0 auto" }}>
+      <style>{`
+        @keyframes exec-pop { from{transform:scale(0.75);opacity:0} to{transform:scale(1);opacity:1} }
+        @keyframes exec-glow { 0%,100%{opacity:0.6} 50%{opacity:1} }
+        @keyframes exec-slide { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+      `}</style>
+
       {/* Header */}
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-white mb-0.5">Исполнительный совет</h1>
-        <p className="text-sm text-white/35">15 AI-экспертов, каждый отвечает за свою область анализа</p>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <div>
+          <h1 style={{ fontSize: 18, fontWeight: 800, color: "white", margin: 0 }}>Исполнительный совет</h1>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "4px 0 0" }}>15 AI-экспертов — кликните на агента для просмотра профиля</p>
+        </div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          {["+", "−", "⊡"].map((lbl, i) => (
+            <button key={i} onClick={() => {
+              if (lbl === "+") setZoom(z => Math.min(1.5, z + 0.15));
+              else if (lbl === "−") setZoom(z => Math.max(0.55, z - 0.15));
+              else setZoom(1);
+            }} style={{
+              width: 30, height: 30, borderRadius: 8, background: "rgba(255,255,255,0.05)",
+              border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)",
+              fontSize: lbl === "⊡" ? 14 : 18, cursor: "pointer", fontWeight: 700,
+              display: "flex", alignItems: "center", justifyContent: "center",
+            }}>{lbl}</button>
+          ))}
+          <Link href="/dashboard/new" style={{
+            height: 36, padding: "0 18px", borderRadius: 10, fontSize: 12, fontWeight: 700,
+            background: "linear-gradient(135deg,#3CFF6A,#00C44F)", color: "#0a1a0a",
+            border: "none", display: "inline-flex", alignItems: "center", gap: 7,
+            boxShadow: "0 0 20px rgba(60,255,106,0.35)", textDecoration: "none",
+          }}>
+            <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 11, height: 11 }}><polygon points="3,2 14,8 3,14"/></svg>
+            Брифовать совет
+          </Link>
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_400px] gap-5 items-start">
+      {/* Graph canvas */}
+      <div style={{
+        borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", position: "relative",
+        background: "radial-gradient(ellipse at 50% 0%,rgba(30,18,60,0.96) 0%,rgba(5,5,12,0.99) 70%)",
+        marginBottom: 16,
+      }}>
+        {/* top vignette */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, background: "linear-gradient(to bottom,rgba(0,0,0,0.55),transparent)", pointerEvents: "none", zIndex: 2 }}/>
 
-        {/* ── 3×5 Agent Grid ── */}
-        <div className="grid grid-cols-3 gap-3">
-          {EXECUTIVES.map((exec) => {
-            const isActive = active.role === exec.role;
-            return (
-              <button
-                key={exec.role}
-                onClick={() => setActive(exec)}
-                className="relative rounded-2xl overflow-hidden p-4 text-left transition-all duration-200 group hover:scale-[1.025] hover:-translate-y-0.5"
-                style={{
-                  background: isActive
-                    ? `linear-gradient(135deg, ${exec.color}18 0%, rgba(10,10,14,0.92) 100%)`
-                    : "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(10,10,14,0.7) 100%)",
-                  border: isActive
-                    ? `1px solid ${exec.color}35`
-                    : "1px solid rgba(255,255,255,0.07)",
-                  backdropFilter: "blur(12px)",
-                  boxShadow: isActive
-                    ? `inset 0 1px 0 ${exec.color}18, 0 8px 28px rgba(0,0,0,0.35)`
-                    : "inset 0 1px 0 rgba(255,255,255,0.04), 0 4px 16px rgba(0,0,0,0.2)",
-                }}
-              >
-                {/* shimmer top edge */}
-                <div className="absolute inset-x-0 top-0 h-px transition-opacity duration-200"
-                  style={{ background: `linear-gradient(90deg, transparent, ${exec.color}${isActive ? "55" : "25"}, transparent)` }} />
+        <div style={{ overflowX: "auto", overflowY: "hidden" }}>
+          <div style={{ width: CANVAS_W, height: CANVAS_H + 10, position: "relative", transform: `scale(${zoom})`, transformOrigin: "top left", transition: "transform 0.2s" }}>
 
-                {/* active glow bg */}
-                {isActive && (
-                  <div className="absolute inset-0 opacity-10" style={{
-                    background: `radial-gradient(ellipse at 30% 30%, ${exec.color} 0%, transparent 70%)`,
-                  }} />
-                )}
+            {/* Dot grid bg */}
+            <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+              <defs>
+                <pattern id="exec-dots" width="30" height="30" patternUnits="userSpaceOnUse">
+                  <circle cx="1" cy="1" r="1" fill="rgba(255,255,255,0.055)"/>
+                </pattern>
+                <linearGradient id="exec-edge-grad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.6"/>
+                  <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.6"/>
+                </linearGradient>
+                <filter id="exec-glow-f"><feGaussianBlur stdDeviation="2.5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+              </defs>
+              <rect width="100%" height="100%" fill="url(#exec-dots)"/>
 
-                {/* status dot */}
-                <div className="absolute top-3 right-3 size-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.8)]" />
+              {/* Edges */}
+              {Object.entries(GRAPH_LAYOUT).map(([role, layout]) => {
+                if (!layout.parent) return null;
+                const parent = GRAPH_LAYOUT[layout.parent];
+                if (!parent) return null;
+                const x1 = parent.x, y1 = parent.y + NH / 2;
+                const x2 = layout.x,  y2 = layout.y - NH / 2;
+                const my = (y1 + y2) / 2;
+                const active = role === selectedRole || layout.parent === selectedRole;
+                const ec = execByRole[role];
+                const pc = execByRole[layout.parent];
+                const edgeColor = active
+                  ? (selExec?.color ?? "#7c3aed")
+                  : `rgba(${ec?.rgb ?? "122,92,255"},0.35)`;
+                return (
+                  <g key={role}>
+                    <path d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`}
+                      fill="none" stroke={edgeColor} strokeWidth={active ? 1.8 : 1}
+                      filter={active ? "url(#exec-glow-f)" : "none"}
+                      style={{ transition: "stroke 0.3s, stroke-width 0.3s" }}/>
+                    {/* Arrow tip */}
+                    <polygon points={`${x2-4},${y2+2} ${x2+4},${y2+2} ${x2},${y2-7}`}
+                      fill={active ? (selExec?.color ?? "#7c3aed") : `rgba(${ec?.rgb ?? "255,255,255"},0.3)`}
+                      style={{ transition: "fill 0.3s" }}/>
+                  </g>
+                );
+              })}
+            </svg>
 
-                {/* avatar + score */}
-                <div className="flex items-start justify-between mb-3 relative">
-                  <div
-                    className="size-11 rounded-xl flex items-center justify-center text-sm font-bold flex-shrink-0"
-                    style={{
-                      background: `linear-gradient(135deg, ${exec.color}30, ${exec.color}10)`,
-                      border: `1px solid ${exec.color}35`,
-                      color: exec.color,
-                      boxShadow: `0 4px 12px ${exec.glow}`,
-                    }}
-                  >
-                    {exec.shortRole.slice(0, 2)}
-                  </div>
-                  <ScoreArc score={exec.avgScore} color={exec.color} />
-                </div>
-
-                {/* name + title */}
-                <div className="relative mb-2">
-                  <div className="text-[12px] font-bold text-white leading-tight mb-0.5">{exec.name}</div>
-                  <div className="text-[10px] text-white/35 leading-tight truncate">{exec.title}</div>
-                </div>
-
-                {/* experience badge */}
-                <div
-                  className="relative inline-flex items-center gap-1 rounded-full px-2 py-0.5"
+            {/* Nodes */}
+            {Object.entries(GRAPH_LAYOUT).map(([role, layout], idx) => {
+              const exec = execByRole[role];
+              if (!exec) return null;
+              const isSelected = role === selectedRole;
+              return (
+                <div key={role}
+                  onClick={() => setSelectedRole(isSelected ? null : role)}
                   style={{
-                    background: `${exec.color}12`,
-                    border: `1px solid ${exec.color}22`,
-                  }}
-                >
-                  <svg viewBox="0 0 12 12" className="size-2.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: exec.color }}>
-                    <circle cx="6" cy="6" r="4.5"/><path d="M6 3.5v2.5l1.5 1"/>
-                  </svg>
-                  <span className="text-[9px] font-semibold" style={{ color: exec.color }}>Опыт: {exec.years} лет</span>
+                    position: "absolute",
+                    left: layout.x - NW / 2,
+                    top: layout.y - NH / 2,
+                    width: NW, height: NH,
+                    borderRadius: 11,
+                    background: isSelected
+                      ? `linear-gradient(135deg,rgba(${exec.rgb},0.22),rgba(10,10,26,0.97))`
+                      : `linear-gradient(135deg,rgba(${exec.rgb},0.09),rgba(8,8,20,0.96))`,
+                    border: isSelected
+                      ? `2px solid ${exec.color}`
+                      : `1px solid rgba(${exec.rgb},0.35)`,
+                    boxShadow: isSelected
+                      ? `0 0 28px rgba(${exec.rgb},0.55), 0 0 60px rgba(${exec.rgb},0.18)`
+                      : `0 0 10px rgba(${exec.rgb},0.15)`,
+                    cursor: "pointer",
+                    opacity: entered ? 1 : 0,
+                    animation: entered ? `exec-pop 0.42s cubic-bezier(0.34,1.56,0.64,1) ${idx * 32}ms both` : "none",
+                    transition: "border 0.22s, box-shadow 0.22s, background 0.22s",
+                    userSelect: "none",
+                    zIndex: isSelected ? 10 : 1,
+                  }}>
+                  {/* Badge */}
+                  <div style={{
+                    position: "absolute", top: 5, left: 6,
+                    fontSize: 7, fontWeight: 800, color: exec.color, letterSpacing: "0.06em",
+                    background: `rgba(${exec.rgb},0.18)`, borderRadius: 4, padding: "1px 5px",
+                  }}>{layout.badge}</div>
+                  {/* Online dot */}
+                  <div style={{
+                    position: "absolute", top: 7, right: 7,
+                    width: 6, height: 6, borderRadius: "50%",
+                    background: "#34d399", boxShadow: "0 0 6px rgba(52,211,153,0.9)",
+                    animation: "exec-glow 2.2s ease-in-out infinite",
+                  }}/>
+                  {/* Short role */}
+                  <div style={{
+                    position: "absolute", bottom: 16, left: 0, right: 0,
+                    textAlign: "center", fontSize: 11.5, fontWeight: 800,
+                    color: isSelected ? exec.color : "rgba(255,255,255,0.9)",
+                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", paddingInline: 6,
+                    textShadow: isSelected ? `0 0 12px rgba(${exec.rgb},0.8)` : "none",
+                    transition: "color 0.2s, text-shadow 0.2s",
+                  }}>{exec.shortRole === exec.role ? exec.shortRole : `${exec.shortRole}`}</div>
+                  {/* Score */}
+                  <div style={{
+                    position: "absolute", bottom: 5, left: 0, right: 0,
+                    textAlign: "center", fontSize: 8.5, color: "rgba(255,255,255,0.3)", fontFamily: "monospace",
+                  }}>Score {exec.avgScore}</div>
                 </div>
-              </button>
-            );
-          })}
-        </div>
+              );
+            })}
 
-        {/* ── Right Detail Panel ── */}
-        <div className="space-y-4 xl:sticky xl:top-6">
-          {/* Agent card */}
-          <div
-            className="relative rounded-2xl overflow-hidden p-5"
-            style={{
-              background: `linear-gradient(135deg, ${active.color}0d 0%, rgba(10,10,14,0.94) 100%)`,
-              border: `1px solid ${active.color}25`,
-              backdropFilter: "blur(20px)",
-              boxShadow: `inset 0 1px 0 ${active.color}18, 0 20px 60px rgba(0,0,0,0.4)`,
-            }}
-          >
-            <div className="absolute inset-x-0 top-0 h-px" style={{ background: `linear-gradient(90deg, transparent, ${active.color}55, transparent)` }} />
-            <div className="absolute top-0 left-0 right-0 h-32 opacity-10" style={{
-              background: `radial-gradient(ellipse at 40% 0%, ${active.color} 0%, transparent 70%)`,
-            }} />
-
-            {/* header */}
-            <div className="flex items-start gap-4 mb-5 relative">
-              <div
-                className="size-14 rounded-2xl flex items-center justify-center text-lg font-bold flex-shrink-0"
-                style={{
-                  background: `linear-gradient(135deg, ${active.color}35, ${active.color}15)`,
-                  border: `1px solid ${active.color}40`,
-                  color: active.color,
-                  boxShadow: `0 8px 24px ${active.glow}`,
-                }}
-              >
-                {active.shortRole}
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
-                  <h2 className="text-base font-bold text-white">{active.name}</h2>
-                  <Badge variant="success" dot>Активен</Badge>
-                </div>
-                <p className="text-xs text-white/40 mb-2">{active.title}</p>
-                <div className="flex gap-1.5 flex-wrap">
-                  {active.expertise.map((e) => (
-                    <span
-                      key={e}
-                      className="text-[9px] px-2 py-0.5 rounded-full border"
-                      style={{ background: `${active.color}10`, color: active.color, borderColor: `${active.color}25` }}
-                    >{e}</span>
+            {/* Popup tooltip near selected node */}
+            {selExec && selLayout && (() => {
+              const popW = 260;
+              let px = selLayout.x - NW / 2;
+              let py = selLayout.y + NH / 2 + 12;
+              if (px + popW > CANVAS_W - 8) px = CANVAS_W - popW - 8;
+              if (py + 210 > CANVAS_H) py = selLayout.y - NH / 2 - 220;
+              return (
+                <div style={{
+                  position: "absolute", left: px, top: py, width: popW,
+                  background: "rgba(8,8,22,0.97)",
+                  border: `1px solid rgba(${selRgb},0.4)`,
+                  borderRadius: 12,
+                  boxShadow: `0 8px 32px rgba(0,0,0,0.65), 0 0 24px rgba(${selRgb},0.2)`,
+                  padding: "12px 14px", zIndex: 20,
+                  animation: "exec-pop 0.22s cubic-bezier(0.34,1.56,0.64,1) both",
+                }}>
+                  <div style={{ fontSize: 8.5, fontWeight: 800, color: selColor, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8 }}>
+                    {selExec.shortRole} | Характеристики Агента
+                  </div>
+                  {[
+                    ["Имя",        selExec.name],
+                    ["Должность",  selExec.title],
+                    ["Опыт",       `${selExec.years} лет`],
+                    ["Статус",     "Активен"],
+                    ["Оценка",     `${(selExec.avgScore / 20).toFixed(1)} / 5.0`],
+                    ["Проектов",   `${selExec.completedProjects} завершено`],
+                    ["Модель",     "Claude Haiku 4.5"],
+                    ["Точность",   `${95 + (selExec.avgScore % 5)}.${selExec.avgScore % 10}%`],
+                  ].map(([k, v]) => (
+                    <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 4, fontSize: 9.5 }}>
+                      <span style={{ color: "rgba(255,255,255,0.35)" }}>{k}</span>
+                      <span style={{ color: k === "Статус" ? "#34d399" : "rgba(255,255,255,0.8)", fontWeight: k === "Статус" ? 700 : 400, textAlign: "right", maxWidth: 150, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v}</span>
+                    </div>
                   ))}
                 </div>
+              );
+            })()}
+
+            {/* Sparkle */}
+            <div style={{ position: "absolute", bottom: 18, right: 22, color: "rgba(255,255,255,0.1)", fontSize: 38, pointerEvents: "none", animation: "exec-glow 4s ease-in-out infinite" }}>✦</div>
+          </div>
+        </div>
+      </div>
+
+      {/* Detail panel for selected exec */}
+      {selExec && (
+        <div style={{
+          background: `linear-gradient(135deg,rgba(${selRgb},0.08) 0%,rgba(8,8,20,0.97) 100%)`,
+          border: `1px solid rgba(${selRgb},0.2)`,
+          borderRadius: 18, padding: "22px 24px", position: "relative", overflow: "hidden",
+          animation: "exec-slide 0.35s ease both",
+        }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg,transparent,rgba(${selRgb},0.6),transparent)` }}/>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24 }}>
+            {/* Left: bio + expertise */}
+            <div style={{ gridColumn: "span 1" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
+                <div style={{
+                  width: 52, height: 52, borderRadius: 14, flexShrink: 0,
+                  background: `rgba(${selRgb},0.2)`, border: `1px solid rgba(${selRgb},0.4)`,
+                  display: "flex", alignItems: "center", justifyContent: "center",
+                  fontSize: 15, fontWeight: 800, color: selColor,
+                  boxShadow: `0 6px 20px rgba(${selRgb},0.35)`,
+                }}>{selExec.shortRole}</div>
+                <div>
+                  <div style={{ fontSize: 16, fontWeight: 800, color: "white" }}>{selExec.name}</div>
+                  <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.38)", marginTop: 2 }}>{selExec.title}</div>
+                  <div style={{ display: "inline-flex", alignItems: "center", gap: 4, marginTop: 5, padding: "2px 8px", borderRadius: 20, background: "rgba(52,211,153,0.12)", border: "1px solid rgba(52,211,153,0.25)" }}>
+                    <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#34d399" }}/>
+                    <span style={{ fontSize: 9, color: "#34d399", fontWeight: 700 }}>Активен</span>
+                  </div>
+                </div>
+                <div style={{ marginLeft: "auto", textAlign: "right" }}>
+                  <div style={{ fontSize: 30, fontWeight: 900, color: selColor, fontFamily: "monospace", textShadow: `0 0 16px rgba(${selRgb},0.7)` }}>{selExec.avgScore}</div>
+                  <div style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>средний балл</div>
+                </div>
               </div>
-              <div className="text-right flex-shrink-0">
-                <div className="text-3xl font-bold font-mono" style={{ color: active.color, textShadow: `0 0 20px ${active.glow}` }}>{active.avgScore}</div>
-                <div className="text-[9px] text-white/30 leading-tight">средний балл</div>
-                <div className="text-[9px] text-white/20 mt-0.5">{active.completedProjects} проекта</div>
+              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, marginBottom: 14 }}>{selExec.bio}</p>
+              <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                {selExec.expertise.map(e => (
+                  <span key={e} style={{ fontSize: 9.5, padding: "3px 10px", borderRadius: 20, background: `rgba(${selRgb},0.12)`, border: `1px solid rgba(${selRgb},0.25)`, color: selColor }}>{e}</span>
+                ))}
               </div>
             </div>
 
-            {/* experience bar */}
-            <div
-              className="flex items-center gap-2 mb-4 rounded-xl px-3 py-2 relative"
-              style={{ background: `${active.color}0a`, border: `1px solid ${active.color}18` }}
-            >
-              <svg viewBox="0 0 16 16" className="size-3.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: active.color }}>
-                <circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/>
-              </svg>
-              <span className="text-[10px] font-semibold" style={{ color: active.color }}>Опыт: {active.years} лет</span>
-              <span className="text-[10px] text-white/25 ml-auto">в индустрии</span>
-            </div>
-
-            <p className="text-[12.5px] text-white/55 leading-[1.8] mb-5 relative">{active.bio}</p>
-
-            {/* Insights */}
-            <div
-              className="relative rounded-xl p-4"
-              style={{
-                background: "rgba(255,255,255,0.025)",
-                border: "1px solid rgba(255,255,255,0.06)",
-              }}
-            >
-              <div className="text-[9px] font-semibold text-white/30 uppercase tracking-[0.2em] mb-3">Ключевые инсайты</div>
-              <div className="space-y-3">
-                {active.insights.map((insight, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <div
-                      className="size-5 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0 mt-0.5"
-                      style={{ background: `${active.color}20`, color: active.color, border: `1px solid ${active.color}30` }}
-                    >
-                      {i + 1}
-                    </div>
-                    <p className="text-[11.5px] text-white/55 leading-[1.7]">{insight}</p>
+            {/* Middle: key insights */}
+            <div>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 12 }}>Ключевые инсайты</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {selExec.insights.map((ins, i) => (
+                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                    <div style={{
+                      width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
+                      background: `rgba(${selRgb},0.18)`, border: `1px solid rgba(${selRgb},0.3)`,
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: 9, fontWeight: 800, color: selColor,
+                    }}>{i + 1}</div>
+                    <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, margin: 0 }}>{ins}</p>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
 
-          {/* Stats row */}
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: "Завершено проектов", value: active.completedProjects.toString() },
-              { label: "Средний балл", value: active.avgScore.toString() },
-              { label: "Статус", value: "Активен" },
-            ].map((s) => (
-              <div
-                key={s.label}
-                className="relative rounded-xl overflow-hidden p-3 text-center"
-                style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(10,10,14,0.8) 100%)",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  backdropFilter: "blur(10px)",
-                }}
-              >
-                <div className="absolute inset-x-0 top-0 h-px" style={{ background: "linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent)" }} />
-                <div className="text-xl font-bold font-mono text-white mb-0.5">{s.value}</div>
-                <div className="text-[9px] text-white/30">{s.label}</div>
+            {/* Right: stats + action */}
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+                {[
+                  { label: "Завершено проектов", value: selExec.completedProjects.toString() },
+                  { label: "Средний балл", value: selExec.avgScore.toString() },
+                  { label: "Статус", value: "Активен" },
+                ].map(s => (
+                  <div key={s.label} style={{
+                    padding: "12px 10px", borderRadius: 12, textAlign: "center",
+                    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)",
+                  }}>
+                    <div style={{ fontSize: 20, fontWeight: 800, color: "white", fontFamily: "monospace" }}>{s.value}</div>
+                    <div style={{ fontSize: 8.5, color: "rgba(255,255,255,0.28)", marginTop: 3 }}>{s.label}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+              <div style={{ padding: "12px 14px", borderRadius: 12, background: `rgba(${selRgb},0.07)`, border: `1px solid rgba(${selRgb},0.18)` }}>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 8 }}>Опыт и специализация</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
+                  <svg viewBox="0 0 14 14" fill="none" stroke={selColor} strokeWidth="1.5" style={{ width: 12, height: 12, flexShrink: 0 }}><circle cx="7" cy="7" r="5"/><path d="M7 4v3l2 1.5"/></svg>
+                  <span style={{ fontSize: 11, fontWeight: 700, color: selColor }}>{selExec.years} лет в индустрии</span>
+                </div>
+                <div style={{ height: 4, borderRadius: 2, background: `rgba(${selRgb},0.12)`, overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${Math.min(99, parseInt(selExec.years) * 2.5)}%`, background: `linear-gradient(90deg,rgba(${selRgb},0.5),${selColor})`, borderRadius: 2, boxShadow: `0 0 6px ${selColor}` }}/>
+                </div>
+              </div>
+              <Link href="/dashboard/new" style={{
+                height: 42, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                background: `linear-gradient(135deg,rgba(${selRgb},0.85),rgba(${selRgb},0.5))`,
+                border: `1px solid rgba(${selRgb},0.5)`,
+                boxShadow: `0 6px 24px rgba(${selRgb},0.3)`,
+                color: "white", fontWeight: 700, fontSize: 12, textDecoration: "none",
+                transition: "filter 0.2s",
+              }}>
+                <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 14, height: 14 }}><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/></svg>
+                Брифовать совет по новому проекту
+              </Link>
+            </div>
           </div>
-
-          <Link
-            href="/dashboard/new"
-            className="relative w-full h-11 text-[13px] font-semibold text-white rounded-xl flex items-center justify-center gap-2 overflow-hidden transition-all duration-200 hover:scale-[1.02] hover:brightness-110"
-            style={{
-              background: "linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)",
-              boxShadow: "0 8px 28px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.15)",
-            }}
-          >
-            <div className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-200" style={{ background: "linear-gradient(135deg, #8b5cf6, #60a5fa)" }} />
-            <svg className="size-4 relative" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-            </svg>
-            <span className="relative">Брифовать совет по новому проекту</span>
-          </Link>
         </div>
-      </div>
+      )}
     </div>
   );
 }
