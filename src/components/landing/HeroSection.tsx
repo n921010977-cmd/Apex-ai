@@ -9,16 +9,29 @@ const ellipsePath = (cx: number, cy: number, rx: number, ry: number) =>
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-const ORBITERS = [
-  { shortRole: "CEO", fullRole: "Генеральный директор",   color: "#7c3aed", glow: "rgba(124,58,237,0.7)", startDeg: 0   },
-  { shortRole: "CFO", fullRole: "Финансовый директор",    color: "#3b82f6", glow: "rgba(59,130,246,0.7)",  startDeg: 72  },
-  { shortRole: "CMO", fullRole: "Директор по маркетингу", color: "#10b981", glow: "rgba(16,185,129,0.7)", startDeg: 144 },
-  { shortRole: "CTO", fullRole: "Технический директор",   color: "#ec4899", glow: "rgba(236,72,153,0.7)", startDeg: 216 },
-  { shortRole: "COO", fullRole: "Операционный директор",  color: "#f59e0b", glow: "rgba(245,158,11,0.7)", startDeg: 288 },
+// 3 orbital rings so all 20 agents distribute without clutter
+const RINGS = [
+  { r: 188, dur: 42, dir: 1  as 1 | -1 },
+  { r: 142, dur: 32, dir: -1 as 1 | -1 },
+  { r: 98,  dur: 24, dir: 1  as 1 | -1 },
 ];
 
-const ORBIT_R    = 152; // capsule orbit radius px
-const ORBIT_SEC  = 26;  // revolution duration
+const ROLES_20: [string, string][] = [
+  ["CEO", "#8b5cf6"], ["CFO", "#6366f1"], ["CMO", "#3b82f6"], ["COO", "#06b6d4"],
+  ["CTO", "#10b981"], ["PM", "#f59e0b"], ["Growth", "#ec4899"], ["Data", "#22d3ee"],
+  ["Legal", "#8b5cf6"], ["HR", "#6366f1"], ["Sales", "#3b82f6"], ["Brand", "#06b6d4"],
+  ["UX", "#10b981"], ["SEO", "#f59e0b"], ["Research", "#ec4899"], ["Finance", "#22d3ee"],
+  ["Ops", "#8b5cf6"], ["CS", "#6366f1"], ["DevOps", "#3b82f6"], ["AI", "#06b6d4"],
+];
+
+// distribute 20 across rings: 8 / 7 / 5
+const ORBITERS = ROLES_20.map(([short, color], i) => {
+  let ring: number, idxInRing: number, countInRing: number;
+  if (i < 8)       { ring = 0; idxInRing = i;      countInRing = 8; }
+  else if (i < 15) { ring = 1; idxInRing = i - 8;  countInRing = 7; }
+  else             { ring = 2; idxInRing = i - 15; countInRing = 5; }
+  return { short, color, ring, startDeg: (idxInRing / countInRing) * 360 };
+});
 
 // Deterministic micro-particles (sin/cos of evenly spaced angles × varying radii)
 const PARTICLES = Array.from({ length: 22 }, (_, i) => {
@@ -188,7 +201,7 @@ function OrbCore() {
           const x = 200 + Math.cos(rad) * 185;
           const y = 200 + Math.sin(rad) * 68;
           return (
-            <circle key={i} cx={x} cy={y} r="3" fill={ORBITERS[i].color} opacity="0.5">
+            <circle key={i} cx={x} cy={y} r="3" fill={ORBITERS[i]?.color ?? "#8b5cf6"} opacity="0.5">
               <animate attributeName="opacity" values="0.4;0.9;0.4" dur="2s" begin={`${i * 0.4}s`} repeatCount="indefinite" />
             </circle>
           );
@@ -259,65 +272,57 @@ function OrbCore() {
         </div>
       </motion.div>
 
-      {/* Orbital capsules ────────────────────────────────────────────────── */}
-      {ORBITERS.map((o, i) => (
-        <motion.div
-          key={o.shortRole}
-          className="absolute"
-          style={{ top: "50%", left: "50%", width: 0, height: 0 }}
-          initial={{ opacity: 0, scale: 0.5 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.0 + i * 0.13, type: "spring", stiffness: 220, damping: 18 }}
-        >
-          <div
-            style={{
-              position: "absolute",
-              top: 0, left: 0,
-              width: 0, height: 0,
-              transformOrigin: "0 0",
-              animation: `hero-orbit ${ORBIT_SEC}s linear infinite`,
-              animationDelay: `-${(o.startDeg / 360) * ORBIT_SEC}s`,
-            }}
+      {/* Orbital capsules — all 20 agents across 3 rings ──────────────────── */}
+      {ORBITERS.map((o, i) => {
+        const ring = RINGS[o.ring];
+        const dir = ring.dir === -1 ? "reverse" : "normal";
+        return (
+          <motion.div
+            key={o.short}
+            className="absolute"
+            style={{ top: "50%", left: "50%", width: 0, height: 0 }}
+            initial={{ opacity: 0, scale: 0.4 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: 0.7 + i * 0.05, type: "spring", stiffness: 240, damping: 18 }}
           >
             <div
               style={{
                 position: "absolute",
-                left: ORBIT_R,
-                top: 0,
-                animation: `hero-unspin ${ORBIT_SEC}s linear infinite`,
-                animationDelay: `-${(o.startDeg / 360) * ORBIT_SEC}s`,
+                top: 0, left: 0, width: 0, height: 0,
+                transformOrigin: "0 0",
+                animation: `hero-orbit ${ring.dur}s linear infinite`,
+                animationDirection: dir,
+                animationDelay: `-${(o.startDeg / 360) * ring.dur}s`,
               }}
             >
-              {/* Capsule glow */}
               <div
-                className="absolute inset-0 rounded-xl"
-                style={{ filter: "blur(8px)", background: o.color, opacity: 0.25 }}
-              />
-              {/* Capsule body */}
-              <div
-                className="relative flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl whitespace-nowrap"
                 style={{
-                  background: `linear-gradient(135deg, ${o.color}22 0%, rgba(10,10,18,0.9) 100%)`,
-                  border: `1px solid ${o.color}45`,
-                  backdropFilter: "blur(14px)",
-                  boxShadow: `0 4px 20px ${o.glow.replace("0.7", "0.25")}, inset 0 1px 0 rgba(255,255,255,0.08)`,
-                  transform: "translate(-50%, -50%)",
-                }}
+                  position: "absolute",
+                  left: 0, top: 0,
+                  ["--orbit-r" as string]: `${ring.r}px`,
+                  animation: `hero-unspin ${ring.dur}s linear infinite`,
+                  animationDirection: dir,
+                  animationDelay: `-${(o.startDeg / 360) * ring.dur}s`,
+                } as React.CSSProperties}
               >
-                {/* Top shimmer */}
-                <div className="absolute inset-x-0 top-0 h-px rounded-t-xl" style={{ background: `linear-gradient(90deg, transparent, ${o.color}60, transparent)` }} />
-                {/* Colored dot indicator */}
+                {/* Compact capsule (dot + short role) */}
                 <div
-                  className="size-1.5 rounded-full flex-shrink-0"
-                  style={{ background: o.color, boxShadow: `0 0 6px ${o.color}` }}
-                />
-                <span className="text-[11px] font-bold" style={{ color: o.color }}>{o.shortRole}</span>
-                <span className="text-[9px] text-white/35 font-medium">{o.fullRole}</span>
+                  className="relative flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-lg whitespace-nowrap"
+                  style={{
+                    transform: "translate(-50%, -50%)",
+                    background: `linear-gradient(135deg, ${o.color}22 0%, rgba(9,10,16,0.92) 100%)`,
+                    border: `1px solid ${o.color}3d`,
+                    boxShadow: `0 4px 14px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.06)`,
+                  }}
+                >
+                  <span className="size-1.5 rounded-full flex-shrink-0" style={{ background: o.color, boxShadow: `0 0 5px ${o.color}` }} />
+                  <span className="text-[10px] font-bold" style={{ color: o.color }}>{o.short}</span>
+                </div>
               </div>
             </div>
-          </div>
-        </motion.div>
-      ))}
+          </motion.div>
+        );
+      })}
     </motion.div>
     </div>
   );
@@ -335,8 +340,8 @@ export function HeroSection() {
           to   { transform: rotate(360deg); }
         }
         @keyframes hero-unspin {
-          from { transform: translateX(${ORBIT_R}px) translateY(-50%) rotate(0deg); }
-          to   { transform: translateX(${ORBIT_R}px) translateY(-50%) rotate(-360deg); }
+          from { transform: translateX(var(--orbit-r)) translateY(-50%) rotate(0deg); }
+          to   { transform: translateX(var(--orbit-r)) translateY(-50%) rotate(-360deg); }
         }
         @keyframes hero-particle-pulse {
           0%, 100% { opacity: 0.12; transform: scale(1); }
