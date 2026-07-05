@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useToast } from "@/components/ui/Toast";
 import {
   FileText, Search, Download, Plus, CheckCircle, Loader2,
   Sparkles, Brain, TrendingUp, Shield, BarChart2, ChevronRight,
@@ -114,8 +115,104 @@ function ScoreRing({ score, size = 64 }: { score: number; size?: number }) {
   );
 }
 
+// ─── Report → printable HTML ─────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = false): string {
+  const esc = (s: string) => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
+  const scoreColor = (r.score ?? 0) >= 85 ? "#10b981" : (r.score ?? 0) >= 70 ? "#6366f1" : "#f59e0b";
+
+  const metrics = [
+    ["TAM", r.market], ["Revenue", r.revenue], ["Рост", r.growth], ["Риск", r.risk], ["Страниц", r.pages ? `${r.pages} стр.` : null],
+  ].filter(([, v]) => v) as [string, string][];
+
+  const sections = Array.isArray(r.report_sections)
+    ? r.report_sections.map(s => `<section class="sec"><h2>${esc(s.title ?? "")}</h2><div class="body">${esc(s.content?.markdown ?? s.content ?? "")}</div></section>`).join("")
+    : "";
+
+  return `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>${esc(r.title)} — Apex AI</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#05060A;color:#E5E7EB;padding:56px 48px;line-height:1.65;max-width:900px;margin:0 auto}
+  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.35)}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:28px}
+  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;color:#fff;margin:8px 0 6px;max-width:560px}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .chip{font-size:11px;padding:3px 10px;border-radius:6px;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);font-weight:600}
+  .chip.ok{background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.25)}
+  .score{text-align:center;flex-shrink:0}
+  .score .n{font-size:44px;font-weight:800;color:${scoreColor};font-variant-numeric:tabular-nums;line-height:1}
+  .score .l{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
+  .summary{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:20px 22px;margin-bottom:28px;font-size:14px;color:rgba(255,255,255,.72)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:32px}
+  .cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px}
+  .cell .k{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em}
+  .cell .v{font-size:18px;font-weight:800;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums}
+  .sec{margin-bottom:26px;page-break-inside:avoid}
+  .sec h2{font-size:15px;font-weight:700;color:#818cf8;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(129,140,248,.18)}
+  .sec .body{font-size:13px;color:rgba(255,255,255,.62);white-space:pre-wrap}
+  .foot{margin-top:44px;border-top:1px solid rgba(255,255,255,.08);padding-top:16px;font-size:11px;color:rgba(255,255,255,.28);display:flex;justify-content:space-between}
+  @media print{body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}h1,.cell .v{color:#111}.sec .body{color:#333}}
+</style></head>
+<body>
+  <div class="head">
+    <div>
+      <div class="eyebrow">Apex AI · Бизнес-отчёт</div>
+      <h1>${esc(r.title)}</h1>
+      <div class="chips">
+        <span class="chip">${esc(r.type)}</span>
+        ${r.status === "COMPLETED" ? '<span class="chip ok">✓ Готов</span>' : '<span class="chip">В процессе</span>'}
+        ${r.time ? `<span class="chip" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.1)">${esc(r.time)}</span>` : ""}
+      </div>
+    </div>
+    ${r.score ? `<div class="score"><div class="n">${r.score}</div><div class="l">Бизнес-балл</div></div>` : ""}
+  </div>
+  ${r.summary ? `<div class="summary">${esc(r.summary)}</div>` : ""}
+  ${metrics.length ? `<div class="grid">${metrics.map(([k, v]) => `<div class="cell"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join("")}</div>` : ""}
+  ${sections}
+  <div class="foot"><span>Apex AI · Автоматически сгенерировано</span><span>${new Date().toLocaleDateString("ru")}</span></div>
+  ${autoPrint ? "<script>window.onload=function(){setTimeout(function(){window.print()},350)}</script>" : ""}
+</body></html>`;
+}
+
+const isUuid = (id: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
+
+// Enrich a real (DB-backed) report with its sections before rendering
+async function loadFull(report: Report): Promise<Report> {
+  if (!isUuid(report.id)) return report;
+  try {
+    const res = await fetch(`/api/reports/${report.id}`);
+    const j = await res.json();
+    if (j.success && j.data) return { ...report, ...j.data };
+  } catch { /* fall back to summary data */ }
+  return report;
+}
+
+async function openReportView(report: Report) {
+  const w = window.open("", "_blank");
+  if (!w) return false;
+  w.document.write("<!DOCTYPE html><title>Загрузка…</title><body style='background:#05060A'></body>");
+  const full = await loadFull(report);
+  w.document.open();
+  w.document.write(buildReportHtml(full));
+  w.document.close();
+  return true;
+}
+
+async function downloadReportPdf(report: Report) {
+  const w = window.open("", "_blank");
+  if (!w) return false;
+  w.document.write("<!DOCTYPE html><title>Подготовка PDF…</title><body style='background:#05060A'></body>");
+  const full = await loadFull(report);
+  w.document.open();
+  w.document.write(buildReportHtml(full, true));
+  w.document.close();
+  return true;
+}
+
 // ─── Report card ───────────────────────────────────────────────────────────────
-function ReportCard({ report, index, onSelect, selected }: { report: Report; index: number; onSelect: () => void; selected: boolean }) {
+function ReportCard({ report, index, onSelect, selected, onView, onPdf }: { report: Report; index: number; onSelect: () => void; selected: boolean; onView: (r: Report) => void; onPdf: (r: Report) => void }) {
   const isCompleted = report.status === "COMPLETED";
   const score = report.score ?? 0;
 
@@ -182,12 +279,12 @@ function ReportCard({ report, index, onSelect, selected }: { report: Report; ind
       {/* Action row */}
       {isCompleted && (
         <div style={{ display: "flex", gap: 8, marginTop: 14, borderTop: `1px solid ${S.border}`, paddingTop: 14 }}>
-          <button onClick={e => { e.stopPropagation(); }}
+          <button onClick={e => { e.stopPropagation(); onView(report); }}
             style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "8px", borderRadius: 10, background: "transparent", border: `1px solid ${S.border}`, color: S.textSecondary, fontSize: 12, cursor: "pointer" }}
           >
             <Eye size={12} />Просмотр
           </button>
-          <button onClick={e => { e.stopPropagation(); }}
+          <button onClick={e => { e.stopPropagation(); onPdf(report); }}
             style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 5, padding: "8px 14px", borderRadius: 10, background: `linear-gradient(135deg,${S.accent},${S.accentDark})`, border: "none", color: "#fff", fontSize: 12, fontWeight: 700, cursor: "pointer" }}
           >
             <Download size={12} />PDF
@@ -225,6 +322,20 @@ export default function ReportsPage() {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("Все");
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const { toast } = useToast();
+
+  const handleView = useCallback(async (r: Report) => {
+    if (r.status !== "COMPLETED") { toast("Отчёт ещё генерируется", "info"); return; }
+    const ok = await openReportView(r);
+    if (!ok) toast("Разрешите всплывающие окна для просмотра", "error");
+  }, [toast]);
+
+  const handlePdf = useCallback(async (r: Report) => {
+    if (r.status !== "COMPLETED") { toast("Отчёт ещё генерируется", "info"); return; }
+    toast("Готовим PDF — откроется окно печати", "info");
+    const ok = await downloadReportPdf(r);
+    if (!ok) toast("Разрешите всплывающие окна для экспорта", "error");
+  }, [toast]);
 
   const fetchReports = useCallback(async () => {
     setLoading(true);
@@ -342,7 +453,7 @@ export default function ReportsPage() {
             ) : (
               <div className="rp-grid">
                 {filtered.map((r, i) => (
-                  <ReportCard key={r.id} report={r} index={i} onSelect={() => setSelectedId(selectedId === r.id ? null : r.id)} selected={selectedId === r.id} />
+                  <ReportCard key={r.id} report={r} index={i} onSelect={() => setSelectedId(selectedId === r.id ? null : r.id)} selected={selectedId === r.id} onView={handleView} onPdf={handlePdf} />
                 ))}
               </div>
             )}
@@ -376,7 +487,12 @@ export default function ReportsPage() {
                       ))}
                     </div>
                     <div style={{ display: "flex", gap: 8, marginTop: 16 }}>
-                      <button style={{ flex: 1, padding: "10px", borderRadius: 10, background: `linear-gradient(135deg,${S.accent},${S.accentDark})`, border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                      <button onClick={() => handleView(r)}
+                        style={{ flex: 1, padding: "10px", borderRadius: 10, background: "transparent", border: `1px solid ${S.border}`, color: S.textSecondary, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                        <Eye size={13} />Просмотр
+                      </button>
+                      <button onClick={() => handlePdf(r)}
+                        style={{ flex: 1, padding: "10px", borderRadius: 10, background: `linear-gradient(135deg,${S.accent},${S.accentDark})`, border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
                         <Download size={13} />PDF
                       </button>
                     </div>

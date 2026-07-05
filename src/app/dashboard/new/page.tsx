@@ -148,61 +148,105 @@ function LiveAgentPanel({ hasText }: { hasText: boolean }) {
   }, [hasText]);
 
   return (
-    <div className="space-y-1.5">
-      {AGENTS.map((a) => {
+    <motion.div
+      className="space-y-2"
+      initial="hidden"
+      animate="show"
+      variants={{ show: { transition: { staggerChildren: 0.045 } } }}
+    >
+      {AGENTS.map((a, idx) => {
         const Icon = a.icon;
         const active = hasText;
+        const pulsing = !!pulses[a.role];
         return (
           <motion.div
             key={a.role}
-            animate={{ borderColor: pulses[a.role] ? `rgba(${a.rgb},0.4)` : `rgba(${a.rgb},0.12)` }}
+            variants={{
+              hidden: { opacity: 0, x: 24 },
+              show:   { opacity: 1, x: 0, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } },
+            }}
+            whileHover={{ x: -3, transition: { duration: 0.18 } }}
+            animate={{
+              borderColor: pulsing ? `rgba(${a.rgb},0.5)` : active ? `rgba(${a.rgb},0.18)` : "rgba(255,255,255,0.06)",
+              boxShadow: pulsing ? `0 6px 24px rgba(${a.rgb},0.16)` : "0 1px 2px rgba(0,0,0,0.3)",
+            }}
             style={{
               borderRadius: 14,
-              padding:      "10px 12px",
-              background:   `rgba(${a.rgb},0.04)`,
+              padding:      "11px 13px",
+              background:   active
+                ? `linear-gradient(135deg, rgba(${a.rgb},0.09) 0%, rgba(255,255,255,0.02) 100%)`
+                : "rgba(255,255,255,0.025)",
               border:       `1px solid rgba(${a.rgb},0.12)`,
+              position:     "relative",
+              overflow:     "hidden",
             }}
           >
-            <div className="flex items-center gap-2.5">
-              <div style={{
-                width: 30, height: 30, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                background: `rgba(${a.rgb},0.12)`, border: `1px solid rgba(${a.rgb},0.22)`, color: a.color,
-              }}>
-                <Icon size={13} />
+            {/* left accent rail */}
+            <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 2.5, background: active ? `linear-gradient(180deg, ${a.color}, rgba(${a.rgb},0.2))` : "transparent" }} />
+
+            <div className="flex items-center gap-3">
+              {/* Avatar with ring + glow */}
+              <div style={{ position: "relative", flexShrink: 0 }}>
+                <motion.div
+                  animate={pulsing ? { scale: [1, 1.12, 1] } : { scale: 1 }}
+                  transition={{ duration: 0.6, ease: "easeInOut" }}
+                  style={{
+                    width: 34, height: 34, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: `linear-gradient(135deg, rgba(${a.rgb},0.28), rgba(${a.rgb},0.08))`,
+                    border: `1px solid rgba(${a.rgb},0.35)`,
+                    color: a.color,
+                    boxShadow: active ? `0 0 14px rgba(${a.rgb},0.25)` : "none",
+                  }}
+                >
+                  <Icon size={15} />
+                </motion.div>
+                {/* status dot */}
+                <span style={{
+                  position: "absolute", bottom: -2, right: -2, width: 9, height: 9, borderRadius: "50%",
+                  border: "2px solid #0a0b12",
+                  background: active ? a.color : "rgba(255,255,255,0.2)",
+                  boxShadow: active ? `0 0 6px rgba(${a.rgb},0.9)` : "none",
+                  animation: active ? "lp-pulse 1.6s ease-in-out infinite" : "none",
+                }} />
               </div>
+
               <div className="flex-1 min-w-0">
-                <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{a.name}</div>
-                <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.28)", marginTop: 1, fontFamily: "ui-monospace, monospace" }}>
-                  {active ? (thoughts[a.role] || "Ожидает данных...") : "Ожидает брифинга..."}
+                <div className="flex items-center gap-2">
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{a.name}</span>
+                  <span style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", padding: "1px 6px", borderRadius: 5, background: `rgba(${a.rgb},0.14)`, color: a.color }}>{a.role}</span>
+                </div>
+                <div style={{ fontSize: 10, color: active ? `rgba(${a.rgb},0.85)` : "rgba(255,255,255,0.28)", marginTop: 2, fontFamily: "ui-monospace, monospace", display: "flex", alignItems: "center", gap: 5 }}>
+                  {active && (
+                    <span style={{ display: "inline-flex", gap: 2 }}>
+                      {[0, 1, 2].map(d => (
+                        <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: a.color, display: "inline-block", animation: `lp-typing 1.2s ease-in-out ${d * 0.15}s infinite` }} />
+                      ))}
+                    </span>
+                  )}
+                  <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                    {active ? (thoughts[a.role] || "Ожидает данных...") : "Ожидает брифинга..."}
+                  </span>
                 </div>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                <span style={{ fontSize: 9, color: active ? a.color : "rgba(255,255,255,0.18)", fontWeight: 600 }}>
-                  {active ? a.role : "—"}
-                </span>
-                <span
-                  style={{
-                    width: 6, height: 6, borderRadius: "50%", display: "block",
-                    background: active ? a.color : "rgba(255,255,255,0.12)",
-                    boxShadow:  active ? `0 0 6px rgba(${a.rgb},0.8)` : "none",
-                    animation:  active ? "lp-pulse 1.6s ease-in-out infinite" : "none",
-                  }}
-                />
-              </div>
+
+              <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.16)", fontVariantNumeric: "tabular-nums", flexShrink: 0 }}>
+                {String(idx + 1).padStart(2, "0")}
+              </span>
             </div>
+
             {active && (
-              <div style={{ marginTop: 7, height: 2, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
+              <div style={{ marginTop: 9, height: 2.5, background: "rgba(255,255,255,0.05)", borderRadius: 2, overflow: "hidden" }}>
                 <motion.div
                   style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, rgba(${a.rgb},0.4), ${a.color})` }}
                   animate={{ width: ["20%", "75%", "35%", "88%", "45%"] }}
-                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: idx * 0.1 }}
                 />
               </div>
             )}
           </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 }
 
@@ -603,9 +647,10 @@ export default function NewStrategyPage() {
     <div className="min-h-full" style={{ background: "#040404" }}>
       <style>{`
         @keyframes lp-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+        @keyframes lp-typing { 0%,100%{opacity:0.25;transform:translateY(0)} 50%{opacity:1;transform:translateY(-1.5px)} }
         @keyframes np-drift  { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-55%) scale(1.08)} }
         .np-input { width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:14px; color:#fff; font-size:14px; outline:none; transition:border-color 0.2s, box-shadow 0.2s; -webkit-appearance:none; }
-        .np-input:focus { border-color:rgba(122,92,255,0.45); box-shadow:0 0 0 3px rgba(122,92,255,0.08); }
+        .np-input:focus { border-color:rgba(99,102,241,0.45); box-shadow:0 0 0 3px rgba(99,102,241,0.08); }
         .np-input::placeholder { color:rgba(255,255,255,0.2); }
         .new-content-grid { grid-template-columns: 1fr 320px; }
         @media (max-width: 1023px) { .new-content-grid { grid-template-columns: 1fr; } }
@@ -992,22 +1037,25 @@ export default function NewStrategyPage() {
           <div className="space-y-4" style={{ position:"sticky", top:24 }}>
 
             {/* Live AI team */}
-            <div style={{ borderRadius:18, padding:"18px", background:"rgba(14,16,21,0.9)", border:"1px solid rgba(255,255,255,0.07)", backdropFilter:"blur(20px)" }}>
-              <div className="flex items-center justify-between mb-3">
+            <div style={{ borderRadius:18, padding:"18px", background:"rgba(14,16,21,0.9)", border:"1px solid rgba(255,255,255,0.07)", backdropFilter:"blur(20px)", maxHeight:"calc(100vh - 80px)", overflowY:"auto" }}>
+              <div className="flex items-center justify-between mb-1">
                 <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.18em", textTransform:"uppercase", color:"rgba(255,255,255,0.28)" }}>Executive Board</span>
                 <div className="flex items-center gap-1.5">
-                  <span style={{ width:6, height:6, borderRadius:"50%", background:"#00E7A7", boxShadow:"0 0 6px rgba(0,231,167,0.8)", display:"block", animation:"lp-pulse 2s ease-in-out infinite" }} />
-                  <span style={{ fontSize:9, fontWeight:700, color:"#00E7A7" }}>LIVE</span>
+                  <span style={{ width:6, height:6, borderRadius:"50%", background: hasText ? "#10b981" : "rgba(255,255,255,0.25)", boxShadow: hasText ? "0 0 6px rgba(16,185,129,0.8)" : "none", display:"block", animation: hasText ? "lp-pulse 2s ease-in-out infinite" : "none" }} />
+                  <span style={{ fontSize:9, fontWeight:700, color: hasText ? "#10b981" : "rgba(255,255,255,0.3)" }}>{hasText ? "LIVE" : "STANDBY"}</span>
                 </div>
+              </div>
+              <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)", marginBottom:14 }}>
+                <span style={{ color:"#818cf8", fontWeight:700 }}>20</span> AI-директоров {hasText ? "анализируют бриф" : "готовы к работе"}
               </div>
               <LiveAgentPanel hasText={hasText} />
             </div>
 
             {/* AI Tips */}
-            <div style={{ borderRadius:18, padding:"16px 18px", background:"rgba(122,92,255,0.06)", border:"1px solid rgba(122,92,255,0.15)" }}>
+            <div style={{ borderRadius:18, padding:"16px 18px", background:"rgba(99,102,241,0.06)", border:"1px solid rgba(99,102,241,0.15)" }}>
               <div className="flex items-center gap-2 mb-3">
-                <Sparkles size={12} style={{ color:"#7A5CFF" }} />
-                <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(122,92,255,0.9)" }}>AI Tips</span>
+                <Sparkles size={12} style={{ color:"#6366f1" }} />
+                <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(99,102,241,0.9)" }}>AI Tips</span>
               </div>
               <div className="space-y-2.5">
                 {[
