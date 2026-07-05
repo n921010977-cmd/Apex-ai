@@ -673,28 +673,37 @@ function ScoreGauge({ score }: { score: number }) {
 function AgentPanel({ letter, name, subtitle, color, score, opinion, delay = 0 }:
   { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string; delay?: number }) {
   const animated = useAnimated(delay);
+  const scoreColor = score >= 85 ? "#10b981" : score >= 70 ? "#f59e0b" : "#f43f5e";
   return (
     <div style={{
-      background: `linear-gradient(135deg,${color}08 0%,rgba(10,10,18,0.92) 100%)`,
-      border: `1px solid ${color}22`, borderRadius: 14, padding: 18,
-      opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(14px)",
-      transition: `opacity 0.5s ${delay}ms, transform 0.5s ${delay}ms`,
+      background: "rgba(255,255,255,0.025)",
+      border: "1px solid rgba(255,255,255,0.07)",
+      borderRadius: 14, padding: "16px 18px",
+      opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
+      transition: `opacity 0.45s ${delay}ms, transform 0.45s ${delay}ms`,
       position: "relative", overflow: "hidden",
     }}>
-      <div style={{ position: "absolute", inset: "0 0 auto", height: 1, background: `linear-gradient(90deg,transparent,${color}50,transparent)` }} />
-      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
+      <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, background: color, borderRadius: "14px 0 0 14px" }} />
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12, paddingLeft: 4 }}>
         <div style={{
-          width: 38, height: 38, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+          width: 36, height: 36, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
           fontSize: 14, fontWeight: 800, flexShrink: 0,
-          background: `${color}18`, border: `1px solid ${color}30`, color,
+          background: `${color}15`, border: `1px solid ${color}25`, color,
         }}>{letter}</div>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.88)" }}>{name}</div>
-          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>AI Executive Board · {subtitle}</div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.9)", lineHeight: 1.2 }}>{name}</div>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.32)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{subtitle}</div>
         </div>
-        <AnimatedGauge score={score} color={color} size={52} delay={delay + 200} showLabel={false} />
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2,
+        }}>
+          <div style={{ fontSize: 20, fontWeight: 900, color: scoreColor, fontFamily: "ui-monospace,monospace", lineHeight: 1 }}>{score}</div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em" }}>БАЛЛ</div>
+        </div>
       </div>
-      <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.58)", lineHeight: 1.78, margin: 0 }}>{opinion}</p>
+      <div style={{ paddingLeft: 4 }}>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, margin: 0 }}>{opinion}</p>
+      </div>
     </div>
   );
 }
@@ -794,11 +803,11 @@ const SCORE_METRICS = [
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
   const animated = useAnimated(120);
-  const [tick, setTick] = useState(0);
-  useEffect(() => { const id = setInterval(() => setTick(t => t + 1), 60); return () => clearInterval(id); }, []);
 
-  const r = 68; const circ = 2 * Math.PI * r;
-  const dash = (project.score / 100) * circ;
+  const r = 56; const circ = 2 * Math.PI * r;
+  const [scoreVal, setScoreVal] = useState(0);
+  useEffect(() => { const t = setTimeout(() => setScoreVal(project.score), 300); return () => clearTimeout(t); }, [project.score]);
+  const dash = (scoreVal / 100) * circ * 0.75;
   const scoreColor = project.score >= 85 ? "#10b981" : project.score >= 70 ? "#f59e0b" : "#f43f5e";
 
   const ceoSummary = aiResults.find(r => r.role === "CEO")?.recommendations ||
@@ -807,93 +816,61 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
     ? ceoSummary.replace(/\d+\./g, "|").split("|").map((s: string) => s.trim()).filter((s: string) => s.length > 12).slice(0, 3)
     : ["Оптимизировать CAC для улучшения финансовой устойчивости.", "Усилить барьеры входа.", "Ускорить выход на рынок."];
 
-  const growthFactors = aiResults.find(r => r.role === "CEO")?.analysis || "";
-  const factors = growthFactors
-    ? growthFactors.replace(/\d+\./g, "|").split("|").map((s: string) => s.trim()).filter((s: string) => s.length > 10).slice(0, 3)
-    : ["Сильный рыночный спрос.", "Инновационная технология.", "Масштабируемая модель."];
-
-  const now = new Date();
-  const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-${String(now.getDate()).padStart(2,"0")} ${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
-
   return (
     <div style={{
-      background: "linear-gradient(135deg,rgba(20,18,40,0.98) 0%,rgba(14,14,28,0.98) 100%)",
-      border: "1px solid rgba(255,255,255,0.08)", borderRadius: 20,
-      overflow: "hidden", marginBottom: 4,
+      background: "rgba(255,255,255,0.02)",
+      border: "1px solid rgba(255,255,255,0.07)", borderRadius: 20,
+      overflow: "hidden", marginBottom: 20,
       opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(16px)",
       transition: "opacity 0.5s, transform 0.5s",
     }}>
-      {/* Main row */}
-      <div style={{ display: "flex", alignItems: "stretch", padding: "24px 20px 20px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 0, alignItems: "stretch" }}>
 
-        {/* Left: large circular score */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", paddingRight: 24, minWidth: 160 }}>
-          <div style={{ position: "relative", width: 160, height: 160 }}>
-            {/* Glow */}
-            <div style={{
-              position: "absolute", inset: 0, borderRadius: "50%",
-              boxShadow: `0 0 48px 12px ${scoreColor}30, inset 0 0 24px ${scoreColor}18`,
-            }}/>
-            <svg viewBox="0 0 160 160" width={160} height={160} style={{ position: "absolute", inset: 0 }}>
-              <defs>
-                <linearGradient id="scArc" x1="0%" y1="0%" x2="100%" y2="100%">
-                  <stop offset="0%" stopColor={scoreColor}/>
-                  <stop offset="100%" stopColor={scoreColor} stopOpacity="0.5"/>
-                </linearGradient>
-              </defs>
-              {/* Track */}
-              <circle cx="80" cy="80" r={r} fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="8"/>
-              {/* Arc */}
-              <circle cx="80" cy="80" r={r} fill="none" stroke="url(#scArc)" strokeWidth="8"
-                strokeDasharray={`${dash} ${circ - dash}`}
-                strokeDashoffset={circ * 0.25}
-                strokeLinecap="round"
-                style={{ filter: `drop-shadow(0 0 8px ${scoreColor})` }}/>
-              {/* Score text */}
-              <text x="80" y="72" textAnchor="middle" fontSize="36" fontWeight="900" fill={scoreColor} fontFamily="ui-monospace,monospace"
-                style={{ filter: `drop-shadow(0 0 10px ${scoreColor})` }}>{project.score}</text>
-              <text x="80" y="90" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="rgba(255,255,255,0.5)" letterSpacing="1.5">ИНТЕГРАЛЬНЫЙ</text>
-              <text x="80" y="101" textAnchor="middle" fontSize="7.5" fontWeight="700" fill="rgba(255,255,255,0.5)" letterSpacing="1.5">БИЗНЕС-ПОКАЗАТЕЛЬ</text>
-            </svg>
+        {/* Left: score gauge */}
+        <div style={{
+          display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: "28px 32px", borderRight: "1px solid rgba(255,255,255,0.06)",
+          background: `radial-gradient(ellipse at center, ${scoreColor}08 0%, transparent 70%)`,
+        }}>
+          <svg viewBox="0 0 130 110" width={130} height={110}>
+            <g transform="rotate(-135 65 65)">
+              <circle cx="65" cy="65" r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="7"
+                strokeDasharray={`${circ * 0.75} ${circ}`} strokeLinecap="round" />
+              <circle cx="65" cy="65" r={r} fill="none" stroke={scoreColor} strokeWidth="7"
+                strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+                style={{ transition: "stroke-dasharray 1.5s cubic-bezier(0.22,1,0.36,1) 0.4s", filter: `drop-shadow(0 0 8px ${scoreColor})` }} />
+            </g>
+            <text x="65" y="60" textAnchor="middle" fontSize="30" fontWeight="900" fill={scoreColor} fontFamily="ui-monospace,monospace">{scoreVal}</text>
+            <text x="65" y="76" textAnchor="middle" fontSize="7" fontWeight="700" fill="rgba(255,255,255,0.35)" letterSpacing="1.5">БИЗНЕС-БАЛЛ</text>
+          </svg>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.12em", textAlign: "center", marginTop: -4 }}>
+            {project.score >= 85 ? "ОТЛИЧНО" : project.score >= 70 ? "ХОРОШО" : "ТРЕБУЕТ РАБОТЫ"}
           </div>
         </div>
 
         {/* Middle: 4 metric cards */}
-        <div style={{ flex: 1, display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 0, padding: "20px 16px", alignItems: "center" }}>
           {SCORE_METRICS.map((m, i) => {
             const val = project.scores[m.key]?.value ?? project.score;
             return (
               <div key={m.key} style={{
-                background: `linear-gradient(135deg,rgba(${m.rgb},0.10) 0%,rgba(${m.rgb},0.03) 100%)`,
-                border: `1px solid rgba(${m.rgb},0.25)`,
-                borderRadius: 14, padding: "14px 12px",
-                opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
-                transition: `opacity 0.45s ${80 + i * 70}ms, transform 0.45s ${80 + i * 70}ms`,
-                display: "flex", flexDirection: "column", gap: 8,
+                padding: "0 16px",
+                borderRight: i < 3 ? "1px solid rgba(255,255,255,0.05)" : "none",
+                opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(10px)",
+                transition: `opacity 0.4s ${100 + i * 60}ms, transform 0.4s ${100 + i * 60}ms`,
               }}>
-                {/* Icon + score */}
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                  <div style={{ filter: `drop-shadow(0 0 8px rgba(${m.rgb},0.7))` }}>{m.icon}</div>
-                  <div style={{ textAlign: "right" }}>
-                    <div style={{ fontSize: 26, fontWeight: 900, color: m.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, filter: `drop-shadow(0 0 8px ${m.color}80)` }}>{val}</div>
-                    <div style={{ fontSize: 8, color: "rgba(255,255,255,0.35)", fontWeight: 700, letterSpacing: 1 }}>БАЛЛОВ</div>
-                  </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
+                  <div style={{ filter: `drop-shadow(0 0 6px rgba(${m.rgb},0.6))`, flexShrink: 0 }}>{m.icon}</div>
                 </div>
-                {/* Title */}
-                <div style={{ fontSize: 8.5, fontWeight: 800, color: m.color, letterSpacing: "0.12em", lineHeight: 1.3 }}>{m.label}</div>
-                {/* Desc */}
-                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.4)", lineHeight: 1.4 }}>{m.desc}</div>
-                {/* Progress bar */}
-                <div style={{ marginTop: "auto" }}>
-                  <div style={{ height: 4, borderRadius: 2, background: `rgba(${m.rgb},0.12)`, overflow: "hidden" }}>
-                    <div style={{
-                      height: "100%", width: `${val}%`,
-                      background: `linear-gradient(90deg,rgba(${m.rgb},0.6),${m.color})`,
-                      borderRadius: 2, boxShadow: `0 0 6px ${m.color}`,
-                      transition: "width 1.2s cubic-bezier(.4,0,.2,1)",
-                    }}/>
-                  </div>
-                  <div style={{ textAlign: "right", fontSize: 8, color: m.color, marginTop: 2, fontFamily: "monospace" }}>{val}%</div>
+                <div style={{ fontSize: 28, fontWeight: 900, color: m.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, marginBottom: 4 }}>{val}</div>
+                <div style={{ fontSize: 8, fontWeight: 800, color: m.color, letterSpacing: "0.1em", lineHeight: 1.3, marginBottom: 8, opacity: 0.85 }}>{m.label}</div>
+                <div style={{ height: 3, borderRadius: 2, background: `rgba(${m.rgb},0.1)`, overflow: "hidden" }}>
+                  <div style={{
+                    height: "100%", borderRadius: 2,
+                    width: animated ? `${val}%` : "0%",
+                    background: m.color,
+                    transition: `width 1.3s cubic-bezier(0.22,1,0.36,1) ${200 + i * 80}ms`,
+                  }}/>
                 </div>
               </div>
             );
@@ -902,48 +879,24 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
 
         {/* Right: AI recommendations */}
         <div style={{
-          minWidth: 180, maxWidth: 200, marginLeft: 14,
-          background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.2)",
-          borderRadius: 14, padding: "14px 14px", display: "flex", flexDirection: "column", gap: 8,
+          width: 200, borderLeft: "1px solid rgba(255,255,255,0.06)",
+          padding: "20px 18px", display: "flex", flexDirection: "column", gap: 10,
+          background: "rgba(99,102,241,0.04)",
         }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-            <svg viewBox="0 0 16 16" width={14} height={14} fill="none">
-              <polygon points="8,1 10,6 15,6 11,9.5 12.5,15 8,11.5 3.5,15 5,9.5 1,6 6,6" fill="#8b5cf6" opacity={0.9}/>
-            </svg>
-            <span style={{ fontSize: 8.5, fontWeight: 800, color: "#8b5cf6", letterSpacing: "0.15em" }}>РЕКОМЕНДАЦИИ ИИ</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", flexShrink: 0 }} />
+            <span style={{ fontSize: 8.5, fontWeight: 800, color: "#818cf8", letterSpacing: "0.14em" }}>РЕКОМЕНДАЦИИ ИИ</span>
           </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
             {recLines.map((line: string, i: number) => (
-              <div key={i} style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, borderLeft: "2px solid rgba(139,92,246,0.4)", paddingLeft: 7 }}>
-                {line.slice(0, 90)}
+              <div key={i} style={{
+                fontSize: 10, color: "rgba(255,255,255,0.5)", lineHeight: 1.55,
+                paddingLeft: 10, borderLeft: "2px solid rgba(99,102,241,0.35)",
+              }}>
+                {line.slice(0, 88)}
               </div>
             ))}
           </div>
-          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.2)", marginTop: "auto", fontFamily: "monospace" }}>{ts}</div>
-        </div>
-      </div>
-
-      {/* Bottom strip: growth factors */}
-      <div style={{
-        borderTop: "1px solid rgba(255,255,255,0.05)",
-        background: "rgba(0,0,0,0.25)",
-        padding: "10px 24px", display: "flex", alignItems: "center", gap: 16,
-      }}>
-        <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>
-          <span>Счёт на основе</span>
-          <br/>
-          <span style={{ color: "rgba(255,255,255,0.5)", fontWeight: 700 }}>4 ключевых метрик</span>
-        </div>
-        <div style={{ width: 1, height: 28, background: "rgba(255,255,255,0.08)" }}/>
-        <div style={{ fontSize: 8.5, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: "0.15em", whiteSpace: "nowrap" }}>СВОДКА ФАКТОРОВ РОСТА</div>
-        <div style={{ display: "flex", gap: 20, overflow: "hidden" }}>
-          {factors.map((f: string, i: number) => (
-            <div key={i} style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
-              <span style={{ fontSize: 10, color: ["#8b5cf6","#3b82f6","#10b981"][i] }}>⬡</span>
-              <span style={{ color: "rgba(255,255,255,0.3)", marginRight: 2 }}>{i+1}.</span>
-              {f.slice(0, 55)}
-            </div>
-          ))}
         </div>
       </div>
     </div>
@@ -958,7 +911,6 @@ const TABS = ["Диагностика", "AI Команда", "Финансы", "
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
-  const animated = useAnimated(100);
   const agents = aiResults.length > 0
     ? aiResults.map(r => ({
         id: r.role, role: r.role, name: r.name || r.role,
@@ -967,13 +919,35 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
       }))
     : DEMO_AGENTS;
 
+  const avgScore = Math.round(agents.reduce((s, a) => s + a.score, 0) / agents.length);
+
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* 20 agents grid */}
-      <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.2em" }}>
-        Полная диагностика — {agents.length} специалистов
+    <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      {/* Summary strip */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 24,
+        padding: "14px 20px", borderRadius: 12,
+        background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+      }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "white", fontFamily: "ui-monospace,monospace" }}>{agents.length}</div>
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em" }}>СПЕЦИАЛИСТОВ</div>
+        </div>
+        <div style={{ width: 1, height: 32, background: "rgba(255,255,255,0.07)" }} />
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#6366f1", fontFamily: "ui-monospace,monospace" }}>{avgScore}</div>
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em" }}>СР. БАЛЛ</div>
+        </div>
+        <div style={{ width: 1, height: 32, background: "rgba(255,255,255,0.07)" }} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>
+            Полный анализ от {agents.length} AI-специалистов. Каждый эксперт оценил проект по своей области компетенции.
+          </div>
+        </div>
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
+
+      {/* Agents grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 12 }}>
         {agents.map((agent, i) => (
           <AgentPanel
             key={agent.id}
@@ -983,7 +957,7 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
             color={agent.color}
             score={agent.score}
             opinion={agent.opinion || "Анализ проекта завершён. Рекомендации доступны после запуска полного AI-анализа."}
-            delay={500 + i * 60}
+            delay={80 + i * 50}
           />
         ))}
       </div>
@@ -1424,65 +1398,32 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
 
-      {/* ── TOP ROW: chart + right KPI cards ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 260px", gap: 14, alignItems: "start" }}>
-        <DetailedRevenueChart financials={project.financials} />
-
-        {/* Right stacked cards */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {rightCards.map((c, i) => (
-            <div
-              key={i}
-              style={{
-                background: `rgba(${c.rgb},0.06)`,
-                border: `1px solid rgba(${c.rgb},0.18)`,
-                borderRadius: 14, padding: "14px 16px",
-                display: "flex", alignItems: "center", justifyContent: "space-between",
-                opacity: animated ? 1 : 0, transform: animated ? "translateX(0)" : "translateX(14px)",
-                transition: `opacity 0.5s ${200 + i * 90}ms, transform 0.5s ${200 + i * 90}ms`,
-                position: "relative", overflow: "hidden",
-              }}
-            >
-              <div style={{ position: "absolute", left: 0, top: 0, bottom: 0, width: 3, borderRadius: "14px 0 0 14px", background: c.color }} />
-              <div style={{ paddingLeft: 8 }}>
-                <div style={{ fontSize: 8.5, fontWeight: 700, letterSpacing: "0.16em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 4 }}>{c.label}</div>
-                <div style={{ fontSize: 20, fontWeight: 800, color: c.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, letterSpacing: "-0.02em" }}>{c.value}</div>
-              </div>
-              <div style={{ color: c.color, opacity: 0.5, flexShrink: 0 }}><c.Icon /></div>
+      {/* ── KPI Strip (top 3 + bottom 4 merged into single row) ── */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "repeat(7,1fr)",
+        background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)",
+        borderRadius: 16, overflow: "hidden",
+      }}>
+        {[...rightCards, ...bottomCards].map((c, i) => (
+          <div key={i} style={{
+            padding: "18px 16px",
+            borderRight: i < 6 ? "1px solid rgba(255,255,255,0.05)" : "none",
+            position: "relative", overflow: "hidden",
+            opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(8px)",
+            transition: `opacity 0.4s ${60 + i * 50}ms, transform 0.4s ${60 + i * 50}ms`,
+          }}>
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: c.color, opacity: 0.7 }} />
+            <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.14em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", marginBottom: 8, lineHeight: 1.3 }}>{c.label}</div>
+            <div style={{ fontSize: 18, fontWeight: 800, color: c.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, display: "flex", alignItems: "center", gap: 4, marginBottom: 4 }}>
+              {c.value}
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* ── BOTTOM ROW: 4 metric tiles ── */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-        {bottomCards.map((c, i) => (
-          <div
-            key={i}
-            style={{
-              background: `rgba(${c.rgb},0.05)`,
-              border: `1px solid rgba(${c.rgb},0.15)`,
-              borderRadius: 14, padding: "16px 18px",
-              display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
-              opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
-              transition: `opacity 0.5s ${400 + i * 80}ms, transform 0.5s ${400 + i * 80}ms`,
-            }}
-          >
-            <div>
-              <div style={{ fontSize: 8, fontWeight: 700, letterSpacing: "0.18em", color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 6 }}>{c.label}</div>
-              <div style={{ fontSize: 18, fontWeight: 800, color: c.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, display: "flex", alignItems: "center", gap: 4 }}>
-                {c.value}
-                {c.suffix && (
-                  <svg viewBox="0 0 16 12" fill="none" style={{ width: 18, height: 14, color: c.color }}>
-                    <polyline points="1 11 5 5 9 7 15 1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-            </div>
-            <div style={{ color: c.color, opacity: 0.45, flexShrink: 0 }}><c.Icon /></div>
+            <div style={{ color: c.color, opacity: 0.35 }}><c.Icon /></div>
           </div>
         ))}
       </div>
+
+      {/* ── Revenue Chart ── */}
+      <DetailedRevenueChart financials={project.financials} />
 
       {/* ── AGENT PANELS ── */}
       {FIN_AGENTS.length > 0 ? (
@@ -1541,27 +1482,29 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       <MarketSphereChart items={project.market} />
 
-      {/* Market growth bar */}
+      {/* Market metrics row */}
       <div style={{
-        background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, padding: "16px 20px",
-        opacity: animated ? 1 : 0, transition: "opacity 0.5s 300ms",
+        display: "grid", gridTemplateColumns: "repeat(4,1fr)",
+        background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 14,
+        overflow: "hidden",
+        opacity: animated ? 1 : 0, transition: "opacity 0.5s 200ms",
       }}>
-        <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 14 }}>Рыночные показатели</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
-          {project.market.map((m, i) => {
-            const colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b"];
-            const color = colors[i % 4];
-            return (
-              <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-                <div style={{ display: "flex", justifyContent: "space-between" }}>
-                  <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.38)" }}>{m.label}</span>
-                  <span style={{ fontSize: 13, fontWeight: 700, color, fontFamily: "monospace" }}>{m.value}</span>
-                </div>
-                {m.numeric && <AnimatedBar value={Math.min(100, (m.numeric / (project.market[0]?.numeric || 1)) * 100)} color={color} delay={200 + i * 80} height={4} />}
-              </div>
-            );
-          })}
-        </div>
+        {project.market.map((m, i) => {
+          const colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b"];
+          const color = colors[i % 4];
+          return (
+            <div key={i} style={{
+              padding: "18px 16px",
+              borderRight: i < project.market.length - 1 ? "1px solid rgba(255,255,255,0.05)" : "none",
+              position: "relative",
+            }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: color }} />
+              <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em", marginBottom: 8, textTransform: "uppercase" }}>{m.label}</div>
+              <div style={{ fontSize: 20, fontWeight: 800, color, fontFamily: "ui-monospace,monospace", marginBottom: 10 }}>{m.value}</div>
+              {m.numeric && <AnimatedBar value={Math.min(100, (m.numeric / (project.market[0]?.numeric || 1)) * 100)} color={color} delay={200 + i * 80} height={3} />}
+            </div>
+          );
+        })}
       </div>
 
       {/* Agent opinions */}
@@ -1774,21 +1717,18 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
 
       {/* ── HEADER ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-        <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.85)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-          Глобальная оценка рисков проекта
-          <span style={{ marginLeft: 10, fontSize: 10, fontWeight: 600, color: "#8b5cf6" }}>Отчёт {dateStr}</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f43f5e", boxShadow: "0 0 8px #f43f5e" }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Оценка рисков проекта</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>{dateStr}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <div style={{ padding: "5px 12px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 10, color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
-            <svg viewBox="0 0 14 14" fill="none" style={{width:11,height:11}}><rect x="1" y="2" width="12" height="11" rx="1.5" stroke="currentColor" strokeWidth="1.2"/><path d="M5 1v2M9 1v2M1 6h12" stroke="currentColor" strokeWidth="1.2"/></svg>
-            {dateStr}
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
           {(["month","quarter","year"] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} style={{
-              padding: "5px 12px", borderRadius: 8, fontSize: 10, fontWeight: 700, cursor: "pointer",
-              background: period === p ? "rgba(139,92,246,0.2)" : "rgba(255,255,255,0.03)",
-              border: period === p ? "1px solid rgba(139,92,246,0.5)" : "1px solid rgba(255,255,255,0.07)",
-              color: period === p ? "#a78bfa" : "rgba(255,255,255,0.35)",
+              padding: "5px 12px", borderRadius: 8, fontSize: 10, fontWeight: 600, cursor: "pointer",
+              background: period === p ? "rgba(99,102,241,0.18)" : "rgba(255,255,255,0.03)",
+              border: period === p ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.07)",
+              color: period === p ? "#a5b4fc" : "rgba(255,255,255,0.35)",
               transition: "all 0.15s",
             }}>
               {p === "month" ? "Месяц" : p === "quarter" ? "Квартал" : "Год"}
@@ -1947,55 +1887,56 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
           </div>
         </div>
 
-        {/* RIGHT: illustrated risk cards */}
+        {/* RIGHT: risk cards */}
         <div style={{ display:"flex", flexDirection:"column", gap:10 }}>
           {risks.slice(0,3).map((risk, i) => {
             const meta = RISK_META[risk.level] ?? RISK_META.medium;
             const plans = riskPlans[i] ?? [];
             return (
               <div key={i} style={{
-                background: `linear-gradient(135deg, rgba(${meta.rgb},0.07) 0%, rgba(6,8,18,0.95) 100%)`,
-                border: `1px solid rgba(${meta.rgb},0.25)`,
+                background: "rgba(255,255,255,0.025)",
+                border: `1px solid rgba(${meta.rgb},0.2)`,
                 borderRadius: 14, overflow:"hidden",
                 opacity: 0,
-                animation: `risk-card-in 0.6s cubic-bezier(0.22,1,0.36,1) ${150 + i*130}ms forwards`,
+                animation: `risk-card-in 0.55s cubic-bezier(0.22,1,0.36,1) ${120 + i*110}ms forwards`,
                 position:"relative",
               }}>
-                {/* Top accent */}
-                <div style={{ position:"absolute", top:0, left:0, right:0, height:2, background:`linear-gradient(90deg, transparent, rgba(${meta.rgb},0.8), transparent)` }}/>
+                <div style={{ position:"absolute", left:0, top:0, bottom:0, width:3, background:meta.color }} />
 
-                <div style={{ display:"flex", gap:0 }}>
-                  {/* Illustration panel */}
-                  <div style={{
-                    width:160, flexShrink:0,
-                    background:`linear-gradient(135deg, rgba(${meta.rgb},0.12) 0%, rgba(0,0,0,0.4) 100%)`,
-                    borderRight:`1px solid rgba(${meta.rgb},0.15)`,
-                    display:"flex", alignItems:"center", justifyContent:"center",
-                    padding:8,
-                  }}>
-                    <RiskIllustration index={i} color={meta.color} rgb={meta.rgb}/>
+                <div style={{ padding:"16px 18px", paddingLeft: 22 }}>
+                  {/* Header */}
+                  <div style={{ display:"flex", alignItems:"center", gap:10, marginBottom:8 }}>
+                    <span style={{ fontSize:13, fontWeight:700, color:"rgba(255,255,255,0.9)" }}>{risk.title}</span>
+                    <span style={{
+                      fontSize:8, fontWeight:700, padding:"2px 8px", borderRadius:5,
+                      background:`rgba(${meta.rgb},0.12)`, border:`1px solid rgba(${meta.rgb},0.3)`,
+                      color:meta.color, letterSpacing:"0.1em", textTransform:"uppercase",
+                    }}>
+                      {meta.label}
+                    </span>
                   </div>
 
-                  {/* Content */}
-                  <div style={{ flex:1, padding:"14px 16px", minWidth:0 }}>
-                    <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6, flexWrap:"wrap" }}>
-                      <span style={{ fontSize:14, fontWeight:800, color:"#fff", letterSpacing:"-0.01em" }}>{risk.title}</span>
-                      <span style={{ fontSize:8, fontWeight:700, padding:"3px 9px", borderRadius:5, background:`rgba(${meta.rgb},0.15)`, border:`1px solid rgba(${meta.rgb},0.4)`, color:meta.color, letterSpacing:"0.1em", textTransform:"uppercase", flexShrink:0, whiteSpace:"nowrap" }}>
-                        {meta.label} | {meta.badge}
-                      </span>
-                    </div>
-                    <div style={{ fontSize:9.5, color:"rgba(255,255,255,0.35)", lineHeight:1.55, marginBottom:10 }}>
-                      Описание: {risk.desc || `Уровень угрозы: ${meta.label.toLowerCase()}. Мониторинг и контроль приоритетны.`}
-                    </div>
-                    <div style={{ fontSize:8.5, fontWeight:700, color:"rgba(255,255,255,0.4)", textTransform:"uppercase", letterSpacing:"0.14em", marginBottom:6 }}>Actionable Plan:</div>
-                    <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-                      {plans.map((step:string, si:number) => (
-                        <div key={si} style={{ fontSize:9.5, color:"rgba(255,255,255,0.6)", display:"flex", gap:7, alignItems:"flex-start" }}>
-                          <span style={{ fontWeight:800, color:meta.color, flexShrink:0, minWidth:14 }}>{si+1}.</span>
-                          <span><strong style={{ color:"rgba(255,255,255,0.85)", fontWeight:700 }}>{step.split(":")[0]}</strong>{step.includes(":") ? ": " + step.split(":").slice(1).join(":") : ""}</span>
-                        </div>
-                      ))}
-                    </div>
+                  {/* Desc */}
+                  <div style={{ fontSize:11, color:"rgba(255,255,255,0.45)", lineHeight:1.6, marginBottom:12 }}>
+                    {risk.desc || `Уровень угрозы: ${meta.label.toLowerCase()}. Мониторинг и контроль приоритетны.`}
+                  </div>
+
+                  {/* Action plan */}
+                  <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.14em", marginBottom:8 }}>ПЛАН ДЕЙСТВИЙ</div>
+                  <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                    {plans.map((step:string, si:number) => (
+                      <div key={si} style={{ fontSize:10.5, color:"rgba(255,255,255,0.55)", display:"flex", gap:8, alignItems:"flex-start" }}>
+                        <span style={{
+                          fontSize:9, fontWeight:800, color:meta.color, flexShrink:0,
+                          width:18, height:18, borderRadius:4, background:`rgba(${meta.rgb},0.12)`,
+                          display:"flex", alignItems:"center", justifyContent:"center",
+                        }}>{si+1}</span>
+                        <span style={{ lineHeight:1.5 }}>
+                          <strong style={{ color:"rgba(255,255,255,0.8)", fontWeight:600 }}>{step.split(":")[0]}</strong>
+                          {step.includes(":") ? ": " + step.split(":").slice(1).join(":") : ""}
+                        </span>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
@@ -2088,37 +2029,53 @@ export default function ProjectPage() {
   const scoreColor = project.score >= 85 ? "#10b981" : project.score >= 70 ? "#f59e0b" : "#f43f5e";
 
   return (
-    <div style={{ padding: "24px 24px 48px", maxWidth: 1200, margin: "0 auto" }}>
+    <div style={{ padding: "24px 24px 64px", maxWidth: 1200, margin: "0 auto" }}>
       {/* Back */}
       <button onClick={() => router.push("/dashboard/projects")}
-        style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer", marginBottom: 20, padding: 0 }}>
+        style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer", marginBottom: 24, padding: 0, transition: "color 0.15s" }}
+        onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
+        onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         Назад к проектам
       </button>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 20 }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-            <h1 style={{ fontSize: 20, fontWeight: 800, color: "white", margin: 0 }}>{project.name}</h1>
+      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24, gap: 16 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6, flexWrap: "wrap" }}>
+            <h1 style={{ fontSize: 22, fontWeight: 800, color: "white", margin: 0, letterSpacing: "-0.02em" }}>{project.name}</h1>
             <span style={{
-              fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: "0.1em",
-              background: project.status === "Завершён" ? "rgba(16,185,129,0.12)" : "rgba(245,158,11,0.12)",
+              fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: "0.08em",
+              background: project.status === "Завершён" ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)",
               color: project.status === "Завершён" ? "#10b981" : "#f59e0b",
-              border: `1px solid ${project.status === "Завершён" ? "rgba(16,185,129,0.25)" : "rgba(245,158,11,0.25)"}`,
+              border: `1px solid ${project.status === "Завершён" ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
             }}>● {project.status}</span>
           </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>{project.subtitle}</p>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", margin: 0 }}>{project.subtitle}</p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
           {isUserProject && (
             <button onClick={() => handleReanalyze()} disabled={isReanalyzing}
-              style={{ height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600, border: "1px solid rgba(139,92,246,0.3)", color: "#8b5cf6", background: "rgba(139,92,246,0.07)", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+              style={{
+                height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600,
+                border: "1px solid rgba(99,102,241,0.3)", color: "#a5b4fc",
+                background: "rgba(99,102,241,0.06)", borderRadius: 10, cursor: "pointer",
+                display: "flex", alignItems: "center", gap: 8, transition: "all 0.15s",
+              }}>
               {isReanalyzing ? `↻ ${reanalyzeProgress}/8 агентов` : "↻ Обновить анализ"}
             </button>
           )}
-          <button style={{ height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.03)", borderRadius: 10, cursor: "pointer" }}>Экспорт PDF</button>
-          <button style={{ height: 36, padding: "0 18px", fontSize: 11, fontWeight: 600, background: "linear-gradient(135deg,#8b5cf6,#3b82f6)", color: "white", border: "none", borderRadius: 10, cursor: "pointer" }}>Уточнить стратегию</button>
+          <button style={{
+            height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600,
+            border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)",
+            background: "rgba(255,255,255,0.03)", borderRadius: 10, cursor: "pointer",
+          }}>Экспорт PDF</button>
+          <button style={{
+            height: 36, padding: "0 18px", fontSize: 11, fontWeight: 600,
+            background: "linear-gradient(135deg,#6366f1,#4f46e5)",
+            color: "white", border: "none", borderRadius: 10, cursor: "pointer",
+            boxShadow: "0 0 20px rgba(99,102,241,0.25)",
+          }}>Уточнить стратегию</button>
         </div>
       </div>
 
@@ -2126,14 +2083,14 @@ export default function ProjectPage() {
       <ScoreBanner project={project} aiResults={aiResults} />
 
       {/* Tabs */}
-      <div style={{ display: "flex", gap: 4, padding: 4, background: "rgba(255,255,255,0.04)", borderRadius: 14, border: "1px solid rgba(255,255,255,0.06)", width: "fit-content", marginBottom: 24 }}>
+      <div style={{ display: "flex", gap: 2, marginBottom: 24, borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: 0 }}>
         {TABS.map(t => (
           <button key={t} onClick={() => setActiveTab(t)}
             style={{
-              padding: "7px 18px", fontSize: 11.5, fontWeight: 600, borderRadius: 10, border: "none", cursor: "pointer",
-              background: activeTab === t ? "linear-gradient(135deg,#8b5cf6,#3b82f6)" : "transparent",
-              color: activeTab === t ? "white" : "rgba(255,255,255,0.4)",
-              transition: "all 0.2s",
+              padding: "10px 20px", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
+              background: "transparent", color: activeTab === t ? "white" : "rgba(255,255,255,0.35)",
+              borderBottom: activeTab === t ? "2px solid #6366f1" : "2px solid transparent",
+              transition: "all 0.15s", marginBottom: -1,
             }}>{t}</button>
         ))}
       </div>
