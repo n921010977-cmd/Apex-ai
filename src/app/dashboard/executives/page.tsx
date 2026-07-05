@@ -1,7 +1,49 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+
+// ─── Count-up hook (ease-out-cubic via rAF) ───────────────────────────────────
+function useCountUp(to: number, active = true, duration = 1100) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!active) { setVal(0); return; }
+    let raf = 0; let start: number | null = null;
+    const step = (ts: number) => {
+      if (start === null) start = ts;
+      const t = Math.min((ts - start) / duration, 1);
+      setVal(Math.round((1 - Math.pow(1 - t, 3)) * to));
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [to, active, duration]);
+  return val;
+}
+
+// ─── Animated score ring ──────────────────────────────────────────────────────
+function ScoreRing({ score, color, size = 60 }: { score: number; color: string; size?: number }) {
+  const r = (size - 8) / 2;
+  const circ = 2 * Math.PI * r;
+  const count = useCountUp(score);
+  return (
+    <div style={{ position: "relative", width: size, height: size, flexShrink: 0 }}>
+      <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={4} />
+        <motion.circle
+          cx={size / 2} cy={size / 2} r={r} fill="none" stroke={color} strokeWidth={4} strokeLinecap="round"
+          initial={{ strokeDasharray: `0 ${circ}` }}
+          animate={{ strokeDasharray: `${(score / 100) * circ} ${circ}` }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+        />
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <span style={{ fontSize: size * 0.3, fontWeight: 800, color, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{count}</span>
+      </div>
+    </div>
+  );
+}
 
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
@@ -165,12 +207,32 @@ export default function ExecutivesPage() {
   const [selectedRole, setSelectedRole] = useState<string | null>("CEO");
   const [zoom, setZoom] = useState(1);
   const [entered, setEntered] = useState(false);
+  const [query, setQuery] = useState("");
   useEffect(() => { const t = setTimeout(() => setEntered(true), 60); return () => clearTimeout(t); }, []);
 
   const selExec = selectedRole ? execByRole[selectedRole] : null;
   const selLayout = selectedRole ? GRAPH_LAYOUT[selectedRole] : null;
   const selColor = selExec?.color ?? "#7c3aed";
   const selRgb = selExec?.rgb ?? "124,58,237";
+
+  // Search: a node matches when its name / role / expertise contains the query
+  const q = query.trim().toLowerCase();
+  const matches = (role: string) => {
+    if (!q) return true;
+    const e = execByRole[role];
+    if (!e) return false;
+    return e.name.toLowerCase().includes(q)
+      || e.role.toLowerCase().includes(q)
+      || e.title.toLowerCase().includes(q)
+      || e.expertise.some(x => x.toLowerCase().includes(q));
+  };
+
+  // Header stats
+  const avgScore = Math.round(EXECUTIVES.reduce((s, e) => s + e.avgScore, 0) / EXECUTIVES.length);
+  const totalProjects = EXECUTIVES.reduce((s, e) => s + e.completedProjects, 0);
+  const animAvg = useCountUp(avgScore);
+  const animCount = useCountUp(EXECUTIVES.length);
+  const animProjects = useCountUp(totalProjects);
 
   return (
     <div style={{ padding: "20px 24px 48px", maxWidth: 1340, margin: "0 auto" }}>
@@ -181,35 +243,59 @@ export default function ExecutivesPage() {
       `}</style>
 
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+      <motion.div
+        initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+        style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 16, flexWrap: "wrap" }}
+      >
         <div>
-          <h1 style={{ fontSize: 18, fontWeight: 800, color: "white", margin: 0 }}>Исполнительный совет</h1>
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", margin: "4px 0 0" }}>15 AI-экспертов — кликните на агента для просмотра профиля</p>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)" }}>Executive Board</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "2px 8px", borderRadius: 20, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.22)" }}>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981", animation: "exec-glow 2s ease-in-out infinite" }} />
+              <span style={{ fontSize: 9, fontWeight: 700, color: "#10b981" }}>Все активны</span>
+            </span>
+          </div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", color: "white", margin: 0 }}>Исполнительный совет</h1>
+          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "5px 0 0" }}>AI-совет директоров — кликните на агента, чтобы открыть профиль</p>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {["+", "−", "⊡"].map((lbl, i) => (
-            <button key={i} onClick={() => {
-              if (lbl === "+") setZoom(z => Math.min(1.5, z + 0.15));
-              else if (lbl === "−") setZoom(z => Math.max(0.55, z - 0.15));
-              else setZoom(1);
-            }} style={{
-              width: 30, height: 30, borderRadius: 8, background: "rgba(255,255,255,0.05)",
-              border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)",
-              fontSize: lbl === "⊡" ? 14 : 18, cursor: "pointer", fontWeight: 700,
-              display: "flex", alignItems: "center", justifyContent: "center",
-            }}>{lbl}</button>
-          ))}
-          <Link href="/dashboard/new" style={{
-            height: 36, padding: "0 18px", borderRadius: 10, fontSize: 12, fontWeight: 700,
-            background: "linear-gradient(135deg,#3CFF6A,#00C44F)", color: "#0a1a0a",
-            border: "none", display: "inline-flex", alignItems: "center", gap: 7,
-            boxShadow: "0 0 20px rgba(60,255,106,0.35)", textDecoration: "none",
-          }}>
-            <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 11, height: 11 }}><polygon points="3,2 14,8 3,14"/></svg>
-            Брифовать совет
-          </Link>
+
+        {/* KPI chips + search */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-end" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            {[
+              { label: "Агентов", value: animCount, color: "#8b5cf6" },
+              { label: "Средний балл", value: animAvg, color: "#3b82f6" },
+              { label: "Проектов", value: animProjects, color: "#10b981" },
+            ].map(k => (
+              <div key={k.label} style={{ padding: "8px 14px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", textAlign: "center", minWidth: 74 }}>
+                <div style={{ fontSize: 18, fontWeight: 800, color: k.color, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{k.value}</div>
+                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 3, letterSpacing: "0.04em" }}>{k.label}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <div style={{ position: "relative" }}>
+              <svg viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.3)" strokeWidth="1.6" style={{ width: 13, height: 13, position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }}><circle cx="7" cy="7" r="5" /><path d="M11 11l3 3" /></svg>
+              <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Поиск агента / навыка..."
+                style={{ width: 220, height: 32, padding: "0 12px 0 30px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "#fff", fontSize: 12, outline: "none" }}
+                onFocus={e => (e.currentTarget.style.borderColor = "rgba(139,92,246,0.5)")}
+                onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)")} />
+            </div>
+            {["+", "−", "⊡"].map((lbl, i) => (
+              <button key={i} onClick={() => {
+                if (lbl === "+") setZoom(z => Math.min(1.5, z + 0.15));
+                else if (lbl === "−") setZoom(z => Math.max(0.55, z - 0.15));
+                else setZoom(1);
+              }} style={{
+                width: 32, height: 32, borderRadius: 9, background: "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)",
+                fontSize: lbl === "⊡" ? 14 : 18, cursor: "pointer", fontWeight: 700,
+                display: "flex", alignItems: "center", justifyContent: "center",
+              }}>{lbl}</button>
+            ))}
+          </div>
         </div>
-      </div>
+      </motion.div>
 
       {/* Graph canvas */}
       <div style={{
@@ -251,12 +337,20 @@ export default function ExecutivesPage() {
                 const edgeColor = active
                   ? (selExec?.color ?? "#7c3aed")
                   : `rgba(${ec?.rgb ?? "139,92,246"},0.35)`;
+                const pathD = `M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`;
                 return (
                   <g key={role}>
-                    <path d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`}
+                    <path d={pathD}
                       fill="none" stroke={edgeColor} strokeWidth={active ? 1.8 : 1}
                       filter={active ? "url(#exec-glow-f)" : "none"}
                       style={{ transition: "stroke 0.3s, stroke-width 0.3s" }}/>
+                    {/* Flowing energy particle along active edges */}
+                    {active && (
+                      <circle r="2.6" fill={selExec?.color ?? "#8b5cf6"} filter="url(#exec-glow-f)">
+                        <animateMotion dur="1.9s" repeatCount="indefinite" path={pathD} />
+                        <animate attributeName="opacity" values="0;1;1;0" dur="1.9s" repeatCount="indefinite" />
+                      </circle>
+                    )}
                     {/* Arrow tip */}
                     <polygon points={`${x2-4},${y2+2} ${x2+4},${y2+2} ${x2},${y2-7}`}
                       fill={active ? (selExec?.color ?? "#7c3aed") : `rgba(${ec?.rgb ?? "255,255,255"},0.3)`}
@@ -271,9 +365,12 @@ export default function ExecutivesPage() {
               const exec = execByRole[role];
               if (!exec) return null;
               const isSelected = role === selectedRole;
+              const dimmed = !matches(role);
               return (
-                <div key={role}
+                <motion.div key={role}
                   onClick={() => setSelectedRole(isSelected ? null : role)}
+                  whileHover={{ scale: 1.06, y: -3 }}
+                  transition={{ type: "spring", stiffness: 320, damping: 20 }}
                   style={{
                     position: "absolute",
                     left: layout.x - NW / 2,
@@ -290,9 +387,10 @@ export default function ExecutivesPage() {
                       ? `0 0 28px rgba(${exec.rgb},0.55), 0 0 60px rgba(${exec.rgb},0.18)`
                       : `0 0 10px rgba(${exec.rgb},0.15)`,
                     cursor: "pointer",
-                    opacity: entered ? 1 : 0,
+                    opacity: entered ? (dimmed ? 0.22 : 1) : 0,
+                    filter: dimmed ? "grayscale(0.7)" : "none",
                     animation: entered ? `exec-pop 0.42s cubic-bezier(0.34,1.56,0.64,1) ${idx * 32}ms both` : "none",
-                    transition: "border 0.22s, box-shadow 0.22s, background 0.22s",
+                    transition: "border 0.22s, box-shadow 0.22s, background 0.22s, opacity 0.25s, filter 0.25s",
                     userSelect: "none",
                     zIndex: isSelected ? 10 : 1,
                   }}>
@@ -323,7 +421,7 @@ export default function ExecutivesPage() {
                     position: "absolute", bottom: 5, left: 0, right: 0,
                     textAlign: "center", fontSize: 8.5, color: "rgba(255,255,255,0.3)", fontFamily: "monospace",
                   }}>Score {exec.avgScore}</div>
-                </div>
+                </motion.div>
               );
             })}
 
@@ -373,12 +471,15 @@ export default function ExecutivesPage() {
       </div>
 
       {/* Detail panel for selected exec */}
+      <AnimatePresence mode="wait">
       {selExec && (
-        <div style={{
+        <motion.div key={selectedRole}
+          initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          style={{
           background: `linear-gradient(135deg,rgba(${selRgb},0.08) 0%,rgba(8,8,20,0.97) 100%)`,
           border: `1px solid rgba(${selRgb},0.2)`,
           borderRadius: 18, padding: "22px 24px", position: "relative", overflow: "hidden",
-          animation: "exec-slide 0.35s ease both",
         }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg,transparent,rgba(${selRgb},0.6),transparent)` }}/>
 
@@ -401,9 +502,9 @@ export default function ExecutivesPage() {
                     <span style={{ fontSize: 9, color: "#34d399", fontWeight: 700 }}>Активен</span>
                   </div>
                 </div>
-                <div style={{ marginLeft: "auto", textAlign: "right" }}>
-                  <div style={{ fontSize: 30, fontWeight: 900, color: selColor, fontFamily: "monospace", textShadow: `0 0 16px rgba(${selRgb},0.7)` }}>{selExec.avgScore}</div>
-                  <div style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>средний балл</div>
+                <div style={{ marginLeft: "auto", display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+                  <ScoreRing score={selExec.avgScore} color={selColor} size={58} />
+                  <div style={{ fontSize: 8, color: "rgba(255,255,255,0.25)" }}>средний балл</div>
                 </div>
               </div>
               <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, marginBottom: 14 }}>{selExec.bio}</p>
@@ -419,7 +520,10 @@ export default function ExecutivesPage() {
               <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 12 }}>Ключевые инсайты</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {selExec.insights.map((ins, i) => (
-                  <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
+                  <motion.div key={i}
+                    initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.15 + i * 0.1, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                     <div style={{
                       width: 20, height: 20, borderRadius: "50%", flexShrink: 0,
                       background: `rgba(${selRgb},0.18)`, border: `1px solid rgba(${selRgb},0.3)`,
@@ -427,7 +531,7 @@ export default function ExecutivesPage() {
                       fontSize: 9, fontWeight: 800, color: selColor,
                     }}>{i + 1}</div>
                     <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, margin: 0 }}>{ins}</p>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             </div>
@@ -480,8 +584,9 @@ export default function ExecutivesPage() {
               </Link>
             </div>
           </div>
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
