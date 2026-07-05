@@ -2,6 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users, BarChart3,
@@ -50,6 +52,24 @@ interface SidebarProps {
 
 export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
+  const { data: session } = useSession();
+  const [projectCount, setProjectCount] = useState<number | null>(null);
+
+  const planName = "Starter Plan";
+  const projectLimit = 3;
+
+  useEffect(() => {
+    fetch("/api/dashboard")
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) setProjectCount(d.data?.kpis?.projects?.total ?? 0);
+      })
+      .catch(() => {});
+  }, []);
+
+  const userName = session?.user?.name ?? "Founder";
+  const userInitial = userName.charAt(0).toUpperCase();
+  const usedPct = projectCount != null ? Math.min(100, (projectCount / projectLimit) * 100) : 33;
 
   const isActive = (href: string, exact?: boolean) => {
     if (exact) return pathname === href;
@@ -188,10 +208,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       <div className="mx-3 mb-2 p-3 rounded-xl flex-shrink-0" style={{ background: "rgba(255,255,255,0.022)", border: "1px solid rgba(255,255,255,0.055)" }}>
         <div className="flex items-center justify-between mb-2">
           <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)" }}>Проекты использовано</span>
-          <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>1 / 3</span>
+          <span style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.5)" }}>
+            {projectCount != null ? projectCount : "—"} / {projectLimit}
+          </span>
         </div>
         <div className="h-1 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
-          <div className="h-full rounded-full" style={{ width: "33%", background: "linear-gradient(90deg, #6366f1, #4f46e5)" }} />
+          <div className="h-full rounded-full" style={{ width: `${usedPct}%`, background: "linear-gradient(90deg, #6366f1, #4f46e5)" }} />
         </div>
         <Link
           href="/dashboard/settings"
@@ -234,11 +256,11 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             className="size-7 rounded-xl flex items-center justify-center text-[10px] font-bold text-white flex-shrink-0"
             style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)", boxShadow: "0 2px 8px rgba(99,102,241,0.35)" }}
           >
-            F
+            {userInitial}
           </div>
           <div className="flex-1 min-w-0">
-            <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.6)" }}>Founder</div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.22)" }}>Starter Plan</div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.6)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.22)" }}>{planName}</div>
           </div>
           <ChevronRight size={11} className="text-white/14 group-hover:text-white/32 flex-shrink-0" />
         </div>

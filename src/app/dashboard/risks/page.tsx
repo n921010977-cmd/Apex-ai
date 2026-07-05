@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useToast } from "@/components/ui/Toast";
 import {
   Shield, AlertTriangle, CheckCircle, TrendingDown,
   Zap, Lock, Globe, Users, RefreshCw,
@@ -217,6 +218,7 @@ function AddRiskModal({ onClose, onAdded }: { onClose: () => void; onAdded: (r: 
   const [owner, setOwner] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState("");
+  const { toast } = useToast();
 
   async function submit() {
     if (!title.trim()) { setErr("Введите название риска"); return; }
@@ -228,10 +230,11 @@ function AddRiskModal({ onClose, onAdded }: { onClose: () => void; onAdded: (r: 
         body: JSON.stringify({ title, category, probability, impact, mitigation, owner }),
       });
       const j = await res.json();
-      if (!j.success) { setErr(j.error ?? "Ошибка"); setLoading(false); return; }
+      if (!j.success) { setErr(j.error ?? "Ошибка"); toast(j.error ?? "Не удалось сохранить риск", "error"); setLoading(false); return; }
       onAdded(j.data as Risk);
+      toast("Риск добавлен", "success");
       onClose();
-    } catch { setErr("Сетевая ошибка"); setLoading(false); }
+    } catch { setErr("Сетевая ошибка"); toast("Сетевая ошибка — попробуйте снова", "error"); setLoading(false); }
   }
 
   const sev = getSeverity(probability, impact);

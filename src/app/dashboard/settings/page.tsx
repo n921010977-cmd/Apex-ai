@@ -33,7 +33,7 @@ const NAV = [
 // ─── Toggle component ─────────────────────────────────────────────────────────
 function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
   return (
-    <button onClick={onChange} style={{ position: "relative", width: 44, height: 24, borderRadius: 12, background: on ? "#7A5CFF" : "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", transition: "background 0.25s", flexShrink: 0, boxShadow: on ? "0 0 12px rgba(122,92,255,0.5)" : "none" }}>
+    <button onClick={onChange} style={{ position: "relative", width: 44, height: 24, borderRadius: 12, background: on ? "#6366f1" : "rgba(255,255,255,0.1)", border: "none", cursor: "pointer", transition: "background 0.25s", flexShrink: 0, boxShadow: on ? "0 0 12px rgba(99,102,241,0.5)" : "none" }}>
       <motion.div animate={{ x: on ? 22 : 2 }} transition={{ type: "spring", stiffness: 500, damping: 30 }}
         style={{ position: "absolute", top: 2, width: 20, height: 20, borderRadius: "50%", background: "#fff", boxShadow: "0 1px 4px rgba(0,0,0,0.4)" }} />
     </button>
@@ -47,7 +47,7 @@ function Input({ label, placeholder, value, type = "text", hint }: { label: stri
       <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", letterSpacing: "0.05em", textTransform: "uppercase", display: "block", marginBottom: 6 }}>{label}</label>
       <input type={type} defaultValue={value} placeholder={placeholder}
         style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 13, outline: "none", transition: "border-color 0.2s", boxSizing: "border-box" }}
-        onFocus={e => (e.target.style.borderColor = "rgba(122,92,255,0.5)")}
+        onFocus={e => (e.target.style.borderColor = "rgba(99,102,241,0.5)")}
         onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
       {hint && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>{hint}</div>}
     </div>
@@ -85,7 +85,7 @@ function SaveBar({ onSave, saved }: { onSave: () => void; saved: boolean }) {
   return (
     <div style={{ display: "flex", justifyContent: "flex-end", gap: 10, marginTop: 8 }}>
       <button style={{ padding: "9px 18px", borderRadius: 10, fontSize: 12, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.4)", cursor: "pointer" }}>Отмена</button>
-      <button onClick={onSave} style={{ padding: "9px 20px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "none", background: saved ? "#00E7A7" : "linear-gradient(135deg, #7A5CFF, #5A8DFF)", color: "#fff", cursor: "pointer", transition: "all 0.3s", display: "flex", alignItems: "center", gap: 6 }}>
+      <button onClick={onSave} style={{ padding: "9px 20px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "none", background: saved ? "#10b981" : "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer", transition: "all 0.3s", display: "flex", alignItems: "center", gap: 6 }}>
         {saved ? <><Check size={13} />Сохранено</> : "Сохранить изменения"}
       </button>
     </div>
@@ -103,8 +103,8 @@ function ProfilePanel({ saved, onSave }: { saved: boolean; onSave: () => void })
         {/* Avatar */}
         <div style={{ display: "flex", alignItems: "center", gap: 20, marginBottom: 24, paddingBottom: 24, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ position: "relative" }}>
-            <div style={{ width: 72, height: 72, borderRadius: 20, background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 800, color: "#fff", boxShadow: "0 8px 24px rgba(122,92,255,0.4)" }}>F</div>
-            <button style={{ position: "absolute", bottom: -4, right: -4, width: 24, height: 24, borderRadius: "50%", background: "#7A5CFF", border: "2px solid #07090F", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <div style={{ width: 72, height: 72, borderRadius: 20, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, fontWeight: 800, color: "#fff", boxShadow: "0 8px 24px rgba(99,102,241,0.4)" }}>F</div>
+            <button style={{ position: "absolute", bottom: -4, right: -4, width: 24, height: 24, borderRadius: "50%", background: "#6366f1", border: "2px solid #07090F", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <Camera size={10} color="#fff" />
             </button>
           </div>
@@ -151,7 +151,7 @@ function ProfilePanel({ saved, onSave }: { saved: boolean; onSave: () => void })
                 <s.icon size={14} style={{ color: "rgba(255,255,255,0.3)" }} />
               </div>
               <input placeholder={s.placeholder} style={{ flex: 1, padding: "9px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 13, outline: "none" }}
-                onFocus={e => (e.target.style.borderColor = "rgba(122,92,255,0.5)")}
+                onFocus={e => (e.target.style.borderColor = "rgba(99,102,241,0.5)")}
                 onBlur={e => (e.target.style.borderColor = "rgba(255,255,255,0.08)")} />
             </div>
           ))}
@@ -167,7 +167,7 @@ function WorkspacePanel({ saved, onSave }: { saved: boolean; onSave: () => void 
     <div>
       <Section title="Рабочее пространство" desc="Настройки вашей организации">
         <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 24, paddingBottom: 24, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800, color: "#fff" }}>A</div>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, fontWeight: 800, color: "#fff" }}>A</div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 2 }}>Apex AI Workspace</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>apex-ai.workspace · Starter Plan</div>
@@ -190,8 +190,8 @@ function WorkspacePanel({ saved, onSave }: { saved: boolean; onSave: () => void 
       <Section title="Бренд" desc="Цвета и фирменный стиль">
         <Row label="Акцентный цвет" desc="Основной цвет вашего бренда">
           <div style={{ display: "flex", gap: 8 }}>
-            {["#7A5CFF","#5A8DFF","#00E7A7","#FF5470","#FFB800"].map(c => (
-              <button key={c} style={{ width: 24, height: 24, borderRadius: "50%", background: c, border: c === "#7A5CFF" ? "2px solid #fff" : "2px solid transparent", cursor: "pointer" }} />
+            {["#6366f1","#4f46e5","#10b981","#ef4444","#f59e0b"].map(c => (
+              <button key={c} style={{ width: 24, height: 24, borderRadius: "50%", background: c, border: c === "#6366f1" ? "2px solid #fff" : "2px solid transparent", cursor: "pointer" }} />
             ))}
           </div>
         </Row>
@@ -211,11 +211,11 @@ function AIPanel() {
       <Section title="Модель AI" desc="Выберите мощность и скорость">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {[
-            { name: "Claude Sonnet", desc: "Баланс скорости и качества", badge: "Рекомендовано", color: "#7A5CFF" },
-            { name: "Claude Opus",   desc: "Максимальное качество",      badge: "Pro",           color: "#00E7A7" },
-            { name: "Claude Haiku",  desc: "Максимальная скорость",      badge: null,            color: "#5A8DFF" },
+            { name: "Claude Sonnet", desc: "Баланс скорости и качества", badge: "Рекомендовано", color: "#6366f1" },
+            { name: "Claude Opus",   desc: "Максимальное качество",      badge: "Pro",           color: "#10b981" },
+            { name: "Claude Haiku",  desc: "Максимальная скорость",      badge: null,            color: "#4f46e5" },
           ].map((m, i) => (
-            <div key={i} onClick={() => {}} style={{ borderRadius: 12, padding: "14px 16px", background: i === 0 ? "rgba(122,92,255,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${i === 0 ? "rgba(122,92,255,0.35)" : "rgba(255,255,255,0.07)"}`, cursor: "pointer", transition: "all 0.2s", position: "relative" }}>
+            <div key={i} onClick={() => {}} style={{ borderRadius: 12, padding: "14px 16px", background: i === 0 ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${i === 0 ? "rgba(99,102,241,0.35)" : "rgba(255,255,255,0.07)"}`, cursor: "pointer", transition: "all 0.2s", position: "relative" }}>
               {m.badge && <div style={{ position: "absolute", top: 8, right: 8, fontSize: 9, padding: "2px 6px", borderRadius: 5, background: `${m.color}20`, color: m.color, fontWeight: 700 }}>{m.badge}</div>}
               <div style={{ width: 28, height: 28, borderRadius: 8, background: `${m.color}18`, border: `1px solid ${m.color}30`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
                 <Bot size={13} style={{ color: m.color }} />
@@ -232,7 +232,7 @@ function AIPanel() {
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Точный</span>
             <input type="range" min={0} max={100} value={creativity} onChange={e => setCreativity(+e.target.value)}
-              style={{ width: 120, accentColor: "#7A5CFF" }} />
+              style={{ width: 120, accentColor: "#6366f1" }} />
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Творческий</span>
           </div>
         </Row>
@@ -244,7 +244,7 @@ function AIPanel() {
         <Row label="Стиль общения" desc="Тон и манера ответов AI">
           <div style={{ display: "flex", gap: 6 }}>
             {["Формальный","Нейтральный","Дружелюбный"].map((s, i) => (
-              <button key={s} style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: `1px solid ${i === 1 ? "rgba(122,92,255,0.4)" : "rgba(255,255,255,0.08)"}`, background: i === 1 ? "rgba(122,92,255,0.12)" : "transparent", color: i === 1 ? "#a78bfa" : "rgba(255,255,255,0.4)", cursor: "pointer" }}>{s}</button>
+              <button key={s} style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: `1px solid ${i === 1 ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.08)"}`, background: i === 1 ? "rgba(99,102,241,0.12)" : "transparent", color: i === 1 ? "#8b5cf6" : "rgba(255,255,255,0.4)", cursor: "pointer" }}>{s}</button>
             ))}
           </div>
         </Row>
@@ -267,15 +267,15 @@ function AIPanel() {
 
 function TeamPanel() {
   const MEMBERS = [
-    { name: "Founder",   email: "founder@example.com",  role: "Владелец",     avatar: "F", color: "#7A5CFF", online: true  },
-    { name: "Alex Kim",  email: "alex@example.com",      role: "Администратор",avatar: "A", color: "#5A8DFF", online: true  },
-    { name: "Sara M.",   email: "sara@example.com",      role: "Редактор",     avatar: "S", color: "#00E7A7", online: false },
-    { name: "James L.",  email: "james@example.com",     role: "Наблюдатель",  avatar: "J", color: "#FFB800", online: false },
+    { name: "Founder",   email: "founder@example.com",  role: "Владелец",     avatar: "F", color: "#6366f1", online: true  },
+    { name: "Alex Kim",  email: "alex@example.com",      role: "Администратор",avatar: "A", color: "#4f46e5", online: true  },
+    { name: "Sara M.",   email: "sara@example.com",      role: "Редактор",     avatar: "S", color: "#10b981", online: false },
+    { name: "James L.",  email: "james@example.com",     role: "Наблюдатель",  avatar: "J", color: "#f59e0b", online: false },
   ];
   const ROLES: Record<string, { color: string; bg: string }> = {
-    "Владелец":     { color: "#7A5CFF", bg: "rgba(122,92,255,0.12)" },
-    "Администратор":{ color: "#5A8DFF", bg: "rgba(90,141,255,0.12)" },
-    "Редактор":     { color: "#00E7A7", bg: "rgba(0,231,167,0.1)"   },
+    "Владелец":     { color: "#6366f1", bg: "rgba(99,102,241,0.12)" },
+    "Администратор":{ color: "#4f46e5", bg: "rgba(79,70,229,0.12)" },
+    "Редактор":     { color: "#10b981", bg: "rgba(16,185,129,0.1)"   },
     "Наблюдатель":  { color: "rgba(255,255,255,0.4)", bg: "rgba(255,255,255,0.06)" },
   };
 
@@ -287,7 +287,7 @@ function TeamPanel() {
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
               <div style={{ position: "relative" }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${m.color}, ${m.color}88)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: "#fff" }}>{m.avatar}</div>
-                {m.online && <div style={{ position: "absolute", bottom: 0, right: 0, width: 8, height: 8, borderRadius: "50%", background: "#00E7A7", border: "2px solid #07090F" }} />}
+                {m.online && <div style={{ position: "absolute", bottom: 0, right: 0, width: 8, height: 8, borderRadius: "50%", background: "#10b981", border: "2px solid #07090F" }} />}
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{m.name}</div>
@@ -296,7 +296,7 @@ function TeamPanel() {
               <select defaultValue={m.role} style={{ padding: "5px 10px", borderRadius: 7, border: `1px solid ${ROLES[m.role]?.color}30`, background: ROLES[m.role]?.bg, color: ROLES[m.role]?.color, fontSize: 11, fontWeight: 700, outline: "none", cursor: "pointer" }}>
                 <option>Владелец</option><option>Администратор</option><option>Редактор</option><option>Наблюдатель</option>
               </select>
-              {m.role !== "Владелец" && <button style={{ width: 28, height: 28, borderRadius: 7, background: "transparent", border: "1px solid rgba(255,84,112,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><Trash2 size={11} style={{ color: "#FF5470" }} /></button>}
+              {m.role !== "Владелец" && <button style={{ width: 28, height: 28, borderRadius: 7, background: "transparent", border: "1px solid rgba(239,68,68,0.2)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}><Trash2 size={11} style={{ color: "#ef4444" }} /></button>}
             </div>
           ))}
         </div>
@@ -308,7 +308,7 @@ function TeamPanel() {
           <select style={{ padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.6)", fontSize: 12, outline: "none" }}>
             <option>Редактор</option><option>Наблюдатель</option><option>Администратор</option>
           </select>
-          <button style={{ padding: "10px 18px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", color: "#fff", cursor: "pointer", whiteSpace: "nowrap" }}>
+          <button style={{ padding: "10px 18px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer", whiteSpace: "nowrap" }}>
             Отправить приглашение
           </button>
         </div>
@@ -385,7 +385,7 @@ function SecurityPanel() {
           <Input label="Текущий пароль" type="password" placeholder="••••••••" />
           <Input label="Новый пароль" type="password" placeholder="••••••••" hint="Минимум 12 символов, заглавные, цифры, спецсимволы" />
           <Input label="Подтвердить пароль" type="password" placeholder="••••••••" />
-          <button style={{ padding: "9px 18px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", color: "#fff", cursor: "pointer", width: "fit-content" }}>
+          <button style={{ padding: "9px 18px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer", width: "fit-content" }}>
             Обновить пароль
           </button>
         </div>
@@ -396,8 +396,8 @@ function SecurityPanel() {
           <Toggle on={twoFA} onChange={() => setTwoFA(!twoFA)} />
         </Row>
         {twoFA && (
-          <div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: "rgba(0,231,167,0.06)", border: "1px solid rgba(0,231,167,0.15)" }}>
-            <div style={{ fontSize: 11, color: "#00E7A7", fontWeight: 600 }}>✓ 2FA включена — ваш аккаунт защищён</div>
+          <div style={{ marginTop: 14, padding: 14, borderRadius: 12, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.15)" }}>
+            <div style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>✓ 2FA включена — ваш аккаунт защищён</div>
           </div>
         )}
       </Section>
@@ -405,25 +405,25 @@ function SecurityPanel() {
       <Section title="Активные сессии" desc="Устройства, подключённые к вашему аккаунту">
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {SESSIONS.map((s, i) => (
-            <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: 12, background: s.current ? "rgba(122,92,255,0.07)" : "rgba(255,255,255,0.025)", border: `1px solid ${s.current ? "rgba(122,92,255,0.2)" : "rgba(255,255,255,0.05)"}` }}>
+            <div key={i} style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: 12, background: s.current ? "rgba(99,102,241,0.07)" : "rgba(255,255,255,0.025)", border: `1px solid ${s.current ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.05)"}` }}>
               <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(255,255,255,0.05)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <s.icon size={16} style={{ color: s.current ? "#7A5CFF" : "rgba(255,255,255,0.3)" }} />
+                <s.icon size={16} style={{ color: s.current ? "#6366f1" : "rgba(255,255,255,0.3)" }} />
               </div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
                   {s.device}
-                  {s.current && <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 5, background: "rgba(0,231,167,0.12)", color: "#00E7A7", fontWeight: 700 }}>Текущая</span>}
+                  {s.current && <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 5, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>Текущая</span>}
                 </div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{s.location} · {s.time}</div>
               </div>
-              {!s.current && <button style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: "1px solid rgba(255,84,112,0.25)", background: "transparent", color: "#FF5470", cursor: "pointer" }}>
+              {!s.current && <button style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: "1px solid rgba(239,68,68,0.25)", background: "transparent", color: "#ef4444", cursor: "pointer" }}>
                 <LogOut size={10} style={{ display: "inline", marginRight: 4 }} />Выйти
               </button>}
             </div>
           ))}
         </div>
         <div style={{ marginTop: 12 }}>
-          <button style={{ padding: "7px 14px", borderRadius: 9, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,84,112,0.2)", background: "transparent", color: "#FF5470", cursor: "pointer" }}>
+          <button style={{ padding: "7px 14px", borderRadius: 9, fontSize: 11, fontWeight: 600, border: "1px solid rgba(239,68,68,0.2)", background: "transparent", color: "#ef4444", cursor: "pointer" }}>
             Завершить все сессии
           </button>
         </div>
@@ -448,11 +448,11 @@ function APIPanel() {
             <div key={i} style={{ borderRadius: 12, padding: "14px 16px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{k.name}</div>
-                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(0,231,167,0.1)", color: "#00E7A7", fontWeight: 600 }}>{k.scope}</span>
+                <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(16,185,129,0.1)", color: "#10b981", fontWeight: 600 }}>{k.scope}</span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(255,255,255,0.04)", borderRadius: 8, padding: "8px 12px", marginBottom: 10 }}>
                 <code style={{ flex: 1, fontSize: 11, color: "rgba(255,255,255,0.5)", fontFamily: "monospace" }}>{k.key}</code>
-                <button onClick={() => copy(k.name)} style={{ background: "transparent", border: "none", cursor: "pointer", color: copied === k.name ? "#00E7A7" : "rgba(255,255,255,0.3)" }}>
+                <button onClick={() => copy(k.name)} style={{ background: "transparent", border: "none", cursor: "pointer", color: copied === k.name ? "#10b981" : "rgba(255,255,255,0.3)" }}>
                   {copied === k.name ? <Check size={13} /> : <Copy size={13} />}
                 </button>
               </div>
@@ -463,7 +463,7 @@ function APIPanel() {
             </div>
           ))}
         </div>
-        <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 16px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "1px dashed rgba(122,92,255,0.3)", background: "rgba(122,92,255,0.06)", color: "#a78bfa", cursor: "pointer" }}>
+        <button style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 16px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "1px dashed rgba(99,102,241,0.3)", background: "rgba(99,102,241,0.06)", color: "#8b5cf6", cursor: "pointer" }}>
           <Plus size={13} />Создать новый ключ
         </button>
       </Section>
@@ -473,7 +473,7 @@ function APIPanel() {
           <div style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>Webhook URL не настроен</div>
           <div style={{ display: "flex", gap: 10 }}>
             <input placeholder="https://your-server.com/webhook" style={{ flex: 1, padding: "8px 12px", borderRadius: 9, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 12, outline: "none" }} />
-            <button style={{ padding: "8px 14px", borderRadius: 9, fontSize: 11, fontWeight: 700, border: "none", background: "#7A5CFF", color: "#fff", cursor: "pointer" }}>Добавить</button>
+            <button style={{ padding: "8px 14px", borderRadius: 9, fontSize: 11, fontWeight: 700, border: "none", background: "#6366f1", color: "#fff", cursor: "pointer" }}>Добавить</button>
           </div>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
@@ -502,7 +502,7 @@ function IntegrationsPanel() {
       <Section title="Интеграции" desc="Подключи внешние сервисы к Apex AI">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
           {INTEGRATIONS.map(int => (
-            <div key={int.id} style={{ borderRadius: 14, padding: "16px 18px", background: connected[int.id] ? "rgba(122,92,255,0.06)" : "rgba(255,255,255,0.025)", border: `1px solid ${connected[int.id] ? "rgba(122,92,255,0.2)" : "rgba(255,255,255,0.06)"}`, display: "flex", alignItems: "center", gap: 14 }}>
+            <div key={int.id} style={{ borderRadius: 14, padding: "16px 18px", background: connected[int.id] ? "rgba(99,102,241,0.06)" : "rgba(255,255,255,0.025)", border: `1px solid ${connected[int.id] ? "rgba(99,102,241,0.2)" : "rgba(255,255,255,0.06)"}`, display: "flex", alignItems: "center", gap: 14 }}>
               <div style={{ width: 40, height: 40, borderRadius: 10, background: `${int.color}22`, border: `1px solid ${int.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 15, fontWeight: 800, color: "#fff", flexShrink: 0 }}>{int.logo}</div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{int.name}</div>
@@ -519,17 +519,17 @@ function IntegrationsPanel() {
 
 function SubscriptionPanel() {
   const FEATURES = [
-    { label: "AI-анализов в месяц", used: 3, limit: 3, color: "#FF5470" },
-    { label: "Активных проектов",   used: 1, limit: 1, color: "#FFB800" },
-    { label: "Членов команды",      used: 4, limit: 5, color: "#00E7A7" },
-    { label: "Хранилище (GB)",      used: 0.8, limit: 5, color: "#5A8DFF" },
+    { label: "AI-анализов в месяц", used: 3, limit: 3, color: "#ef4444" },
+    { label: "Активных проектов",   used: 1, limit: 1, color: "#f59e0b" },
+    { label: "Членов команды",      used: 4, limit: 5, color: "#10b981" },
+    { label: "Хранилище (GB)",      used: 0.8, limit: 5, color: "#4f46e5" },
   ];
 
   return (
     <div>
       {/* Current Plan */}
-      <div style={{ borderRadius: 18, padding: "24px", background: "linear-gradient(135deg, rgba(122,92,255,0.12), rgba(90,141,255,0.08))", border: "1px solid rgba(122,92,255,0.25)", marginBottom: 16, position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #7A5CFF80, transparent)" }} />
+      <div style={{ borderRadius: 18, padding: "24px", background: "linear-gradient(135deg, rgba(99,102,241,0.12), rgba(79,70,229,0.08))", border: "1px solid rgba(99,102,241,0.25)", marginBottom: 16, position: "relative", overflow: "hidden" }}>
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #6366f180, transparent)" }} />
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
@@ -544,7 +544,7 @@ function SubscriptionPanel() {
             </div>
           </div>
           <div style={{ textAlign: "right" }}>
-            <button style={{ padding: "10px 20px", borderRadius: 11, fontSize: 13, fontWeight: 800, border: "none", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 7, boxShadow: "0 4px 20px rgba(122,92,255,0.4)" }}>
+            <button style={{ padding: "10px 20px", borderRadius: 11, fontSize: 13, fontWeight: 800, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 7, boxShadow: "0 4px 20px rgba(99,102,241,0.4)" }}>
               <Crown size={14} />Upgrade to Pro
             </button>
             <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 6 }}>от $29/месяц</div>
@@ -580,10 +580,10 @@ function SubscriptionPanel() {
 
 function UsagePanel() {
   const USAGE = [
-    { label: "AI-запросов",      used: 284,  limit: 300,  color: "#7A5CFF", unit: "" },
-    { label: "Токенов (тыс.)",   used: 1820, limit: 2000, color: "#5A8DFF", unit: "k" },
-    { label: "Отчётов",          used: 3,    limit: 3,    color: "#FF5470", unit: "" },
-    { label: "Агент-часов",      used: 12,   limit: 20,   color: "#00E7A7", unit: "h" },
+    { label: "AI-запросов",      used: 284,  limit: 300,  color: "#6366f1", unit: "" },
+    { label: "Токенов (тыс.)",   used: 1820, limit: 2000, color: "#4f46e5", unit: "k" },
+    { label: "Отчётов",          used: 3,    limit: 3,    color: "#ef4444", unit: "" },
+    { label: "Агент-часов",      used: 12,   limit: 20,   color: "#10b981", unit: "h" },
   ];
 
   return (
@@ -642,7 +642,7 @@ function LanguagePanel({ saved, onSave }: { saved: boolean; onSave: () => void }
 
 function AppearancePanel() {
   const [theme, setTheme] = useState("dark");
-  const [accent, setAccent] = useState("#7A5CFF");
+  const [accent, setAccent] = useState("#6366f1");
   const [compact, setCompact] = useState(false);
   const [animations, setAnimations] = useState(true);
   const [density, setDensity] = useState("normal");
@@ -657,14 +657,14 @@ function AppearancePanel() {
             { id: "system", label: "System",  icon: Monitor, bg: "linear-gradient(135deg, #0a0b0f 50%, #f5f5f5 50%)", preview: "rgba(0,0,0,0.05)" },
           ].map(t => (
             <button key={t.id} onClick={() => setTheme(t.id)}
-              style={{ borderRadius: 14, padding: "16px", background: theme === t.id ? "rgba(122,92,255,0.1)" : "rgba(255,255,255,0.025)", border: `2px solid ${theme === t.id ? "#7A5CFF" : "rgba(255,255,255,0.06)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
+              style={{ borderRadius: 14, padding: "16px", background: theme === t.id ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.025)", border: `2px solid ${theme === t.id ? "#6366f1" : "rgba(255,255,255,0.06)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
               <div style={{ width: "100%", height: 56, borderRadius: 8, background: t.bg, marginBottom: 10, overflow: "hidden", position: "relative" }}>
                 <div style={{ position: "absolute", inset: 0, background: `linear-gradient(135deg, ${t.preview}, transparent)` }} />
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <t.icon size={12} style={{ color: theme === t.id ? "#7A5CFF" : "rgba(255,255,255,0.35)" }} />
+                <t.icon size={12} style={{ color: theme === t.id ? "#6366f1" : "rgba(255,255,255,0.35)" }} />
                 <span style={{ fontSize: 12, fontWeight: 600, color: theme === t.id ? "#fff" : "rgba(255,255,255,0.45)" }}>{t.label}</span>
-                {theme === t.id && <Check size={11} style={{ color: "#7A5CFF", marginLeft: "auto" }} />}
+                {theme === t.id && <Check size={11} style={{ color: "#6366f1", marginLeft: "auto" }} />}
               </div>
             </button>
           ))}
@@ -674,12 +674,12 @@ function AppearancePanel() {
       <Section title="Акцентный цвет">
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {[
-            { color: "#7A5CFF", name: "Violet"  },
-            { color: "#5A8DFF", name: "Blue"    },
-            { color: "#00E7A7", name: "Emerald" },
-            { color: "#FF5470", name: "Rose"    },
-            { color: "#FFB800", name: "Amber"   },
-            { color: "#a78bfa", name: "Purple"  },
+            { color: "#6366f1", name: "Violet"  },
+            { color: "#4f46e5", name: "Blue"    },
+            { color: "#10b981", name: "Emerald" },
+            { color: "#ef4444", name: "Rose"    },
+            { color: "#f59e0b", name: "Amber"   },
+            { color: "#8b5cf6", name: "Purple"  },
           ].map(c => (
             <button key={c.color} onClick={() => setAccent(c.color)}
               style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, background: "transparent", border: "none", cursor: "pointer" }}>
@@ -701,7 +701,7 @@ function AppearancePanel() {
           <div style={{ display: "flex", gap: 6 }}>
             {["compact","normal","spacious"].map(d => (
               <button key={d} onClick={() => setDensity(d)}
-                style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: `1px solid ${density === d ? "rgba(122,92,255,0.4)" : "rgba(255,255,255,0.08)"}`, background: density === d ? "rgba(122,92,255,0.12)" : "transparent", color: density === d ? "#a78bfa" : "rgba(255,255,255,0.4)", cursor: "pointer", textTransform: "capitalize" }}>{d}</button>
+                style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: `1px solid ${density === d ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.08)"}`, background: density === d ? "rgba(99,102,241,0.12)" : "transparent", color: density === d ? "#8b5cf6" : "rgba(255,255,255,0.4)", cursor: "pointer", textTransform: "capitalize" }}>{d}</button>
             ))}
           </div>
         </Row>
@@ -737,15 +737,15 @@ function AdvancedPanel() {
         </Row>
       </Section>
 
-      <div style={{ borderRadius: 16, padding: "18px 20px", background: "rgba(255,84,112,0.05)", border: "1px solid rgba(255,84,112,0.15)" }}>
+      <div style={{ borderRadius: 16, padding: "18px 20px", background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-          <AlertTriangle size={14} style={{ color: "#FF5470" }} />
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#FF5470" }}>Опасная зона</div>
+          <AlertTriangle size={14} style={{ color: "#ef4444" }} />
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#ef4444" }}>Опасная зона</div>
         </div>
         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>Эти действия необратимы. Будьте осторожны.</div>
         <div style={{ display: "flex", gap: 10 }}>
-          <button style={{ padding: "7px 14px", borderRadius: 9, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,84,112,0.3)", background: "transparent", color: "#FF5470", cursor: "pointer" }}>Сбросить настройки</button>
-          <button style={{ padding: "7px 14px", borderRadius: 9, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,84,112,0.4)", background: "rgba(255,84,112,0.08)", color: "#FF5470", cursor: "pointer" }}>Удалить аккаунт</button>
+          <button style={{ padding: "7px 14px", borderRadius: 9, fontSize: 11, fontWeight: 600, border: "1px solid rgba(239,68,68,0.3)", background: "transparent", color: "#ef4444", cursor: "pointer" }}>Сбросить настройки</button>
+          <button style={{ padding: "7px 14px", borderRadius: 9, fontSize: 11, fontWeight: 600, border: "1px solid rgba(239,68,68,0.4)", background: "rgba(239,68,68,0.08)", color: "#ef4444", cursor: "pointer" }}>Удалить аккаунт</button>
         </div>
       </div>
     </div>
@@ -789,7 +789,7 @@ export default function SettingsPage() {
   return (
     <div style={{ minHeight: "100vh", background: "#07090F", display: "flex", position: "relative" }}>
       {/* Ambient */}
-      <div style={{ position: "fixed", top: -100, right: 0, width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(122,92,255,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
+      <div style={{ position: "fixed", top: -100, right: 0, width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
 
       {/* Left Nav */}
       <aside style={{ width: 220, flexShrink: 0, padding: "28px 12px", borderRight: "1px solid rgba(255,255,255,0.05)", position: "sticky", top: 0, height: "100vh", overflowY: "auto" }}>
@@ -803,10 +803,10 @@ export default function SettingsPage() {
             <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", padding: "0 8px", marginBottom: 4 }}>{group}</div>
             {NAV.filter(n => n.group === group).map(item => (
               <button key={item.id} onClick={() => setActive(item.id)}
-                style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 10, fontSize: 12, fontWeight: active === item.id ? 700 : 500, border: `1px solid ${active === item.id ? "rgba(122,92,255,0.25)" : "transparent"}`, background: active === item.id ? "rgba(122,92,255,0.12)" : "transparent", color: active === item.id ? "#fff" : "rgba(255,255,255,0.4)", cursor: "pointer", textAlign: "left", transition: "all 0.15s", marginBottom: 2 }}>
-                <item.icon size={13} style={{ color: active === item.id ? "#7A5CFF" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 10, fontSize: 12, fontWeight: active === item.id ? 700 : 500, border: `1px solid ${active === item.id ? "rgba(99,102,241,0.25)" : "transparent"}`, background: active === item.id ? "rgba(99,102,241,0.12)" : "transparent", color: active === item.id ? "#fff" : "rgba(255,255,255,0.4)", cursor: "pointer", textAlign: "left", transition: "all 0.15s", marginBottom: 2 }}>
+                <item.icon size={13} style={{ color: active === item.id ? "#6366f1" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
                 {item.label}
-                {active === item.id && <ChevronRight size={11} style={{ color: "rgba(122,92,255,0.5)", marginLeft: "auto" }} />}
+                {active === item.id && <ChevronRight size={11} style={{ color: "rgba(99,102,241,0.5)", marginLeft: "auto" }} />}
               </button>
             ))}
           </div>
@@ -818,7 +818,7 @@ export default function SettingsPage() {
         {/* Header */}
         <div style={{ marginBottom: 24 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-            {current && <current.icon size={16} style={{ color: "#7A5CFF" }} />}
+            {current && <current.icon size={16} style={{ color: "#6366f1" }} />}
             <h1 style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.4px" }}>{current?.label}</h1>
           </div>
           <div style={{ fontSize: 12, color: "rgba(255,255,255,0.3)" }}>

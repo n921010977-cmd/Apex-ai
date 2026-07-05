@@ -42,15 +42,15 @@ function LoginForm() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#05060A] flex items-center justify-center px-4">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/8 rounded-full blur-[140px]" />
       </div>
 
       <div className="relative w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-8">
-            <div className="size-8 rounded-xl bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center shadow-xl shadow-violet-500/30">
+            <div className="size-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-xl shadow-indigo-500/30">
               <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
@@ -111,20 +111,20 @@ function LoginForm() {
                 placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
               />
             </div>
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-[11px] font-medium text-white/40">Пароль</label>
-                <Link href="/forgot-password" className="text-[11px] text-violet-400/70 hover:text-violet-300 transition-colors">Забыли?</Link>
+                <Link href="/forgot-password" className="text-[11px] text-indigo-400/70 hover:text-indigo-300 transition-colors">Забыли?</Link>
               </div>
               <input
                 type="password"
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
               />
             </div>
 
@@ -138,7 +138,7 @@ function LoginForm() {
             <button
               type="submit"
               disabled={!!loading}
-              className="w-full h-10 text-sm font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
+              className="w-full h-10 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-xl hover:from-indigo-400 hover:to-indigo-600 transition-all disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
             >
               {loading === "credentials"
                 ? <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -150,7 +150,7 @@ function LoginForm() {
 
         <p className="text-center text-[12px] text-white/30 mt-5">
           Нет аккаунта?{" "}
-          <Link href="/register" className="text-violet-400/80 hover:text-violet-300 transition-colors">Зарегистрироваться</Link>
+          <Link href="/register" className="text-indigo-400/80 hover:text-indigo-300 transition-colors">Зарегистрироваться</Link>
         </p>
       </div>
     </div>

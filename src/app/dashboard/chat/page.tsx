@@ -222,6 +222,20 @@ export default function ChatPage() {
     setMessages([{ role: "ai", text: `Привет! Я ${agent.name} — ${agent.role}. ${agent.desc}. Чем могу помочь?`, agent: agent.name }]);
   };
 
+  // Open a specific agent when arriving from Executives / Dashboard via ?agent=<id>
+  useEffect(() => {
+    const param = new URLSearchParams(window.location.search).get("agent");
+    if (!param) return;
+    const found = AGENTS.find(a => a.id === param)
+      ?? AGENTS.find(a => a.name.toLowerCase().includes(param.toLowerCase()));
+    if (found) {
+      setActiveAgent(found);
+      setAttachments([]);
+      setMessages([{ role: "ai", text: `Привет! Я ${found.name} — ${found.role}. ${found.desc}. Чем могу помочь?`, agent: found.name }]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const openChatByAgentName = (agentName: string) => {
     const found = AGENTS.find(a => a.name === agentName)
       ?? AGENTS.find(a => agentName.toLowerCase().includes(a.name.toLowerCase()))

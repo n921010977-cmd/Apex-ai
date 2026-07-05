@@ -459,7 +459,7 @@ export default function ExecutivesPage() {
                   <div style={{ height: "100%", width: `${Math.min(99, parseInt(selExec.years) * 2.5)}%`, background: `linear-gradient(90deg,rgba(${selRgb},0.5),${selColor})`, borderRadius: 2, boxShadow: `0 0 6px ${selColor}` }}/>
                 </div>
               </div>
-              <Link href="/dashboard/new" style={{
+              <Link href={`/dashboard/chat?agent=${(selExec.shortRole || selExec.role).toLowerCase()}`} style={{
                 height: 42, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                 background: `linear-gradient(135deg,rgba(${selRgb},0.85),rgba(${selRgb},0.5))`,
                 border: `1px solid rgba(${selRgb},0.5)`,
@@ -467,7 +467,15 @@ export default function ExecutivesPage() {
                 color: "white", fontWeight: 700, fontSize: 12, textDecoration: "none",
                 transition: "filter 0.2s",
               }}>
-                <svg viewBox="0 0 20 20" fill="currentColor" style={{ width: 14, height: 14 }}><path d="M11 3a1 1 0 100 2h2.586l-6.293 6.293a1 1 0 101.414 1.414L15 6.414V9a1 1 0 102 0V4a1 1 0 00-1-1h-5z"/><path d="M5 5a2 2 0 00-2 2v8a2 2 0 002 2h8a2 2 0 002-2v-3a1 1 0 10-2 0v3H5V7h3a1 1 0 000-2H5z"/></svg>
+                <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 14, height: 14 }}><path d="M18 10c0 3.866-3.582 7-8 7a9 9 0 01-2.5-.35L3 17l1.35-4.05A6.5 6.5 0 013 10c0-3.866 3.582-7 8-7s7 3.134 7 7z"/></svg>
+                Обсудить с {selExec.name.split(" ")[0]}
+              </Link>
+              <Link href="/dashboard/new" style={{
+                height: 38, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "rgba(255,255,255,0.65)", fontWeight: 600, fontSize: 12, textDecoration: "none",
+              }}>
                 Брифовать совет по новому проекту
               </Link>
             </div>

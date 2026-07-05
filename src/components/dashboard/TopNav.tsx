@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
-import { Search, Bell, Plus, Cpu, Menu, X, Command } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Search, Bell, Plus, Cpu, Menu, Command } from "lucide-react";
 
 const ROUTE_LABELS: Record<string, string> = {
   "/dashboard":            "Dashboard",
@@ -21,11 +22,36 @@ const ROUTE_LABELS: Record<string, string> = {
   "/dashboard/support":    "Поддержка",
 };
 
-const NOTIFICATIONS = [
-  { title: "Стратегический анализ готов", desc: "AI Fitness Platform — 94 балла", time: "2ч",   dot: "#10b981", read: false },
-  { title: "Новый конкурент обнаружен",   desc: "Sector: B2B SaaS · Funding: $12M", time: "5ч",  dot: "#f59e0b", read: false },
-  { title: "Финансовая модель обновлена", desc: "SaaS Invoice Platform — Q2 прогноз", time: "Вчера", dot: "#6366f1", read: true },
+// Fallback shown while the API loads or if the user has no notifications yet
+const DEMO_NOTIFICATIONS: Notification[] = [
+  { id: "d1", title: "Стратегический анализ готов", body: "AI Fitness Platform — 94 балла", type: "success", is_read: false, created_at: new Date(Date.now() - 7200000).toISOString() },
+  { id: "d2", title: "Новый конкурент обнаружен",   body: "Sector: B2B SaaS · Funding: $12M", type: "warning", is_read: false, created_at: new Date(Date.now() - 18000000).toISOString() },
+  { id: "d3", title: "Финансовая модель обновлена", body: "SaaS Invoice Platform — Q2 прогноз", type: "info", is_read: true, created_at: new Date(Date.now() - 86400000).toISOString() },
 ];
+
+const TYPE_DOT: Record<string, string> = {
+  success: "#10b981", warning: "#f59e0b", danger: "#ef4444", error: "#ef4444", info: "#6366f1",
+};
+
+function timeAgo(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return "сейчас";
+  if (m < 60) return `${m}м`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}ч`;
+  const d = Math.floor(h / 24);
+  return d === 1 ? "Вчера" : `${d}д`;
+}
+
+interface Notification {
+  id: string;
+  title: string;
+  body?: string | null;
+  type?: string;
+  is_read: boolean;
+  created_at: string;
+}
 
 interface TopNavProps {
   onMenuClick?: () => void;
@@ -33,10 +59,11 @@ interface TopNavProps {
 
 export function TopNav({ onMenuClick }: TopNavProps) {
   const pathname    = usePathname();
+  const { data: session } = useSession();
   const [focused,   setFocused]   = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
-  const [allRead,   setAllRead]   = useState(false);
   const [query,     setQuery]     = useState("");
+  const [notifications, setNotifications] = useState<Notification[]>(DEMO_NOTIFICATIONS);
   const notifRef    = useRef<HTMLDivElement>(null);
   const inputRef    = useRef<HTMLInputElement>(null);
 
@@ -44,7 +71,28 @@ export function TopNav({ onMenuClick }: TopNavProps) {
     k === pathname || pathname.startsWith(k + "/")
   )?.[1] ?? "Dashboard";
 
-  const unread = allRead ? 0 : NOTIFICATIONS.filter(n => !n.read).length;
+  const userName = session?.user?.name ?? "Founder";
+  const userInitial = userName.charAt(0).toUpperCase();
+  const unread = notifications.filter(n => !n.is_read).length;
+
+  // Load real notifications
+  useEffect(() => {
+    fetch("/api/notifications?limit=8")
+      .then(r => r.json())
+      .then(d => {
+        if (d.success && Array.isArray(d.data) && d.data.length > 0) setNotifications(d.data);
+      })
+      .catch(() => {});
+  }, []);
+
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    fetch("/api/notifications", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ all: true }),
+    }).catch(() => {});
+  };
 
   // Close notif dropdown when clicking outside
   useEffect(() => {
@@ -221,30 +269,37 @@ export function TopNav({ onMenuClick }: TopNavProps) {
                   )}
                 </div>
                 <button
-                  onClick={() => setAllRead(true)}
+                  onClick={markAllRead}
                   style={{ fontSize: 10, color: "rgba(99,102,241,0.8)", cursor: "pointer", background: "none", border: "none" }}
                   className="hover:text-indigo-300 transition-colors"
                 >
                   Прочитать всё
                 </button>
               </div>
-              {NOTIFICATIONS.map((n, i) => (
-                <div
-                  key={i}
-                  className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-all hover:bg-white/[0.025]"
-                  style={{
-                    borderBottom: i < NOTIFICATIONS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
-                    opacity: (allRead || n.read) ? 0.5 : 1,
-                  }}
-                >
-                  <span className="size-1.5 rounded-full mt-2 flex-shrink-0" style={{ background: n.dot, boxShadow: `0 0 5px ${n.dot}80` }} />
-                  <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.85)" }}>{n.title}</div>
-                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{n.desc}</div>
-                  </div>
-                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>{n.time}</span>
+              {notifications.length === 0 ? (
+                <div style={{ padding: "28px 16px", textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
+                  Нет уведомлений
                 </div>
-              ))}
+              ) : notifications.map((n, i) => {
+                const dot = TYPE_DOT[n.type ?? "info"] ?? "#6366f1";
+                return (
+                  <div
+                    key={n.id}
+                    className="flex items-start gap-3 px-4 py-3 cursor-pointer transition-all hover:bg-white/[0.025]"
+                    style={{
+                      borderBottom: i < notifications.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none",
+                      opacity: n.is_read ? 0.5 : 1,
+                    }}
+                  >
+                    <span className="size-1.5 rounded-full mt-2 flex-shrink-0" style={{ background: dot, boxShadow: `0 0 5px ${dot}80` }} />
+                    <div className="flex-1 min-w-0">
+                      <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.85)" }}>{n.title}</div>
+                      {n.body && <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{n.body}</div>}
+                    </div>
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", flexShrink: 0 }}>{timeAgo(n.created_at)}</span>
+                  </div>
+                );
+              })}
               <div className="px-4 py-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                 <button style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer", width: "100%", textAlign: "center" }}>
                   Все уведомления →
@@ -263,10 +318,10 @@ export function TopNav({ onMenuClick }: TopNavProps) {
             className="size-7 rounded-xl flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
             style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)", boxShadow: "0 2px 10px rgba(99,102,241,0.35)" }}
           >
-            F
+            {userInitial}
           </div>
           <div className="hidden sm:block leading-tight">
-            <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)" }}>Founder</div>
+            <div style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.7)", maxWidth: 120, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{userName}</div>
             <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>Starter</div>
           </div>
         </div>

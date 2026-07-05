@@ -51,12 +51,12 @@ const FOLDERS = [
 const CUSTOM_FOLDERS = ["Стратегия", "Финансы", "Маркетинг", "Продукт", "Команда"];
 
 const TAGS = [
-  { label: "Срочно",    color: "#FF5470" },
-  { label: "Важное",    color: "#FFB800" },
-  { label: "Идеи",      color: "#7A5CFF" },
-  { label: "Решения",   color: "#00E7A7" },
-  { label: "Задачи",    color: "#5A8DFF" },
-  { label: "Встречи",   color: "#a78bfa" },
+  { label: "Срочно",    color: "#ef4444" },
+  { label: "Важное",    color: "#f59e0b" },
+  { label: "Идеи",      color: "#6366f1" },
+  { label: "Решения",   color: "#10b981" },
+  { label: "Задачи",    color: "#4f46e5" },
+  { label: "Встречи",   color: "#8b5cf6" },
 ];
 
 const TEMPLATES: { id: string; icon: string; name: string; content: string }[] = [
@@ -73,11 +73,11 @@ const TEMPLATES: { id: string; icon: string; name: string; content: string }[] =
 ];
 
 const DEMO_NOTES: Note[] = [
-  { id: "1", title: "Стратегия выхода на рынок SEA", emoji: "🚀", folder: "Стратегия", tags: ["Важное","Задачи"], color: "#7A5CFF", pinned: true,  starred: true,  wordCount: 842, createdAt: Date.now()-86400000*5, updatedAt: Date.now()-3600000*2,  content: "# Стратегия выхода на рынок SEA\n\n## Executive Summary\n\nЮго-Восточная Азия представляет собой **ключевую возможность роста** с TAM $840M.\n\n## Целевые рынки\n\n- 🇸🇬 Сингапур — HQ, Enterprise\n- 🇻🇳 Вьетнам — SMB, High growth\n- 🇮🇩 Индонезия — Scale market\n\n## Финансовый план\n\n| Квартал | Выручка | Расходы |\n|---------|---------|----------|\n| Q3 2026 | $120k   | $80k     |\n| Q4 2026 | $280k   | $120k    |\n\n## Следующие шаги\n\n- [ ] Нанять Country Manager\n- [ ] Партнёрство с local VAR\n- [ ] Адаптация продукта\n" },
-  { id: "2", title: "OKR Q3 2026",                   emoji: "🎯", folder: "Стратегия", tags: ["Срочно"],          color: "#00E7A7", pinned: false, starred: true,  wordCount: 421, createdAt: Date.now()-86400000*3, updatedAt: Date.now()-3600000*5,  content: "# OKR Q3 2026\n\n## Objective 1: Достичь $500k ARR\n\n- [ ] KR1: Закрыть 15 новых клиентов\n- [ ] KR2: Увеличить MRR на 40%\n- [ ] KR3: Churn < 3%\n\n## Objective 2: Масштабировать команду\n\n- [ ] KR1: Нанять 5 инженеров\n- [ ] KR2: NPS команды > 70\n" },
-  { id: "3", title: "Встреча с инвесторами 28 июня", emoji: "📄", folder: "Финансы",   tags: ["Встречи","Важное"],color: "#5A8DFF", pinned: false, starred: false, wordCount: 234, createdAt: Date.now()-86400000*1, updatedAt: Date.now()-3600000*1,  content: "# Встреча с инвесторами\n\n**Дата:** 28 июня 2026\n**Участники:** CEO, CFO, Sequoia\n\n## Обсуждение\n\n- Серия А раунд $3M\n- Оценка 12x ARR\n- Milestone: $1M ARR до Q4\n\n## Решения\n\n- Подготовить data room\n- Term sheet к 15 июля\n" },
-  { id: "4", title: "Брейншторм: новые фичи AI",     emoji: "💡", folder: "Продукт",   tags: ["Идеи"],            color: "#a78bfa", pinned: false, starred: false, wordCount: 178, createdAt: Date.now()-86400000*2, updatedAt: Date.now()-7200000,   content: "# Брейншторм: AI-функции\n\n## Идеи\n\n- Multi-agent чат (несколько CEO, CFO одновременно)\n- AI автоматически создаёт стратегию при добавлении проекта\n- Voice notes + AI расшифровка\n- Конкурентный мониторинг в реальном времени\n\n## Приоритет\n\n1. Multi-agent (высокий)\n2. Auto-strategy (средний)\n3. Voice notes (низкий)\n" },
-  { id: "5", title: "Финансовая модель 2026",         emoji: "💰", folder: "Финансы",   tags: ["Важное"],          color: "#FFB800", pinned: false, starred: false, wordCount: 567, createdAt: Date.now()-86400000*7, updatedAt: Date.now()-86400000*1, content: "# Финансовая модель 2026\n\n## ARR Прогноз\n\n| Месяц | ARR    | MoM   |\n|-------|--------|-------|\n| Янв   | $180k  | —     |\n| Фев   | $220k  | +22%  |\n| Мар   | $275k  | +25%  |\n\n## Unit Economics\n\n- CAC: $320\n- LTV: $4,800\n- LTV/CAC: 15x ✅\n- Payback: 2.1 мес ✅\n" },
+  { id: "1", title: "Стратегия выхода на рынок SEA", emoji: "🚀", folder: "Стратегия", tags: ["Важное","Задачи"], color: "#6366f1", pinned: true,  starred: true,  wordCount: 842, createdAt: Date.now()-86400000*5, updatedAt: Date.now()-3600000*2,  content: "# Стратегия выхода на рынок SEA\n\n## Executive Summary\n\nЮго-Восточная Азия представляет собой **ключевую возможность роста** с TAM $840M.\n\n## Целевые рынки\n\n- 🇸🇬 Сингапур — HQ, Enterprise\n- 🇻🇳 Вьетнам — SMB, High growth\n- 🇮🇩 Индонезия — Scale market\n\n## Финансовый план\n\n| Квартал | Выручка | Расходы |\n|---------|---------|----------|\n| Q3 2026 | $120k   | $80k     |\n| Q4 2026 | $280k   | $120k    |\n\n## Следующие шаги\n\n- [ ] Нанять Country Manager\n- [ ] Партнёрство с local VAR\n- [ ] Адаптация продукта\n" },
+  { id: "2", title: "OKR Q3 2026",                   emoji: "🎯", folder: "Стратегия", tags: ["Срочно"],          color: "#10b981", pinned: false, starred: true,  wordCount: 421, createdAt: Date.now()-86400000*3, updatedAt: Date.now()-3600000*5,  content: "# OKR Q3 2026\n\n## Objective 1: Достичь $500k ARR\n\n- [ ] KR1: Закрыть 15 новых клиентов\n- [ ] KR2: Увеличить MRR на 40%\n- [ ] KR3: Churn < 3%\n\n## Objective 2: Масштабировать команду\n\n- [ ] KR1: Нанять 5 инженеров\n- [ ] KR2: NPS команды > 70\n" },
+  { id: "3", title: "Встреча с инвесторами 28 июня", emoji: "📄", folder: "Финансы",   tags: ["Встречи","Важное"],color: "#4f46e5", pinned: false, starred: false, wordCount: 234, createdAt: Date.now()-86400000*1, updatedAt: Date.now()-3600000*1,  content: "# Встреча с инвесторами\n\n**Дата:** 28 июня 2026\n**Участники:** CEO, CFO, Sequoia\n\n## Обсуждение\n\n- Серия А раунд $3M\n- Оценка 12x ARR\n- Milestone: $1M ARR до Q4\n\n## Решения\n\n- Подготовить data room\n- Term sheet к 15 июля\n" },
+  { id: "4", title: "Брейншторм: новые фичи AI",     emoji: "💡", folder: "Продукт",   tags: ["Идеи"],            color: "#8b5cf6", pinned: false, starred: false, wordCount: 178, createdAt: Date.now()-86400000*2, updatedAt: Date.now()-7200000,   content: "# Брейншторм: AI-функции\n\n## Идеи\n\n- Multi-agent чат (несколько CEO, CFO одновременно)\n- AI автоматически создаёт стратегию при добавлении проекта\n- Voice notes + AI расшифровка\n- Конкурентный мониторинг в реальном времени\n\n## Приоритет\n\n1. Multi-agent (высокий)\n2. Auto-strategy (средний)\n3. Voice notes (низкий)\n" },
+  { id: "5", title: "Финансовая модель 2026",         emoji: "💰", folder: "Финансы",   tags: ["Важное"],          color: "#f59e0b", pinned: false, starred: false, wordCount: 567, createdAt: Date.now()-86400000*7, updatedAt: Date.now()-86400000*1, content: "# Финансовая модель 2026\n\n## ARR Прогноз\n\n| Месяц | ARR    | MoM   |\n|-------|--------|-------|\n| Янв   | $180k  | —     |\n| Фев   | $220k  | +22%  |\n| Мар   | $275k  | +25%  |\n\n## Unit Economics\n\n- CAC: $320\n- LTV: $4,800\n- LTV/CAC: 15x ✅\n- Payback: 2.1 мес ✅\n" },
 ];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -88,6 +88,37 @@ const load = (): Note[] => {
 };
 const save = (n: Note[]) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(n)); } catch {} };
 
+// ─── API ⇄ local mapping ────────────────────────────────────────────────────
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mapFromApi = (r: any): Note => ({
+  id: String(r.id),
+  title: r.title ?? "Без названия",
+  content: r.content ?? "",
+  emoji: r.emoji ?? "📝",
+  folder: r.folder ?? "all",
+  tags: Array.isArray(r.tags) ? r.tags : [],
+  color: r.color ?? "#6366f1",
+  pinned: !!r.is_pinned,
+  starred: !!r.is_starred,
+  wordCount: r.word_count ?? 0,
+  createdAt: r.created_at ? new Date(r.created_at).getTime() : Date.now(),
+  updatedAt: r.updated_at ? new Date(r.updated_at).getTime() : Date.now(),
+});
+
+const api = {
+  list: () => fetch("/api/notepad?limit=100").then(r => r.json()),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  create: (n: Partial<Note>) => fetch("/api/notepad", {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: n.title, content: n.content, emoji: n.emoji, tags: n.tags, folder: n.folder, is_pinned: n.pinned }),
+  }).then(r => r.json()),
+  update: (id: string, patch: Partial<Note>) => fetch(`/api/notepad/${id}`, {
+    method: "PATCH", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: patch.title, content: patch.content, emoji: patch.emoji, tags: patch.tags, folder: patch.folder, is_pinned: patch.pinned }),
+  }).then(r => r.json()).catch(() => null),
+  remove: (id: string) => fetch(`/api/notepad/${id}`, { method: "DELETE" }).catch(() => null),
+};
+
 const wordCount = (t: string) => t.split(/\s+/).filter(Boolean).length;
 const readTime = (wc: number) => Math.max(1, Math.ceil(wc / 200));
 const fmt = (ts: number) => new Date(ts).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" });
@@ -95,16 +126,16 @@ const fmt = (ts: number) => new Date(ts).toLocaleDateString("ru-RU", { day: "2-d
 // ─── AI Actions ───────────────────────────────────────────────────────────────
 
 const AI_ACTIONS = [
-  { icon: Sparkles, label: "Суммаризировать",  color: "#7A5CFF" },
-  { icon: Brain,    label: "Ключевые идеи",    color: "#5A8DFF" },
-  { icon: PenTool,  label: "Переписать текст", color: "#00E7A7" },
-  { icon: Check,    label: "Исправить ошибки", color: "#00E7A7" },
-  { icon: Languages,label: "Перевести",        color: "#FFB800" },
-  { icon: LayoutList,label: "Создать план",    color: "#FF5470" },
-  { icon: BarChart2,label: "Сделать отчёт",   color: "#5A8DFF" },
-  { icon: Target,   label: "Выделить задачи",  color: "#FFB800" },
-  { icon: Lightbulb,label: "Предложить идеи",  color: "#a78bfa" },
-  { icon: Bookmark, label: "Создать резюме",   color: "#7A5CFF" },
+  { icon: Sparkles, label: "Суммаризировать",  color: "#6366f1" },
+  { icon: Brain,    label: "Ключевые идеи",    color: "#4f46e5" },
+  { icon: PenTool,  label: "Переписать текст", color: "#10b981" },
+  { icon: Check,    label: "Исправить ошибки", color: "#10b981" },
+  { icon: Languages,label: "Перевести",        color: "#f59e0b" },
+  { icon: LayoutList,label: "Создать план",    color: "#ef4444" },
+  { icon: BarChart2,label: "Сделать отчёт",   color: "#4f46e5" },
+  { icon: Target,   label: "Выделить задачи",  color: "#f59e0b" },
+  { icon: Lightbulb,label: "Предложить идеи",  color: "#8b5cf6" },
+  { icon: Bookmark, label: "Создать резюме",   color: "#6366f1" },
 ];
 
 const TOOLBAR = [
@@ -132,8 +163,28 @@ export default function NotepadPage() {
   const [showTagMenu, setShowTagMenu] = useState(false);
   const editorRef = useRef<HTMLTextAreaElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const apiMode = useRef(false);
 
-  useEffect(() => { const n = load(); setNotes(n); setActive(n[0] ?? null); }, []);
+  useEffect(() => {
+    // Start from localStorage cache for instant paint, then reconcile with the server
+    const cached = load();
+    setNotes(cached);
+    setActive(cached[0] ?? null);
+
+    api.list()
+      .then(res => {
+        if (res?.success && Array.isArray(res.data)) {
+          apiMode.current = true;
+          if (res.data.length > 0) {
+            const mapped = res.data.map(mapFromApi);
+            setNotes(mapped);
+            setActive(mapped[0] ?? null);
+            save(mapped);
+          }
+        }
+      })
+      .catch(() => { /* offline — stay on localStorage */ });
+  }, []);
 
   const persistNotes = useCallback((next: Note[]) => {
     setNotes(next);
@@ -150,6 +201,7 @@ export default function NotepadPage() {
     saveTimer.current = setTimeout(() => {
       persistNotes(notes.map(n => n.id === updated.id ? updated : n));
       setSaved(true);
+      if (apiMode.current) api.update(updated.id, updated);
     }, 800);
   }, [active, notes, persistNotes]);
 
@@ -161,10 +213,10 @@ export default function NotepadPage() {
       emoji: template ? template.icon : "📝",
       folder: "all",
       tags: [],
-      color: "#7A5CFF",
+      color: "#6366f1",
       pinned: false,
       starred: false,
-      wordCount: 0,
+      wordCount: template ? wordCount(template.content) : 0,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       template: template?.id,
@@ -173,16 +225,38 @@ export default function NotepadPage() {
     persistNotes(next);
     setActive(n);
     setShowTemplates(false);
+
+    // Persist to server and swap the temporary id for the real one
+    if (apiMode.current) {
+      api.create(n).then(res => {
+        if (res?.success && res.data) {
+          const real = mapFromApi(res.data);
+          setNotes(prev => {
+            const swapped = prev.map(x => x.id === n.id ? real : x);
+            save(swapped);
+            return swapped;
+          });
+          setActive(prev => prev?.id === n.id ? real : prev);
+        }
+      });
+    }
   };
 
   const deleteNote = (id: string) => {
     const next = notes.filter(n => n.id !== id);
     persistNotes(next);
     setActive(next[0] ?? null);
+    if (apiMode.current) api.remove(id);
   };
 
-  const toggleStar = (id: string) => persistNotes(notes.map(n => n.id === id ? { ...n, starred: !n.starred } : n));
-  const togglePin  = (id: string) => persistNotes(notes.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
+  const toggleStar = (id: string) => {
+    persistNotes(notes.map(n => n.id === id ? { ...n, starred: !n.starred } : n));
+  };
+  const togglePin  = (id: string) => {
+    const target = notes.find(n => n.id === id);
+    persistNotes(notes.map(n => n.id === id ? { ...n, pinned: !n.pinned } : n));
+    if (apiMode.current && target) api.update(id, { pinned: !target.pinned });
+  };
 
   const runAI = (action: string) => {
     if (!active) return;
@@ -213,7 +287,7 @@ export default function NotepadPage() {
     return b.updatedAt - a.updatedAt;
   });
 
-  const COLORS = ["#7A5CFF","#5A8DFF","#00E7A7","#FF5470","#FFB800","#a78bfa"];
+  const COLORS = ["#6366f1","#4f46e5","#10b981","#ef4444","#f59e0b","#8b5cf6"];
 
   return (
     <div style={{ height: "100vh", display: "flex", background: "#07090F", overflow: "hidden" }}>
@@ -222,7 +296,7 @@ export default function NotepadPage() {
       <div style={{ width: 230, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", height: "100%" }}>
         <div style={{ padding: "14px 12px 10px" }}>
           <button onClick={() => setShowTemplates(true)}
-            style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 11, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", color: "#fff", cursor: "pointer", marginBottom: 10, boxShadow: "0 4px 16px rgba(122,92,255,0.3)" }}>
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 11, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer", marginBottom: 10, boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}>
             <Plus size={13} />Новая заметка
           </button>
           <div style={{ position: "relative" }}>
@@ -237,8 +311,8 @@ export default function NotepadPage() {
           <div style={{ marginBottom: 12 }}>
             {FOLDERS.map(f => (
               <button key={f.id} onClick={() => setFolder(f.id)}
-                style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: folder === f.id ? 700 : 500, border: `1px solid ${folder === f.id ? "rgba(122,92,255,0.25)" : "transparent"}`, background: folder === f.id ? "rgba(122,92,255,0.1)" : "transparent", color: folder === f.id ? "#fff" : "rgba(255,255,255,0.38)", cursor: "pointer", textAlign: "left", marginBottom: 1, transition: "all 0.15s" }}>
-                <f.icon size={12} style={{ color: folder === f.id ? "#7A5CFF" : "rgba(255,255,255,0.22)", flexShrink: 0 }} />
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: folder === f.id ? 700 : 500, border: `1px solid ${folder === f.id ? "rgba(99,102,241,0.25)" : "transparent"}`, background: folder === f.id ? "rgba(99,102,241,0.1)" : "transparent", color: folder === f.id ? "#fff" : "rgba(255,255,255,0.38)", cursor: "pointer", textAlign: "left", marginBottom: 1, transition: "all 0.15s" }}>
+                <f.icon size={12} style={{ color: folder === f.id ? "#6366f1" : "rgba(255,255,255,0.22)", flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>{f.label}</span>
                 {f.id === "all" && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>{notes.length}</span>}
               </button>
@@ -251,7 +325,7 @@ export default function NotepadPage() {
             {CUSTOM_FOLDERS.map(f => (
               <button key={f} onClick={() => setFolder(f)}
                 style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: 500, border: "1px solid transparent", background: "transparent", color: folder === f ? "#fff" : "rgba(255,255,255,0.38)", cursor: "pointer", textAlign: "left", marginBottom: 1, transition: "all 0.15s" }}>
-                <Folder size={11} style={{ color: folder === f ? "#7A5CFF" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                <Folder size={11} style={{ color: folder === f ? "#6366f1" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>{f}</span>
                 <span style={{ fontSize: 10, color: "rgba(255,255,255,0.18)" }}>{notes.filter(n => n.folder === f).length}</span>
               </button>
@@ -280,8 +354,8 @@ export default function NotepadPage() {
                   <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 3 }}>
                     <span style={{ fontSize: 14 }}>{n.emoji}</span>
                     <span style={{ fontSize: 12, fontWeight: 600, color: active?.id === n.id ? "#fff" : "rgba(255,255,255,0.65)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{n.title}</span>
-                    {n.pinned && <Pin size={9} style={{ color: "#FFB800", flexShrink: 0 }} />}
-                    {n.starred && <Star size={9} style={{ color: "#FFB800", flexShrink: 0 }} />}
+                    {n.pinned && <Pin size={9} style={{ color: "#f59e0b", flexShrink: 0 }} />}
+                    {n.starred && <Star size={9} style={{ color: "#f59e0b", flexShrink: 0 }} />}
                   </div>
                   <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                     {n.content.replace(/[#*\-\[\]`]/g,"").substring(0,50)}
@@ -311,7 +385,7 @@ export default function NotepadPage() {
 
               <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
                 {/* Save status */}
-                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: saved ? "#00E7A7" : "#FFB800" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: saved ? "#10b981" : "#f59e0b" }}>
                   {saved ? <Check size={10} /> : <Save size={10} />}
                   {saved ? "Сохранено" : "Сохранение..."}
                 </div>
@@ -330,7 +404,7 @@ export default function NotepadPage() {
                 <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.08)", margin: "0 4px" }} />
 
                 <button onClick={() => setShowAI(!showAI)}
-                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, border: "1px solid rgba(122,92,255,0.3)", background: showAI ? "rgba(122,92,255,0.15)" : "rgba(122,92,255,0.08)", color: "#a78bfa", cursor: "pointer" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, border: "1px solid rgba(99,102,241,0.3)", background: showAI ? "rgba(99,102,241,0.15)" : "rgba(99,102,241,0.08)", color: "#8b5cf6", cursor: "pointer" }}>
                   <Sparkles size={11} />AI
                 </button>
                 <button onClick={() => setRightPanel(!rightPanel)}
@@ -413,8 +487,8 @@ export default function NotepadPage() {
             <AnimatePresence>
               {showAI && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden", flexShrink: 0 }}>
-                  <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(122,92,255,0.15)", background: "rgba(122,92,255,0.04)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#a78bfa", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.04)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#8b5cf6", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
                       <Sparkles size={12} />AI Ассистент
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: aiResult ? 12 : 0 }}>
@@ -429,13 +503,13 @@ export default function NotepadPage() {
                       <div style={{ display: "flex", gap: 5, alignItems: "center", marginTop: 8 }}>
                         {[0,1,2].map(i => (
                           <motion.div key={i} animate={{ opacity: [0.3,1,0.3] }} transition={{ duration: 1.2, repeat: Infinity, delay: i*0.3 }}
-                            style={{ width: 5, height: 5, borderRadius: "50%", background: "#7A5CFF" }} />
+                            style={{ width: 5, height: 5, borderRadius: "50%", background: "#6366f1" }} />
                         ))}
                         <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginLeft: 4 }}>AI обрабатывает...</span>
                       </div>
                     )}
                     {aiResult && (
-                      <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 10, background: "rgba(122,92,255,0.08)", border: "1px solid rgba(122,92,255,0.15)", fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
+                      <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 10, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)", fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
                         {aiResult}
                       </div>
                     )}
@@ -451,10 +525,10 @@ export default function NotepadPage() {
                 <input value={active.title} onChange={e => updateActive({ title: e.target.value })}
                   style={{ flex: 1, background: "transparent", border: "none", color: "#fff", fontSize: 26, fontWeight: 900, outline: "none", letterSpacing: "-0.5px" }}
                   placeholder="Без названия" />
-                <button onClick={() => toggleStar(active.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: active.starred ? "#FFB800" : "rgba(255,255,255,0.2)" }}>
+                <button onClick={() => toggleStar(active.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: active.starred ? "#f59e0b" : "rgba(255,255,255,0.2)" }}>
                   <Star size={16} />
                 </button>
-                <button onClick={() => togglePin(active.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: active.pinned ? "#FFB800" : "rgba(255,255,255,0.2)" }}>
+                <button onClick={() => togglePin(active.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: active.pinned ? "#f59e0b" : "rgba(255,255,255,0.2)" }}>
                   <Pin size={14} />
                 </button>
                 <button onClick={() => deleteNote(active.id)} style={{ background: "transparent", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.2)" }}>
@@ -464,7 +538,7 @@ export default function NotepadPage() {
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {active.tags.map(t => {
                   const tag = TAGS.find(tg => tg.label === t);
-                  return <span key={t} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: `${tag?.color ?? "#7A5CFF"}18`, color: tag?.color ?? "#7A5CFF", fontWeight: 700, border: `1px solid ${tag?.color ?? "#7A5CFF"}25` }}>{t}</span>;
+                  return <span key={t} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: `${tag?.color ?? "#6366f1"}18`, color: tag?.color ?? "#6366f1", fontWeight: 700, border: `1px solid ${tag?.color ?? "#6366f1"}25` }}>{t}</span>;
                 })}
                 <button onClick={() => setShowTagMenu(!showTagMenu)} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)", cursor: "pointer" }}>
                   + тег
@@ -489,12 +563,12 @@ export default function NotepadPage() {
           </>
         ) : (
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-            <div style={{ width: 60, height: 60, borderRadius: 18, background: "rgba(122,92,255,0.1)", border: "1px solid rgba(122,92,255,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <FileText size={26} style={{ color: "#7A5CFF" }} />
+            <div style={{ width: 60, height: 60, borderRadius: 18, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <FileText size={26} style={{ color: "#6366f1" }} />
             </div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Выберите заметку</div>
             <button onClick={() => setShowTemplates(true)}
-              style={{ padding: "10px 20px", borderRadius: 11, fontSize: 13, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", color: "#fff", cursor: "pointer" }}>
+              style={{ padding: "10px 20px", borderRadius: 11, fontSize: 13, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer" }}>
               Создать заметку
             </button>
           </div>
@@ -528,7 +602,7 @@ export default function NotepadPage() {
               {/* AI Summary */}
               <div style={{ marginBottom: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>AI Summary</div>
-                <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(122,92,255,0.06)", border: "1px solid rgba(122,92,255,0.14)", fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+                <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.14)", fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
                   {active.content.length > 20
                     ? `Документ «${active.title}» содержит ${active.wordCount} слов. Читается за ${readTime(active.wordCount)} мин.`
                     : "Начните писать, чтобы получить AI-резюме"}
@@ -564,7 +638,7 @@ export default function NotepadPage() {
                   { time: "Вчера",       user: "Вы" },
                 ].map((h, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, padding: "5px 8px", borderRadius: 7, background: "rgba(255,255,255,0.02)" }}>
-                    <div style={{ width: 20, height: 20, borderRadius: 6, background: "linear-gradient(135deg, #7A5CFF, #5A8DFF)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff" }}>F</div>
+                    <div style={{ width: 20, height: 20, borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff" }}>F</div>
                     <div>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>{h.user}</div>
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.22)" }}>{h.time}</div>
@@ -585,7 +659,7 @@ export default function NotepadPage() {
             onClick={e => e.target === e.currentTarget && setShowTemplates(false)}>
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
               style={{ width: "100%", maxWidth: 680, borderRadius: 22, background: "#0d0f14", border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", position: "relative" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #7A5CFF80, transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #6366f180, transparent)" }} />
               <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Шаблоны</div>
@@ -597,7 +671,7 @@ export default function NotepadPage() {
               </div>
               <div style={{ padding: "18px 28px 24px" }}>
                 <button onClick={() => createNote()}
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 12, border: "1px dashed rgba(122,92,255,0.3)", background: "rgba(122,92,255,0.05)", color: "#a78bfa", cursor: "pointer", marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 12, border: "1px dashed rgba(99,102,241,0.3)", background: "rgba(99,102,241,0.05)", color: "#8b5cf6", cursor: "pointer", marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
                   <Plus size={16} />Пустая заметка
                 </button>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>

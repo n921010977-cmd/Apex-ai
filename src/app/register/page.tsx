@@ -40,15 +40,15 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080808] flex items-center justify-center px-4 py-10">
+    <div className="min-h-screen bg-[#05060A] flex items-center justify-center px-4 py-10">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[120px]" />
+        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/8 rounded-full blur-[140px]" />
       </div>
 
       <div className="relative w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-8">
-            <div className="size-8 rounded-xl bg-gradient-to-br from-violet-600 to-blue-500 flex items-center justify-center shadow-xl shadow-violet-500/30">
+            <div className="size-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-xl shadow-indigo-500/30">
               <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
@@ -99,7 +99,7 @@ export default function RegisterPage() {
                 placeholder="Ваше имя"
                 value={form.name}
                 onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
-                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
               />
             </div>
             <div>
@@ -109,7 +109,7 @@ export default function RegisterPage() {
                 placeholder="you@example.com"
                 value={form.email}
                 onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))}
-                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
               />
             </div>
             <div>
@@ -119,22 +119,22 @@ export default function RegisterPage() {
                 placeholder="Минимум 8 символов"
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
-                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-violet-500/50 focus:ring-2 focus:ring-violet-500/10 transition-all"
+                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
               />
             </div>
 
             <label className="flex items-start gap-2.5 cursor-pointer mt-1">
               <div
                 onClick={() => setForm((f) => ({ ...f, agree: !f.agree }))}
-                className={`size-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border transition-all cursor-pointer ${form.agree ? "bg-violet-600 border-violet-600" : "border-white/[0.15] bg-white/[0.04]"}`}
+                className={`size-4 rounded flex items-center justify-center flex-shrink-0 mt-0.5 border transition-all cursor-pointer ${form.agree ? "bg-indigo-500 border-indigo-500" : "border-white/[0.15] bg-white/[0.04]"}`}
               >
                 {form.agree && <svg className="size-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
               </div>
               <span className="text-[11px] text-white/35 leading-relaxed">
                 Я принимаю{" "}
-                <Link href="#" className="text-violet-400/70 hover:text-violet-300 transition-colors">Условия использования</Link>
+                <Link href="#" className="text-indigo-400/70 hover:text-indigo-300 transition-colors">Условия использования</Link>
                 {" "}и{" "}
-                <Link href="#" className="text-violet-400/70 hover:text-violet-300 transition-colors">Политику конфиденциальности</Link>
+                <Link href="#" className="text-indigo-400/70 hover:text-indigo-300 transition-colors">Политику конфиденциальности</Link>
               </span>
             </label>
 
@@ -148,7 +148,7 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={!!loading}
-              className="w-full h-10 text-sm font-semibold bg-gradient-to-r from-violet-600 to-blue-600 text-white rounded-xl hover:from-violet-500 hover:to-blue-500 transition-all disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
+              className="w-full h-10 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-xl hover:from-indigo-400 hover:to-indigo-600 transition-all disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
             >
               {loading === "credentials"
                 ? <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -160,7 +160,7 @@ export default function RegisterPage() {
 
         <p className="text-center text-[12px] text-white/30 mt-5">
           Уже есть аккаунт?{" "}
-          <Link href="/login" className="text-violet-400/80 hover:text-violet-300 transition-colors">Войти</Link>
+          <Link href="/login" className="text-indigo-400/80 hover:text-indigo-300 transition-colors">Войти</Link>
         </p>
       </div>
     </div>
