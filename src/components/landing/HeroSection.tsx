@@ -355,6 +355,23 @@ export function HeroSection() {
           0%, 100% { transform: scale(1); }
           50%       { transform: scale(1.035); }
         }
+
+        /* Orb column — give it more of the row and let the orb breathe */
+        .hero-orb-col { flex: 1.15; }
+        .hero-orb-stage { width: 420px; height: 420px; }
+        .hero-orb-scale { transform: scale(1); transform-origin: center; will-change: transform; }
+
+        @media (min-width: 1024px) {
+          .hero-orb-stage { width: 520px; height: 520px; }
+          .hero-orb-scale { transform: scale(1.32); }
+        }
+        @media (min-width: 1280px) {
+          .hero-orb-stage { width: 580px; height: 580px; }
+          .hero-orb-scale { transform: scale(1.48); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .hero-orb-scale { will-change: auto; }
+        }
       `}</style>
 
       {/* ── Background layers ── */}
@@ -452,7 +469,7 @@ export function HeroSection() {
           <motion.p variants={it} className="text-[16px] text-white/40 leading-[1.75] mb-10 max-w-lg">
             Замените консалтинговую команду за&nbsp;$50&thinsp;000 в&nbsp;месяц
             на&nbsp;AI-совет директоров. Полная бизнес-стратегия — CEO, CFO, CMO, COO,
-            CTO и&nbsp;ещё трое экспертов — работают вместе над вашей идеей за&nbsp;минуты.
+            CTO и&nbsp;ещё 15&nbsp;экспертов — работают вместе над вашей идеей за&nbsp;минуты.
           </motion.p>
 
           {/* Metric chips */}
@@ -460,7 +477,7 @@ export function HeroSection() {
             {[
               { val: "10 000+", label: "Стратегий запущено", spark: [3, 5, 4, 7, 6, 9, 11], color: "#a78bfa" },
               { val: "< 5 минут", label: "Полный анализ", spark: [10, 8, 9, 6, 5, 4, 3], color: "#38bdf8" },
-              { val: "8 Экспертов", label: "AI-директоров", spark: [4, 6, 5, 8, 7, 9, 10], color: "#34d399" },
+              { val: "20 Экспертов", label: "AI-директоров", spark: [4, 6, 5, 8, 7, 9, 10], color: "#34d399" },
             ].map((m) => (
               <div
                 key={m.val}
@@ -567,16 +584,15 @@ export function HeroSection() {
 
         {/* ─── Right: 3D Orb visual ────────────────────────────────────── */}
         <motion.div
-          className="flex-1 flex items-center justify-center lg:justify-end"
+          className="hero-orb-col flex items-center justify-center"
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div
-            className="relative"
-            style={{ width: 420, height: 420 }}
-          >
-            <OrbCore />
+          <div className="hero-orb-stage relative flex items-center justify-center">
+            <div className="hero-orb-scale">
+              <OrbCore />
+            </div>
           </div>
         </motion.div>
       </div>
