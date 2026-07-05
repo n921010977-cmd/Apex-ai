@@ -6,7 +6,7 @@ import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Zap, TrendingUp, Target, Shield, ChevronRight, ArrowUpRight,
-  Brain, DollarSign, Cpu, Globe, Lightbulb, Activity,
+  Brain, DollarSign, Cpu, Globe, Lightbulb, Activity, Users,
   BarChart2, FileText, Rocket, Star, AlertTriangle,
   CheckCircle, ExternalLink, MessageSquare,
 } from "lucide-react";
@@ -60,10 +60,10 @@ const ACTIVITY = [
 
 // Four UNIQUE quick actions — each a distinct route (no duplicates)
 const QUICK_ACTIONS = [
-  { label: "Новый анализ",  href: "/dashboard/new",       icon: Zap,      desc: "Запустить AI-команду" },
-  { label: "AI Чат",        href: "/dashboard/chat",      icon: Brain,    desc: "Спросить совет" },
-  { label: "Отчёты",        href: "/dashboard/reports",   icon: FileText, desc: "Все анализы" },
-  { label: "Риски",         href: "/dashboard/risks",     icon: Shield,   desc: "Мониторинг угроз" },
+  { label: "Новый анализ",  href: "/dashboard/new",        icon: Zap,      desc: "Запустить AI-команду" },
+  { label: "AI Чат",        href: "/dashboard/chat",       icon: Brain,    desc: "Спросить совет" },
+  { label: "Отчёты",        href: "/dashboard/reports",    icon: FileText, desc: "Все анализы" },
+  { label: "Исп. совет",    href: "/dashboard/executives", icon: Users,    desc: "AI-директора" },
 ];
 
 // ─── AI Neural Visualization (Canvas, respects reduced-motion) ────────────────

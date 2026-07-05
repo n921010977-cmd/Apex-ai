@@ -6,9 +6,9 @@ import { useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
-  LayoutDashboard, Zap, FolderOpen, FileText, Users, BarChart3,
+  LayoutDashboard, Zap, FolderOpen, FileText, Users,
   MessageSquare, Bot, BookOpen, Settings, HelpCircle, ChevronRight,
-  TrendingUp, Shield, X,
+  X,
 } from "lucide-react";
 
 const NAV_GROUPS = [
@@ -25,9 +25,6 @@ const NAV_GROUPS = [
     label: "AI Система",
     items: [
       { label: "Исполн. совет",   href: "/dashboard/executives", icon: Users },
-      { label: "Аналитика",       href: "/dashboard/analytics",  icon: BarChart3 },
-      { label: "Рост & Рынок",    href: "/dashboard/growth",     icon: TrendingUp },
-      { label: "Риски",           href: "/dashboard/risks",      icon: Shield },
     ],
   },
   {
