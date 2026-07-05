@@ -208,7 +208,17 @@ export default function ExecutivesPage() {
   const [zoom, setZoom] = useState(1);
   const [entered, setEntered] = useState(false);
   const [query, setQuery] = useState("");
+  const detailRef = useRef<HTMLDivElement>(null);
   useEffect(() => { const t = setTimeout(() => setEntered(true), 60); return () => clearTimeout(t); }, []);
+
+  // Scroll detail panel into view when selection changes (but not on first render)
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
+    if (selectedRole && detailRef.current) {
+      setTimeout(() => detailRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 120);
+    }
+  }, [selectedRole]);
 
   const selExec = selectedRole ? execByRole[selectedRole] : null;
   const selLayout = selectedRole ? GRAPH_LAYOUT[selectedRole] : null;
@@ -240,12 +250,19 @@ export default function ExecutivesPage() {
         @keyframes exec-pop { from{transform:scale(0.75);opacity:0} to{transform:scale(1);opacity:1} }
         @keyframes exec-glow { 0%,100%{opacity:0.6} 50%{opacity:1} }
         @keyframes exec-slide { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        .exec-detail-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:24px; }
+        @media(max-width:900px){ .exec-detail-grid { grid-template-columns:1fr 1fr; } }
+        @media(max-width:600px){ .exec-detail-grid { grid-template-columns:1fr; } }
+        .exec-header-wrap { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+        .exec-kpi-row { display:flex; gap:8px; flex-wrap:wrap; }
+        .exec-controls { display:flex; flex-direction:column; gap:10px; align-items:flex-end; }
+        @media(max-width:700px){ .exec-controls { align-items:flex-start; } }
       `}</style>
 
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-        style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, marginBottom: 16, flexWrap: "wrap" }}
+        className="exec-header-wrap"
       >
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
@@ -260,8 +277,8 @@ export default function ExecutivesPage() {
         </div>
 
         {/* KPI chips + search */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-end" }}>
-          <div style={{ display: "flex", gap: 8 }}>
+        <div className="exec-controls">
+          <div className="exec-kpi-row">
             {[
               { label: "Агентов", value: animCount, color: "#8b5cf6" },
               { label: "Средний балл", value: animAvg, color: "#3b82f6" },
@@ -471,6 +488,7 @@ export default function ExecutivesPage() {
       </div>
 
       {/* Detail panel for selected exec */}
+      <div ref={detailRef} />
       <AnimatePresence mode="wait">
       {selExec && (
         <motion.div key={selectedRole}
@@ -483,9 +501,9 @@ export default function ExecutivesPage() {
         }}>
           <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg,transparent,rgba(${selRgb},0.6),transparent)` }}/>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 24 }}>
+          <div className="exec-detail-grid">
             {/* Left: bio + expertise */}
-            <div style={{ gridColumn: "span 1" }}>
+            <div>
               <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16 }}>
                 <div style={{
                   width: 52, height: 52, borderRadius: 14, flexShrink: 0,
