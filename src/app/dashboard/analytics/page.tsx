@@ -161,10 +161,32 @@ function heatColor(v: number) {
 
 // ─── Main ──────────────────────────────────────────────────────────────────────
 
+interface ApiSummary {
+  ai_messages?: number;
+  total_tokens?: number;
+  strategies_generated?: number;
+  board_meetings?: number;
+  decisions_made?: number;
+  active_risks?: number;
+  critical_risks?: number;
+}
+
+const PERIOD_MAP: Record<Period, string> = {
+  "7 дней": "7d", "30 дней": "30d", "3 мес": "90d", "Год": "1y",
+};
+
 export default function AnalyticsPage() {
   const [period, setPeriod] = useState<Period>("30 дней");
   const [chartTab, setChartTab] = useState<ChartTab>("Revenue");
   const [activeRec, setActiveRec] = useState<number | null>(null);
+  const [apiData, setApiData] = useState<ApiSummary | null>(null);
+
+  useEffect(() => {
+    fetch(`/api/analytics?period=${PERIOD_MAP[period]}`)
+      .then(r => r.json())
+      .then(j => { if (j.success) setApiData(j.data.summary); })
+      .catch(() => {});
+  }, [period]);
 
   const chartColor = CHART_COLORS[chartTab];
 
@@ -265,7 +287,7 @@ export default function AnalyticsPage() {
 
         {/* ── Bento KPI Grid ── */}
         <div style={{ marginBottom: 20 }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr 1fr", gridTemplateRows: "auto auto", gap: 12 }}>
+          <div className="an-bento" style={{ display: "grid", gap: 12 }}>
             {/* Large: Revenue */}
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}
               style={{ gridRow: "1 / 3", padding: "22px", borderRadius: 20, background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.12)", position: "relative", overflow: "hidden" }}
@@ -279,7 +301,9 @@ export default function AnalyticsPage() {
                 <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Total Revenue Forecast</div>
               </div>
               <div style={{ fontSize: 42, fontWeight: 900, color: "#10b981", lineHeight: 1, marginBottom: 6, letterSpacing: "-0.04em", filter: "drop-shadow(0 0 16px rgba(16,185,129,0.4))" }}>$4.2M</div>
-              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>Суммарный прогноз всех проектов</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginBottom: 16 }}>
+                {apiData ? `${apiData.strategies_generated ?? 0} стратегий · ${(apiData.total_tokens ?? 0).toLocaleString()} токенов` : "Суммарный прогноз всех проектов"}
+              </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
                   <TrendingUp size={11} style={{ color: "#10b981" }} />
@@ -496,7 +520,7 @@ export default function AnalyticsPage() {
               <RefreshCw size={11} /> Обновить
             </button>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12 }}>
+          <div className="an-recs" style={{ display: "grid", gap: 12 }}>
             {AI_RECS.map((rec, i) => {
               const Icon = rec.icon;
               const isActive = activeRec === i;
@@ -657,12 +681,19 @@ export default function AnalyticsPage() {
         @keyframes an-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
         .an-main { grid-template-columns: 1fr 340px; }
         .an-bottom { grid-template-columns: 1fr 1fr 1fr; }
+        .an-bento { grid-template-columns: 2fr 1fr 1fr 1fr 1fr; grid-template-rows: auto auto; }
+        .an-recs { grid-template-columns: repeat(4, 1fr); }
         @media (max-width: 1100px) {
-          .an-main { grid-template-columns: 1fr; }
-          .an-bottom { grid-template-columns: 1fr 1fr; }
+          .an-main { grid-template-columns: 1fr !important; }
+          .an-bottom { grid-template-columns: 1fr 1fr !important; }
+          .an-bento { grid-template-columns: 1fr 1fr 1fr !important; grid-template-rows: unset !important; }
+          .an-bento > *:first-child { grid-row: unset !important; }
+          .an-recs { grid-template-columns: 1fr 1fr !important; }
         }
         @media (max-width: 640px) {
-          .an-bottom { grid-template-columns: 1fr; }
+          .an-bottom { grid-template-columns: 1fr !important; }
+          .an-bento { grid-template-columns: 1fr 1fr !important; }
+          .an-recs { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

@@ -418,12 +418,46 @@ export default function ReportsPage() {
   const [active, setActive] = useState<MockReport>(REPORTS[0]);
   const [mounted, setMounted] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [allReports, setAllReports] = useState<MockReport[]>(REPORTS);
+
   useEffect(() => setMounted(true), []);
   useEffect(() => {
     if (!toast) return;
     const t = setTimeout(() => setToast(null), 2200);
     return () => clearTimeout(t);
   }, [toast]);
+
+  useEffect(() => {
+    fetch("/api/reports")
+      .then(r => r.json())
+      .then(j => {
+        if (j.success && Array.isArray(j.data) && j.data.length > 0) {
+          const apiReports: MockReport[] = j.data.map((r: {
+            id: string; title?: string; type?: string; status?: string;
+            content?: string; created_at?: string;
+          }) => ({
+            id: r.id,
+            title: r.title ?? "Отчёт",
+            type: r.type ?? "Анализ",
+            status: (r.status === "processing" ? "PROCESSING" : "COMPLETED") as ReportStatus,
+            pages: 0,
+            score: 80,
+            time: r.created_at ? new Date(r.created_at).toLocaleDateString("ru-RU") : "Сегодня",
+            summary: r.content ?? "",
+            market: "—",
+            revenue: "—",
+            risk: "—",
+            agents: 20,
+            growth: "—",
+            color: "#6366f1",
+            rgb: "99,102,241",
+          }));
+          setAllReports([...apiReports, ...REPORTS]);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   if (!mounted) return null;
 
   const isProcessing = active.status === "PROCESSING";
@@ -465,7 +499,7 @@ export default function ReportsPage() {
         </div>
 
         {/* ── Layout ── */}
-        <div style={{ display: "grid", gridTemplateColumns: "280px 1fr", gap: 20, alignItems: "start" }}>
+        <div className="rp-layout" style={{ display: "grid", gap: 20, alignItems: "start" }}>
 
           {/* ── Left: list ── */}
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -475,7 +509,7 @@ export default function ReportsPage() {
               <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)" }}>20 AI-агентов сформировали {REPORTS.filter(r => r.status === "COMPLETED").length} отчёта</span>
             </div>
 
-            {REPORTS.map(r => (
+            {allReports.map(r => (
               <ReportListCard key={r.id} report={r} active={active.id === r.id} onClick={() => setActive(r)} />
             ))}
 
@@ -550,7 +584,7 @@ export default function ReportsPage() {
                 ) : (
                   <>
                     {/* KPI strip */}
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 20 }}>
+                    <div className="rp-kpi" style={{ display: "grid", gap: 10, marginBottom: 20 }}>
                       {[
                         { label: "Рынок (SAM)", value: active.market,  icon: Globe,       color: "#38bdf8" },
                         { label: "Прогноз",     value: active.revenue, icon: DollarSign,  color: "#10b981" },
@@ -628,7 +662,7 @@ export default function ReportsPage() {
                       </div>
 
                       {/* Third: Marketing + Ops + Risks */}
-                      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginBottom: 8 }}>
+                      <div className="rp-thirds" style={{ display: "grid", gap: 8, marginBottom: 8 }}>
                         <SectionBento section={SECTIONS[3]} />
                         <SectionBento section={SECTIONS[4]} />
                         <SectionBento section={SECTIONS[5]} />
@@ -682,6 +716,20 @@ export default function ReportsPage() {
         @keyframes rp-spin  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes rp-ping  { 0%{transform:scale(1);opacity:0.6} 100%{transform:scale(1.5);opacity:0} }
         @keyframes rp-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+        .rp-layout { grid-template-columns: 280px 1fr; }
+        .rp-kpi { grid-template-columns: repeat(5, 1fr); }
+        .rp-thirds { grid-template-columns: 1fr 1fr 1fr; }
+        @media (max-width: 1100px) {
+          .rp-layout { grid-template-columns: 1fr !important; }
+        }
+        @media (max-width: 900px) {
+          .rp-kpi { grid-template-columns: repeat(3, 1fr) !important; }
+          .rp-thirds { grid-template-columns: 1fr 1fr !important; }
+        }
+        @media (max-width: 600px) {
+          .rp-kpi { grid-template-columns: repeat(2, 1fr) !important; }
+          .rp-thirds { grid-template-columns: 1fr !important; }
+        }
       `}</style>
     </div>
   );
