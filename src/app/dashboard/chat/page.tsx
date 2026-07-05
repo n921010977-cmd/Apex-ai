@@ -10,7 +10,7 @@ import {
   Clock, CheckCircle, Filter, Grid, List,
   Layers, Code, Database, Cloud, Lock,
   UserCheck, BookOpen, PenTool, Video, Mail,
-  ShoppingCart, Phone, Activity, Award, Briefcase,
+  ShoppingCart, Phone, Activity, Award, Briefcase, X,
 } from "lucide-react";
 
 // ─── AGENTS ──────────────────────────────────────────────────────────────────
@@ -83,13 +83,32 @@ const PINNED_CHATS = [
   { id:"p1", title:"Стратегия выхода на SEA-рынок",  agent:"CEO",     time:"2ч назад",  color:"#8b5cf6" },
   { id:"p2", title:"Финансовая модель Q3 2026",       agent:"CFO",     time:"5ч назад",  color:"#10b981" },
 ];
-const RECENT_CHATS = [
-  { id:"r1", title:"Go-to-market план для B2B SaaS", agent:"CMO",     time:"вчера",     color:"#f43f5e" },
-  { id:"r2", title:"Анализ конкурентов по рынку AI",  agent:"Research",time:"2д назад",  color:"#a78bfa" },
-  { id:"r3", title:"Техдолг и рефакторинг архитектуры",agent:"CTO",   time:"3д назад",  color:"#3b82f6" },
-  { id:"r4", title:"Оценка инвестиционного раунда А", agent:"CFO",    time:"4д назад",  color:"#10b981" },
-  { id:"r5", title:"Структура команды на рост x3",    agent:"COO",    time:"5д назад",  color:"#f59e0b" },
-];
+
+// ─── Saved conversation history ───────────────────────────────────────────────
+const CHATS_KEY = "apex-chat-history-v1";
+
+interface ChatMessage { role: "user" | "ai"; text: string; agent?: string }
+interface SavedChat {
+  id: string;
+  agentId: string;
+  agentName: string;
+  role: string;
+  color: string;
+  icon: string;
+  title: string;
+  updatedAt: number;
+  messages: ChatMessage[];
+}
+
+function chatTimeAgo(ts: number): string {
+  const m = Math.floor((Date.now() - ts) / 60000);
+  if (m < 1) return "сейчас";
+  if (m < 60) return `${m}м`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}ч`;
+  const d = Math.floor(h / 24);
+  return d === 1 ? "вчера" : `${d}д`;
+}
 
 const QUICK_PROMPTS = [
   "Проведи SWOT-анализ моего бизнеса",
@@ -198,6 +217,8 @@ export default function ChatPage() {
   const [archivedIds, setArchivedIds] = useState<Set<string>>(new Set());
   const [attachments, setAttachments] = useState<string[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+  const [savedChats, setSavedChats] = useState<SavedChat[]>([]);
+  const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -211,6 +232,49 @@ export default function ChatPage() {
 
   useEffect(() => { messagesEnd.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
+  // ── Conversation history persistence ─────────────────────────────────────
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CHATS_KEY);
+      if (raw) setSavedChats(JSON.parse(raw));
+    } catch { /* ignore */ }
+  }, []);
+
+  // Persist the active conversation whenever it changes (skip empty / welcome-only)
+  useEffect(() => {
+    if (!activeAgent || !currentChatId) return;
+    const meaningful = messages.filter(m => m.role === "user").length > 0;
+    if (!meaningful) return;
+    const firstUser = messages.find(m => m.role === "user")?.text ?? activeAgent.name;
+    const title = firstUser.length > 44 ? firstUser.slice(0, 44) + "…" : firstUser;
+    setSavedChats(prev => {
+      const next: SavedChat[] = [
+        { id: currentChatId, agentId: activeAgent.id, agentName: activeAgent.name, role: activeAgent.role, color: activeAgent.color, icon: activeAgent.icon, title, updatedAt: Date.now(), messages },
+        ...prev.filter(c => c.id !== currentChatId),
+      ].slice(0, 30);
+      try { localStorage.setItem(CHATS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+  }, [messages, activeAgent, currentChatId]);
+
+  const openSavedChat = (chat: SavedChat) => {
+    const agent = AGENTS.find(a => a.id === chat.agentId);
+    if (!agent) return;
+    setActiveAgent(agent);
+    setMessages(chat.messages);
+    setCurrentChatId(chat.id);
+    setAttachments([]);
+  };
+
+  const deleteSavedChat = (id: string) => {
+    setSavedChats(prev => {
+      const next = prev.filter(c => c.id !== id);
+      try { localStorage.setItem(CHATS_KEY, JSON.stringify(next)); } catch { /* ignore */ }
+      return next;
+    });
+    if (currentChatId === id) { setActiveAgent(null); setMessages([]); setCurrentChatId(null); }
+  };
+
   const showToast = (msg: string) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2200);
@@ -219,6 +283,7 @@ export default function ChatPage() {
   const startChat = async (agent: typeof AGENTS[0]) => {
     setActiveAgent(agent);
     setAttachments([]);
+    setCurrentChatId(`c_${Date.now()}_${agent.id}`);
     setMessages([{ role: "ai", text: `Привет! Я ${agent.name} — ${agent.role}. ${agent.desc}. Чем могу помочь?`, agent: agent.name }]);
   };
 
@@ -228,11 +293,7 @@ export default function ChatPage() {
     if (!param) return;
     const found = AGENTS.find(a => a.id === param)
       ?? AGENTS.find(a => a.name.toLowerCase().includes(param.toLowerCase()));
-    if (found) {
-      setActiveAgent(found);
-      setAttachments([]);
-      setMessages([{ role: "ai", text: `Привет! Я ${found.name} — ${found.role}. ${found.desc}. Чем могу помочь?`, agent: found.name }]);
-    }
+    if (found) startChat(found);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -399,6 +460,12 @@ export default function ChatPage() {
   return (
     <div style={{ height: "100vh", display: "flex", background: "#07090F", overflow: "hidden" }}>
 
+      <style>{`
+        .chat-history-del { opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s; }
+        .chat-history-row:hover .chat-history-del { opacity: 1; }
+        .chat-history-del:hover { background: rgba(244,63,94,0.14) !important; color: #f43f5e !important; }
+      `}</style>
+
       {/* Toast */}
       {toast && (
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
@@ -411,7 +478,7 @@ export default function ChatPage() {
       <div style={{ width: 240, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", height: "100%" }}>
         {/* Top */}
         <div style={{ padding: "16px 14px 12px" }}>
-          <button onClick={() => { setActiveAgent(null); setMessages([]); }}
+          <button onClick={() => { setActiveAgent(null); setMessages([]); setCurrentChatId(null); }}
             style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 11, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #8b5cf6, #3b82f6)", color: "#fff", cursor: "pointer", marginBottom: 12, boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>
             <Plus size={13} />Новый чат
           </button>
@@ -441,21 +508,34 @@ export default function ChatPage() {
             ))}
           </div>
 
-          {/* Recent */}
+          {/* Recent — real saved conversations */}
           <div style={{ marginBottom: 16 }}>
             <div style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(255,255,255,0.2)", padding: "0 6px", marginBottom: 5, display: "flex", alignItems: "center", gap: 5 }}>
-              <Clock size={9} />Недавние
+              <Clock size={9} />История диалогов
             </div>
-            {RECENT_CHATS.map(c => (
-              <button key={c.id} onClick={() => openChatByAgentName(c.agent)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px", borderRadius: 9, border: "1px solid transparent", background: "transparent", cursor: "pointer", textAlign: "left", marginBottom: 2 }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; }}
-                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}>
-                <div style={{ width: 5, height: 5, borderRadius: "50%", background: c.color, flexShrink: 0, opacity: 0.7 }} />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.55)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</div>
-                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.22)" }}>{c.agent} · {c.time}</div>
-                </div>
-              </button>
+            {savedChats.length === 0 ? (
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", padding: "6px 8px", lineHeight: 1.5 }}>
+                Пока пусто — начните диалог с любым агентом, и он сохранится здесь.
+              </div>
+            ) : savedChats
+              .filter(c => !chatSearch || c.title.toLowerCase().includes(chatSearch.toLowerCase()) || c.agentName.toLowerCase().includes(chatSearch.toLowerCase()))
+              .map(c => (
+              <div key={c.id} className="chat-history-row" style={{ position: "relative", marginBottom: 2 }}>
+                <button onClick={() => openSavedChat(c)} style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 26px 8px 10px", borderRadius: 9, border: `1px solid ${currentChatId === c.id ? "rgba(139,92,246,0.3)" : "transparent"}`, background: currentChatId === c.id ? "rgba(139,92,246,0.08)" : "transparent", cursor: "pointer", textAlign: "left", transition: "background 0.15s" }}
+                  onMouseEnter={e => { if (currentChatId !== c.id) (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; }}
+                  onMouseLeave={e => { if (currentChatId !== c.id) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}>
+                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: c.color, flexShrink: 0 }} />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ fontSize: 11, fontWeight: 500, color: "rgba(255,255,255,0.6)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{c.title}</div>
+                    <div style={{ fontSize: 9, color: "rgba(255,255,255,0.22)" }}>{c.agentName} · {chatTimeAgo(c.updatedAt)}</div>
+                  </div>
+                </button>
+                <button onClick={() => deleteSavedChat(c.id)} title="Удалить"
+                  className="chat-history-del"
+                  style={{ position: "absolute", right: 6, top: "50%", transform: "translateY(-50%)", width: 18, height: 18, borderRadius: 6, border: "none", background: "transparent", color: "rgba(255,255,255,0.25)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <X size={11} />
+                </button>
+              </div>
             ))}
           </div>
 
@@ -483,7 +563,7 @@ export default function ChatPage() {
           <>
             {/* Chat Header */}
             <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 14, flexShrink: 0 }}>
-              <button onClick={() => { setActiveAgent(null); setMessages([]); }} style={{ padding: "6px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.4)", cursor: "pointer" }}>← Назад</button>
+              <button onClick={() => { setActiveAgent(null); setMessages([]); setCurrentChatId(null); }} style={{ padding: "6px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", background: "transparent", color: "rgba(255,255,255,0.4)", cursor: "pointer" }}>← Назад</button>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <div style={{ width: 34, height: 34, borderRadius: 10, background: `${activeAgent.color}18`, border: `1px solid ${activeAgent.color}28`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18 }}>{activeAgent.icon}</div>
                 <div>
