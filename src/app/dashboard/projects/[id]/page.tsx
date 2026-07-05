@@ -17,17 +17,17 @@ interface ProjectData {
 // ─── 20 DEMO AGENTS ───────────────────────────────────────────────────────────
 
 const DEMO_AGENTS = [
-  { id:"ceo", role:"CEO", name:"Victoria Sterling", color:"#7A5CFF", title:"Генеральный директор", score:82,
+  { id:"ceo", role:"CEO", name:"Victoria Sterling", color:"#8b5cf6", title:"Генеральный директор", score:82,
     opinion:"Проект имеет чёткий стратегический потенциал в нише с растущим спросом. Бизнес-модель масштабируема и защищена за счёт сетевого эффекта. Рекомендую сконцентрироваться на одном ICP в первые 6 месяцев работы. Ключевой риск — расфокусировка в попытке охватить все сегменты сразу. Команда должна иметь чёткое распределение ролей до запуска. Инвестиции пропорционально делятся между продуктом и привлечением клиентов. Партнёрства с дополнительными игроками рынка существенно ускорят рост. OKR должны быть жёстко привязаны к финансовым целям на каждый квартал. Выход на операционную прибыль реален в горизонте 18–24 месяцев при правильном исполнении." },
-  { id:"cfo", role:"CFO", name:"James Hartley", color:"#5A8DFF", title:"Финансовый директор", score:79,
+  { id:"cfo", role:"CFO", name:"James Hartley", color:"#3b82f6", title:"Финансовый директор", score:79,
     opinion:"Финансовая структура проекта в целом корректна, однако требует доработки в части прогнозирования выручки. Burn rate следует оптимизировать до уровня максимум 15% месячного MRR. CAC нужно снизить на 20% для достижения прибыльности в плановые сроки. Создайте runway минимум на 18 месяцев до следующего раунда привлечения. P&L должен выйти в плюс не позднее месяца 20 после запуска. Revenue-based financing стоит рассмотреть как альтернативу equity dilution. Unit economics жизнеспособны при достижении масштаба 1000+ активных клиентов. Финансовые KPI необходимо мониторить еженедельно для оперативного реагирования." },
-  { id:"coo", role:"COO", name:"Elena Vasquez", color:"#00E7A7", title:"Операционный директор", score:76,
+  { id:"coo", role:"COO", name:"Elena Vasquez", color:"#10b981", title:"Операционный директор", score:76,
     opinion:"Операционная стратегия требует немедленной проработки процессов доставки ценности клиентам. Без чётких SOP команда потеряет 30–40% эффективности при масштабировании. Автоматизация рутинных задач должна начаться с первого месяца работы компании. KPI по операционной эффективности должны отслеживаться еженедельно на всех уровнях. Время отклика на запросы клиентов является критическим показателем NPS. Операционные расходы реалистично снизить на 18–25% при выходе на объём. Первые 3 месяца — критический период выстраивания операционной дисциплины. Поставщики и партнёры требуют формального договорного оформления до старта." },
-  { id:"cmo", role:"CMO", name:"Sarah Chen", color:"#FF5470", title:"Директор по маркетингу", score:84,
+  { id:"cmo", role:"CMO", name:"Sarah Chen", color:"#f43f5e", title:"Директор по маркетингу", score:84,
     opinion:"Рыночное позиционирование требует более чёткой дифференциации от ключевых конкурентов. Контент-маркетинг рекомендую как основной acquisition channel на старте с минимальным бюджетом. Brand voice должен быть задокументирован до первого публичного контакта с аудиторией. CAC через органику может быть в 3–5 раз ниже paid при правильной SEO стратегии. Email retention программа способна снизить churn на 15–20% при правильной реализации. Партнёрство с инфлюенсерами в нише даст быстрый initial traction на первых 90 дней. Ретаргетинг должен быть настроен с первого месяца присутствия в платных каналах. A/B тестирование — обязательная практика для всех acquisition гипотез без исключения." },
   { id:"cto", role:"CTO", name:"David Park", color:"#a78bfa", title:"Технический директор", score:71,
     opinion:"Технологический стек выбран адекватно стадии и текущему масштабу проекта. Главный риск — накопление технического долга при агрессивном росте без рефакторинга. Архитектура должна быть спроектирована с расчётом на 10x текущей нагрузки системы. DevOps культура и CI/CD — обязательны с первого дня разработки команды. Безопасность данных требует приоритизации, особенно при работе с пользовательскими данными. Мониторинг и alerting должны быть настроены до производственного launch продукта. API-first подход обеспечит гибкость интеграций и будущего масштабирования системы. Инвестиция в автотесты окупится уже на 3-м месяце активной разработки продукта." },
-  { id:"ba", role:"Аналитик", name:"Michael Torres", color:"#FFB800", title:"Бизнес-аналитик", score:80,
+  { id:"ba", role:"Аналитик", name:"Michael Torres", color:"#f59e0b", title:"Бизнес-аналитик", score:80,
     opinion:"Рыночный анализ подтверждает наличие реального спроса в целевом сегменте аудитории. Конкуренты не полностью закрывают pain point, который адресует данный проект на рынке. TAM существенен, но реалистичная целевая доля рынка в 3 года составляет 1–3%. Тренды рынка положительные: CAGR 15–25% прогнозируется в следующие 5 лет. Барьеры входа умеренные — window of opportunity открыт для быстрого движения. Поведение потребителей меняется в пользу данного решения по всем ключевым метрикам. Сезонность требует отдельного учёта в финансовой модели при прогнозировании. Данные должны собираться с первого дня для обучения будущих аналитических моделей." },
   { id:"legal", role:"Юрист", name:"Anna Petrova", color:"#94a3b8", title:"Юридический советник", score:68,
     opinion:"Юридическая структура проекта требует проверки на соответствие регуляторным требованиям. Обработка персональных данных пользователей должна соответствовать GDPR и локальным нормам. Регистрация товарного знака необходима до публичного запуска продукта на рынок. Договоры с подрядчиками и сотрудниками должны быть составлены с полноценными NDA. Интеллектуальная собственность должна быть оформлена на юридическое лицо, а не физических лиц. Пользовательское соглашение и политика конфиденциальности являются юридическими требованиями. Потенциальные регуляторные риски в отрасли необходимо задокументировать заблаговременно. Создайте юридический резерв размером 5–10% операционного бюджета для минимизации рисков." },
@@ -287,12 +287,12 @@ function DetailedRevenueChart({ financials, timeframe }: {
       >
         <defs>
           <linearGradient id="fin-line" x1="0" y1="0" x2="1" y2="0">
-            <stop offset="0%" stopColor="#5A8DFF" />
-            <stop offset="100%" stopColor="#7A5CFF" />
+            <stop offset="0%" stopColor="#3b82f6" />
+            <stop offset="100%" stopColor="#8b5cf6" />
           </linearGradient>
           <linearGradient id="fin-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#7A5CFF" stopOpacity="0.22" />
-            <stop offset="100%" stopColor="#5A8DFF" stopOpacity="0.02" />
+            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.22" />
+            <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
           </linearGradient>
           <clipPath id="fin-clip">
             <rect x={PL} y={PT} width={chartW} height={chartH} />
@@ -345,8 +345,8 @@ function DetailedRevenueChart({ financials, timeframe }: {
           const x = toX(i), y = toY(v);
           return (
             <g key={i} style={{ opacity: animated ? 1 : 0, transition: `opacity 0.3s ${0.9 + i * 0.03}s` }}>
-              <circle cx={x} cy={y} r="4" fill="#070912" stroke={i === months - 1 ? "#7A5CFF" : "#5A8DFF"} strokeWidth="1.5" />
-              <circle cx={x} cy={y} r="1.8" fill={i === months - 1 ? "#7A5CFF" : "#5A8DFF"} />
+              <circle cx={x} cy={y} r="4" fill="#070912" stroke={i === months - 1 ? "#8b5cf6" : "#3b82f6"} strokeWidth="1.5" />
+              <circle cx={x} cy={y} r="1.8" fill={i === months - 1 ? "#8b5cf6" : "#3b82f6"} />
             </g>
           );
         })}
@@ -355,7 +355,7 @@ function DetailedRevenueChart({ financials, timeframe }: {
         {animated && (
           <g style={{ opacity: animated ? 1 : 0, transition: "opacity 0.5s 2s" }}>
             <text x={toX(months - 1) - 6} y={toY(pts28[months - 1]) - 10}
-              textAnchor="end" fill="#7A5CFF" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace">
+              textAnchor="end" fill="#8b5cf6" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace">
               {yr3?.value ?? formatVal(v3)}
             </text>
           </g>
@@ -366,13 +366,13 @@ function DetailedRevenueChart({ financials, timeframe }: {
           <g>
             <line x1={hovered.x} y1={PT} x2={hovered.x} y2={PT + chartH}
               stroke="rgba(255,255,255,0.15)" strokeWidth="1" strokeDasharray="4 3" />
-            <circle cx={hovered.x} cy={hovered.y} r="5" fill="#070912" stroke="#5A8DFF" strokeWidth="2" />
-            <circle cx={hovered.x} cy={hovered.y} r="2.5" fill="#5A8DFF" />
+            <circle cx={hovered.x} cy={hovered.y} r="5" fill="#070912" stroke="#3b82f6" strokeWidth="2" />
+            <circle cx={hovered.x} cy={hovered.y} r="2.5" fill="#3b82f6" />
             {/* Tooltip */}
             <g transform={`translate(${Math.min(hovered.x + 10, W - 130)}, ${Math.max(hovered.y - 46, PT + 4)})`}>
-              <rect width="118" height="38" rx="7" fill="rgba(14,18,34,0.95)" stroke="rgba(90,141,255,0.3)" strokeWidth="1" />
+              <rect width="118" height="38" rx="7" fill="rgba(14,18,34,0.95)" stroke="rgba(59,130,246,0.3)" strokeWidth="1" />
               <text x="10" y="14" fill="rgba(255,255,255,0.5)" fontSize="8.5" fontFamily="ui-monospace,monospace">{hovered.label}</text>
-              <text x="10" y="28" fill="#5A8DFF" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace">
+              <text x="10" y="28" fill="#3b82f6" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace">
                 {formatVal(hovered.val)}
               </text>
             </g>
@@ -382,7 +382,7 @@ function DetailedRevenueChart({ financials, timeframe }: {
         {/* Start label */}
         {animated && (
           <text x={toX(0)} y={toY(pts28[0]) - 10} textAnchor="start"
-            fill="#5A8DFF" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace"
+            fill="#3b82f6" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace"
             style={{ opacity: animated ? 1 : 0, transition: "opacity 0.5s 2s" }}>
             {yr1?.value ?? formatVal(v1)}
           </text>
@@ -459,9 +459,9 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
       const cx = W / 2;
       // Glass platform ellipse
       const g = ctx.createLinearGradient(cx - w / 2, cy, cx + w / 2, cy + h);
-      g.addColorStop(0,   "rgba(122,92,255,0.12)");
-      g.addColorStop(0.5, "rgba(90,141,255,0.18)");
-      g.addColorStop(1,   "rgba(122,92,255,0.06)");
+      g.addColorStop(0,   "rgba(139,92,246,0.12)");
+      g.addColorStop(0.5, "rgba(59,130,246,0.18)");
+      g.addColorStop(1,   "rgba(139,92,246,0.06)");
       ctx.save();
       ctx.beginPath();
       ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
@@ -492,17 +492,17 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
 
       // Platform reflection glow
       const refGlow = ctx.createRadialGradient(W * 0.45, 368, 0, W * 0.45, 368, 120);
-      refGlow.addColorStop(0, "rgba(122,92,255,0.12)");
-      refGlow.addColorStop(1, "rgba(122,92,255,0)");
+      refGlow.addColorStop(0, "rgba(139,92,246,0.12)");
+      refGlow.addColorStop(1, "rgba(139,92,246,0)");
       ctx.save(); ctx.globalCompositeOperation = "lighter";
       ctx.fillStyle = refGlow;
       ctx.beginPath(); ctx.ellipse(W * 0.45, 368, 120, 18, 0, 0, Math.PI * 2); ctx.fill();
       ctx.restore();
 
       // Draw back-to-front: TAM, SAM, SOM
-      drawSphere(tamCx, tamCy, tamR, "#c4b5fd", "#7A5CFF", "122,92,255");
-      drawSphere(samCx, samCy, samR, "#93c5fd", "#3b82f6",  "90,141,255");
-      drawSphere(somCx, somCy, somR, "#6ee7b7", "#00E7A7",  "0,231,167");
+      drawSphere(tamCx, tamCy, tamR, "#c4b5fd", "#8b5cf6", "139,92,246");
+      drawSphere(samCx, samCy, samR, "#93c5fd", "#3b82f6",  "59,130,246");
+      drawSphere(somCx, somCy, somR, "#6ee7b7", "#10b981",  "16,185,129");
 
       rafRef.current = requestAnimationFrame(draw);
     }
@@ -514,11 +514,11 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
   const cards = [
     { key: "TAM", label: "TAM: " + (tam?.value ?? "—"), sub: "(Общий адресный рынок)", color: "#a78bfa", rgb: "167,139,250",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> },
-    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Достижимый рынок)", color: "#5A8DFF", rgb: "90,141,255",
+    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Достижимый рынок)", color: "#3b82f6", rgb: "59,130,246",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> },
-    { key: "SOM", label: "SOM: " + (som?.value ?? "—"), sub: "(Достижимый рыночный охват)", color: "#00E7A7", rgb: "0,231,167",
+    { key: "SOM", label: "SOM: " + (som?.value ?? "—"), sub: "(Достижимый рыночный охват)", color: "#10b981", rgb: "16,185,129",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M17 3l1 4-4 1"/></svg> },
-    { key: "CAGR", label: "CAGR: " + (cagr?.value ?? "+25%"), sub: "(Среднегодовой темп роста)", color: "#FFB800", rgb: "255,184,0",
+    { key: "CAGR", label: "CAGR: " + (cagr?.value ?? "+25%"), sub: "(Среднегодовой темп роста)", color: "#f59e0b", rgb: "245,158,11",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/><rect x="2" y="14" width="4" height="7" rx="1"/><rect x="9" y="10" width="4" height="11" rx="1"/><rect x="16" y="6" width="4" height="15" rx="1"/></svg> },
   ];
 
@@ -581,7 +581,7 @@ function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] })
   const n = axes.length;
   const cx = 110, cy = 110, r = 78;
   const lv: Record<string, number> = { high: 0.88, medium: 0.55, low: 0.28 };
-  const lc: Record<string, string> = { high: "#FF5470", medium: "#FFB800", low: "#00E7A7" };
+  const lc: Record<string, string> = { high: "#f43f5e", medium: "#f59e0b", low: "#10b981" };
 
   const pts = axes.map((ax, i) => {
     const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
@@ -598,7 +598,7 @@ function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] })
 
   return (
     <div style={{
-      background: "linear-gradient(135deg,rgba(255,84,112,0.05) 0%,rgba(10,10,18,0.88) 100%)",
+      background: "linear-gradient(135deg,rgba(244,63,94,0.05) 0%,rgba(10,10,18,0.88) 100%)",
       border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20, position: "relative", overflow: "hidden",
     }}>
       <div style={{ position: "absolute", inset: 0, opacity: 0.02, backgroundImage: "linear-gradient(rgba(255,255,255,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.4) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
@@ -607,8 +607,8 @@ function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] })
         <svg viewBox="0 0 220 220" width={200} height={200}>
           <defs>
             <radialGradient id="radarFill" cx="50%" cy="50%" r="50%">
-              <stop offset="0%" stopColor="#FF5470" stopOpacity="0.2" />
-              <stop offset="100%" stopColor="#FFB800" stopOpacity="0.04" />
+              <stop offset="0%" stopColor="#f43f5e" stopOpacity="0.2" />
+              <stop offset="100%" stopColor="#f59e0b" stopOpacity="0.04" />
             </radialGradient>
           </defs>
           {[0.28, 0.55, 0.88].map((frac, gi) => {
@@ -616,14 +616,14 @@ function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] })
               const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
               return `${cx + Math.cos(angle) * r * frac},${cy + Math.sin(angle) * r * frac}`;
             }).join(" ");
-            const cs = ["rgba(0,231,167,0.1)", "rgba(255,184,0,0.1)", "rgba(255,84,112,0.1)"];
+            const cs = ["rgba(16,185,129,0.1)", "rgba(245,158,11,0.1)", "rgba(244,63,94,0.1)"];
             return <polygon key={gi} points={ringPts} fill={cs[gi]} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />;
           })}
           {axes.map((_, i) => {
             const angle = (i / n) * 2 * Math.PI - Math.PI / 2;
             return <line key={i} x1={cx} y1={cy} x2={cx + Math.cos(angle)*r} y2={cy + Math.sin(angle)*r} stroke="rgba(255,255,255,0.05)" strokeWidth="1" />;
           })}
-          <polygon points={poly} fill="url(#radarFill)" stroke="rgba(255,84,112,0.6)" strokeWidth="1.5" strokeLinejoin="round"
+          <polygon points={poly} fill="url(#radarFill)" stroke="rgba(244,63,94,0.6)" strokeWidth="1.5" strokeLinejoin="round"
             style={{ opacity: animated ? 1 : 0, transition: "opacity 0.8s ease-out 0.3s" }} />
           {pts.map((p, i) => (
             <g key={i} style={{ opacity: animated ? 1 : 0, transition: `opacity 0.3s ${0.5 + i * 0.07}s` }}>
@@ -647,7 +647,7 @@ function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] })
 function ScoreGauge({ score }: { score: number }) {
   const [val, setVal] = useState(0);
   useEffect(() => { const t = setTimeout(() => setVal(score), 200); return () => clearTimeout(t); }, [score]);
-  const color = score >= 85 ? "#00E7A7" : score >= 70 ? "#FFB800" : "#FF5470";
+  const color = score >= 85 ? "#10b981" : score >= 70 ? "#f59e0b" : "#f43f5e";
   const cx = 65, cy = 65, r = 50;
   const circ = 2 * Math.PI * r;
   const maxDash = circ * 0.75;
@@ -718,73 +718,73 @@ function CircularScore({ score, color }: { score: number; color: string }) {
 // ─── AGENT COLORS ─────────────────────────────────────────────────────────────
 
 const AGENT_COLORS: Record<string, string> = {
-  "CEO": "#7A5CFF", "CFO": "#5A8DFF", "CMO": "#FF5470", "COO": "#00E7A7",
-  "Business Analyst": "#FFB800", "CTO": "#a78bfa", "Legal Advisor": "#94a3b8",
+  "CEO": "#8b5cf6", "CFO": "#3b82f6", "CMO": "#f43f5e", "COO": "#10b981",
+  "Business Analyst": "#f59e0b", "CTO": "#a78bfa", "Legal Advisor": "#94a3b8",
   "Sales Director": "#fb923c", "HR Director": "#f472b6",
 };
 function agentColor(role: string) {
-  return AGENT_COLORS[role] ?? DEMO_AGENTS.find(a => a.id === role?.toLowerCase().slice(0,3))?.color ?? "#7A5CFF";
+  return AGENT_COLORS[role] ?? DEMO_AGENTS.find(a => a.id === role?.toLowerCase().slice(0,3))?.color ?? "#8b5cf6";
 }
 
 // ─── SCORE BANNER ─────────────────────────────────────────────────────────────
 
 const SCORE_METRICS = [
   {
-    key: 0, label: "РЫНОЧНЫЙ ПОТЕНЦИАЛ", color: "#7A5CFF", rgb: "122,92,255",
+    key: 0, label: "РЫНОЧНЫЙ ПОТЕНЦИАЛ", color: "#8b5cf6", rgb: "139,92,246",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
         <circle cx="24" cy="24" r="22" fill="url(#mg1)" opacity={0.18}/>
-        <defs><radialGradient id="mg1" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#7A5CFF"/><stop offset="100%" stopColor="#3a1cff" stopOpacity="0"/></radialGradient></defs>
-        <ellipse cx="24" cy="24" rx="14" ry="14" stroke="#7A5CFF" strokeWidth="1.5" opacity={0.5}/>
-        <ellipse cx="24" cy="24" rx="14" ry="6" stroke="#7A5CFF" strokeWidth="1" opacity={0.4}/>
-        <line x1="10" y1="24" x2="38" y2="24" stroke="#7A5CFF" strokeWidth="1" opacity={0.4}/>
-        <line x1="24" y1="10" x2="24" y2="38" stroke="#7A5CFF" strokeWidth="1" opacity={0.4}/>
+        <defs><radialGradient id="mg1" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#8b5cf6"/><stop offset="100%" stopColor="#3a1cff" stopOpacity="0"/></radialGradient></defs>
+        <ellipse cx="24" cy="24" rx="14" ry="14" stroke="#8b5cf6" strokeWidth="1.5" opacity={0.5}/>
+        <ellipse cx="24" cy="24" rx="14" ry="6" stroke="#8b5cf6" strokeWidth="1" opacity={0.4}/>
+        <line x1="10" y1="24" x2="38" y2="24" stroke="#8b5cf6" strokeWidth="1" opacity={0.4}/>
+        <line x1="24" y1="10" x2="24" y2="38" stroke="#8b5cf6" strokeWidth="1" opacity={0.4}/>
         <path d="M18 30 L24 16 L30 26 L26 22 L24 30" stroke="#a78bfa" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
-        <circle cx="24" cy="16" r="2" fill="#7A5CFF"/>
-        <path d="M28 32 l4 4" stroke="#FFB800" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="32" cy="36" r="3" stroke="#FFB800" strokeWidth="1.5" fill="none"/>
+        <circle cx="24" cy="16" r="2" fill="#8b5cf6"/>
+        <path d="M28 32 l4 4" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round"/>
+        <circle cx="32" cy="36" r="3" stroke="#f59e0b" strokeWidth="1.5" fill="none"/>
       </svg>
     ),
     desc: "Оценка объёма рынка и темпов роста.",
   },
   {
-    key: 1, label: "ФИНАНСОВАЯ УСТОЙЧИВОСТЬ", color: "#5A8DFF", rgb: "90,141,255",
+    key: 1, label: "ФИНАНСОВАЯ УСТОЙЧИВОСТЬ", color: "#3b82f6", rgb: "59,130,246",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
-        <defs><radialGradient id="mg2" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#5A8DFF"/><stop offset="100%" stopColor="#1c4fff" stopOpacity="0"/></radialGradient></defs>
+        <defs><radialGradient id="mg2" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#3b82f6"/><stop offset="100%" stopColor="#1c4fff" stopOpacity="0"/></radialGradient></defs>
         <circle cx="24" cy="24" r="22" fill="url(#mg2)" opacity={0.18}/>
-        <path d="M14 34 L20 26 L26 30 L34 18" stroke="#5A8DFF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
-        <circle cx="34" cy="18" r="2.5" fill="#5A8DFF"/>
-        <path d="M12 38 L12 20 M18 38 L18 28 M24 38 L24 24 M30 38 L30 16 M36 38 L36 10" stroke="#5A8DFF" strokeWidth="3.5" strokeLinecap="round" opacity={0.35}/>
-        <path d="M24 8 v6 M24 38 v4 M20 12 c0-2.2 1.8-4 4-4 s4 1.8 4 4 c0 2-1.2 3.5-3 4 v2 h-2 v-2 c-1.8-.5-3-2-3-4z" stroke="#FFB800" strokeWidth="1.2" fill="none"/>
+        <path d="M14 34 L20 26 L26 30 L34 18" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+        <circle cx="34" cy="18" r="2.5" fill="#3b82f6"/>
+        <path d="M12 38 L12 20 M18 38 L18 28 M24 38 L24 24 M30 38 L30 16 M36 38 L36 10" stroke="#3b82f6" strokeWidth="3.5" strokeLinecap="round" opacity={0.35}/>
+        <path d="M24 8 v6 M24 38 v4 M20 12 c0-2.2 1.8-4 4-4 s4 1.8 4 4 c0 2-1.2 3.5-3 4 v2 h-2 v-2 c-1.8-.5-3-2-3-4z" stroke="#f59e0b" strokeWidth="1.2" fill="none"/>
       </svg>
     ),
     desc: "Коэффициент ликвидности и долговой нагрузки.",
   },
   {
-    key: 2, label: "РЕАЛИЗУЕМОСТЬ", color: "#00E7A7", rgb: "0,231,167",
+    key: 2, label: "РЕАЛИЗУЕМОСТЬ", color: "#10b981", rgb: "16,185,129",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
-        <defs><radialGradient id="mg3" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#00E7A7"/><stop offset="100%" stopColor="#00e7a7" stopOpacity="0"/></radialGradient></defs>
+        <defs><radialGradient id="mg3" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#10b981"/><stop offset="100%" stopColor="#00e7a7" stopOpacity="0"/></radialGradient></defs>
         <circle cx="24" cy="24" r="22" fill="url(#mg3)" opacity={0.15}/>
-        <circle cx="24" cy="24" r="14" stroke="#00E7A7" strokeWidth="1.5" opacity={0.4}/>
-        <circle cx="24" cy="24" r="10" stroke="#00E7A7" strokeWidth="1" opacity={0.3}/>
-        <path d="M16 24 l5 5 l9-9" stroke="#00E7A7" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M24 10 a14 14 0 0 1 9.9 4.1" stroke="#00E7A7" strokeWidth="1.5" opacity={0.6} strokeLinecap="round"/>
-        <circle cx="33.9" cy="14.1" r="2" fill="#00E7A7" opacity={0.8}/>
+        <circle cx="24" cy="24" r="14" stroke="#10b981" strokeWidth="1.5" opacity={0.4}/>
+        <circle cx="24" cy="24" r="10" stroke="#10b981" strokeWidth="1" opacity={0.3}/>
+        <path d="M16 24 l5 5 l9-9" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M24 10 a14 14 0 0 1 9.9 4.1" stroke="#10b981" strokeWidth="1.5" opacity={0.6} strokeLinecap="round"/>
+        <circle cx="33.9" cy="14.1" r="2" fill="#10b981" opacity={0.8}/>
       </svg>
     ),
     desc: "Техническая и операционная готовность.",
   },
   {
-    key: 3, label: "КОНКУРЕНТНОЕ ПРЕИМУЩЕСТВО", color: "#FFB800", rgb: "255,184,0",
+    key: 3, label: "КОНКУРЕНТНОЕ ПРЕИМУЩЕСТВО", color: "#f59e0b", rgb: "245,158,11",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
-        <defs><radialGradient id="mg4" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#FFB800"/><stop offset="100%" stopColor="#ff8800" stopOpacity="0"/></radialGradient></defs>
+        <defs><radialGradient id="mg4" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#f59e0b"/><stop offset="100%" stopColor="#ff8800" stopOpacity="0"/></radialGradient></defs>
         <circle cx="24" cy="24" r="22" fill="url(#mg4)" opacity={0.15}/>
-        <path d="M24 10 l2.4 7.2 h7.6 l-6 4.4 2.2 7-6.2-4.4-6.2 4.4 2.2-7-6-4.4h7.6z" stroke="#FFB800" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(255,184,0,0.12)"/>
-        <path d="M18 32 l-2 6 M30 32 l2 6 M16 38 l8-3 8 3" stroke="#FFB800" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity={0.7}/>
-        <text x="24" y="40" textAnchor="middle" fontSize="7" fill="#FFB800" fontWeight="700" letterSpacing="0.5" opacity={0.6}>MARKET</text>
+        <path d="M24 10 l2.4 7.2 h7.6 l-6 4.4 2.2 7-6.2-4.4-6.2 4.4 2.2-7-6-4.4h7.6z" stroke="#f59e0b" strokeWidth="1.5" strokeLinejoin="round" fill="rgba(245,158,11,0.12)"/>
+        <path d="M18 32 l-2 6 M30 32 l2 6 M16 38 l8-3 8 3" stroke="#f59e0b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" opacity={0.7}/>
+        <text x="24" y="40" textAnchor="middle" fontSize="7" fill="#f59e0b" fontWeight="700" letterSpacing="0.5" opacity={0.6}>MARKET</text>
       </svg>
     ),
     desc: "Уникальность продукта и барьеры входа.",
@@ -799,7 +799,7 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
 
   const r = 68; const circ = 2 * Math.PI * r;
   const dash = (project.score / 100) * circ;
-  const scoreColor = project.score >= 85 ? "#00E7A7" : project.score >= 70 ? "#FFB800" : "#FF5470";
+  const scoreColor = project.score >= 85 ? "#10b981" : project.score >= 70 ? "#f59e0b" : "#f43f5e";
 
   const ceoSummary = aiResults.find(r => r.role === "CEO")?.recommendations ||
     aiResults.find(r => r.role === "Strategy Advisor")?.recommendations || "";
@@ -903,18 +903,18 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
         {/* Right: AI recommendations */}
         <div style={{
           minWidth: 180, maxWidth: 200, marginLeft: 14,
-          background: "rgba(122,92,255,0.07)", border: "1px solid rgba(122,92,255,0.2)",
+          background: "rgba(139,92,246,0.07)", border: "1px solid rgba(139,92,246,0.2)",
           borderRadius: 14, padding: "14px 14px", display: "flex", flexDirection: "column", gap: 8,
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
             <svg viewBox="0 0 16 16" width={14} height={14} fill="none">
-              <polygon points="8,1 10,6 15,6 11,9.5 12.5,15 8,11.5 3.5,15 5,9.5 1,6 6,6" fill="#7A5CFF" opacity={0.9}/>
+              <polygon points="8,1 10,6 15,6 11,9.5 12.5,15 8,11.5 3.5,15 5,9.5 1,6 6,6" fill="#8b5cf6" opacity={0.9}/>
             </svg>
-            <span style={{ fontSize: 8.5, fontWeight: 800, color: "#7A5CFF", letterSpacing: "0.15em" }}>РЕКОМЕНДАЦИИ ИИ</span>
+            <span style={{ fontSize: 8.5, fontWeight: 800, color: "#8b5cf6", letterSpacing: "0.15em" }}>РЕКОМЕНДАЦИИ ИИ</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 7, flex: 1 }}>
             {recLines.map((line: string, i: number) => (
-              <div key={i} style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, borderLeft: "2px solid rgba(122,92,255,0.4)", paddingLeft: 7 }}>
+              <div key={i} style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.5, borderLeft: "2px solid rgba(139,92,246,0.4)", paddingLeft: 7 }}>
                 {line.slice(0, 90)}
               </div>
             ))}
@@ -939,7 +939,7 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
         <div style={{ display: "flex", gap: 20, overflow: "hidden" }}>
           {factors.map((f: string, i: number) => (
             <div key={i} style={{ fontSize: 9.5, color: "rgba(255,255,255,0.55)", display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
-              <span style={{ fontSize: 10, color: ["#7A5CFF","#5A8DFF","#00E7A7"][i] }}>⬡</span>
+              <span style={{ fontSize: 10, color: ["#8b5cf6","#3b82f6","#10b981"][i] }}>⬡</span>
               <span style={{ color: "rgba(255,255,255,0.3)", marginRight: 2 }}>{i+1}.</span>
               {f.slice(0, 55)}
             </div>
@@ -1021,13 +1021,13 @@ const GRAPH_LAYOUT: Record<string, { x: number; y: number; parent: string | null
 const CANVAS_W = 1640, CANVAS_H = 480;
 
 const PIPELINE_AGENT_COLORS: Record<string, string> = {
-  "CEO": "#7A5CFF", "CFO": "#5A8DFF", "CMO": "#FF5470", "COO": "#00E7A7",
+  "CEO": "#8b5cf6", "CFO": "#3b82f6", "CMO": "#f43f5e", "COO": "#10b981",
   "CTO": "#a78bfa", "Sales Director": "#fb923c", "Strategy Advisor": "#c084fc",
-  "Legal Advisor": "#94a3b8", "Brand Strategist": "#f472b6", "PR Director": "#FF5470",
-  "Market Research": "#FFB800", "Supply Chain": "#00E7A7", "HR Director": "#f472b6",
-  "UX Researcher": "#a78bfa", "Investor Relations": "#5A8DFF", "Risk Manager": "#FF5470",
+  "Legal Advisor": "#94a3b8", "Brand Strategist": "#f472b6", "PR Director": "#f43f5e",
+  "Market Research": "#f59e0b", "Supply Chain": "#10b981", "HR Director": "#f472b6",
+  "UX Researcher": "#a78bfa", "Investor Relations": "#3b82f6", "Risk Manager": "#f43f5e",
   "Product Manager": "#a78bfa", "Data Scientist": "#38bdf8", "Growth Hacker": "#fb923c",
-  "Business Analyst": "#FFB800",
+  "Business Analyst": "#f59e0b",
 };
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1047,7 +1047,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
   // Popup data for selected node
   const selAgent = selectedRole ? agentMap[selectedRole] : null;
   const selLayout = selectedRole ? GRAPH_LAYOUT[selectedRole] : null;
-  const selColor = selectedRole ? (PIPELINE_AGENT_COLORS[selectedRole] ?? "#7A5CFF") : "#7A5CFF";
+  const selColor = selectedRole ? (PIPELINE_AGENT_COLORS[selectedRole] ?? "#8b5cf6") : "#8b5cf6";
 
   function agentStats(role: string) {
     const seed = role.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
@@ -1142,7 +1142,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
                 const hasData = !!agentMap[role];
                 const hasParentData = !!agentMap[layout.parent];
                 const active = role === selectedRole || layout.parent === selectedRole;
-                const lineColor = active ? selColor : (hasData && hasParentData ? "rgba(122,92,255,0.5)" : "rgba(255,255,255,0.12)");
+                const lineColor = active ? selColor : (hasData && hasParentData ? "rgba(139,92,246,0.5)" : "rgba(255,255,255,0.12)");
                 return (
                   <path key={role}
                     d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`}
@@ -1174,7 +1174,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
 
             {/* Nodes */}
             {Object.entries(GRAPH_LAYOUT).map(([role, layout], idx) => {
-              const color = PIPELINE_AGENT_COLORS[role] ?? "#7A5CFF";
+              const color = PIPELINE_AGENT_COLORS[role] ?? "#8b5cf6";
               const hasData = !!agentMap[role];
               const isSelected = role === selectedRole;
               const score = agentMap[role]?.score;
@@ -1211,8 +1211,8 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
                   <div style={{
                     position: "absolute", top: 7, right: 7,
                     width: 6, height: 6, borderRadius: "50%",
-                    background: hasData ? "#00E7A7" : "#FF5470",
-                    boxShadow: hasData ? "0 0 6px #00E7A7" : "none",
+                    background: hasData ? "#10b981" : "#f43f5e",
+                    boxShadow: hasData ? "0 0 6px #10b981" : "none",
                     animation: hasData ? "pipe-glow 2s ease-in-out infinite" : "none",
                   }}/>
                   {/* Role name */}
@@ -1266,7 +1266,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
                   ].map(([k, v]) => (
                     <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 5, fontSize: 10 }}>
                       <span style={{ color: "rgba(255,255,255,0.38)" }}>{k}</span>
-                      <span style={{ color: k === "Статус" ? "#00E7A7" : "rgba(255,255,255,0.82)", fontWeight: k === "Статус" ? 700 : 400, textAlign: "right", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v}</span>
+                      <span style={{ color: k === "Статус" ? "#10b981" : "rgba(255,255,255,0.82)", fontWeight: k === "Статус" ? 700 : 400, textAlign: "right", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v}</span>
                     </div>
                   ))}
                 </div>
@@ -1352,9 +1352,9 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
   const ceo = aiResults.find((r: { role: string }) => r.role === "CEO" || r.role?.toLowerCase().includes("ceo"));
 
   const FIN_AGENTS = [
-    cfo ? { ...cfo, color: "#5A8DFF", letter: "J", subtitle: "Финансовый директор — прогноз", opinion: [cfo.analysis, cfo.recommendations, cfo.forecast].filter(Boolean).join(" ").slice(0, 500) } : null,
-    coo ? { ...coo, color: "#00E7A7", letter: "E", subtitle: "Операционный директор — бюджет", opinion: [coo.analysis, coo.recommendations].filter(Boolean).join(" ").slice(0, 450) } : null,
-    ceo ? { ...ceo, color: "#7A5CFF", letter: "V", subtitle: "Генеральный директор — стратегия", opinion: [ceo.summary, ceo.forecast].filter(Boolean).join(" ").slice(0, 450) } : null,
+    cfo ? { ...cfo, color: "#3b82f6", letter: "J", subtitle: "Финансовый директор — прогноз", opinion: [cfo.analysis, cfo.recommendations, cfo.forecast].filter(Boolean).join(" ").slice(0, 500) } : null,
+    coo ? { ...coo, color: "#10b981", letter: "E", subtitle: "Операционный директор — бюджет", opinion: [coo.analysis, coo.recommendations].filter(Boolean).join(" ").slice(0, 450) } : null,
+    ceo ? { ...ceo, color: "#8b5cf6", letter: "V", subtitle: "Генеральный директор — стратегия", opinion: [ceo.summary, ceo.forecast].filter(Boolean).join(" ").slice(0, 450) } : null,
   ].filter(Boolean) as { role: string; name: string; color: string; letter: string; subtitle: string; score: number; opinion: string }[];
 
   const yr1 = project.financials.find(f => f.label.toLowerCase().includes("год 1") || f.label.toLowerCase().includes("year 1"));
@@ -1410,15 +1410,15 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
   );
 
   const rightCards = [
-    { label: "ПРОГНОЗ (ГОД 1):", value: yr1?.value ?? "—", color: "#5A8DFF", rgb: "90,141,255", Icon: IconRevYear },
-    { label: "ПРОГНОЗ (ГОД 3):", value: yr3?.value ?? "—", color: "#7A5CFF", rgb: "122,92,255", Icon: IconTrendUp },
-    { label: "ТОЧКА БЕЗУБЫТОЧНОСТИ:", value: breakeven?.value ?? "—", color: "#00E7A7", rgb: "0,231,167", Icon: IconClock },
+    { label: "ПРОГНОЗ (ГОД 1):", value: yr1?.value ?? "—", color: "#3b82f6", rgb: "59,130,246", Icon: IconRevYear },
+    { label: "ПРОГНОЗ (ГОД 3):", value: yr3?.value ?? "—", color: "#8b5cf6", rgb: "139,92,246", Icon: IconTrendUp },
+    { label: "ТОЧКА БЕЗУБЫТОЧНОСТИ:", value: breakeven?.value ?? "—", color: "#10b981", rgb: "16,185,129", Icon: IconClock },
   ];
   const bottomCards = [
     { label: "LTV ПОЛЬЗОВАТЕЛЯ:", value: ltv?.value ?? "—", color: "#a78bfa", rgb: "167,139,250", Icon: IconUser },
-    { label: "CAC:", value: cac?.value ?? "—", color: "#5A8DFF", rgb: "90,141,255", Icon: IconFilter },
-    { label: "LTV/CAC RATIO:", value: ltvcac?.value ?? "—", suffix: true, color: "#00E7A7", rgb: "0,231,167", Icon: IconCalc },
-    { label: "ТАЙМФРЕЙМ:", value: timeframeVal?.value ?? (project.financials[5]?.value ?? "—"), color: "#FFB800", rgb: "255,184,0", Icon: IconCalendar },
+    { label: "CAC:", value: cac?.value ?? "—", color: "#3b82f6", rgb: "59,130,246", Icon: IconFilter },
+    { label: "LTV/CAC RATIO:", value: ltvcac?.value ?? "—", suffix: true, color: "#10b981", rgb: "16,185,129", Icon: IconCalc },
+    { label: "ТАЙМФРЕЙМ:", value: timeframeVal?.value ?? (project.financials[5]?.value ?? "—"), color: "#f59e0b", rgb: "245,158,11", Icon: IconCalendar },
   ];
 
   return (
@@ -1495,11 +1495,11 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {[
-            { letter: "J", name: "CFO", subtitle: "Спец. Оценка финансового директора", color: "#5A8DFF", score: 79,
+            { letter: "J", name: "CFO", subtitle: "Спец. Оценка финансового директора", color: "#3b82f6", score: 79,
               opinion: "Финансовая структура проекта в целом корректна и требует только доработки в части прогнозирования выручки. Burn rate следует оптимизировать до уровня максимум 15% месячного MRR с первого дня. CAC нужно снизить на 20% для достижения прибыльности в плановые сроки. Создайте runway минимум на 18 месяцев до следующего раунда привлечения инвестиций. P&L должен выйти в плюс не позднее месяца 20 от даты запуска. Revenue-based financing стоит рассмотреть как альтернативу equity dilution на раннем этапе. Unit economics жизнеспособны при достижении масштаба 1000+ активных клиентов. Финансовые KPI необходимо мониторить еженедельно для оперативного реагирования на отклонения." },
-            { letter: "E", name: "COO", subtitle: "Операционный директор — операционные расходы", color: "#00E7A7", score: 76,
+            { letter: "E", name: "COO", subtitle: "Операционный директор — операционные расходы", color: "#10b981", score: 76,
               opinion: "С операционной точки зрения проект имеет реалистичную структуру затрат для выбранной стадии. Операционные расходы можно оптимизировать на 20–25% при внедрении автоматизации с первых месяцев. COGS следует контролировать еженедельно и не допускать роста выше 35% от выручки. Операционный рычаг начнёт проявляться после достижения 500 платящих клиентов в системе. Fixed costs необходимо удерживать на минимуме в первые 18 месяцев операционной деятельности." },
-            { letter: "V", name: "CEO", subtitle: "Генеральный директор — стратегия роста", color: "#7A5CFF", score: 82,
+            { letter: "V", name: "CEO", subtitle: "Генеральный директор — стратегия роста", color: "#8b5cf6", score: 82,
               opinion: "Стратегически проект движется в правильном направлении, однако требует чёткой расстановки приоритетов. Следующий раунд финансирования следует поднимать при достижении $100K MRR. Инвестиционная привлекательность проекта высокая при демонстрации устойчивого роста более 15% в месяц. Capital efficiency должна превышать 1.5x MRR/burn на протяжении всего периода до прибыльности." },
           ].map((ag, i) => (
             <AgentPanel key={i} letter={ag.letter} name={ag.name} subtitle={ag.subtitle}
@@ -1521,17 +1521,17 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
   const ceo = aiResults.find((r: { role: string }) => r.role === "CEO" || r.role?.toLowerCase().includes("ceo"));
 
   const MKT_AGENTS = [
-    ba ? { letter: "M", name: "Business Analyst", subtitle: "Бизнес-аналитик — рыночный анализ", color: "#FFB800", score: ba.score, opinion: [ba.analysis, ba.facts].filter(Boolean).join(" ").slice(0, 500) } : null,
-    cmo ? { letter: "S", name: "CMO", subtitle: "Директор по маркетингу — стратегия", color: "#FF5470", score: cmo.score, opinion: [cmo.analysis, cmo.recommendations].filter(Boolean).join(" ").slice(0, 500) } : null,
-    ceo ? { letter: "V", name: "CEO", subtitle: "Генеральный директор — рыночная позиция", color: "#7A5CFF", score: ceo.score, opinion: [ceo.summary, ceo.analysis].filter(Boolean).join(" ").slice(0, 450) } : null,
+    ba ? { letter: "M", name: "Business Analyst", subtitle: "Бизнес-аналитик — рыночный анализ", color: "#f59e0b", score: ba.score, opinion: [ba.analysis, ba.facts].filter(Boolean).join(" ").slice(0, 500) } : null,
+    cmo ? { letter: "S", name: "CMO", subtitle: "Директор по маркетингу — стратегия", color: "#f43f5e", score: cmo.score, opinion: [cmo.analysis, cmo.recommendations].filter(Boolean).join(" ").slice(0, 500) } : null,
+    ceo ? { letter: "V", name: "CEO", subtitle: "Генеральный директор — рыночная позиция", color: "#8b5cf6", score: ceo.score, opinion: [ceo.summary, ceo.analysis].filter(Boolean).join(" ").slice(0, 450) } : null,
   ].filter(Boolean) as { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string }[];
 
   const fallbackAgents = [
-    { letter: "M", name: "Бизнес-аналитик", subtitle: "Рыночный анализ и конкурентная среда", color: "#FFB800", score: 80,
+    { letter: "M", name: "Бизнес-аналитик", subtitle: "Рыночный анализ и конкурентная среда", color: "#f59e0b", score: 80,
       opinion: "Рыночный анализ подтверждает наличие реального спроса в целевом сегменте аудитории. Конкуренты не полностью закрывают ключевой pain point, который адресует данный проект. Тренды рынка положительные: CAGR 15–25% прогнозируется на следующие 5 лет. Барьеры входа умеренные — window of opportunity открыт для быстрого движения на рынок. Поведение потребителей меняется в пользу данного решения по всем ключевым метрикам. Конкурентная карта показывает незанятую нишу в средней ценовой категории рынка. Сезонность требует отдельного учёта при планировании cashflow и маркетинговых активностей. Географическая экспансия возможна после достижения PMF в локальном рынке присутствия." },
-    { letter: "S", name: "CMO", subtitle: "Маркетинговая стратегия и GTM", color: "#FF5470", score: 84,
+    { letter: "S", name: "CMO", subtitle: "Маркетинговая стратегия и GTM", color: "#f43f5e", score: 84,
       opinion: "Рыночное позиционирование требует более чёткой дифференциации от ключевых конкурентов в сегменте. Контент-маркетинг является оптимальным первичным acquisition channel для данного типа продукта. Brand voice должен быть задокументирован строго до первого публичного контакта с аудиторией. CAC через органику может быть в 3–5 раз ниже paid при правильной долгосрочной SEO стратегии. Email retention программа способна снизить churn на 15–20% при качественной реализации. Партнёрство с лидерами мнений в нише обеспечит быстрый initial traction в первые 90 дней. A/B тестирование landing page и онбординга обязательно с первого дня привлечения трафика. Community-building вокруг продукта создаёт органический acquisition loop с нулевым CAC." },
-    { letter: "V", name: "CEO", subtitle: "Стратегическая позиция на рынке", color: "#7A5CFF", score: 82,
+    { letter: "V", name: "CEO", subtitle: "Стратегическая позиция на рынке", color: "#8b5cf6", score: 82,
       opinion: "Рыночная позиция проекта выглядит сильно при условии правильного позиционирования в нише. Своевременный вход на рынок создаёт первопроходческое преимущество перед потенциальными конкурентами. Партнёрства с complementary продуктами ускорят market penetration без значительных затрат. Ecosystem стратегия через интеграции создаёт высокие switching costs для клиентов компании. Географическое масштабирование следует начинать только после достижения unit economics в первой локации. Network effects должны быть намеренно встроены в product roadmap с первой версии продукта. Доминирование в одной нише лучше слабого присутствия в нескольких направлениях одновременно. Стратегический партнёр с дистрибуцией может accelerate market share лучше, чем органический рост." },
   ];
 
@@ -1549,7 +1549,7 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
         <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.18em", marginBottom: 14 }}>Рыночные показатели</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2,1fr)", gap: 14 }}>
           {project.market.map((m, i) => {
-            const colors = ["#7A5CFF", "#5A8DFF", "#00E7A7", "#FFB800"];
+            const colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b"];
             const color = colors[i % 4];
             return (
               <div key={i} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -1641,9 +1641,9 @@ function RiskIllustration({ index, color, rgb }: { index: number; color: string;
       ctx.beginPath(); ctx.moveTo(W/2 - 40, H/2 - 12); ctx.lineTo(W/2 - 40, H/2 + 16); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(W/2 + 4, H/2 - 12); ctx.lineTo(W/2 + 4, H/2 + 16); ctx.stroke();
       // Magnet tips
-      ctx.fillStyle = "#FF5470";
+      ctx.fillStyle = "#f43f5e";
       ctx.fillRect(W/2 - 47, H/2 + 10, 14, 10);
-      ctx.fillStyle = "#5A8DFF";
+      ctx.fillStyle = "#3b82f6";
       ctx.fillRect(W/2 - 3, H/2 + 10, 14, 10);
       ctx.restore();
       // Funnel
@@ -1678,7 +1678,7 @@ function RiskIllustration({ index, color, rgb }: { index: number; color: string;
         // LED dots
         for (let d = 0; d < 3; d++) {
           ctx.beginPath(); ctx.arc(W*0.25 + d * 10, y + h/2, 2.5, 0, Math.PI*2);
-          ctx.fillStyle = d === 0 ? "#00E7A7" : d === 1 ? "#FFB800" : `rgba(${r},${g},${b},0.8)`;
+          ctx.fillStyle = d === 0 ? "#10b981" : d === 1 ? "#f59e0b" : `rgba(${r},${g},${b},0.8)`;
           ctx.globalAlpha = alpha * 0.9; ctx.fill();
         }
       };
@@ -1708,9 +1708,9 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
   const [period, setPeriod] = useState<"month"|"quarter"|"year">("quarter");
 
   const RISK_META: Record<string, { color: string; rgb: string; label: string; badge: string; badgeColor: string }> = {
-    high:   { color: "#FF5470", rgb: "255,84,112",  label: "ВЫСОКИЙ",  badge: "Требует Внимания",  badgeColor: "#FF5470" },
-    medium: { color: "#FFB800", rgb: "255,184,0",   label: "СРЕДНИЙ",  badge: "Приоритет",          badgeColor: "#FFB800" },
-    low:    { color: "#00E7A7", rgb: "0,231,167",   label: "НИЗКИЙ",   badge: "Стабильно",          badgeColor: "#00E7A7" },
+    high:   { color: "#f43f5e", rgb: "244,63,94",  label: "ВЫСОКИЙ",  badge: "Требует Внимания",  badgeColor: "#f43f5e" },
+    medium: { color: "#f59e0b", rgb: "245,158,11",   label: "СРЕДНИЙ",  badge: "Приоритет",          badgeColor: "#f59e0b" },
+    low:    { color: "#10b981", rgb: "16,185,129",   label: "НИЗКИЙ",   badge: "Стабильно",          badgeColor: "#10b981" },
   };
 
   const risks = project.risks.length >= 2 ? project.risks : [
@@ -1746,18 +1746,18 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
   // Bar chart icons (SVG glyphs for each risk type)
   const barIcons = [
     <svg key="0" viewBox="0 0 32 32" fill="none" style={{width:28,height:28}}>
-      <path d="M16 4l-10 8v16h7v-8h6v8h7V12L16 4z" stroke="#FF5470" strokeWidth="1.5" fill="rgba(255,84,112,0.1)"/>
-      <path d="M12 20h8M12 15h8" stroke="#FF5470" strokeWidth="1" opacity="0.6"/>
+      <path d="M16 4l-10 8v16h7v-8h6v8h7V12L16 4z" stroke="#f43f5e" strokeWidth="1.5" fill="rgba(244,63,94,0.1)"/>
+      <path d="M12 20h8M12 15h8" stroke="#f43f5e" strokeWidth="1" opacity="0.6"/>
     </svg>,
     <svg key="1" viewBox="0 0 32 32" fill="none" style={{width:28,height:28}}>
-      <circle cx="16" cy="12" r="6" stroke="#FFB800" strokeWidth="1.5" fill="rgba(255,184,0,0.1)"/>
-      <path d="M10 24c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#FFB800" strokeWidth="1.5"/>
-      <path d="M22 8l3-3M10 8l-3-3" stroke="#FFB800" strokeWidth="1" opacity="0.6"/>
+      <circle cx="16" cy="12" r="6" stroke="#f59e0b" strokeWidth="1.5" fill="rgba(245,158,11,0.1)"/>
+      <path d="M10 24c0-3.3 2.7-6 6-6s6 2.7 6 6" stroke="#f59e0b" strokeWidth="1.5"/>
+      <path d="M22 8l3-3M10 8l-3-3" stroke="#f59e0b" strokeWidth="1" opacity="0.6"/>
     </svg>,
     <svg key="2" viewBox="0 0 32 32" fill="none" style={{width:28,height:28}}>
-      <rect x="6" y="8" width="20" height="16" rx="2" stroke="#00E7A7" strokeWidth="1.5" fill="rgba(0,231,167,0.08)"/>
-      <path d="M10 14h12M10 18h8" stroke="#00E7A7" strokeWidth="1.2" opacity="0.7"/>
-      <circle cx="24" cy="10" r="3" fill="rgba(0,231,167,0.3)" stroke="#00E7A7" strokeWidth="1"/>
+      <rect x="6" y="8" width="20" height="16" rx="2" stroke="#10b981" strokeWidth="1.5" fill="rgba(16,185,129,0.08)"/>
+      <path d="M10 14h12M10 18h8" stroke="#10b981" strokeWidth="1.2" opacity="0.7"/>
+      <circle cx="24" cy="10" r="3" fill="rgba(16,185,129,0.3)" stroke="#10b981" strokeWidth="1"/>
     </svg>,
   ];
 
@@ -1776,7 +1776,7 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
         <div style={{ fontSize: 12, fontWeight: 800, color: "rgba(255,255,255,0.85)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
           Глобальная оценка рисков проекта
-          <span style={{ marginLeft: 10, fontSize: 10, fontWeight: 600, color: "#7A5CFF" }}>Отчёт {dateStr}</span>
+          <span style={{ marginLeft: 10, fontSize: 10, fontWeight: 600, color: "#8b5cf6" }}>Отчёт {dateStr}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <div style={{ padding: "5px 12px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 10, color: "rgba(255,255,255,0.4)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -1786,8 +1786,8 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
           {(["month","quarter","year"] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} style={{
               padding: "5px 12px", borderRadius: 8, fontSize: 10, fontWeight: 700, cursor: "pointer",
-              background: period === p ? "rgba(122,92,255,0.2)" : "rgba(255,255,255,0.03)",
-              border: period === p ? "1px solid rgba(122,92,255,0.5)" : "1px solid rgba(255,255,255,0.07)",
+              background: period === p ? "rgba(139,92,246,0.2)" : "rgba(255,255,255,0.03)",
+              border: period === p ? "1px solid rgba(139,92,246,0.5)" : "1px solid rgba(255,255,255,0.07)",
               color: period === p ? "#a78bfa" : "rgba(255,255,255,0.35)",
               transition: "all 0.15s",
             }}>
@@ -1875,9 +1875,9 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
             <svg style={{ position:"absolute", inset:0, width:"100%", height:"100%", pointerEvents:"none", overflow:"visible" }} preserveAspectRatio="none">
               <defs>
                 <linearGradient id="rsk-curve-grad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor={risks[0] ? (RISK_META[risks[0].level]?.color ?? "#FFB800") : "#FF5470"} stopOpacity="0.7"/>
-                  <stop offset="50%" stopColor={risks[1] ? (RISK_META[risks[1].level]?.color ?? "#FFB800") : "#FFB800"} stopOpacity="0.7"/>
-                  <stop offset="100%" stopColor={risks[2] ? (RISK_META[risks[2].level]?.color ?? "#00E7A7") : "#00E7A7"} stopOpacity="0.7"/>
+                  <stop offset="0%" stopColor={risks[0] ? (RISK_META[risks[0].level]?.color ?? "#f59e0b") : "#f43f5e"} stopOpacity="0.7"/>
+                  <stop offset="50%" stopColor={risks[1] ? (RISK_META[risks[1].level]?.color ?? "#f59e0b") : "#f59e0b"} stopOpacity="0.7"/>
+                  <stop offset="100%" stopColor={risks[2] ? (RISK_META[risks[2].level]?.color ?? "#10b981") : "#10b981"} stopOpacity="0.7"/>
                 </linearGradient>
                 <filter id="rsk-glow"><feGaussianBlur stdDeviation="2" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
               </defs>
@@ -1917,16 +1917,16 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
               <div>
                 <span style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.75)" }}>
-                  Глобальный Индекс Риска: <span style={{ color:"#FFB800" }}>{globalScore}/100</span>
+                  Глобальный Индекс Риска: <span style={{ color:"#f59e0b" }}>{globalScore}/100</span>
                 </span>
                 <span style={{ marginLeft:8, fontSize:9, color:"rgba(255,255,255,0.3)" }}>(Снижение на 3 п.)</span>
               </div>
               <svg viewBox="0 0 28 28" fill="none" style={{ width:24, height:24 }}>
-                <circle cx="14" cy="14" r="11" stroke="rgba(255,184,0,0.2)" strokeWidth="2.5"/>
-                <circle cx="14" cy="14" r="11" stroke="#FFB800" strokeWidth="2.5"
+                <circle cx="14" cy="14" r="11" stroke="rgba(245,158,11,0.2)" strokeWidth="2.5"/>
+                <circle cx="14" cy="14" r="11" stroke="#f59e0b" strokeWidth="2.5"
                   strokeDasharray={`${2*Math.PI*11*globalScore/100} ${2*Math.PI*11}`}
                   strokeLinecap="round" strokeDashoffset={2*Math.PI*11*0.25}
-                  style={{ filter:"drop-shadow(0 0 4px #FFB800)", transition:"stroke-dasharray 1.5s ease-out 0.8s" }}/>
+                  style={{ filter:"drop-shadow(0 0 4px #f59e0b)", transition:"stroke-dasharray 1.5s ease-out 0.8s" }}/>
               </svg>
             </div>
             <div style={{ fontSize:9.5, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:6 }}>Рекомендации ИИ по рискам</div>
@@ -1938,7 +1938,7 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
                   : ["Увеличить LTV-фокус в сегменте SMB.", "Оптимизировать конкуренцию в ключевых каналах.", "Ввести ежеквартальный risk-review процесс.", "Усилить рост охвата по ключевым сегментам."];
                 return lines.map((rec:string, i:number) => (
                   <div key={i} style={{ fontSize:9, color:"rgba(255,255,255,0.3)", display:"flex", gap:5, alignItems:"flex-start" }}>
-                    <span style={{ color:"#7A5CFF", fontWeight:700, flexShrink:0 }}>ИИ:</span>
+                    <span style={{ color:"#8b5cf6", fontWeight:700, flexShrink:0 }}>ИИ:</span>
                     <span>{rec.slice(0,60)}</span>
                   </div>
                 ));
@@ -2084,8 +2084,8 @@ export default function ProjectPage() {
     finally { setIsReanalyzing(false); }
   }
 
-  const headerBg = "linear-gradient(135deg,rgba(122,92,255,0.07) 0%,rgba(10,10,18,0.95) 100%)";
-  const scoreColor = project.score >= 85 ? "#00E7A7" : project.score >= 70 ? "#FFB800" : "#FF5470";
+  const headerBg = "linear-gradient(135deg,rgba(139,92,246,0.07) 0%,rgba(10,10,18,0.95) 100%)";
+  const scoreColor = project.score >= 85 ? "#10b981" : project.score >= 70 ? "#f59e0b" : "#f43f5e";
 
   return (
     <div style={{ padding: "24px 24px 48px", maxWidth: 1200, margin: "0 auto" }}>
@@ -2103,9 +2103,9 @@ export default function ProjectPage() {
             <h1 style={{ fontSize: 20, fontWeight: 800, color: "white", margin: 0 }}>{project.name}</h1>
             <span style={{
               fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: "0.1em",
-              background: project.status === "Завершён" ? "rgba(0,231,167,0.12)" : "rgba(255,184,0,0.12)",
-              color: project.status === "Завершён" ? "#00E7A7" : "#FFB800",
-              border: `1px solid ${project.status === "Завершён" ? "rgba(0,231,167,0.25)" : "rgba(255,184,0,0.25)"}`,
+              background: project.status === "Завершён" ? "rgba(16,185,129,0.12)" : "rgba(245,158,11,0.12)",
+              color: project.status === "Завершён" ? "#10b981" : "#f59e0b",
+              border: `1px solid ${project.status === "Завершён" ? "rgba(16,185,129,0.25)" : "rgba(245,158,11,0.25)"}`,
             }}>● {project.status}</span>
           </div>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>{project.subtitle}</p>
@@ -2113,12 +2113,12 @@ export default function ProjectPage() {
         <div style={{ display: "flex", gap: 8 }}>
           {isUserProject && (
             <button onClick={() => handleReanalyze()} disabled={isReanalyzing}
-              style={{ height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600, border: "1px solid rgba(122,92,255,0.3)", color: "#7A5CFF", background: "rgba(122,92,255,0.07)", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+              style={{ height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600, border: "1px solid rgba(139,92,246,0.3)", color: "#8b5cf6", background: "rgba(139,92,246,0.07)", borderRadius: 10, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
               {isReanalyzing ? `↻ ${reanalyzeProgress}/8 агентов` : "↻ Обновить анализ"}
             </button>
           )}
           <button style={{ height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.55)", background: "rgba(255,255,255,0.03)", borderRadius: 10, cursor: "pointer" }}>Экспорт PDF</button>
-          <button style={{ height: 36, padding: "0 18px", fontSize: 11, fontWeight: 600, background: "linear-gradient(135deg,#7A5CFF,#5A8DFF)", color: "white", border: "none", borderRadius: 10, cursor: "pointer" }}>Уточнить стратегию</button>
+          <button style={{ height: 36, padding: "0 18px", fontSize: 11, fontWeight: 600, background: "linear-gradient(135deg,#8b5cf6,#3b82f6)", color: "white", border: "none", borderRadius: 10, cursor: "pointer" }}>Уточнить стратегию</button>
         </div>
       </div>
 
@@ -2131,7 +2131,7 @@ export default function ProjectPage() {
           <button key={t} onClick={() => setActiveTab(t)}
             style={{
               padding: "7px 18px", fontSize: 11.5, fontWeight: 600, borderRadius: 10, border: "none", cursor: "pointer",
-              background: activeTab === t ? "linear-gradient(135deg,#7A5CFF,#5A8DFF)" : "transparent",
+              background: activeTab === t ? "linear-gradient(135deg,#8b5cf6,#3b82f6)" : "transparent",
               color: activeTab === t ? "white" : "rgba(255,255,255,0.4)",
               transition: "all 0.2s",
             }}>{t}</button>

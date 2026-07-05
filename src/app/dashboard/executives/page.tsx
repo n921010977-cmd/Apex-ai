@@ -250,7 +250,7 @@ export default function ExecutivesPage() {
                 const pc = execByRole[layout.parent];
                 const edgeColor = active
                   ? (selExec?.color ?? "#7c3aed")
-                  : `rgba(${ec?.rgb ?? "122,92,255"},0.35)`;
+                  : `rgba(${ec?.rgb ?? "139,92,246"},0.35)`;
                 return (
                   <g key={role}>
                     <path d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`}

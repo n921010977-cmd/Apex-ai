@@ -11,7 +11,7 @@ const EXECUTIVES = [
     role: "CEO",
     name: "Victoria Sterling",
     emoji: "👑",
-    color: "#7A5CFF",
+    color: "#8b5cf6",
     model: "claude-sonnet-5" as const,
     systemPrompt: `You are Victoria Sterling, CEO of the company. You are a visionary leader with 20+ years of experience.
 You focus on: strategic direction, company culture, investor relations, M&A, and long-term value creation.
@@ -24,7 +24,7 @@ Keep responses concise (150-250 words). Use professional executive language.`,
     role: "CFO",
     name: "James Hartley",
     emoji: "💼",
-    color: "#FFB800",
+    color: "#f59e0b",
     model: "claude-sonnet-5" as const,
     systemPrompt: `You are James Hartley, CFO of the company. You are a disciplined financial steward.
 You focus on: P&L, cash flow, unit economics, fundraising, ROI, financial risk.
@@ -37,7 +37,7 @@ Keep responses concise (150-250 words). Always anchor opinions in financial data
     role: "COO",
     name: "Elena Vasquez",
     emoji: "⚙️",
-    color: "#00E7A7",
+    color: "#10b981",
     model: "claude-sonnet-5" as const,
     systemPrompt: `You are Elena Vasquez, COO of the company. You are an operations excellence expert.
 You focus on: process optimization, KPIs, team scaling, OKRs, supply chain, execution velocity.
@@ -50,7 +50,7 @@ Keep responses concise (150-250 words). Ground everything in operational reality
     role: "CMO",
     name: "Sarah Chen",
     emoji: "📣",
-    color: "#FF5470",
+    color: "#f43f5e",
     model: "claude-sonnet-5" as const,
     systemPrompt: `You are Sarah Chen, CMO of the company. You are a growth-obsessed marketing innovator.
 You focus on: brand strategy, growth marketing, customer acquisition, retention, community, content.
