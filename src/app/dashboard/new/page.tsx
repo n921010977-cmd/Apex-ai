@@ -27,8 +27,20 @@ const STAGES = [
 const GOALS = [
   "Привлечь инвестиции","Быстрый запуск","Product-market fit",
   "Масштабировать выручку","Выйти на новый рынок","Снизить расходы",
-  "Нанять команду","Exit стратегия",
+  "Нанять команду","Exit стратегия","Улучшить unit-экономику",
+  "Запустить новый продукт","Автоматизировать процессы","IPO",
 ];
+
+const BIZ_MODELS = ["B2B","B2C","B2B2C","D2C","Marketplace","SaaS","Freemium","Enterprise","Franchise"];
+const TEAM_SIZES = [
+  { id:"solo",   label:"Только я",  desc:"Соло-основатель" },
+  { id:"small",  label:"2–5",       desc:"Микрокоманда" },
+  { id:"mid",    label:"6–20",      desc:"Небольшой стартап" },
+  { id:"growth", label:"21–100",    desc:"Стадия роста" },
+  { id:"large",  label:"100+",      desc:"Масштабная компания" },
+];
+const GEOS = ["Россия / СНГ","США / Канада","Европа","Азия / MENA","Латинская Америка","Глобально"];
+const REVENUES = ["Ещё нет выручки","До $10k/мес","$10k–$50k/мес","$50k–$200k/мес","$200k–$1M/мес","$1M+/мес"];
 const AGENTS = [
   { role: "CEO",              label: "Генеральный директор",      color: "#8b5cf6", rgb: "139,92,246",  icon: Brain,      name: "Sophia Rivers"  },
   { role: "CFO",              label: "Финансовый директор",       color: "#3b82f6", rgb: "59,130,246",  icon: DollarSign, name: "Marcus Chen"    },
@@ -554,7 +566,9 @@ export default function NewStrategyPage() {
   const [step, setStep]           = useState(1);
   const [form, setForm]           = useState({
     name: "", description: "", industry: "", stage: "",
+    bizModels: [] as string[], teamSize: "", geography: "", currentRevenue: "",
     goals: [] as string[], targetRevenue: "", timeframe: "12",
+    competitors: "", usp: "", challenges: "", budget: "",
   });
   const [analyzing,    setAnalyzing]    = useState(false);
   const [doneAgents,   setDoneAgents]   = useState<Set<string>>(new Set());
@@ -871,64 +885,127 @@ export default function NewStrategyPage() {
                     <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:24 }}>Контекст бизнеса</h2>
 
                     {/* Industry */}
-                    <div style={{ marginBottom:24 }}>
-                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:12 }}>Индустрия</label>
+                    <div style={{ marginBottom:22 }}>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Индустрия</label>
                       <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                         {INDUSTRIES.map(ind => (
-                          <button
-                            key={ind}
-                            onClick={() => setForm(f => ({ ...f, industry:ind }))}
-                            style={{
-                              padding:"6px 12px", borderRadius:9, fontSize:11, fontWeight:500, cursor:"pointer", transition:"all 0.15s",
-                              background: form.industry === ind ? "rgba(139,92,246,0.2)" : "rgba(255,255,255,0.035)",
-                              border:     form.industry === ind ? "1px solid rgba(139,92,246,0.5)" : "1px solid rgba(255,255,255,0.07)",
-                              color:      form.industry === ind ? "#c4b5fd" : "rgba(255,255,255,0.45)",
-                            }}
-                          >
-                            {ind}
-                          </button>
+                          <button key={ind} onClick={() => setForm(f => ({ ...f, industry:ind }))}
+                            style={{ padding:"6px 12px", borderRadius:9, fontSize:11, fontWeight:500, cursor:"pointer", transition:"all 0.15s",
+                              background: form.industry === ind ? "rgba(59,130,246,0.18)" : "rgba(255,255,255,0.035)",
+                              border:     form.industry === ind ? "1px solid rgba(59,130,246,0.45)" : "1px solid rgba(255,255,255,0.07)",
+                              color:      form.industry === ind ? "#93c5fd" : "rgba(255,255,255,0.45)" }}>{ind}</button>
                         ))}
                       </div>
                     </div>
 
-                    {/* Stage */}
-                    <div>
-                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:12 }}>Текущая стадия</label>
-                      <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:10 }}>
-                        {STAGES.map(stage => {
-                          const SIcon = stage.icon;
-                          const sel   = form.stage === stage.id;
+                    {/* Business Model */}
+                    <div style={{ marginBottom:22 }}>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>
+                        Бизнес-модель <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>(можно несколько)</span>
+                      </label>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                        {BIZ_MODELS.map(bm => {
+                          const sel = form.bizModels.includes(bm);
                           return (
-                            <button
-                              key={stage.id}
-                              onClick={() => setForm(f => ({ ...f, stage: stage.id }))}
-                              style={{
-                                padding:"14px 16px", borderRadius:14, textAlign:"left", cursor:"pointer", transition:"all 0.2s",
-                                background: sel ? "rgba(139,92,246,0.1)" : "rgba(255,255,255,0.025)",
-                                border:     sel ? "1px solid rgba(139,92,246,0.4)" : "1px solid rgba(255,255,255,0.06)",
-                              }}
-                            >
-                              <div className="flex items-center gap-2 mb-1">
-                                <SIcon size={13} style={{ color: sel ? "#8b5cf6" : "rgba(255,255,255,0.3)" }} />
-                                <span style={{ fontSize:12, fontWeight:700, color: sel ? "#c4b5fd" : "rgba(255,255,255,0.62)" }}>{stage.label}</span>
-                              </div>
-                              <div style={{ fontSize:11, color:"rgba(255,255,255,0.28)" }}>{stage.desc}</div>
-                            </button>
+                            <button key={bm} onClick={() => setForm(f => ({ ...f, bizModels: sel ? f.bizModels.filter(x=>x!==bm) : [...f.bizModels, bm] }))}
+                              style={{ padding:"6px 12px", borderRadius:9, fontSize:11, fontWeight:500, cursor:"pointer", transition:"all 0.15s",
+                                background: sel ? "rgba(139,92,246,0.18)" : "rgba(255,255,255,0.035)",
+                                border:     sel ? "1px solid rgba(139,92,246,0.45)" : "1px solid rgba(255,255,255,0.07)",
+                                color:      sel ? "#c4b5fd" : "rgba(255,255,255,0.45)" }}>{bm}</button>
                           );
                         })}
+                      </div>
+                    </div>
+
+                    {/* Stage + Team size */}
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18, marginBottom:22 }}>
+                      <div>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Текущая стадия</label>
+                        <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+                          {STAGES.map(stage => {
+                            const SIcon = stage.icon;
+                            const sel   = form.stage === stage.id;
+                            return (
+                              <button key={stage.id} onClick={() => setForm(f => ({ ...f, stage: stage.id }))}
+                                style={{ padding:"10px 14px", borderRadius:11, textAlign:"left", cursor:"pointer", transition:"all 0.2s",
+                                  background: sel ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.025)",
+                                  border:     sel ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.06)" }}>
+                                <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:2 }}>
+                                  <SIcon size={12} style={{ color: sel ? "#818cf8" : "rgba(255,255,255,0.3)" }} />
+                                  <span style={{ fontSize:11, fontWeight:700, color: sel ? "#c7d2fe" : "rgba(255,255,255,0.6)" }}>{stage.label}</span>
+                                </div>
+                                <div style={{ fontSize:10, color:"rgba(255,255,255,0.28)" }}>{stage.desc}</div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Размер команды</label>
+                        <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+                          {TEAM_SIZES.map(ts => {
+                            const sel = form.teamSize === ts.id;
+                            return (
+                              <button key={ts.id} onClick={() => setForm(f => ({ ...f, teamSize: ts.id }))}
+                                style={{ padding:"10px 14px", borderRadius:11, textAlign:"left", cursor:"pointer", transition:"all 0.2s",
+                                  background: sel ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.025)",
+                                  border:     sel ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(255,255,255,0.06)" }}>
+                                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
+                                  <span style={{ fontSize:11, fontWeight:700, color: sel ? "#6ee7b7" : "rgba(255,255,255,0.6)" }}>{ts.label} чел.</span>
+                                  <span style={{ fontSize:10, color:"rgba(255,255,255,0.25)" }}>{ts.desc}</span>
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Geography + Current Revenue */}
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18 }}>
+                      <div>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>География / Целевой рынок</label>
+                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                          {GEOS.map(g => {
+                            const sel = form.geography === g;
+                            return (
+                              <button key={g} onClick={() => setForm(f => ({ ...f, geography: g }))}
+                                style={{ padding:"8px 12px", borderRadius:9, textAlign:"left", cursor:"pointer", transition:"all 0.15s", fontSize:11,
+                                  background: sel ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.025)",
+                                  border:     sel ? "1px solid rgba(245,158,11,0.35)" : "1px solid rgba(255,255,255,0.06)",
+                                  color:      sel ? "#fcd34d" : "rgba(255,255,255,0.5)", fontWeight: sel ? 600 : 400 }}>{g}</button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <div>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Текущая выручка</label>
+                        <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
+                          {REVENUES.map(r => {
+                            const sel = form.currentRevenue === r;
+                            return (
+                              <button key={r} onClick={() => setForm(f => ({ ...f, currentRevenue: r }))}
+                                style={{ padding:"8px 12px", borderRadius:9, textAlign:"left", cursor:"pointer", transition:"all 0.15s", fontSize:11,
+                                  background: sel ? "rgba(244,63,94,0.1)" : "rgba(255,255,255,0.025)",
+                                  border:     sel ? "1px solid rgba(244,63,94,0.3)" : "1px solid rgba(255,255,255,0.06)",
+                                  color:      sel ? "#fda4af" : "rgba(255,255,255,0.5)", fontWeight: sel ? 600 : 400 }}>{r}</button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   </div>
                 )}
 
-                {/* Step 3: Goals */}
+                {/* Step 3: Goals & Strategy Context */}
                 {step === 3 && (
                   <div style={{ borderRadius:22, overflow:"hidden", background:"rgba(14,16,21,0.9)", border:"1px solid rgba(255,255,255,0.07)", backdropFilter:"blur(20px)", boxShadow:"0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)", padding:"24px 28px 28px" }}>
                     <div style={{ fontSize:9, fontWeight:800, letterSpacing:"0.2em", color:"#10b981", textTransform:"uppercase", marginBottom:6 }}>Шаг 3 · Executive Report</div>
-                    <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:24 }}>Цели и параметры</h2>
+                    <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:4 }}>Цели и стратегический контекст</h2>
+                    <p style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginBottom:24 }}>Чем больше деталей — тем точнее AI-анализ от 20 директоров</p>
 
                     {/* Goals */}
-                    <div style={{ marginBottom:24 }}>
+                    <div style={{ marginBottom:22 }}>
                       <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:12 }}>
                         Ключевые цели <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>(можно несколько)</span>
                       </label>
@@ -949,7 +1026,7 @@ export default function NewStrategyPage() {
                     </div>
 
                     {/* Revenue + timeframe */}
-                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:20 }}>
+                    <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:22 }}>
                       <div>
                         <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>Целевая выручка</label>
                         <input type="text" placeholder="например: $1M ARR" value={form.targetRevenue} onChange={e => setForm(f => ({ ...f, targetRevenue: e.target.value }))} className="np-input" style={{ height:42, padding:"0 14px" }} />
@@ -962,16 +1039,97 @@ export default function NewStrategyPage() {
                       </div>
                     </div>
 
+                    {/* Budget */}
+                    <div style={{ marginBottom:22 }}>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
+                        Бюджет на развитие <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— поможет CFO и CMO составить реалистичный план</span>
+                      </label>
+                      <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
+                        {["До $5k","$5k–$20k","$20k–$100k","$100k–$500k","$500k–$2M","$2M+","Ищу инвестиции"].map(b => {
+                          const sel = form.budget === b;
+                          return (
+                            <button key={b} onClick={() => setForm(f => ({ ...f, budget: sel ? "" : b }))}
+                              style={{ padding:"6px 12px", borderRadius:9, fontSize:11, fontWeight:500, cursor:"pointer", transition:"all 0.15s",
+                                background: sel ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.035)",
+                                border:     sel ? "1px solid rgba(245,158,11,0.35)" : "1px solid rgba(255,255,255,0.07)",
+                                color:      sel ? "#f59e0b" : "rgba(255,255,255,0.45)" }}>
+                              {b}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Competitors */}
+                    <div style={{ marginBottom:22 }}>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
+                        Главные конкуренты <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— кто уже решает эту задачу?</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="например: Notion, Airtable, Monday.com"
+                        value={form.competitors}
+                        onChange={e => setForm(f => ({ ...f, competitors: e.target.value }))}
+                        className="np-input"
+                        style={{ height:42, padding:"0 14px" }}
+                      />
+                    </div>
+
+                    {/* USP */}
+                    <div style={{ marginBottom:22 }}>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
+                        Уникальное преимущество / USP <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— почему клиент выберет вас?</span>
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="например: Единственный продукт с AI + интеграцией в 1С"
+                        value={form.usp}
+                        onChange={e => setForm(f => ({ ...f, usp: e.target.value }))}
+                        className="np-input"
+                        style={{ height:42, padding:"0 14px" }}
+                      />
+                    </div>
+
+                    {/* Challenges */}
+                    <div style={{ marginBottom:24 }}>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
+                        Главные проблемы / боли <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— что мешает расти прямо сейчас?</span>
+                      </label>
+                      <textarea
+                        placeholder="например: Высокий CAC, сложная интеграция с CRM клиентов, нехватка sales-менеджеров..."
+                        value={form.challenges}
+                        onChange={e => setForm(f => ({ ...f, challenges: e.target.value }))}
+                        className="np-input"
+                        rows={3}
+                        style={{ padding:"12px 14px", resize:"vertical", minHeight:80, lineHeight:1.6 }}
+                      />
+                    </div>
+
                     {/* Summary card */}
-                    <div style={{ padding:"14px 16px", borderRadius:14, background:"rgba(255,255,255,0.025)", border:"1px solid rgba(255,255,255,0.06)" }}>
-                      <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.2em", color:"rgba(255,255,255,0.22)", textTransform:"uppercase", marginBottom:10 }}>Резюме брифинга</div>
-                      <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
-                        {[["Проект", form.name||"—"], ["Индустрия", form.industry||"—"], ["Стадия", STAGES.find(s => s.id===form.stage)?.label||"—"], ["Цели", form.goals.join(", ")||"—"]].map(([k,v]) => (
-                          <div key={k} style={{ display:"flex", gap:10, fontSize:12 }}>
-                            <span style={{ color:"rgba(255,255,255,0.28)", width:72, flexShrink:0 }}>{k}:</span>
-                            <span style={{ color:"rgba(255,255,255,0.65)" }}>{v}</span>
+                    <div style={{ padding:"16px 18px", borderRadius:14, background:"rgba(255,255,255,0.025)", border:"1px solid rgba(255,255,255,0.06)" }}>
+                      <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.2em", color:"rgba(255,255,255,0.22)", textTransform:"uppercase", marginBottom:12 }}>Резюме брифинга</div>
+                      <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
+                        {([
+                          ["Проект",       form.name||"—"],
+                          ["Индустрия",    form.industry||"—"],
+                          ["Стадия",       STAGES.find(s => s.id===form.stage)?.label||"—"],
+                          ["Бизнес-модель",form.bizModels.join(", ")||"—"],
+                          ["Команда",      TEAM_SIZES.find(t => t.id===form.teamSize)?.label||"—"],
+                          ["География",    form.geography||"—"],
+                          ["Выручка сейчас",form.currentRevenue||"—"],
+                          ["Цели",         form.goals.join(", ")||"—"],
+                          ["Целевая выручка",form.targetRevenue||"—"],
+                          ["Таймфрейм",    form.timeframe ? `${form.timeframe} мес.` : "—"],
+                          ["Бюджет",       form.budget||"—"],
+                          ["Конкуренты",   form.competitors||"—"],
+                          ["USP",          form.usp||"—"],
+                          ["Боли",         form.challenges||"—"],
+                        ] as [string,string][]).map(([k,v]) => v && v !== "—" ? (
+                          <div key={k} style={{ display:"flex", gap:10, fontSize:11.5 }}>
+                            <span style={{ color:"rgba(255,255,255,0.28)", width:110, flexShrink:0 }}>{k}:</span>
+                            <span style={{ color:"rgba(255,255,255,0.65)", wordBreak:"break-word" }}>{v}</span>
                           </div>
-                        ))}
+                        ) : null)}
                       </div>
                     </div>
                   </div>
