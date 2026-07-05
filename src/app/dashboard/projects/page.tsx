@@ -483,36 +483,51 @@ export default function ProjectsPage() {
   const [userProjects, setUserProjects] = useState<Project[]>([]);
 
   useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const mapped: Project[] = stored.map((p: any) => ({
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const normalize = (p: any): Project => {
+      const score = Number(p.score ?? p.overall_score) || 78;
+      return {
         id: p.id,
-        name: p.name,
+        name: p.name ?? p.title ?? "Без названия",
         description: p.description || "",
         industry: p.industry || "Бизнес",
         stage: p.stage || "Growth",
-        score: Number(p.score) || 78,
-        growthScore: Math.round((Number(p.score) || 78) * 0.95),
-        riskScore: Math.round(100 - (Number(p.score) || 78) * 0.7),
+        score,
+        growthScore: Math.round(score * 0.95),
+        riskScore: Math.round(100 - score * 0.7),
         status: "complete",
         executives: 20,
-        date: p.date || "Только что",
-        revenue: p.revenue || "—",
+        date: p.date || (p.created_at ? new Date(p.created_at).toLocaleDateString("ru") : "Только что"),
+        revenue: p.revenue || p.target_revenue || "—",
         revenueRaw: 0,
         market: p.market || "—",
         tam: "—",
         growth: p.growth || "—",
         burnRate: "—",
-        confidence: Number(p.score) || 78,
+        confidence: score,
         color: "#8b5cf6",
         rgb: "139,92,246",
-        sparkline: [50, 55, 60, 58, 65, 70, 75, Number(p.score) || 78],
+        sparkline: [50, 55, 60, 58, 65, 70, 75, score],
         opportunities: 2,
         insights: [],
-      }));
-      setUserProjects(mapped);
+      };
+    };
+
+    // Local cache first for instant paint
+    try {
+      const stored = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
+      if (Array.isArray(stored) && stored.length) setUserProjects(stored.map(normalize));
     } catch {}
+
+    // Then reconcile with the server
+    fetch("/api/projects")
+      .then(r => r.json())
+      .then(d => {
+        if (Array.isArray(d.projects) && d.projects.length) {
+          setUserProjects(d.projects.map(normalize));
+        }
+      })
+      .catch(() => {});
   }, []);
 
   const ALL_PROJECTS = [...userProjects, ...DEFAULT_PROJECTS];
