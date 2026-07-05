@@ -1,22 +1,42 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
 import {
   Shield, AlertTriangle, CheckCircle, TrendingDown,
-  Zap, Activity, Lock, Globe, Users, Download, RefreshCw,
-  ChevronRight, Eye, BarChart2, Clock, X, Plus, Loader2,
+  Zap, Lock, Globe, Users, RefreshCw,
+  BarChart2, X, Plus, Loader2, Activity,
 } from "lucide-react";
 
-// ─── Static demo data (shown when API returns empty) ──────────────────────────
+// ─── Design tokens ─────────────────────────────────────────────────────────────
+const S = {
+  bg: "#05060A",
+  surface: "rgba(255,255,255,0.03)",
+  surfaceHover: "rgba(255,255,255,0.055)",
+  border: "rgba(255,255,255,0.07)",
+  borderHover: "rgba(255,255,255,0.13)",
+  textPrimary: "#E5E7EB",
+  textSecondary: "rgba(255,255,255,0.5)",
+  textMuted: "rgba(255,255,255,0.3)",
+  accent: "#6366f1",
+  accentDark: "#4f46e5",
+  success: "#10b981",
+  warning: "#f59e0b",
+  danger: "#ef4444",
+  dangerBg: "rgba(239,68,68,0.1)",
+  warningBg: "rgba(245,158,11,0.1)",
+  successBg: "rgba(16,185,129,0.1)",
+  card: "0 1px 2px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.045)",
+};
 
+// ─── Demo data ─────────────────────────────────────────────────────────────────
 const DEMO_RISKS = [
-  { id: 1, title: "Конкурентное давление", category: "strategic", severity: "Высокий", probability: 4, impact: 4, trend: "↑", color: "#f43f5e", icon: TrendingDown, mitigation: "Ускорить разработку уникальных фич, усилить retention программу", owner: "CEO / Product" },
-  { id: 2, title: "Утечка данных клиентов", category: "technical", severity: "Критичный", probability: 1, impact: 5, trend: "→", color: "#f43f5e", icon: Lock, mitigation: "SOC 2 Type II аудит, pen testing Q3, шифрование на уровне БД", owner: "CTO / Security" },
-  { id: 3, title: "Регуляторные изменения AI", category: "legal", severity: "Средний", probability: 3, impact: 3, trend: "↑", color: "#f59e0b", icon: Globe, mitigation: "Нанять GR-консультанта, мониторинг EU AI Act, подготовка compliance", owner: "Legal / Policy" },
-  { id: 4, title: "Ключевые сотрудники", category: "operational", severity: "Средний", probability: 2, impact: 4, trend: "↓", color: "#f59e0b", icon: Users, mitigation: "Retention-пакеты для топ-10, equity pool, succession plan", owner: "HR / CEO" },
-  { id: 5, title: "API-зависимость (OpenAI)", category: "technical", severity: "Высокий", probability: 3, impact: 4, trend: "→", color: "#f43f5e", icon: Zap, mitigation: "Multi-provider стратегия, собственная fine-tuned модель к Q2", owner: "CTO" },
-  { id: 6, title: "Runway < 12 месяцев", category: "financial", severity: "Низкий", probability: 1, impact: 5, trend: "↓", color: "#10b981", icon: BarChart2, mitigation: "Fundraising раунд А, оптимизация COGS, bridge financing", owner: "CFO / CEO" },
+  { id: 1, title: "Конкурентное давление", category: "strategic", probability: 4, impact: 4, status: "active", mitigation: "Ускорить разработку уникальных фич, усилить retention программу", owner: "CEO / Product" },
+  { id: 2, title: "Утечка данных клиентов", category: "technical", probability: 1, impact: 5, status: "active", mitigation: "SOC 2 Type II аудит, pen testing Q3, шифрование на уровне БД", owner: "CTO / Security" },
+  { id: 3, title: "Регуляторные изменения AI", category: "legal", probability: 3, impact: 3, status: "active", mitigation: "Нанять GR-консультанта, мониторинг EU AI Act", owner: "Legal / Policy" },
+  { id: 4, title: "Ключевые сотрудники", category: "operational", probability: 2, impact: 4, status: "active", mitigation: "Retention-пакеты, equity pool, succession plan", owner: "HR / CEO" },
+  { id: 5, title: "API-зависимость (OpenAI)", category: "technical", probability: 3, impact: 4, status: "active", mitigation: "Multi-provider стратегия, собственная модель к Q2", owner: "CTO" },
+  { id: 6, title: "Runway < 12 месяцев", category: "financial", probability: 1, impact: 5, status: "active", mitigation: "Fundraising раунд А, оптимизация COGS", owner: "CFO / CEO" },
 ];
 
 const CONTROLS = [
@@ -29,19 +49,12 @@ const CONTROLS = [
 ];
 
 const INCIDENTS = [
-  { time: "14:32", text: "Подозрительная активность IP 213.xxx — заблокировано авто-WAF", level: "warn" },
+  { time: "14:32", text: "Подозрительная активность IP 213.xxx — заблокировано WAF", level: "warn" },
   { time: "11:05", text: "API rate limit превышен x3 — новый клиент Singapore", level: "info" },
   { time: "08:48", text: "Регуляторный алерт: EU AI Act поправка опубликована", level: "warn" },
   { time: "Вчера", text: "Уязвимость CVE-2025-18934 — патч применён в 00:15", level: "ok" },
   { time: "2д назад", text: "Сотрудник оффбординг — права доступа отозваны ×23", level: "ok" },
 ];
-
-const SEVERITY_MAP: Record<string, { bg: string; color: string }> = {
-  "Критичный": { bg: "rgba(244,63,94,0.15)", color: "#f43f5e" },
-  "Высокий":   { bg: "rgba(245,158,11,0.12)", color: "#f59e0b" },
-  "Средний":   { bg: "rgba(245,158,11,0.08)", color: "#f59e0b" },
-  "Низкий":    { bg: "rgba(16,185,129,0.10)", color: "#10b981" },
-};
 
 const CATEGORY_LABELS: Record<string, string> = {
   operational: "Операционные", financial: "Финансовые",
@@ -49,392 +62,525 @@ const CATEGORY_LABELS: Record<string, string> = {
   technical: "Технические", reputational: "Репутационные",
 };
 
-function sevFromScore(prob: number, impact: number) {
-  const score = prob * impact;
-  if (score >= 20) return "Критичный";
-  if (score >= 12) return "Высокий";
-  if (score >= 6)  return "Средний";
-  return "Низкий";
-}
+const CATEGORY_ICONS: Record<string, React.ComponentType<{ size?: number; color?: string }>> = {
+  operational: Users, financial: BarChart2, strategic: TrendingDown,
+  legal: Globe, technical: Zap, reputational: Shield,
+};
 
-function colorFromSev(sev: string) {
-  if (sev === "Критичный") return "#f43f5e";
-  if (sev === "Высокий")   return "#f59e0b";
-  if (sev === "Средний")   return "#f59e0b";
-  return "#10b981";
-}
-
-function RiskMeter({ value, color }: { value: number; color: string }) {
-  const r = 22, circ = 2 * Math.PI * r;
-  return (
-    <svg width={56} height={56} style={{ transform: "rotate(-90deg)" }}>
-      <circle cx={28} cy={28} r={r} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth={5} />
-      <motion.circle cx={28} cy={28} r={r} fill="none" stroke={color} strokeWidth={5}
-        strokeLinecap="round" strokeDasharray={circ}
-        initial={{ strokeDashoffset: circ }}
-        animate={{ strokeDashoffset: circ - (value / 100) * circ }}
-        transition={{ duration: 1, ease: "easeOut" }}
-        style={{ filter: `drop-shadow(0 0 5px ${color})` }} />
-    </svg>
-  );
-}
-
-function Counter({ to }: { to: number }) {
-  const [val, setVal] = useState(0);
-  const done = useRef(false);
-  useEffect(() => {
-    if (done.current) return;
-    done.current = true;
-    let s = 0;
-    const step = to / 36;
-    const t = setInterval(() => {
-      s += step;
-      if (s >= to) { setVal(to); clearInterval(t); }
-      else setVal(Math.floor(s));
-    }, 28);
-    return () => clearInterval(t);
-  }, [to]);
-  return <>{val}</>;
-}
-
-// ─── Add Risk Modal ────────────────────────────────────────────────────────────
-
-function AddRiskModal({ open, onClose, onAdded }: { open: boolean; onClose: () => void; onAdded: () => void }) {
-  const [form, setForm] = useState({ title: "", description: "", category: "operational", probability: 3, impact: 3, mitigation: "", owner: "" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-
-  const submit = async () => {
-    if (!form.title.trim()) { setError("Укажите название риска"); return; }
-    setLoading(true); setError("");
-    try {
-      const res = await fetch("/api/risks", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
-      });
-      const json = await res.json();
-      if (!json.success) throw new Error(json.error || "Ошибка");
-      onAdded();
-      onClose();
-      setForm({ title: "", description: "", category: "operational", probability: 3, impact: 3, mitigation: "", owner: "" });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Ошибка");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  if (!open) return null;
-
-  return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
-      <div style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.7)", backdropFilter: "blur(8px)" }} onClick={onClose} />
-      <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }}
-        style={{ position: "relative", width: "100%", maxWidth: 500, maxHeight: "90vh", overflowY: "auto", borderRadius: 20, background: "#0e101a", border: "1px solid rgba(244,63,94,0.2)", padding: 28 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 24 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #f43f5e, #f59e0b)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Shield size={15} color="#fff" />
-            </div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "#fff" }}>Добавить риск</div>
-          </div>
-          <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.4)", padding: 4 }}>
-            <X size={18} />
-          </button>
-        </div>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", display: "block", marginBottom: 6 }}>Название *</label>
-            <input value={form.title} onChange={e => setForm(p => ({ ...p, title: e.target.value }))} placeholder="Краткое описание риска"
-              style={{ width: "100%", height: 40, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, color: "#fff", fontSize: 13, padding: "0 14px", outline: "none", boxSizing: "border-box" }} />
-          </div>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", display: "block", marginBottom: 6 }}>Категория</label>
-            <select value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))}
-              style={{ width: "100%", height: 40, background: "#1a1d2e", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, color: "#fff", fontSize: 13, padding: "0 14px", outline: "none", boxSizing: "border-box" }}>
-              {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
-            </select>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-            {(["probability", "impact"] as const).map(key => (
-              <div key={key}>
-                <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", display: "block", marginBottom: 6 }}>
-                  {key === "probability" ? "Вероятность" : "Импакт"} (1–5): <span style={{ color: "#fff" }}>{form[key]}</span>
-                </label>
-                <input type="range" min={1} max={5} value={form[key]} onChange={e => setForm(p => ({ ...p, [key]: Number(e.target.value) }))}
-                  style={{ width: "100%", accentColor: "#6366f1" }} />
-              </div>
-            ))}
-          </div>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", display: "block", marginBottom: 6 }}>Митигация</label>
-            <textarea value={form.mitigation} onChange={e => setForm(p => ({ ...p, mitigation: e.target.value }))} placeholder="Как снизить этот риск?"
-              rows={3} style={{ width: "100%", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, color: "#fff", fontSize: 13, padding: "10px 14px", outline: "none", boxSizing: "border-box", resize: "vertical", fontFamily: "inherit" }} />
-          </div>
-          <div>
-            <label style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", display: "block", marginBottom: 6 }}>Владелец</label>
-            <input value={form.owner} onChange={e => setForm(p => ({ ...p, owner: e.target.value }))} placeholder="CTO / CEO"
-              style={{ width: "100%", height: 40, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", borderRadius: 10, color: "#fff", fontSize: 13, padding: "0 14px", outline: "none", boxSizing: "border-box" }} />
-          </div>
-          {error && <div style={{ fontSize: 12, color: "#f43f5e", background: "rgba(244,63,94,0.08)", border: "1px solid rgba(244,63,94,0.2)", borderRadius: 10, padding: "10px 14px" }}>{error}</div>}
-          <button onClick={submit} disabled={loading}
-            style={{ height: 44, borderRadius: 12, background: "linear-gradient(135deg, #f43f5e, #f59e0b)", border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: loading ? "default" : "pointer", opacity: loading ? 0.7 : 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-            {loading ? <><Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} />Сохраняю…</> : <><Plus size={14} />Добавить риск</>}
-          </button>
-        </div>
-      </motion.div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-    </div>
-  );
-}
-
-// ─── Main Page ─────────────────────────────────────────────────────────────────
-
-interface ApiRisk {
-  id: string;
+// ─── Types ─────────────────────────────────────────────────────────────────────
+interface Risk {
+  id: number | string;
   title: string;
   category: string;
   probability: number;
   impact: number;
-  mitigation?: string;
-  owner?: string;
-  status?: string;
+  status: string;
+  mitigation?: string | null;
+  owner?: string | null;
+  due_date?: string | null;
 }
 
-export default function RisksPage() {
-  const [activeRisk, setActiveRisk] = useState<number | string | null>(null);
-  const [addOpen, setAddOpen] = useState(false);
-  const [apiRisks, setApiRisks] = useState<ApiRisk[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [assigningId, setAssigningId] = useState<number | string | null>(null);
+// ─── Severity util ─────────────────────────────────────────────────────────────
+function getSeverity(prob: number, impact: number): { label: string; color: string; bg: string } {
+  const score = prob * impact;
+  if (score >= 16) return { label: "Критичный", color: S.danger, bg: S.dangerBg };
+  if (score >= 9)  return { label: "Высокий",   color: S.warning, bg: S.warningBg };
+  if (score >= 4)  return { label: "Средний",   color: S.warning, bg: "rgba(245,158,11,0.06)" };
+  return            { label: "Низкий",   color: S.success, bg: S.successBg };
+}
 
-  const fetchRisks = async () => {
+// ─── Hooks ─────────────────────────────────────────────────────────────────────
+function useCountUp(to: number, active: boolean, duration = 1400) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    if (!active) return;
+    let start: number | null = null;
+    const raf = requestAnimationFrame(function step(ts) {
+      if (!start) start = ts;
+      const t = Math.min((ts - start) / duration, 1);
+      const ease = 1 - Math.pow(1 - t, 3);
+      setVal(Math.round(ease * to));
+      if (t < 1) requestAnimationFrame(step);
+    });
+    return () => cancelAnimationFrame(raf);
+  }, [to, active, duration]);
+  return val;
+}
+
+// ─── Scatter / Bubble risk matrix ──────────────────────────────────────────────
+function RiskMatrix({ risks }: { risks: Risk[] }) {
+  const ref = useRef<SVGSVGElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-60px" });
+  const W = 400, H = 300, PAD = 40;
+
+  const cellW = (W - PAD * 2) / 5;
+  const cellH = (H - PAD * 2) / 5;
+
+  return (
+    <svg ref={ref} viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", overflow: "visible" }}>
+      {/* grid cells coloured by severity zone */}
+      {Array.from({ length: 5 }, (_, row) =>
+        Array.from({ length: 5 }, (_, col) => {
+          const prob = col + 1, impact = row + 1;
+          const score = prob * impact;
+          const fill = score >= 16 ? "rgba(239,68,68,0.12)" : score >= 9 ? "rgba(245,158,11,0.09)" : score >= 4 ? "rgba(245,158,11,0.04)" : "rgba(16,185,129,0.05)";
+          return (
+            <rect
+              key={`${row}-${col}`}
+              x={PAD + col * cellW} y={PAD + (4 - row) * cellH}
+              width={cellW} height={cellH}
+              fill={fill} stroke={S.border} strokeWidth={0.5}
+            />
+          );
+        })
+      )}
+
+      {/* axis labels */}
+      {[1,2,3,4,5].map(n => (
+        <text key={n} x={PAD + (n - 0.5) * cellW} y={H - 8} textAnchor="middle" fill={S.textMuted} fontSize={10}>{n}</text>
+      ))}
+      {[1,2,3,4,5].map(n => (
+        <text key={n} x={14} y={PAD + (5 - n + 0.5) * cellH + 4} textAnchor="middle" fill={S.textMuted} fontSize={10}>{n}</text>
+      ))}
+      <text x={PAD + (W - PAD * 2) / 2} y={H} textAnchor="middle" fill={S.textMuted} fontSize={10}>Вероятность</text>
+      <text x={8} y={PAD + (H - PAD * 2) / 2} textAnchor="middle" fill={S.textMuted} fontSize={10} transform={`rotate(-90, 8, ${PAD + (H - PAD * 2) / 2})`}>Влияние</text>
+
+      {/* risk bubbles */}
+      {risks.map((r, i) => {
+        const sev = getSeverity(r.probability, r.impact);
+        const cx = PAD + (r.probability - 0.5) * cellW;
+        const cy = PAD + (5 - r.impact + 0.5) * cellH;
+        const radius = 14;
+        return (
+          <motion.g key={r.id}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={inView ? { scale: 1, opacity: 1 } : {}}
+            transition={{ delay: i * 0.08, duration: 0.5, ease: [0.34, 1.56, 0.64, 1] }}
+            style={{ originX: cx, originY: cy }}
+          >
+            <circle cx={cx} cy={cy} r={radius} fill={sev.color} fillOpacity={0.18} stroke={sev.color} strokeWidth={1.5} />
+            <text x={cx} y={cy + 4} textAnchor="middle" fill={sev.color} fontSize={10} fontWeight="700">{r.probability * r.impact}</text>
+          </motion.g>
+        );
+      })}
+    </svg>
+  );
+}
+
+// ─── Donut chart ───────────────────────────────────────────────────────────────
+function RiskDonut({ risks }: { risks: Risk[] }) {
+  const ref = useRef<SVGSVGElement>(null);
+  const inView = useInView(ref, { once: true, margin: "-40px" });
+
+  const cats = ["Критичный", "Высокий", "Средний", "Низкий"];
+  const colors = [S.danger, S.warning, "#f59e0b", S.success];
+  const counts = cats.map(c => risks.filter(r => getSeverity(r.probability, r.impact).label === c).length);
+  const total = risks.length || 1;
+
+  const cx = 60, cy = 60, r = 48, strokeW = 14;
+  const circumference = 2 * Math.PI * r;
+  let offset = 0;
+
+  return (
+    <svg ref={ref} viewBox="0 0 120 120" style={{ width: 120, height: 120 }}>
+      <circle cx={cx} cy={cy} r={r} fill="none" stroke={S.border} strokeWidth={strokeW} />
+      {counts.map((cnt, i) => {
+        const dash = (cnt / total) * circumference;
+        const arc = (
+          <motion.circle key={i} cx={cx} cy={cy} r={r}
+            fill="none" stroke={colors[i]} strokeWidth={strokeW}
+            strokeDasharray={`${dash} ${circumference - dash}`}
+            strokeDashoffset={inView ? -offset : -circumference}
+            strokeLinecap="butt"
+            style={{ transformOrigin: `${cx}px ${cy}px`, transform: "rotate(-90deg)" }}
+            initial={{ strokeDashoffset: -circumference }}
+            animate={inView ? { strokeDashoffset: -offset } : {}}
+            transition={{ duration: 1.3, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+          />
+        );
+        offset += dash;
+        return arc;
+      })}
+      <text x={cx} y={cy + 4} textAnchor="middle" fill={S.textPrimary} fontSize={18} fontWeight="800">{risks.length}</text>
+      <text x={cx} y={cy + 16} textAnchor="middle" fill={S.textMuted} fontSize={8}>рисков</text>
+    </svg>
+  );
+}
+
+// ─── AddRiskModal ──────────────────────────────────────────────────────────────
+function AddRiskModal({ onClose, onAdded }: { onClose: () => void; onAdded: (r: Risk) => void }) {
+  const [title, setTitle] = useState("");
+  const [category, setCategory] = useState("operational");
+  const [probability, setProbability] = useState(3);
+  const [impact, setImpact] = useState(3);
+  const [mitigation, setMitigation] = useState("");
+  const [owner, setOwner] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [err, setErr] = useState("");
+
+  async function submit() {
+    if (!title.trim()) { setErr("Введите название риска"); return; }
+    setLoading(true); setErr("");
     try {
-      const res = await fetch("/api/risks");
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) setApiRisks(json.data);
-      }
-    } catch { /* silent — use demo data */ }
-    finally { setLoading(false); }
-  };
-
-  useEffect(() => { fetchRisks(); }, []);
-
-  // Merge: API risks take priority, fill with demo data if empty
-  const risks = apiRisks.length > 0
-    ? apiRisks.map(r => ({
-        id: r.id,
-        title: r.title,
-        category: r.category,
-        severity: sevFromScore(r.probability, r.impact),
-        probability: r.probability * 20,
-        impact: r.impact * 20,
-        trend: "→" as string,
-        color: colorFromSev(sevFromScore(r.probability, r.impact)),
-        icon: Shield,
-        mitigation: r.mitigation ?? "",
-        owner: r.owner ?? "",
-      }))
-    : DEMO_RISKS.map(r => ({ ...r, probability: r.probability * 20, impact: r.impact * 20 }));
-
-  const overallScore = Math.round(risks.reduce((s, r) => s + (r.probability / 100) * (r.impact / 100) * 100, 0) / risks.length);
-  const critical = risks.filter(r => r.severity === "Критичный").length;
-  const high = risks.filter(r => r.severity === "Высокий").length;
-
-  const handleAssign = async (risk: typeof risks[0]) => {
-    setAssigningId(risk.id);
-    try {
-      await fetch("/api/risks", {
+      const res = await fetch("/api/risks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title: `[Задача] ${risk.title}`,
-          category: "operational",
-          probability: 2,
-          impact: 3,
-          mitigation: risk.mitigation,
-          owner: risk.owner,
-        }),
+        body: JSON.stringify({ title, category, probability, impact, mitigation, owner }),
       });
-    } catch { /* ignore */ }
-    finally { setAssigningId(null); }
+      const j = await res.json();
+      if (!j.success) { setErr(j.error ?? "Ошибка"); setLoading(false); return; }
+      onAdded(j.data as Risk);
+      onClose();
+    } catch { setErr("Сетевая ошибка"); setLoading(false); }
+  }
+
+  const sev = getSeverity(probability, impact);
+
+  const inp: React.CSSProperties = {
+    width: "100%", padding: "10px 14px", borderRadius: 12,
+    background: "rgba(255,255,255,0.04)", border: `1px solid ${S.border}`,
+    color: S.textPrimary, fontSize: 14, outline: "none",
+    transition: "border-color 0.2s",
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#07090F", padding: "28px 28px 60px", position: "relative", overflow: "hidden" }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+      style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000, padding: 16 }}
+      onClick={e => e.target === e.currentTarget && onClose()}
+    >
+      <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }}
+        transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        style={{ background: "#0e0f17", border: `1px solid ${S.border}`, borderRadius: 22, padding: 32, width: "100%", maxWidth: 520, boxShadow: S.card }}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+          <span style={{ color: S.textPrimary, fontWeight: 700, fontSize: 18 }}>Новый риск</span>
+          <button onClick={onClose} style={{ background: "none", border: "none", color: S.textMuted, cursor: "pointer", padding: 4 }}><X size={18} /></button>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 12, color: S.textMuted, marginBottom: 6, letterSpacing: "0.1em", textTransform: "uppercase" }}>Название *</label>
+            <input style={inp} value={title} onChange={e => setTitle(e.target.value)} placeholder="Опишите риск кратко" />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, color: S.textMuted, marginBottom: 6, letterSpacing: "0.1em", textTransform: "uppercase" }}>Категория</label>
+            <select style={{ ...inp, appearance: "none" }} value={category} onChange={e => setCategory(e.target.value)}>
+              {Object.entries(CATEGORY_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
+            </select>
+          </div>
+
+          {/* Sliders */}
+          {([
+            ["Вероятность", probability, setProbability],
+            ["Влияние", impact, setImpact],
+          ] as [string, number, (v: number) => void][]).map(([label, val, setVal]) => (
+            <div key={label}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+                <label style={{ fontSize: 12, color: S.textMuted, letterSpacing: "0.1em", textTransform: "uppercase" }}>{label}</label>
+                <span style={{ fontSize: 13, color: S.textPrimary, fontWeight: 700, fontVariantNumeric: "tabular-nums" }}>{val}/5</span>
+              </div>
+              <input type="range" min={1} max={5} value={val}
+                onChange={e => setVal(Number(e.target.value))}
+                style={{ width: "100%", accentColor: S.accent }}
+              />
+            </div>
+          ))}
+
+          {/* Score preview */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 12, background: sev.bg, border: `1px solid ${sev.color}22` }}>
+            <span style={{ fontSize: 12, color: S.textMuted }}>Скор риска:</span>
+            <span style={{ fontSize: 22, fontWeight: 800, color: sev.color, fontVariantNumeric: "tabular-nums" }}>{probability * impact}</span>
+            <span style={{ fontSize: 12, padding: "3px 8px", borderRadius: 8, background: sev.bg, color: sev.color, border: `1px solid ${sev.color}33`, fontWeight: 600 }}>{sev.label}</span>
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, color: S.textMuted, marginBottom: 6, letterSpacing: "0.1em", textTransform: "uppercase" }}>Митигация</label>
+            <textarea style={{ ...inp, minHeight: 72, resize: "vertical" }} value={mitigation} onChange={e => setMitigation(e.target.value)} placeholder="Как снизить риск?" />
+          </div>
+
+          <div>
+            <label style={{ display: "block", fontSize: 12, color: S.textMuted, marginBottom: 6, letterSpacing: "0.1em", textTransform: "uppercase" }}>Ответственный</label>
+            <input style={inp} value={owner} onChange={e => setOwner(e.target.value)} placeholder="Имя или роль" />
+          </div>
+
+          {err && <div style={{ color: S.danger, fontSize: 13 }}>{err}</div>}
+
+          <button onClick={submit} disabled={loading}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, padding: "13px 24px", borderRadius: 12, background: `linear-gradient(135deg,${S.accent},${S.accentDark})`, border: "none", color: "#fff", fontWeight: 700, fontSize: 15, cursor: "pointer", opacity: loading ? 0.6 : 1 }}
+          >
+            {loading ? <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} /> : <Plus size={16} />}
+            {loading ? "Сохраняем..." : "Добавить риск"}
+          </button>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// ─── Fade-up helper ────────────────────────────────────────────────────────────
+const fadeUp = (delay = 0) => ({
+  initial: { opacity: 0, y: 20 },
+  animate: { opacity: 1, y: 0 },
+  transition: { duration: 0.55, ease: [0.22, 1, 0.36, 1] as const, delay },
+});
+
+// ─── AnimatedKPI ───────────────────────────────────────────────────────────────
+function AnimatedKPI({ value, label, color, sublabel }: { value: number; label: string; color: string; sublabel?: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const inView = useInView(ref, { once: true });
+  const count = useCountUp(value, inView);
+  return (
+    <div ref={ref} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+      <span style={{ fontSize: 28, fontWeight: 800, color, letterSpacing: "-0.03em", fontVariantNumeric: "tabular-nums" }}>{count}</span>
+      <span style={{ fontSize: 13, color: S.textSecondary }}>{label}</span>
+      {sublabel && <span style={{ fontSize: 11, color: S.textMuted }}>{sublabel}</span>}
+    </div>
+  );
+}
+
+// ─── Main page ─────────────────────────────────────────────────────────────────
+export default function RisksPage() {
+  const [risks, setRisks] = useState<Risk[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+  const [filterCat, setFilterCat] = useState("all");
+  const [selectedRisk, setSelectedRisk] = useState<Risk | null>(null);
+
+  const fetchRisks = useCallback(async () => {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/risks?limit=50");
+      const j = await res.json();
+      setRisks(j.success && j.data.length > 0 ? j.data : DEMO_RISKS);
+    } catch {
+      setRisks(DEMO_RISKS);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchRisks(); }, [fetchRisks]);
+
+  const filtered = filterCat === "all" ? risks : risks.filter(r => r.category === filterCat);
+  const critical = risks.filter(r => getSeverity(r.probability, r.impact).label === "Критичный").length;
+  const high = risks.filter(r => getSeverity(r.probability, r.impact).label === "Высокий").length;
+  const avgScore = risks.length ? Math.round(risks.reduce((s, r) => s + r.probability * r.impact, 0) / risks.length) : 0;
+
+  return (
+    <div style={{ minHeight: "100vh", background: S.bg, color: S.textPrimary, fontFamily: "system-ui, -apple-system, sans-serif", padding: "0 0 80px" }}>
       <style>{`
-        .risk-kpi { display: grid; grid-template-columns: repeat(5, 1fr); gap: 12px; margin-bottom: 24px; }
-        .risk-main { display: grid; grid-template-columns: 1fr 280px; gap: 16px; margin-bottom: 20px; }
-        @media (max-width: 1100px) { .risk-main { grid-template-columns: 1fr; } }
-        @media (max-width: 900px) { .risk-kpi { grid-template-columns: repeat(3, 1fr) !important; } }
-        @media (max-width: 600px) { .risk-kpi { grid-template-columns: repeat(2, 1fr) !important; } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .risk-kpi { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        .risk-main { display: grid; grid-template-columns: 1fr 300px; gap: 20px; }
+        .risk-bottom { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .risk-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 16px; padding: 24px; box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.045); transition: border-color 0.2s; }
+        .risk-card:hover { border-color: rgba(255,255,255,0.13); }
+        .risk-row { display: flex; align-items: flex-start; gap: 14px; padding: 14px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: all 0.18s; }
+        .risk-row:hover { background: rgba(255,255,255,0.045); border-color: rgba(255,255,255,0.1); }
+        @media (max-width: 960px) { .risk-main { grid-template-columns: 1fr; } .risk-bottom { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .risk-kpi { grid-template-columns: repeat(2,1fr); } }
       `}</style>
 
-      <div style={{ position: "fixed", top: -150, right: -100, width: 450, height: 450, borderRadius: "50%", background: "radial-gradient(circle, rgba(244,63,94,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
-      <div style={{ position: "fixed", bottom: -200, left: 50, width: 400, height: 400, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.05) 0%, transparent 70%)", pointerEvents: "none" }} />
-
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 28, gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #f43f5e, #f59e0b)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Shield size={16} color="#fff" />
+      <motion.div {...fadeUp(0)} style={{ padding: "40px 40px 0", maxWidth: 1200, margin: "0 auto" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 32 }}>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: S.dangerBg, border: `1px solid ${S.danger}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Shield size={18} color={S.danger} />
+              </div>
+              <span style={{ fontSize: 11, color: S.textMuted, textTransform: "uppercase", letterSpacing: "0.14em" }}>Risk Intelligence</span>
             </div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>Риски</h1>
-            {loading && <Loader2 size={14} style={{ color: "rgba(255,255,255,0.3)", animation: "spin 1s linear infinite" }} />}
+            <h1 style={{ fontSize: "clamp(22px,4vw,32px)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>Управление рисками</h1>
+            <p style={{ fontSize: 14, color: S.textSecondary, marginTop: 6 }}>Мониторинг, оценка и митигация ключевых бизнес-рисков</p>
           </div>
-          <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>AI-мониторинг угроз, уязвимостей и контрольная панель</p>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
-          <button onClick={fetchRisks} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
-            <RefreshCw size={12} />Обновить
-          </button>
-          <button style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 14px", borderRadius: 9, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>
-            <Download size={12} />Отчёт
-          </button>
-          <button onClick={() => setAddOpen(true)} style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", borderRadius: 9, fontSize: 11, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #f43f5e, #f59e0b)", color: "#fff", cursor: "pointer" }}>
-            <Plus size={12} />Добавить риск
-          </button>
-        </div>
-      </div>
-
-      {/* KPI Row */}
-      <div className="risk-kpi">
-        {[
-          { label: "Risk Score",      value: overallScore, suffix: "/100", color: "#f43f5e", note: "Умеренно высокий" },
-          { label: "Критических",     value: critical,     suffix: "",     color: "#f43f5e", note: "Немедленно" },
-          { label: "Высоких",         value: high,         suffix: "",     color: "#f59e0b", note: "Контроль усилен" },
-          { label: "Открытых инц.",   value: 3,            suffix: "",     color: "#f59e0b", note: "↓2 vs прошлая нед." },
-          { label: "Controls OK",     value: 4,            suffix: "/6",   color: "#10b981", note: "67% покрытие" },
-        ].map((k, i) => (
-          <motion.div key={i} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.07 }}
-            style={{ borderRadius: 16, padding: "16px 18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, ${k.color}60, transparent)` }} />
-            <Shield size={13} style={{ color: k.color, marginBottom: 10 }} />
-            <div style={{ fontSize: 26, fontWeight: 900, color: "#fff", lineHeight: 1, marginBottom: 4 }}>
-              <Counter to={k.value} />{k.suffix}
-            </div>
-            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", marginBottom: 4 }}>{k.label}</div>
-            <div style={{ fontSize: 10, color: k.color, fontWeight: 600 }}>{k.note}</div>
-          </motion.div>
-        ))}
-      </div>
-
-      {/* Risk Matrix + Sidebar */}
-      <div className="risk-main">
-        {/* Risk Table */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          style={{ borderRadius: 18, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", overflow: "hidden", position: "relative" }}>
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #f43f5e80, transparent)" }} />
-          <div style={{ padding: "20px 24px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Матрица рисков</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>
-              {apiRisks.length > 0 ? `${apiRisks.length} рисков из базы данных` : "Демо-данные · нажми для деталей"}
-            </div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
+              onClick={fetchRisks}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 12, background: S.surface, border: `1px solid ${S.border}`, color: S.textSecondary, fontSize: 13, cursor: "pointer" }}
+            >
+              <RefreshCw size={14} />
+              Обновить
+            </motion.button>
+            <motion.button whileHover={{ y: -1 }} whileTap={{ scale: 0.97 }}
+              onClick={() => setShowModal(true)}
+              style={{ display: "flex", alignItems: "center", gap: 7, padding: "10px 18px", borderRadius: 12, background: `linear-gradient(135deg,${S.accent},${S.accentDark})`, border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}
+            >
+              <Plus size={14} />
+              Добавить риск
+            </motion.button>
           </div>
-          <div style={{ padding: "0 8px 8px" }}>
-            {risks.map((risk, i) => (
-              <motion.div key={risk.id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 + i * 0.06 }}
-                onClick={() => setActiveRisk(activeRisk === risk.id ? null : risk.id)}
-                style={{ borderRadius: 12, margin: "6px 0", padding: "12px 16px", background: activeRisk === risk.id ? `${risk.color}08` : "transparent", border: `1px solid ${activeRisk === risk.id ? risk.color + "40" : "transparent"}`, cursor: "pointer", transition: "all 0.2s" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div style={{ width: 34, height: 34, borderRadius: 9, background: `${risk.color}12`, border: `1px solid ${risk.color}20`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    <risk.icon size={14} style={{ color: risk.color }} />
-                  </div>
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 2, flexWrap: "wrap" }}>
-                      <span style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{risk.title}</span>
-                      <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 5, background: SEVERITY_MAP[risk.severity]?.bg, color: SEVERITY_MAP[risk.severity]?.color, fontWeight: 700, whiteSpace: "nowrap" }}>{risk.severity}</span>
-                      <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>{risk.trend}</span>
-                    </div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>
-                      {CATEGORY_LABELS[risk.category] ?? risk.category}
-                      {risk.owner && ` · ${risk.owner}`}
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", gap: 16, flexShrink: 0 }}>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: risk.color }}>{risk.probability}%</div>
-                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>вероятность</div>
-                    </div>
-                    <div style={{ textAlign: "center" }}>
-                      <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>{risk.impact}</div>
-                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>импакт</div>
-                    </div>
-                  </div>
-                  <ChevronRight size={13} style={{ color: "rgba(255,255,255,0.2)", flexShrink: 0, transform: activeRisk === risk.id ? "rotate(90deg)" : "none", transition: "transform 0.2s" }} />
+        </div>
+
+        {/* KPI strip */}
+        <div className="risk-kpi" style={{ marginBottom: 24 }}>
+          {[
+            { value: risks.length, label: "Всего рисков", color: S.textPrimary, sub: "активных" },
+            { value: critical, label: "Критичных", color: S.danger, sub: "немедленно" },
+            { value: high, label: "Высоких", color: S.warning, sub: "под контролем" },
+            { value: avgScore, label: "Средний скор", color: S.accent, sub: "из 25 макс." },
+          ].map((kpi, i) => (
+            <motion.div key={kpi.label} {...fadeUp(0.1 + i * 0.07)} className="risk-card">
+              <AnimatedKPI value={kpi.value} label={kpi.label} color={kpi.color} sublabel={kpi.sub} />
+            </motion.div>
+          ))}
+        </div>
+      </motion.div>
+
+      {/* Main content */}
+      <div style={{ padding: "0 40px", maxWidth: 1200, margin: "0 auto" }}>
+        <div className="risk-main">
+          {/* Risk list */}
+          <motion.div {...fadeUp(0.2)} className="risk-card" style={{ padding: 0 }}>
+            {/* Filters */}
+            <div style={{ padding: "20px 24px 0", borderBottom: `1px solid ${S.border}`, display: "flex", gap: 4, flexWrap: "wrap", paddingBottom: 16 }}>
+              {[["all", "Все"], ...Object.entries(CATEGORY_LABELS)].map(([k, v]) => (
+                <button key={k} onClick={() => setFilterCat(k)}
+                  style={{ padding: "5px 12px", borderRadius: 8, border: `1px solid ${filterCat === k ? S.accent : S.border}`, background: filterCat === k ? `${S.accent}22` : "transparent", color: filterCat === k ? S.accent : S.textSecondary, fontSize: 12, cursor: "pointer", fontWeight: filterCat === k ? 700 : 400, transition: "all 0.15s" }}
+                >{v}</button>
+              ))}
+            </div>
+
+            {/* List */}
+            <div style={{ padding: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+              {loading ? (
+                <div style={{ display: "flex", justifyContent: "center", padding: 40 }}>
+                  <Loader2 size={24} color={S.accent} style={{ animation: "spin 1s linear infinite" }} />
                 </div>
-                <AnimatePresence>
-                  {activeRisk === risk.id && (
-                    <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} style={{ overflow: "hidden" }}>
-                      <div style={{ marginTop: 12, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                        {risk.mitigation && (
-                          <>
-                            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>Митигация:</div>
-                            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: 12 }}>{risk.mitigation}</div>
-                          </>
-                        )}
-                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                          <button
-                            onClick={e => { e.stopPropagation(); handleAssign(risk); }}
-                            disabled={assigningId === risk.id}
-                            style={{ padding: "5px 12px", borderRadius: 7, fontSize: 10, fontWeight: 700, border: "none", background: risk.color, color: "#fff", cursor: "pointer", display: "flex", alignItems: "center", gap: 5, opacity: assigningId === risk.id ? 0.6 : 1 }}>
-                            {assigningId === risk.id ? <Loader2 size={10} style={{ animation: "spin 1s linear infinite" }} /> : null}
-                            Назначить задачу
-                          </button>
-                          <button onClick={e => e.stopPropagation()} style={{ padding: "5px 12px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: "1px solid rgba(255,255,255,0.1)", background: "transparent", color: "rgba(255,255,255,0.5)", cursor: "pointer" }}>Отложить</button>
-                        </div>
+              ) : filtered.map((risk, i) => {
+                const sev = getSeverity(risk.probability, risk.impact);
+                const Icon = CATEGORY_ICONS[risk.category] ?? Shield;
+                return (
+                  <motion.div key={risk.id} className="risk-row"
+                    initial={{ opacity: 0, x: -12 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+                    onClick={() => setSelectedRisk(selectedRisk?.id === risk.id ? null : risk)}
+                  >
+                    <div style={{ width: 36, height: 36, borderRadius: 10, background: sev.bg, border: `1px solid ${sev.color}33`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                      <Icon size={16} color={sev.color} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8 }}>
+                        <span style={{ fontSize: 14, fontWeight: 600, color: S.textPrimary }}>{risk.title}</span>
+                        <span style={{ fontSize: 11, padding: "2px 8px", borderRadius: 6, background: sev.bg, color: sev.color, border: `1px solid ${sev.color}22`, fontWeight: 700, flexShrink: 0 }}>{sev.label}</span>
                       </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+                      <div style={{ display: "flex", gap: 16, marginTop: 6 }}>
+                        <span style={{ fontSize: 11, color: S.textMuted }}>{CATEGORY_LABELS[risk.category] ?? risk.category}</span>
+                        <span style={{ fontSize: 11, color: S.textMuted }}>P:{risk.probability} · I:{risk.impact} · Score:{risk.probability * risk.impact}</span>
+                      </div>
 
-        {/* Right Panel */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Overall Score */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }}
-            style={{ borderRadius: 18, padding: "20px", background: "rgba(244,63,94,0.05)", border: "1px solid rgba(244,63,94,0.12)", position: "relative", overflow: "hidden" }}>
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #f43f5e80, transparent)" }} />
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 16 }}>Общий Risk Score</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-              <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
-                <RiskMeter value={overallScore} color="#f43f5e" />
-                <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 13, fontWeight: 900, color: "#f43f5e" }}>{overallScore}</div>
-              </div>
-              <div>
-                <div style={{ fontSize: 14, fontWeight: 700, color: "#f43f5e", marginBottom: 3 }}>Умеренно высокий</div>
-                <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", lineHeight: 1.5 }}>{critical} критичных риска требуют внимания</div>
-              </div>
+                      <AnimatePresence>
+                        {selectedRisk?.id === risk.id && (
+                          <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+                            transition={{ duration: 0.28 }} style={{ overflow: "hidden" }}
+                          >
+                            {risk.mitigation && (
+                              <div style={{ marginTop: 10, padding: "10px 12px", borderRadius: 8, background: "rgba(99,102,241,0.06)", border: `1px solid ${S.accent}22` }}>
+                                <div style={{ fontSize: 10, color: S.textMuted, textTransform: "uppercase", letterSpacing: "0.1em", marginBottom: 4 }}>Митигация</div>
+                                <div style={{ fontSize: 13, color: S.textSecondary, lineHeight: 1.6 }}>{risk.mitigation}</div>
+                              </div>
+                            )}
+                            {risk.owner && (
+                              <div style={{ fontSize: 12, color: S.textMuted, marginTop: 8 }}>
+                                <Users size={11} style={{ display: "inline", marginRight: 5 }} />{risk.owner}
+                              </div>
+                            )}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </motion.div>
 
-          {/* Controls */}
-          <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }}
-            style={{ borderRadius: 18, padding: "18px 20px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", position: "relative", overflow: "hidden", flex: 1 }}>
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #10b98140, transparent)" }} />
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 14 }}>Контроли безопасности</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-              {CONTROLS.map((c, i) => {
-                const ic = c.status === "ok"
-                  ? <CheckCircle size={12} style={{ color: "#10b981" }} />
-                  : c.status === "warn"
-                  ? <AlertTriangle size={12} style={{ color: "#f59e0b" }} />
-                  : <Clock size={12} style={{ color: "rgba(255,255,255,0.3)" }} />;
-                return (
-                  <div key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    {ic}
-                    <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.65)", fontWeight: 500 }}>{c.name}</div>
-                      <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)" }}>{c.updated}</div>
-                    </div>
+          {/* Right panel: matrix + donut */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+            <motion.div {...fadeUp(0.25)} className="risk-card">
+              <div style={{ fontSize: 13, fontWeight: 700, color: S.textPrimary, marginBottom: 16 }}>Матрица рисков</div>
+              <RiskMatrix risks={risks} />
+              <div style={{ display: "flex", gap: 12, marginTop: 14, flexWrap: "wrap" }}>
+                {[["Критичный", S.danger], ["Высокий", S.warning], ["Средний", "#f59e0b"], ["Низкий", S.success]].map(([l, c]) => (
+                  <div key={l} style={{ display: "flex", alignItems: "center", gap: 5 }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: c }} />
+                    <span style={{ fontSize: 11, color: S.textMuted }}>{l}</span>
                   </div>
+                ))}
+              </div>
+            </motion.div>
+
+            <motion.div {...fadeUp(0.3)} className="risk-card">
+              <div style={{ fontSize: 13, fontWeight: 700, color: S.textPrimary, marginBottom: 16 }}>Распределение</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+                <RiskDonut risks={risks} />
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                  {[["Критичный", S.danger], ["Высокий", S.warning], ["Средний", "#f59e0b"], ["Низкий", S.success]].map(([l, c]) => {
+                    const cnt = risks.filter(r => getSeverity(r.probability, r.impact).label === l).length;
+                    return (
+                      <div key={l} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                        <div style={{ width: 8, height: 8, borderRadius: "50%", background: c, flexShrink: 0 }} />
+                        <span style={{ fontSize: 12, color: S.textSecondary, flex: 1 }}>{l}</span>
+                        <span style={{ fontSize: 13, fontWeight: 700, color: c, fontVariantNumeric: "tabular-nums" }}>{cnt}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+
+        {/* Bottom row */}
+        <div className="risk-bottom" style={{ marginTop: 20 }}>
+          {/* Controls */}
+          <motion.div {...fadeUp(0.35)} className="risk-card">
+            <div style={{ fontSize: 13, fontWeight: 700, color: S.textPrimary, marginBottom: 16 }}>Security Controls</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {CONTROLS.map((c, i) => {
+                const colors = { ok: S.success, warn: S.warning, pending: S.accent };
+                const icons = { ok: CheckCircle, warn: AlertTriangle, pending: Activity };
+                const col = colors[c.status as keyof typeof colors] ?? S.textMuted;
+                const Icon = icons[c.status as keyof typeof icons] ?? Activity;
+                return (
+                  <motion.div key={c.name}
+                    initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4 + i * 0.06 }}
+                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 10, background: S.surface, border: `1px solid ${S.border}` }}
+                  >
+                    <Icon size={14} color={col} />
+                    <span style={{ flex: 1, fontSize: 13, color: S.textPrimary }}>{c.name}</span>
+                    <span style={{ fontSize: 11, color: S.textMuted }}>{c.updated}</span>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </motion.div>
+
+          {/* Incidents */}
+          <motion.div {...fadeUp(0.4)} className="risk-card">
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <span style={{ fontSize: 13, fontWeight: 700, color: S.textPrimary }}>Инциденты</span>
+              <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 6, background: S.dangerBg, color: S.danger, border: `1px solid ${S.danger}22` }}>Live</span>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {INCIDENTS.map((inc, i) => {
+                const colors = { warn: S.warning, info: S.accent, ok: S.success };
+                const col = colors[inc.level as keyof typeof colors] ?? S.textMuted;
+                return (
+                  <motion.div key={i}
+                    initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.45 + i * 0.06 }}
+                    style={{ display: "flex", gap: 12, padding: "10px 12px", borderRadius: 10, background: S.surface, border: `1px solid ${S.border}` }}
+                  >
+                    <div style={{ width: 6, height: 6, borderRadius: "50%", background: col, marginTop: 4, flexShrink: 0 }} />
+                    <div style={{ flex: 1 }}>
+                      <div style={{ fontSize: 13, color: S.textPrimary, lineHeight: 1.5 }}>{inc.text}</div>
+                      <div style={{ fontSize: 11, color: S.textMuted, marginTop: 3 }}>{inc.time}</div>
+                    </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -442,41 +588,12 @@ export default function RisksPage() {
         </div>
       </div>
 
-      {/* Live Incident Feed */}
-      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-        style={{ borderRadius: 18, padding: "22px 24px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", position: "relative", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #f59e0b60, transparent)" }} />
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 18 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Activity size={14} style={{ color: "#f59e0b" }} />
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Live Incident Feed</div>
-            <span style={{ fontSize: 9, padding: "2px 7px", borderRadius: 6, background: "rgba(244,63,94,0.15)", color: "#f43f5e", fontWeight: 700 }}>LIVE</span>
-          </div>
-          <button style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(255,255,255,0.3)", background: "transparent", border: "none", cursor: "pointer" }}>
-            <Eye size={11} />Все события
-          </button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-          {INCIDENTS.map((inc, i) => {
-            const dot = inc.level === "ok" ? "#10b981" : inc.level === "warn" ? "#f59e0b" : "#3b82f6";
-            return (
-              <motion.div key={i} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.55 + i * 0.06 }}
-                style={{ display: "flex", gap: 14, paddingBottom: i < INCIDENTS.length - 1 ? 14 : 0, marginBottom: i < INCIDENTS.length - 1 ? 14 : 0, borderBottom: i < INCIDENTS.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
-                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: dot, boxShadow: `0 0 6px ${dot}` }} />
-                  {i < INCIDENTS.length - 1 && <div style={{ width: 1, flex: 1, background: "rgba(255,255,255,0.05)", marginTop: 4 }} />}
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>{inc.text}</div>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", marginTop: 2 }}>{inc.time}</div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-      </motion.div>
-
-      <AddRiskModal open={addOpen} onClose={() => setAddOpen(false)} onAdded={fetchRisks} />
+      {/* Modal */}
+      <AnimatePresence>
+        {showModal && (
+          <AddRiskModal onClose={() => setShowModal(false)} onAdded={r => setRisks(prev => [r, ...prev])} />
+        )}
+      </AnimatePresence>
     </div>
   );
 }
