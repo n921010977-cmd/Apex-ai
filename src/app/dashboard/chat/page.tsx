@@ -4,14 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Search, Plus, Star, Pin, Archive, Users, MessageSquare,
-  Send, Paperclip, Mic, Image, Globe, FileText,
-  ChevronRight, Zap, Brain, Target, Rocket, Crown,
-  TrendingUp, BarChart2, Shield, Settings2, Sparkles,
-  Clock, CheckCircle, Filter, Grid, List,
-  Layers, Code, Database, Cloud, Lock,
-  UserCheck, BookOpen, PenTool, Video, Mail,
-  ShoppingCart, Phone, Activity, Award, Briefcase, X,
+  Send, Paperclip, Mic, Globe,
+  Zap, Brain, Rocket,
+  Sparkles, Clock, Grid, List, Code,
+  Activity, X, ChevronRight, TrendingUp,
 } from "lucide-react";
+import { AnimatePresence } from "framer-motion";
 
 // ─── AGENTS ──────────────────────────────────────────────────────────────────
 
@@ -212,6 +210,8 @@ export default function ChatPage() {
   const [webSearch, setWebSearch] = useState(false);
   const [deepResearch, setDeepResearch] = useState(false);
   const [recording, setRecording] = useState(false);
+  const [codeMode, setCodeMode] = useState(false);
+  const [searching, setSearching] = useState(false);
   const [favorites, setFavorites] = useState<Set<string>>(new Set(["ceo","cfo","ai","startup","pm","fs"]));
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(new Set());
   const [archivedIds, setArchivedIds] = useState<Set<string>>(new Set());
@@ -221,8 +221,6 @@ export default function ChatPage() {
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const messagesEnd = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const imageInputRef = useRef<HTMLInputElement>(null);
-  const pdfInputRef = useRef<HTMLInputElement>(null);
   const recognitionRef = useRef<unknown>(null);
 
   const filtered = AGENTS.filter(a =>
@@ -387,8 +385,13 @@ export default function ChatPage() {
     if (!input.trim() || !activeAgent || sending) return;
     const userMsg = input;
     const attachNote = attachments.length ? `\n\n[Прикреплённые файлы: ${attachments.join(", ")}]` : "";
-    const modeNote = [webSearch ? "Используй актуальные данные из интернета." : "", deepResearch ? "Проведи глубокий структурированный анализ с источниками." : ""].filter(Boolean).join(" ");
+    const modeNote = [
+      webSearch ? "Используй актуальные данные из интернета, ссылайся на источники." : "",
+      deepResearch ? "Проведи глубокий структурированный анализ с источниками и конкретными данными." : "",
+      codeMode ? "Если уместно, включи готовый код с комментариями." : "",
+    ].filter(Boolean).join(" ");
     setInput("");
+    if (webSearch) { setSearching(true); setTimeout(() => setSearching(false), 1800); }
     setAttachments([]);
     setMessages(m => [...m, { role: "user", text: userMsg }, { role: "ai", text: "", agent: activeAgent.name }]);
     setSending(true);
@@ -464,6 +467,14 @@ export default function ChatPage() {
         .chat-history-del { opacity: 0; transition: opacity 0.15s, background 0.15s, color 0.15s; }
         .chat-history-row:hover .chat-history-del { opacity: 1; }
         .chat-history-del:hover { background: rgba(244,63,94,0.14) !important; color: #f43f5e !important; }
+        @keyframes chat-mic-pulse { 0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(244,63,94,0.4)} 50%{transform:scale(1.08);box-shadow:0 0 0 6px rgba(244,63,94,0)} }
+        @keyframes chat-search-spin { to{transform:rotate(360deg)} }
+        @keyframes chat-search-wave { 0%,60%,100%{transform:scaleY(0.4)} 30%{transform:scaleY(1)} }
+        @keyframes chat-right-in { from{opacity:0;transform:translateX(18px)} to{opacity:1;transform:translateX(0)} }
+        @keyframes chat-stat-in { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+        @keyframes chat-pulse-dot { 0%,100%{opacity:0.4;transform:scale(0.85)} 50%{opacity:1;transform:scale(1.15)} }
+        .chat-toolbar-btn { width:30px;height:30px;border-radius:8px;border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all 0.15s; }
+        .chat-toolbar-btn:hover { background:rgba(255,255,255,0.07) !important; }
       `}</style>
 
       {/* Toast */}
@@ -629,35 +640,98 @@ export default function ChatPage() {
                     ))}
                   </div>
                 )}
-                {/* Hidden file inputs */}
+                {/* Hidden file input */}
                 <input ref={fileInputRef} type="file" multiple onChange={onFilePicked} style={{ display: "none" }} />
-                <input ref={imageInputRef} type="file" accept="image/*" multiple onChange={onFilePicked} style={{ display: "none" }} />
-                <input ref={pdfInputRef} type="file" accept=".pdf,application/pdf" multiple onChange={onFilePicked} style={{ display: "none" }} />
-                <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.04)", overflow: "hidden" }}>
+
+                {/* Web search indicator */}
+                {searching && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "6px 12px", borderRadius: 10, background: "rgba(59,130,246,0.08)", border: "1px solid rgba(59,130,246,0.2)" }}>
+                    <div style={{ display: "flex", gap: 3, alignItems: "center", height: 14 }}>
+                      {[0,1,2,3].map(i => (
+                        <div key={i} style={{ width: 3, height: 14, borderRadius: 2, background: "#3b82f6", animation: `chat-search-wave 1s ease-in-out infinite`, animationDelay: `${i * 0.15}s` }} />
+                      ))}
+                    </div>
+                    <span style={{ fontSize: 11, color: "#3b82f6", fontWeight: 600 }}>Поиск в интернете...</span>
+                    <Globe size={11} style={{ color: "#3b82f6", marginLeft: "auto" }} />
+                  </div>
+                )}
+
+                {/* Mic recording indicator */}
+                {recording && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "6px 12px", borderRadius: 10, background: "rgba(244,63,94,0.08)", border: "1px solid rgba(244,63,94,0.2)" }}>
+                    <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f43f5e", animation: "chat-mic-pulse 1.2s ease-in-out infinite" }} />
+                    <span style={{ fontSize: 11, color: "#f43f5e", fontWeight: 600 }}>Слушаю... говорите</span>
+                    <button onClick={toggleMic} style={{ marginLeft: "auto", fontSize: 10, padding: "2px 8px", borderRadius: 6, border: "1px solid rgba(244,63,94,0.3)", background: "transparent", color: "#f43f5e", cursor: "pointer" }}>Стоп</button>
+                  </div>
+                )}
+
+                <div style={{ borderRadius: 16, border: `1px solid ${codeMode ? "rgba(139,92,246,0.3)" : "rgba(255,255,255,0.1)"}`, background: "rgba(255,255,255,0.04)", overflow: "hidden", transition: "border-color 0.2s" }}>
                   <textarea value={input} onChange={e => setInput(e.target.value)}
                     onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                     placeholder={`Сообщение для ${activeAgent.name}...`}
-                    style={{ width: "100%", padding: "14px 16px 10px", background: "transparent", border: "none", color: "#fff", fontSize: 13, outline: "none", resize: "none", fontFamily: "inherit", lineHeight: 1.6, boxSizing: "border-box", minHeight: 52 }}
+                    style={{ width: "100%", padding: "14px 16px 10px", background: "transparent", border: "none", color: "#fff", fontSize: codeMode ? 12 : 13, outline: "none", resize: "none", fontFamily: codeMode ? "monospace" : "inherit", lineHeight: 1.6, boxSizing: "border-box", minHeight: 52 }}
                     rows={2}
                   />
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 12px", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-                    <div style={{ display: "flex", gap: 4 }}>
-                      {[
-                        { icon: Paperclip, tip: "Файл",        onClick: () => fileInputRef.current?.click(),  active: false },
-                        { icon: Image,     tip: "Изображение", onClick: () => imageInputRef.current?.click(), active: false },
-                        { icon: FileText,  tip: "PDF",         onClick: () => pdfInputRef.current?.click(),   active: false },
-                        { icon: Globe,     tip: "Поиск в сети", onClick: () => { setWebSearch(v => !v); showToast(webSearch ? "Поиск в интернете выключен" : "Поиск в интернете включён"); }, active: webSearch },
-                        { icon: Mic,       tip: "Голос",       onClick: toggleMic, active: recording },
-                      ].map(b => (
-                        <button key={b.tip} title={b.tip} onClick={b.onClick} style={{ width: 30, height: 30, borderRadius: 8, background: b.active ? "rgba(139,92,246,0.16)" : "transparent", border: "none", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: b.active ? "#a78bfa" : "rgba(255,255,255,0.25)", transition: "all 0.15s" }}
-                          onMouseEnter={e => { if (!b.active) e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
-                          onMouseLeave={e => { if (!b.active) e.currentTarget.style.color = "rgba(255,255,255,0.25)"; }}>
-                          <b.icon size={14} style={b.tip === "Голос" && recording ? { animation: "sb-pulse 1s ease-in-out infinite" } : undefined} />
-                        </button>
-                      ))}
+                    {/* Toolbar buttons */}
+                    <div style={{ display: "flex", gap: 2, alignItems: "center" }}>
+                      {/* Attach file */}
+                      <button title="Прикрепить файл" onClick={() => fileInputRef.current?.click()}
+                        className="chat-toolbar-btn"
+                        style={{ background: "transparent", color: "rgba(255,255,255,0.28)" }}>
+                        <Paperclip size={14} />
+                      </button>
+
+                      {/* Divider */}
+                      <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.07)", margin: "0 4px" }} />
+
+                      {/* Web search toggle */}
+                      <button title={webSearch ? "Поиск в интернете включён (нажмите чтобы выключить)" : "Включить поиск в интернете"}
+                        onClick={() => { setWebSearch(v => !v); showToast(webSearch ? "Поиск в интернете выключен" : "🌐 Поиск в интернете включён"); }}
+                        className="chat-toolbar-btn"
+                        style={{ background: webSearch ? "rgba(59,130,246,0.16)" : "transparent", color: webSearch ? "#3b82f6" : "rgba(255,255,255,0.28)", outline: webSearch ? "1px solid rgba(59,130,246,0.3)" : "none" }}>
+                        <Globe size={14} />
+                      </button>
+
+                      {/* Deep Research toggle */}
+                      <button title={deepResearch ? "Deep Research включён (нажмите чтобы выключить)" : "Включить глубокий анализ"}
+                        onClick={() => { setDeepResearch(v => !v); showToast(deepResearch ? "Deep Research выключен" : "🧠 Deep Research включён"); }}
+                        className="chat-toolbar-btn"
+                        style={{ background: deepResearch ? "rgba(139,92,246,0.16)" : "transparent", color: deepResearch ? "#a78bfa" : "rgba(255,255,255,0.28)", outline: deepResearch ? "1px solid rgba(139,92,246,0.3)" : "none" }}>
+                        <Brain size={14} />
+                      </button>
+
+                      {/* Code mode */}
+                      <button title={codeMode ? "Режим кода включён (нажмите чтобы выключить)" : "Включить режим кода"}
+                        onClick={() => { setCodeMode(v => !v); showToast(codeMode ? "Режим кода выключен" : "💻 Режим кода включён"); }}
+                        className="chat-toolbar-btn"
+                        style={{ background: codeMode ? "rgba(16,185,129,0.16)" : "transparent", color: codeMode ? "#10b981" : "rgba(255,255,255,0.28)", outline: codeMode ? "1px solid rgba(16,185,129,0.3)" : "none" }}>
+                        <Code size={14} />
+                      </button>
+
+                      {/* Divider */}
+                      <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.07)", margin: "0 4px" }} />
+
+                      {/* Microphone */}
+                      <button title={recording ? "Остановить запись" : "Голосовой ввод"}
+                        onClick={toggleMic}
+                        className="chat-toolbar-btn"
+                        style={{ background: recording ? "rgba(244,63,94,0.16)" : "transparent", color: recording ? "#f43f5e" : "rgba(255,255,255,0.28)", outline: recording ? "1px solid rgba(244,63,94,0.3)" : "none", animation: recording ? "chat-mic-pulse 1.2s ease-in-out infinite" : "none" }}>
+                        <Mic size={14} />
+                      </button>
+
+                      {/* Active mode pills */}
+                      {(webSearch || deepResearch || codeMode) && (
+                        <div style={{ display: "flex", gap: 4, marginLeft: 6 }}>
+                          {webSearch && <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "rgba(59,130,246,0.12)", color: "#3b82f6", fontWeight: 700 }}>WEB</span>}
+                          {deepResearch && <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "rgba(139,92,246,0.12)", color: "#a78bfa", fontWeight: 700 }}>DEEP</span>}
+                          {codeMode && <span style={{ fontSize: 9, padding: "2px 6px", borderRadius: 4, background: "rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>CODE</span>}
+                        </div>
+                      )}
                     </div>
+
                     <button onClick={sendMessage} disabled={!input.trim() || sending}
-                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "none", background: input.trim() ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "rgba(255,255,255,0.08)", color: input.trim() ? "#fff" : "rgba(255,255,255,0.25)", cursor: input.trim() ? "pointer" : "default", transition: "all 0.2s" }}>
+                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 16px", borderRadius: 10, fontSize: 12, fontWeight: 700, border: "none", background: input.trim() ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.08)", color: input.trim() ? "#fff" : "rgba(255,255,255,0.25)", cursor: input.trim() ? "pointer" : "default", transition: "all 0.2s", boxShadow: input.trim() ? "0 4px 16px rgba(99,102,241,0.3)" : "none" }}>
                       <Send size={13} />Отправить
                     </button>
                   </div>
@@ -753,78 +827,149 @@ export default function ChatPage() {
       </div>
 
       {/* ── RIGHT PANEL (agent info) ── */}
+      <AnimatePresence mode="wait">
       {activeAgent && (
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }}
-          style={{ width: 260, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.05)", padding: "20px 16px", overflowY: "auto" }}>
-          <div style={{ textAlign: "center", marginBottom: 18 }}>
-            <div style={{ width: 56, height: 56, borderRadius: 16, background: `${activeAgent.color}18`, border: `1px solid ${activeAgent.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, margin: "0 auto 10px" }}>{activeAgent.icon}</div>
-            <div style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>{activeAgent.name}</div>
-            <div style={{ fontSize: 11, color: activeAgent.color, fontWeight: 600, marginBottom: 6 }}>{activeAgent.role}</div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px", borderRadius: 20, background: activeAgent.online ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.05)", border: `1px solid ${activeAgent.online ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.08)"}` }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%", background: activeAgent.online ? "#10b981" : "rgba(255,255,255,0.25)" }} />
-              <span style={{ fontSize: 10, color: activeAgent.online ? "#10b981" : "rgba(255,255,255,0.3)", fontWeight: 600 }}>{activeAgent.online ? "Online" : "Away"}</span>
-            </div>
-          </div>
+        <motion.div key={activeAgent.id}
+          initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }}
+          transition={{ duration: 0.38, ease: [0.22, 1, 0.36, 1] }}
+          style={{ width: 264, flexShrink: 0, borderLeft: "1px solid rgba(255,255,255,0.05)", overflowY: "auto", position: "relative" }}>
 
-          {/* Stats */}
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginBottom: 16 }}>
-            {[
-              { label: "Задач",   val: `${(activeAgent.tasks/1000).toFixed(1)}k` },
-              { label: "Рейтинг",val: `★ ${activeAgent.rating}` },
-              { label: "Скорость",val: activeAgent.speed },
-              { label: "Модель",  val: activeAgent.model.split(" ")[1] },
-            ].map(s => (
-              <div key={s.label} style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
-                <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>{s.val}</div>
-                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>{s.label}</div>
+          {/* Accent top bar */}
+          <motion.div
+            initial={{ scaleX: 0 }} animate={{ scaleX: 1 }} transition={{ delay: 0.15, duration: 0.5, ease: [0.22,1,0.36,1] }}
+            style={{ height: 2, background: `linear-gradient(90deg, ${activeAgent.color}, transparent)`, transformOrigin: "left" }} />
+
+          <div style={{ padding: "18px 16px 24px" }}>
+
+            {/* Avatar + identity */}
+            <motion.div initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.4, ease: [0.22,1,0.36,1] }}
+              style={{ textAlign: "center", marginBottom: 16, paddingBottom: 16, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+              <div style={{ position: "relative", width: 60, height: 60, margin: "0 auto 10px" }}>
+                {/* Animated ring */}
+                <motion.div
+                  animate={{ rotate: 360 }} transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                  style={{ position: "absolute", inset: -3, borderRadius: "50%", border: `1.5px solid transparent`, background: `conic-gradient(${activeAgent.color}80, transparent 60%, ${activeAgent.color}30, transparent)` }} />
+                <div style={{ position: "absolute", inset: 0, borderRadius: "50%", background: "#07090F" }} />
+                <div style={{ width: 60, height: 60, borderRadius: 17, background: `${activeAgent.color}18`, border: `1px solid ${activeAgent.color}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 28, position: "relative" }}>{activeAgent.icon}</div>
+                {/* Online dot */}
+                <div style={{ position: "absolute", bottom: 1, right: 1, width: 11, height: 11, borderRadius: "50%", background: activeAgent.online ? "#10b981" : "#6b7280", border: "2px solid #07090F", animation: activeAgent.online ? "chat-pulse-dot 2s ease-in-out infinite" : "none" }} />
               </div>
-            ))}
-          </div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>{activeAgent.name}</div>
+              <div style={{ fontSize: 11, color: activeAgent.color, fontWeight: 600, marginBottom: 8 }}>{activeAgent.role}</div>
+              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>{activeAgent.dept}</div>
+            </motion.div>
 
-          {/* About */}
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 6 }}>Специализация</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.55)", lineHeight: 1.6 }}>{activeAgent.desc}</div>
-          </div>
+            {/* Live activity bar — shows when sending */}
+            <AnimatePresence>
+            {sending && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
+                style={{ marginBottom: 12, overflow: "hidden" }}>
+                <div style={{ padding: "8px 10px", borderRadius: 10, background: `${activeAgent.color}0d`, border: `1px solid ${activeAgent.color}20`, display: "flex", alignItems: "center", gap: 8 }}>
+                  <div style={{ display: "flex", gap: 3 }}>
+                    {[0,1,2].map(i => (
+                      <motion.div key={i} animate={{ scaleY: [0.4,1,0.4] }} transition={{ duration: 0.9, repeat: Infinity, delay: i * 0.2 }}
+                        style={{ width: 3, height: 14, borderRadius: 2, background: activeAgent.color, transformOrigin: "bottom" }} />
+                    ))}
+                  </div>
+                  <span style={{ fontSize: 10, color: activeAgent.color, fontWeight: 600 }}>Генерирует ответ</span>
+                </div>
+              </motion.div>
+            )}
+            </AnimatePresence>
 
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Инструменты</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
-              {["Интернет","Файлы","Код","Таблицы","PDF"].map(t => (
-                <span key={t} style={{ fontSize: 10, padding: "3px 8px", borderRadius: 6, background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.4)", border: "1px solid rgba(255,255,255,0.06)" }}>{t}</span>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Модель</div>
-            <div style={{ padding: "10px 12px", borderRadius: 10, background: `${activeAgent.color}0d`, border: `1px solid ${activeAgent.color}20`, display: "flex", alignItems: "center", gap: 8 }}>
-              <Brain size={13} style={{ color: activeAgent.color }} />
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{activeAgent.model}</div>
-                <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Anthropic · 2026</div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 14 }}>
-            <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>Быстрые действия</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {/* Stats grid */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.18, duration: 0.4, ease: [0.22,1,0.36,1] }}
+              style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 7, marginBottom: 14 }}>
               {[
-                { icon: Star,    label: favorites.has(activeAgent.id) ? "В избранном ✓" : "Добавить в избранное", active: favorites.has(activeAgent.id), onClick: () => toggleFavorite(activeAgent.id) },
-                { icon: Pin,     label: pinnedIds.has(activeAgent.id) ? "Закреплён ✓" : "Закрепить чат",          active: pinnedIds.has(activeAgent.id), onClick: () => togglePin(activeAgent.id) },
-                { icon: Archive, label: "Архивировать", active: false, onClick: () => archiveChat(activeAgent.id) },
-              ].map(a => (
-                <button key={a.label} onClick={a.onClick} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 9, fontSize: 11, fontWeight: 500, border: `1px solid ${a.active ? "rgba(139,92,246,0.25)" : "rgba(255,255,255,0.06)"}`, background: a.active ? "rgba(139,92,246,0.1)" : "transparent", color: a.active ? "#a78bfa" : "rgba(255,255,255,0.45)", cursor: "pointer", textAlign: "left", transition: "all 0.15s" }}
-                  onMouseEnter={e => { if (!a.active) { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)"; } }}
-                  onMouseLeave={e => { if (!a.active) { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.45)"; } }}>
-                  <a.icon size={12} />{a.label}
-                </button>
+                { label: "Задач",    val: `${(activeAgent.tasks/1000).toFixed(1)}k`, color: activeAgent.color },
+                { label: "Рейтинг", val: `★ ${activeAgent.rating}`,                 color: "#f59e0b" },
+                { label: "Скорость",val: activeAgent.speed,                           color: "#10b981" },
+                { label: "Модель",  val: activeAgent.model.split(" ")[1],            color: "rgba(255,255,255,0.6)" },
+              ].map((s, i) => (
+                <motion.div key={s.label} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.22 + i * 0.06, duration: 0.35 }}
+                  style={{ padding: "9px 10px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", textAlign: "center" }}>
+                  <div style={{ fontSize: 12, fontWeight: 800, color: s.color, fontVariantNumeric: "tabular-nums" }}>{s.val}</div>
+                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>{s.label}</div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
+
+            {/* Specialization */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.26, duration: 0.38 }}
+              style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 6 }}>Специализация</div>
+              <div style={{ fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.65 }}>{activeAgent.desc}</div>
+            </motion.div>
+
+            {/* Tools */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.32, duration: 0.38 }}
+              style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Инструменты</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 5 }}>
+                {["Интернет","Файлы","Код","Таблицы","Поиск"].map((t, i) => (
+                  <motion.span key={t} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.36 + i * 0.05 }}
+                    style={{ fontSize: 10, padding: "3px 9px", borderRadius: 6, background: `${activeAgent.color}10`, color: activeAgent.color, border: `1px solid ${activeAgent.color}25`, fontWeight: 500 }}>{t}</motion.span>
+                ))}
+              </div>
+            </motion.div>
+
+            {/* Model */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.38, duration: 0.38 }}
+              style={{ marginBottom: 14 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Модель</div>
+              <div style={{ padding: "10px 12px", borderRadius: 10, background: `${activeAgent.color}0d`, border: `1px solid ${activeAgent.color}20`, display: "flex", alignItems: "center", gap: 8 }}>
+                <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }}>
+                  <Brain size={13} style={{ color: activeAgent.color }} />
+                </motion.div>
+                <div>
+                  <div style={{ fontSize: 12, fontWeight: 700, color: "#fff" }}>{activeAgent.model}</div>
+                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Anthropic · 2026</div>
+                </div>
+                {/* Live indicator */}
+                <div style={{ marginLeft: "auto", display: "flex", gap: 2 }}>
+                  {[0,1,2].map(i => (
+                    <div key={i} style={{ width: 2, height: 10, borderRadius: 1, background: activeAgent.color, opacity: 0.6, animation: `chat-search-wave 1.4s ease-in-out infinite`, animationDelay: `${i * 0.2}s` }} />
+                  ))}
+                </div>
+              </div>
+            </motion.div>
+
+            {/* Active modes */}
+            {(webSearch || deepResearch || codeMode) && (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                style={{ marginBottom: 14, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Активные режимы</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                  {webSearch && <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#3b82f6" }}><Globe size={11} />Поиск в интернете</div>}
+                  {deepResearch && <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#a78bfa" }}><Brain size={11} />Deep Research</div>}
+                  {codeMode && <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#10b981" }}><Code size={11} />Режим кода</div>}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Quick actions */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.44, duration: 0.38 }}
+              style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 14 }}>
+              <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.14em", textTransform: "uppercase", marginBottom: 8 }}>Быстрые действия</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+                {[
+                  { icon: Star,    label: favorites.has(activeAgent.id) ? "В избранном" : "В избранное",  active: favorites.has(activeAgent.id), onClick: () => toggleFavorite(activeAgent.id) },
+                  { icon: Pin,     label: pinnedIds.has(activeAgent.id) ? "Закреплён"  : "Закрепить чат", active: pinnedIds.has(activeAgent.id), onClick: () => togglePin(activeAgent.id) },
+                  { icon: Archive, label: "Архивировать", active: false, onClick: () => archiveChat(activeAgent.id) },
+                ].map((a, i) => (
+                  <motion.button key={a.label} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.48 + i * 0.07 }}
+                    onClick={a.onClick} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 9, fontSize: 11, fontWeight: 500, border: `1px solid ${a.active ? `${activeAgent.color}30` : "rgba(255,255,255,0.06)"}`, background: a.active ? `${activeAgent.color}12` : "transparent", color: a.active ? activeAgent.color : "rgba(255,255,255,0.45)", cursor: "pointer", textAlign: "left", transition: "all 0.15s", width: "100%" }}
+                    onMouseEnter={e => { if (!a.active) { (e.currentTarget as HTMLButtonElement).style.background = "rgba(255,255,255,0.04)"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.7)"; } }}
+                    onMouseLeave={e => { if (!a.active) { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; (e.currentTarget as HTMLButtonElement).style.color = "rgba(255,255,255,0.45)"; } }}>
+                    <a.icon size={12} />{a.label}{a.active && " ✓"}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
           </div>
         </motion.div>
       )}
+      </AnimatePresence>
     </div>
   );
 }
