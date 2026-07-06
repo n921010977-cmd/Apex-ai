@@ -1,10 +1,14 @@
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
 
-export function middleware(_req: NextRequest) {
-  return NextResponse.next();
-}
+export default auth((req) => {
+  if (!req.auth) {
+    const loginUrl = new URL("/login", req.url);
+    loginUrl.searchParams.set("callbackUrl", req.nextUrl.pathname);
+    return NextResponse.redirect(loginUrl);
+  }
+});
 
 export const config = {
-  matcher: [],
+  matcher: ["/dashboard/:path*"],
 };
