@@ -148,10 +148,6 @@ function LoginForm() {
           </form>
         </div>
 
-        <p className="text-center text-[12px] text-white/30 mt-5">
-          Нет аккаунта?{" "}
-          <Link href="/register" className="text-indigo-400/80 hover:text-indigo-300 transition-colors">Зарегистрироваться</Link>
-        </p>
       </div>
     </div>
   );
