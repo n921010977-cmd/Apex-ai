@@ -160,6 +160,9 @@ export default function ChatPage() {
                     <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{m.name}</span>
                     <span style={{ display: "block", fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{m.sub}</span>
                   </span>
+                  {(m.id === "gpt" || m.id === "gemini" || m.id === "grok") && (
+                    <span style={{ fontSize: 8.5, fontWeight: 700, padding: "2px 6px", borderRadius: 20, background: "rgba(255,255,255,0.06)", color: "rgba(255,255,255,0.4)", letterSpacing: "0.04em" }}>СКОРО</span>
+                  )}
                   {model.id === m.id && <svg viewBox="0 0 24 24" fill="none" stroke={m.color} strokeWidth="3" width="12" height="12"><polyline points="20 6 9 17 4 12"/></svg>}
                 </button>
               ))}
