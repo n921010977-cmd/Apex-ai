@@ -532,7 +532,7 @@ export function HeroSection() {
           <motion.div variants={it} className="flex flex-wrap gap-3 justify-center lg:justify-start">
             {/* Primary */}
             <Link
-              href="/dashboard"
+              href="/register"
               className="relative inline-flex items-center gap-2.5 h-13 px-8 text-[15px] font-semibold text-white rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.04] hover:brightness-110"
               style={{
                 background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #3b82f6 100%)",
@@ -549,7 +549,7 @@ export function HeroSection() {
 
             {/* Secondary glass */}
             <Link
-              href="/dashboard"
+              href="/register"
               className="inline-flex items-center gap-2 px-7 text-[14px] font-medium text-white/60 rounded-2xl transition-all duration-200 hover:text-white hover:border-white/15"
               style={{
                 height: 52,
