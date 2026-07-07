@@ -395,126 +395,25 @@ function DetailedRevenueChart({ financials, timeframe }: {
 // ─── ANIMATED RINGS (TAM/SAM/SOM) ────────────────────────────────────────────
 
 function MarketSphereChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const rafRef    = useRef<number>(0);
-  const tRef      = useRef(0);
+  const animated = useAnimated(120);
 
   const tam  = items.find(m => m.label.toLowerCase().includes("tam") || m.label.toLowerCase().includes("общий"));
   const sam  = items.find(m => m.label.toLowerCase().includes("sam") || m.label.toLowerCase().includes("достиж"));
   const som  = items.find(m => m.label.toLowerCase().includes("som") || m.label.toLowerCase().includes("целевой"));
   const cagr = items.find(m => m.label.toLowerCase().includes("рост") || m.label.toLowerCase().includes("cagr"));
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    const DPR = Math.min(window.devicePixelRatio ?? 1, 2);
-    const W = 460, H = 370;
-    canvas.width  = W * DPR;
-    canvas.height = H * DPR;
-    canvas.style.width  = W + "px";
-    canvas.style.height = H + "px";
-    ctx.scale(DPR, DPR);
-
-    function drawSphere(
-      cx: number, cy: number, r: number,
-      hiColor: string, midColor: string, glowRgb: string,
-    ) {
-      // Outer glow bloom
-      const bloom = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r * 2.2);
-      bloom.addColorStop(0, `rgba(${glowRgb},0.22)`);
-      bloom.addColorStop(1, `rgba(${glowRgb},0)`);
-      ctx.save(); ctx.globalCompositeOperation = "lighter";
-      ctx.fillStyle = bloom;
-      ctx.beginPath(); ctx.arc(cx, cy, r * 2.2, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-
-      // Sphere body
-      const hx = cx - r * 0.3, hy = cy - r * 0.32;
-      const body = ctx.createRadialGradient(hx, hy, r * 0.02, cx + r * 0.08, cy + r * 0.08, r * 1.15);
-      body.addColorStop(0,   hiColor);
-      body.addColorStop(0.45, midColor);
-      body.addColorStop(1,   `rgba(${glowRgb},0.08)`);
-      ctx.fillStyle = body;
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-
-      // Specular highlight
-      const spec = ctx.createRadialGradient(hx, hy, 0, hx, hy, r * 0.55);
-      spec.addColorStop(0, "rgba(255,255,255,0.52)");
-      spec.addColorStop(0.6, "rgba(255,255,255,0.08)");
-      spec.addColorStop(1,  "rgba(255,255,255,0)");
-      ctx.fillStyle = spec;
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-
-      // Bottom rim light
-      const rim = ctx.createRadialGradient(cx, cy + r * 0.7, 0, cx, cy + r * 0.7, r * 0.55);
-      rim.addColorStop(0, `rgba(${glowRgb},0.28)`);
-      rim.addColorStop(1, `rgba(${glowRgb},0)`);
-      ctx.fillStyle = rim;
-      ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
-    }
-
-    function drawPlatform(cy: number) {
-      const w = 280, h = 28;
-      const cx = W / 2;
-      // Glass platform ellipse
-      const g = ctx.createLinearGradient(cx - w / 2, cy, cx + w / 2, cy + h);
-      g.addColorStop(0,   "rgba(139,92,246,0.12)");
-      g.addColorStop(0.5, "rgba(59,130,246,0.18)");
-      g.addColorStop(1,   "rgba(139,92,246,0.06)");
-      ctx.save();
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, w / 2, h / 2, 0, 0, Math.PI * 2);
-      ctx.fillStyle = g;
-      ctx.fill();
-      // Edge highlight
-      ctx.strokeStyle = "rgba(180,160,255,0.22)";
-      ctx.lineWidth = 1;
-      ctx.stroke();
-      ctx.restore();
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      tRef.current += 0.012;
-      const t = tRef.current;
-
-      const breathTam = 1 + Math.sin(t)         * 0.016;
-      const breathSam = 1 + Math.sin(t + 1.1)   * 0.018;
-      const breathSom = 1 + Math.sin(t + 2.3)   * 0.025;
-
-      const tamCx = W * 0.43, tamCy = 185, tamR = 132 * breathTam;
-      const samCx = W * 0.47, samCy = 310, samR = 78  * breathSam;
-      const somCx = W * 0.45, somCy = 356, somR = 26  * breathSom;
-
-      // Platform
-      drawPlatform(370);
-
-      // Platform reflection glow
-      const refGlow = ctx.createRadialGradient(W * 0.45, 368, 0, W * 0.45, 368, 120);
-      refGlow.addColorStop(0, "rgba(139,92,246,0.12)");
-      refGlow.addColorStop(1, "rgba(139,92,246,0)");
-      ctx.save(); ctx.globalCompositeOperation = "lighter";
-      ctx.fillStyle = refGlow;
-      ctx.beginPath(); ctx.ellipse(W * 0.45, 368, 120, 18, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-
-      // Draw back-to-front: TAM, SAM, SOM
-      drawSphere(tamCx, tamCy, tamR, "#c4b5fd", "#8b5cf6", "139,92,246");
-      drawSphere(samCx, samCy, samR, "#93c5fd", "#3b82f6",  "59,130,246");
-      drawSphere(somCx, somCy, somR, "#6ee7b7", "#10b981",  "16,185,129");
-
-      rafRef.current = requestAnimationFrame(draw);
-    }
-    draw();
-
-    return () => cancelAnimationFrame(rafRef.current);
-  }, []);
+  // ── Concentric radii (area ∝ market value) ──
+  const nTam = tam?.numeric || 1000;
+  const nSam = sam?.numeric || nTam * 0.2;
+  const nSom = som?.numeric || nTam * 0.02;
+  const R = 118; // outer TAM radius
+  const rSam = Math.max(64, R * Math.sqrt(Math.min(1, nSam / nTam)));
+  const rSom = Math.max(30, R * Math.sqrt(Math.min(1, nSom / nTam)));
 
   const cards = [
-    { key: "TAM", label: "TAM: " + (tam?.value ?? "—"), sub: "(Общий адресный рынок)", color: "#a78bfa", rgb: "167,139,250",
+    { key: "TAM", label: "TAM: " + (tam?.value ?? "—"), sub: "(Общий адресный рынок)", color: "#818cf8", rgb: "129,140,248",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> },
-    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Достижимый рынок)", color: "#3b82f6", rgb: "59,130,246",
+    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Достижимый рынок)", color: "#6366f1", rgb: "99,102,241",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> },
     { key: "SOM", label: "SOM: " + (som?.value ?? "—"), sub: "(Достижимый рыночный охват)", color: "#10b981", rgb: "16,185,129",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M17 3l1 4-4 1"/></svg> },
@@ -528,11 +427,45 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
       borderRadius: 16, overflow: "hidden", position: "relative",
     }}>
       <div style={{ padding: "14px 20px 0", fontSize: 9, fontWeight: 800, letterSpacing: "0.22em", color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}>
-        Анализ объема рынка (TAM/SAM/SOM)
+        Анализ объёма рынка (TAM / SAM / SOM)
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", alignItems: "center" }}>
-        {/* Canvas left */}
-        <canvas ref={canvasRef} style={{ display: "block", maxWidth: "100%" }} />
+        {/* Concentric nested circles (TAM ⊃ SAM ⊃ SOM) */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: "20px 0" }}>
+          <svg viewBox="0 0 300 300" style={{ width: "100%", maxWidth: 300, height: "auto", overflow: "visible" }}>
+            <defs>
+              <radialGradient id="mkt-tam" cx="50%" cy="42%" r="60%">
+                <stop offset="0%" stopColor="rgba(99,102,241,0.16)" />
+                <stop offset="100%" stopColor="rgba(99,102,241,0.03)" />
+              </radialGradient>
+              <radialGradient id="mkt-sam" cx="50%" cy="42%" r="60%">
+                <stop offset="0%" stopColor="rgba(99,102,241,0.28)" />
+                <stop offset="100%" stopColor="rgba(99,102,241,0.08)" />
+              </radialGradient>
+              <radialGradient id="mkt-som" cx="50%" cy="40%" r="65%">
+                <stop offset="0%" stopColor="rgba(16,185,129,0.4)" />
+                <stop offset="100%" stopColor="rgba(16,185,129,0.14)" />
+              </radialGradient>
+            </defs>
+
+            {/* TAM */}
+            <g style={{ transformOrigin: "150px 150px", transform: animated ? "scale(1)" : "scale(0.3)", opacity: animated ? 1 : 0, transition: "transform 0.9s cubic-bezier(0.22,1,0.36,1), opacity 0.9s" }}>
+              <circle cx="150" cy="150" r={R} fill="url(#mkt-tam)" stroke="rgba(99,102,241,0.4)" strokeWidth="1.5" />
+              <text x="150" y={150 - R + 20} textAnchor="middle" fontSize="11" fontWeight="800" fill="#818cf8" fontFamily="ui-monospace,monospace">TAM {tam?.value ?? "—"}</text>
+            </g>
+            {/* SAM */}
+            <g style={{ transformOrigin: "150px 150px", transform: animated ? "scale(1)" : "scale(0.3)", opacity: animated ? 1 : 0, transition: "transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s, opacity 0.9s 0.15s" }}>
+              <circle cx="150" cy={150 + (R - rSam)} r={rSam} fill="url(#mkt-sam)" stroke="rgba(99,102,241,0.6)" strokeWidth="1.5" />
+              <text x="150" y={150 + (R - rSam) - rSam + 18} textAnchor="middle" fontSize="10.5" fontWeight="800" fill="#a5b4fc" fontFamily="ui-monospace,monospace">SAM {sam?.value ?? "—"}</text>
+            </g>
+            {/* SOM (target core) */}
+            <g style={{ transformOrigin: "150px 150px", transform: animated ? "scale(1)" : "scale(0.3)", opacity: animated ? 1 : 0, transition: "transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.3s, opacity 0.9s 0.3s" }}>
+              <circle cx="150" cy={150 + (R - rSom)} r={rSom} fill="url(#mkt-som)" stroke="#10b981" strokeWidth="1.8" />
+              <text x="150" y={150 + (R - rSom) + 4} textAnchor="middle" fontSize="11" fontWeight="800" fill="#34d399" fontFamily="ui-monospace,monospace">SOM</text>
+              <text x="150" y={150 + (R - rSom) + 17} textAnchor="middle" fontSize="9.5" fontWeight="700" fill="rgba(52,211,153,0.85)" fontFamily="ui-monospace,monospace">{som?.value ?? "—"}</text>
+            </g>
+          </svg>
+        </div>
 
         {/* Cards right */}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, padding: "16px 20px 16px 0" }}>
@@ -704,6 +637,117 @@ function AgentPanel({ letter, name, subtitle, color, score, opinion, delay = 0 }
       <div style={{ paddingLeft: 4 }}>
         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, margin: 0 }}>{opinion}</p>
       </div>
+    </div>
+  );
+}
+
+// ─── AGENT BRIEF (voice business assistant) ───────────────────────────────────
+// Компактный «голосовой ассистент» раздела: аватар агента + короткое ясное
+// объяснение того, что хотела донести команда, с озвучкой через Web Speech API.
+
+function AgentBrief({ letter, name, role, color, rgb, text }:
+  { letter: string; name: string; role: string; color: string; rgb: string; text: string }) {
+  const animated = useAnimated(60);
+  const [speaking, setSpeaking] = useState(false);
+  const [supported, setSupported] = useState(true);
+
+  useEffect(() => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) setSupported(false);
+    return () => { if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel(); };
+  }, []);
+
+  const toggleSpeak = () => {
+    if (typeof window === "undefined" || !window.speechSynthesis) return;
+    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    window.speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = "ru-RU"; u.rate = 1.03; u.pitch = 1;
+    const ru = window.speechSynthesis.getVoices().find(v => v.lang?.toLowerCase().startsWith("ru"));
+    if (ru) u.voice = ru;
+    u.onend = () => setSpeaking(false);
+    u.onerror = () => setSpeaking(false);
+    setSpeaking(true);
+    window.speechSynthesis.speak(u);
+  };
+
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 14,
+      background: `linear-gradient(135deg, rgba(${rgb},0.08), rgba(255,255,255,0.02))`,
+      border: `1px solid rgba(${rgb},0.22)`,
+      borderRadius: 16, padding: "14px 16px",
+      opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(10px)",
+      transition: "opacity 0.5s, transform 0.5s",
+      position: "relative", overflow: "hidden",
+    }}>
+      {/* Avatar */}
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        <div style={{
+          width: 44, height: 44, borderRadius: 13,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          fontSize: 16, fontWeight: 800, color,
+          background: `rgba(${rgb},0.14)`, border: `1px solid rgba(${rgb},0.35)`,
+        }}>{letter}</div>
+        {/* speaking ring */}
+        {speaking && (
+          <span style={{
+            position: "absolute", inset: -4, borderRadius: 16,
+            border: `2px solid ${color}`, animation: "brief-ping 1.2s ease-out infinite",
+          }} />
+        )}
+      </div>
+
+      {/* Text */}
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+          <span style={{ fontSize: 12.5, fontWeight: 700, color: "rgba(255,255,255,0.9)" }}>{name}</span>
+          <span style={{ fontSize: 9, fontWeight: 700, padding: "2px 7px", borderRadius: 20, background: `rgba(${rgb},0.14)`, border: `1px solid rgba(${rgb},0.25)`, color, letterSpacing: "0.04em" }}>{role}</span>
+          {/* live voice waveform */}
+          {speaking && (
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 2, marginLeft: 2 }}>
+              {[0, 1, 2, 3].map(i => (
+                <span key={i} style={{
+                  width: 2.5, borderRadius: 2, background: color,
+                  animation: `brief-wave 0.9s ease-in-out ${i * 0.12}s infinite`,
+                }} />
+              ))}
+            </span>
+          )}
+        </div>
+        <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.6, margin: 0 }}>{text}</p>
+      </div>
+
+      {/* Speak button */}
+      {supported && (
+        <button onClick={toggleSpeak} title={speaking ? "Остановить" : "Озвучить"} style={{
+          flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11,
+          display: "flex", alignItems: "center", gap: 7, cursor: "pointer",
+          background: speaking ? `rgba(${rgb},0.22)` : `rgba(${rgb},0.12)`,
+          border: `1px solid rgba(${rgb},0.35)`, color,
+          fontSize: 11.5, fontWeight: 700, whiteSpace: "nowrap",
+          transition: "background 0.15s",
+        }}>
+          {speaking ? (
+            <>
+              <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}><rect x="3" y="3" width="10" height="10" rx="2"/></svg>
+              Стоп
+            </>
+          ) : (
+            <>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ width: 13, height: 13 }}>
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+                <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
+              </svg>
+              Озвучить
+            </>
+          )}
+        </button>
+      )}
+
+      <style>{`
+        @keyframes brief-ping { 0%{transform:scale(1);opacity:0.8} 100%{transform:scale(1.25);opacity:0} }
+        @keyframes brief-wave { 0%,100%{height:5px} 50%{height:15px} }
+      `}</style>
     </div>
   );
 }
@@ -921,8 +965,11 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
 
   const avgScore = Math.round(agents.reduce((s, a) => s + a.score, 0) / agents.length);
 
+  const diagBrief = `Итог совета: проект набрал ${project.score} из 100 — ${project.score >= 85 ? "сильная идея, можно запускать" : project.score >= 70 ? "жизнеспособно, но есть что доработать" : "требует серьёзной проработки"}. Сильнее всего — рыночный потенциал, слабее — конкурентное преимущество. Ниже каждый директор даёт свою оценку.`;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <AgentBrief letter="V" name="Victoria Sterling" role="CEO" color="#8b5cf6" rgb="139,92,246" text={diagBrief} />
       {/* Summary strip */}
       <div style={{
         display: "flex", alignItems: "center", gap: 24,
@@ -1042,6 +1089,11 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
         @keyframes node-pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
         @keyframes pipe-glow { 0%,100%{opacity:0.6} 50%{opacity:1} }
       `}</style>
+
+      <div style={{ marginBottom: 14 }}>
+        <AgentBrief letter="V" name="Victoria Sterling" role="CEO" color="#8b5cf6" rgb="139,92,246"
+          text="Это ваша AI-команда — 20 специалистов, каждый разобрал проект со своей стороны. Кликните на любого агента, чтобы увидеть его метрики. Нажмите «Озвучить», и я вкратце расскажу главное голосом." />
+      </div>
 
       {/* Run Pipeline button */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
@@ -1395,8 +1447,12 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
     { label: "ТАЙМФРЕЙМ:", value: timeframeVal?.value ?? (project.financials[5]?.value ?? "—"), color: "#f59e0b", rgb: "245,158,11", Icon: IconCalendar },
   ];
 
+  const finBrief = `Коротко о финансах: выручка растёт с ${project.financials[0]?.value ?? ""} до ${project.financials[1]?.value ?? ""} за 3 года, окупаемость — ${project.financials.find(f => f.label.toLowerCase().includes("безубыт"))?.value ?? "около 18 месяцев"}. Соотношение LTV к CAC здоровое. Держите burn под контролем и запас хода минимум 18 месяцев.`;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+
+      <AgentBrief letter="J" name="James Hartley" role="CFO" color="#3b82f6" rgb="59,130,246" text={finBrief} />
 
       {/* ── KPI Strip (top 3 + bottom 4 merged into single row) ── */}
       <div style={{
@@ -1478,8 +1534,11 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
 
   const agents = MKT_AGENTS.length >= 2 ? MKT_AGENTS : fallbackAgents;
 
+  const briefText = `Рынок большой — общий объём ${project.market[0]?.value ?? ""}, но реально мы целимся в ядро ${project.market[2]?.value ?? ""}. Спрос подтверждён, ниша не занята полностью, темп роста ${project.market[3]?.value ?? ""}. Главное — сфокусироваться на одном сегменте и занять его.`;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      <AgentBrief letter="M" name="Michael Torres" role="Бизнес-аналитик" color="#f59e0b" rgb="245,158,11" text={briefText} />
       <MarketSphereChart items={project.market} />
 
       {/* Market metrics row */}
@@ -1707,6 +1766,9 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
   const now = new Date();
   const dateStr = `Q${Math.ceil((now.getMonth()+1)/3)}.${String(now.getDate()).padStart(2,"0")}.${now.getFullYear()}`;
 
+  const highCount = risks.filter(r => r.level === "high").length;
+  const riskBrief = `Общий уровень риска — ${globalScore >= 65 ? "повышенный" : globalScore >= 45 ? "умеренный" : "низкий"}. ${highCount > 0 ? `Главное внимание — ${risks.find(r => r.level === "high")?.title.toLowerCase()}.` : "Критичных угроз нет."} Финансовый риск обычно опаснее всего: держите резерв 20% бюджета. Ниже — план действий по каждому пункту.`;
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
       <style>{`
@@ -1714,6 +1776,8 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
         @keyframes risk-card-in { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:translateX(0); } }
         @keyframes rsk-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
       `}</style>
+
+      <AgentBrief letter="I" name="Igor Smirnov" role="Риск-менеджер" color="#ef4444" rgb="239,68,68" text={riskBrief} />
 
       {/* ── HEADER ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
