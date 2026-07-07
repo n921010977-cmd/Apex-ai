@@ -1,10 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { motion } from "framer-motion";
+
+const BOOT_LINES = [
+  "> initializing apex kernel…",
+  "> loading executive board · 20 agents",
+  "> secure channel established ✓",
+  "> awaiting operator credentials_",
+];
 
 function LoginForm() {
   const router = useRouter();
@@ -17,104 +24,119 @@ function LoginForm() {
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
 
+  // Boot sequence reveal
+  const [bootCount, setBootCount] = useState(0);
+  useEffect(() => {
+    if (bootCount >= BOOT_LINES.length) return;
+    const t = setTimeout(() => setBootCount(c => c + 1), 380);
+    return () => clearTimeout(t);
+  }, [bootCount]);
+
   const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !email || !password) { setError("Заполните все поля"); return; }
-    if (password.length < 6) { setError("Пароль минимум 6 символов"); return; }
+    if (!name || !email || !password) { setError("ACCESS DENIED · заполните все поля"); return; }
+    if (password.length < 6) { setError("ACCESS DENIED · пароль минимум 6 символов"); return; }
     setLoading("credentials");
     setError("");
-    const res = await signIn("credentials", {
-      name,
-      email,
-      password,
-      redirect: false,
-      callbackUrl,
-    });
+    const res = await signIn("credentials", { name, email, password, redirect: false, callbackUrl });
     setLoading(null);
-    if (res?.error) {
-      setError("Неверный email или пароль");
-    } else {
-      router.push(callbackUrl);
-      router.refresh();
-    }
+    if (res?.error) setError("ACCESS DENIED · неверный email или пароль");
+    else { router.push(callbackUrl); router.refresh(); }
   };
 
+  const fieldStyle: React.CSSProperties = {
+    width: "100%", height: 44, padding: "0 14px", borderRadius: 10,
+    background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.09)",
+    color: "#fff", fontSize: 14, outline: "none",
+    fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
+    transition: "border-color 0.15s, box-shadow 0.15s",
+  };
+  const onFocus = (e: React.FocusEvent<HTMLInputElement>) => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.55)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; };
+  const onBlur = (e: React.FocusEvent<HTMLInputElement>) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)"; e.currentTarget.style.boxShadow = "none"; };
+
   return (
-    <div className="min-h-screen bg-[#05060A] flex items-center justify-center px-4">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-600/8 rounded-full blur-[140px]" />
-      </div>
+    <div className="term-grid" style={{ minHeight: "100vh", background: "#05060A", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, position: "relative", overflow: "hidden" }}>
+      <style>{`
+        @keyframes scanline { from { transform: translateY(-100%); } to { transform: translateY(100vh); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+      `}</style>
 
-      <div className="relative w-full max-w-sm">
-        <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-8">
-            <div className="size-8 rounded-xl bg-gradient-to-br from-indigo-500 to-indigo-700 flex items-center justify-center shadow-xl shadow-indigo-500/30">
-              <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
-            </div>
-            <span className="text-sm font-bold text-white">Apex AI</span>
-          </Link>
-          <h1 className="text-2xl font-bold text-white mb-1.5">Добро пожаловать</h1>
-          <p className="text-sm text-white/35">Войдите в свой аккаунт</p>
-        </div>
+      {/* ambient + scanline */}
+      <div aria-hidden style={{ position: "absolute", top: "38%", left: "50%", transform: "translate(-50%,-50%)", width: 560, height: 560, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.10), transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
+      <div aria-hidden style={{ position: "absolute", left: 0, right: 0, height: 2, background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.35), transparent)", animation: "scanline 6s linear infinite", pointerEvents: "none", zIndex: 1 }} />
 
-        <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6">
-          <form onSubmit={handleCredentials} className="space-y-3">
-            <div>
-              <label className="text-[11px] font-medium text-white/40 block mb-1.5">Ник</label>
-              <input
-                type="text"
-                placeholder="Ваш никнейм"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] font-medium text-white/40 block mb-1.5">Email</label>
-              <input
-                type="email"
-                placeholder="you@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-              />
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <label className="text-[11px] font-medium text-white/40">Пароль</label>
-              </div>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
-              />
-            </div>
+      <motion.div
+        initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        style={{ position: "relative", zIndex: 2, width: "100%", maxWidth: 400 }}
+      >
+        {/* Terminal window */}
+        <div style={{ borderRadius: 16, overflow: "hidden", background: "rgba(10,11,18,0.85)", backdropFilter: "blur(20px)", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 24px 70px rgba(0,0,0,0.6)" }}>
+          {/* Title bar */}
+          <div className="term-mono" style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 14px", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)" }}>
+            <span style={{ display: "flex", gap: 6 }}>
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#ef4444", opacity: 0.7 }} />
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", opacity: 0.7 }} />
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", opacity: 0.7 }} />
+            </span>
+            <span style={{ marginLeft: 6, fontSize: 11, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>apex — access console</span>
+            <Link href="/" style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.3)", textDecoration: "none", letterSpacing: "0.1em" }}>[esc] на главную</Link>
+          </div>
+
+          {/* Boot log */}
+          <div className="term-mono" style={{ padding: "16px 16px 8px", fontSize: 11.5, lineHeight: 1.9, color: "rgba(16,185,129,0.75)", minHeight: 92 }}>
+            {BOOT_LINES.slice(0, bootCount).map((l, i) => (
+              <motion.div key={i} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.25 }}>
+                {l}{i === bootCount - 1 && i === BOOT_LINES.length - 1 && <span className="term-blink">▋</span>}
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleCredentials} style={{ padding: "8px 20px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
+            {[
+              { key: "name", label: "> OPERATOR", type: "text", ph: "никнейм", val: name, set: setName },
+              { key: "email", label: "> EMAIL", type: "email", ph: "you@example.com", val: email, set: setEmail },
+              { key: "pass", label: "> PASSKEY", type: "password", ph: "••••••••", val: password, set: setPassword },
+            ].map((f, i) => (
+              <motion.div key={f.key} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.4 + i * 0.1 }}>
+                <label className="term-label" style={{ display: "block", marginBottom: 7, color: "rgba(99,102,241,0.75)" }}>{f.label}</label>
+                <input type={f.type} placeholder={f.ph} value={f.val} onChange={e => f.set(e.target.value)} style={fieldStyle} onFocus={onFocus} onBlur={onBlur} />
+              </motion.div>
+            ))}
 
             {error && (
-              <div className="flex items-center gap-2 p-3 rounded-xl bg-red-500/8 border border-red-500/20">
-                <svg className="size-3.5 text-red-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                <p className="text-xs text-red-400">{error}</p>
-              </div>
+              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }}
+                className="term-mono" style={{ display: "flex", alignItems: "center", gap: 8, padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", fontSize: 11, color: "#f87171", letterSpacing: "0.04em" }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {error}
+              </motion.div>
             )}
 
-            <button
-              type="submit"
-              disabled={!!loading}
-              className="w-full h-10 text-sm font-semibold bg-gradient-to-r from-indigo-500 to-indigo-700 text-white rounded-xl hover:from-indigo-400 hover:to-indigo-600 transition-all disabled:opacity-60 flex items-center justify-center gap-2 mt-1"
+            <motion.button
+              type="submit" disabled={!!loading}
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8 }}
+              whileHover={{ y: -1 }} whileTap={{ y: 0 }}
+              className="term-mono"
+              style={{
+                height: 46, borderRadius: 10, border: "none", cursor: loading ? "default" : "pointer",
+                background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff",
+                fontSize: 12, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase",
+                boxShadow: "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 4,
+              }}
             >
               {loading === "credentials"
-                ? <span className="size-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                : "Войти"
-              }
-            </button>
+                ? <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                : <>▸ Authenticate</>}
+            </motion.button>
           </form>
         </div>
 
-      </div>
+        <div className="term-mono" style={{ textAlign: "center", marginTop: 14, fontSize: 10, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>
+          APEX // COMMAND CENTER · SECURE SESSION
+        </div>
+      </motion.div>
     </div>
   );
 }
