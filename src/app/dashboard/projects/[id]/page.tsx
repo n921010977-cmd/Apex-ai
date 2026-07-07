@@ -1440,9 +1440,104 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
   );
 }
 
+// ─── WHAT-IF SIMULATOR ────────────────────────────────────────────────────────
+// Live recompute of the financial model when the operator changes assumptions.
+function parseMoney(s?: string): number {
+  if (!s) return 0;
+  const m = s.replace(/\s/g, "").match(/([\d.]+)\s*([KkMmМм]?)/);
+  if (!m) return 0;
+  const n = parseFloat(m[1]);
+  const u = m[2].toLowerCase();
+  if (u === "m" || u === "м") return n * 1000;   // → в тысячах
+  if (u === "k" || u === "к") return n;
+  return n / 1000;
+}
+const fmtMoney = (k: number) => k >= 1000 ? `$${(k / 1000).toFixed(1)}M` : `$${Math.round(k)}K`;
+
+function WhatIfPanel({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
+  const yr1  = financials.find(f => f.label.toLowerCase().includes("год 1"))?.numeric ?? 240;
+  const yr3  = financials.find(f => f.label.toLowerCase().includes("год 3"))?.numeric ?? 2400;
+  const ltv0 = parseMoney(financials.find(f => f.label.toLowerCase().includes("ltv п"))?.value) * 1000 || 180;
+  const cac0 = parseMoney(financials.find(f => f.label.toLowerCase() === "cac" || f.label.toLowerCase().includes("cac"))?.value) * 1000 || 22;
+
+  const [price, setPrice]   = useState(1);   // цена
+  const [cost, setCost]     = useState(1);   // расходы/CAC
+  const [volume, setVolume] = useState(1);   // объём/клиенты
+
+  // Recompute
+  const rev1 = yr1 * price * volume;
+  const rev3 = yr3 * price * volume;
+  const ltv  = ltv0 * price;
+  const cac  = cac0 * cost;
+  const ratio = cac > 0 ? ltv / cac : 0;
+  const beBase = 18;
+  const be = Math.max(4, Math.round(beBase * cost / (price * Math.sqrt(volume))));
+  const changed = price !== 1 || cost !== 1 || volume !== 1;
+
+  const Slider = ({ label, val, set, min, max, unit }: { label: string; val: number; set: (v: number) => void; min: number; max: number; unit: string }) => (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 7 }}>
+        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.5)" }}>{label}</span>
+        <span className="term-mono" style={{ fontSize: 11, fontWeight: 700, color: val === 1 ? "rgba(255,255,255,0.5)" : "#a5b4fc" }}>
+          {val > 1 ? "+" : ""}{Math.round((val - 1) * 100)}% <span style={{ opacity: 0.4 }}>{unit}</span>
+        </span>
+      </div>
+      <input type="range" min={min} max={max} step={0.05} value={val} onChange={e => set(parseFloat(e.target.value))}
+        style={{ width: "100%", accentColor: "#6366f1", cursor: "pointer" }} />
+    </div>
+  );
+
+  const out = [
+    { label: "ВЫРУЧКА ГОД 1", base: yr1,  now: rev1, fmt: fmtMoney },
+    { label: "ВЫРУЧКА ГОД 3", base: yr3,  now: rev3, fmt: fmtMoney },
+    { label: "LTV / CAC",     base: ltv0 / cac0, now: ratio, fmt: (n: number) => `${n.toFixed(1)}x` },
+    { label: "ОКУПАЕМОСТЬ",   base: beBase, now: be, fmt: (n: number) => `${Math.round(n)} мес`, invert: true },
+  ];
+
+  return (
+    <div style={{ borderRadius: 16, border: "1px solid rgba(99,102,241,0.2)", background: "rgba(99,102,241,0.03)", overflow: "hidden" }}>
+      <div className="term-mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <span style={{ fontSize: 11, letterSpacing: "0.14em", color: "#a5b4fc" }}>// СИМУЛЯТОР «ЧТО ЕСЛИ?»</span>
+        {changed && (
+          <button onClick={() => { setPrice(1); setCost(1); setVolume(1); }} style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 7, padding: "3px 9px", cursor: "pointer", letterSpacing: "0.08em" }}>СБРОС</button>
+        )}
+      </div>
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(220px,1fr) minmax(240px,1.1fr)", gap: 0 }}>
+        {/* Controls */}
+        <div style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 16, borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+          <Slider label="Цена продукта"     val={price}  set={setPrice}  min={0.5} max={2} unit="цена" />
+          <Slider label="Расходы / CAC"     val={cost}   set={setCost}   min={0.5} max={2} unit="затраты" />
+          <Slider label="Объём / клиенты"   val={volume} set={setVolume} min={0.5} max={2.5} unit="масштаб" />
+          <p style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", lineHeight: 1.5, margin: 0 }}>
+            Двигайте параметры — модель пересчитывается мгновенно. Это оценочная проекция, не гарантия.
+          </p>
+        </div>
+        {/* Outputs */}
+        <div style={{ padding: "18px 20px", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          {out.map(o => {
+            const better = o.invert ? o.now < o.base : o.now > o.base;
+            const same = Math.abs(o.now - o.base) < 0.01;
+            const col = same ? "rgba(255,255,255,0.85)" : better ? "#34d399" : "#f87171";
+            return (
+              <div key={o.label} style={{ borderRadius: 12, padding: "12px 14px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                <div className="term-mono" style={{ fontSize: 8.5, letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>{o.label}</div>
+                <div className="term-value" style={{ fontSize: 21, fontWeight: 800, color: col, lineHeight: 1 }}>{o.fmt(o.now)}</div>
+                {!same && (
+                  <div className="term-mono" style={{ fontSize: 9.5, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>
+                    было {o.fmt(o.base)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ─── FINANCE TAB ──────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
   const animated = useAnimated(100);
@@ -1554,6 +1649,9 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
 
       {/* ── Revenue Chart ── */}
       <DetailedRevenueChart financials={project.financials} />
+
+      {/* ── What-if simulator ── */}
+      <WhatIfPanel financials={project.financials} />
 
       {/* ── AGENT PANELS ── */}
       {FIN_AGENTS.length > 0 ? (
