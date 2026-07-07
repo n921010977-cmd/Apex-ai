@@ -18,6 +18,22 @@ const INDUSTRIES = [
   "Real Estate","Restaurant / Food","Fitness / Wellness",
   "Media / Content","Manufacturing","Consulting","Other",
 ];
+
+// Quick-start templates — prefill the brief so a founder starts in seconds
+const TEMPLATES = [
+  { emoji: "🧩", name: "SaaS-платформа", industry: "SaaS / Software", stage: "idea",
+    desc: "B2B SaaS-сервис, решающий конкретную боль бизнеса. Модель — подписка (MRR). Целевая аудитория — малый и средний бизнес. Продукт автоматизирует рутинный процесс и экономит время команды. Основные каналы привлечения — контент и органика." },
+  { emoji: "🍽️", name: "Ресторан / кафе", industry: "Restaurant / Food", stage: "planning",
+    desc: "Заведение формата fast-casual в городе с высоким трафиком. Выручка — средний чек × поток гостей. Ключевые метрики — food cost, оборачиваемость столов, повторные визиты. Дифференциация — уникальное меню и атмосфера." },
+  { emoji: "🛒", name: "Маркетплейс", industry: "Marketplace", stage: "idea",
+    desc: "Двусторонний маркетплейс, соединяющий покупателей и продавцов в конкретной нише. Монетизация — комиссия со сделок. Главный вызов — chicken-and-egg: набрать критическую массу с обеих сторон. Сетевой эффект как барьер." },
+  { emoji: "📈", name: "Агентство", industry: "Agency / Services", stage: "launched",
+    desc: "Сервисное агентство (маркетинг / разработка / дизайн) с проектной и ретейнер-моделью. Выручка — часы × ставка. Рост через реферралы и кейсы. Задача — переход от услуг к продуктизации и повышение маржи." },
+  { emoji: "📱", name: "Мобильное приложение", industry: "Mobile App", stage: "building",
+    desc: "B2C мобильное приложение с freemium-моделью и Premium-подпиской. Ключевые метрики — retention D1/D7/D30, конверсия в платящих, LTV. Привлечение через ASO, инфлюенсеров и вирусные механики." },
+  { emoji: "🛍️", name: "Интернет-магазин", industry: "E-commerce", stage: "planning",
+    desc: "D2C интернет-магазин в узкой товарной категории. Выручка — трафик × конверсия × средний чек. Ключевые метрики — CAC, ROAS, повторные покупки. Дифференциация — бренд, качество и клиентский опыт." },
+];
 const STAGES = [
   { id: "idea",     label: "Просто идея",    desc: "Ещё не начинал",        icon: Lightbulb },
   { id: "planning", label: "Планирование",   desc: "Изучаю рынок",          icon: Target },
@@ -779,8 +795,27 @@ export default function NewStrategyPage() {
                 {step === 1 && (
                   <div style={{ borderRadius:22, overflow:"hidden", background:"rgba(14,16,21,0.9)", border:"1px solid rgba(255,255,255,0.07)", backdropFilter:"blur(20px)", boxShadow:"0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
                     <div style={{ padding:"24px 28px 0" }}>
-                      <div style={{ fontSize:9, fontWeight:800, letterSpacing:"0.2em", color:"#8b5cf6", textTransform:"uppercase", marginBottom:6 }}>Шаг 1 · Business Brief</div>
-                      <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:20 }}>Расскажите о вашем бизнесе</h2>
+                      <div className="term-mono" style={{ fontSize:9, letterSpacing:"0.2em", color:"#818cf8", textTransform:"uppercase", marginBottom:6 }}>// шаг 1 · business brief</div>
+                      <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:14 }}>Расскажите о вашем бизнесе</h2>
+
+                      {/* Quick-start templates */}
+                      <div style={{ marginBottom:20 }}>
+                        <div className="term-mono" style={{ fontSize:9.5, letterSpacing:"0.12em", color:"rgba(255,255,255,0.3)", marginBottom:9, textTransform:"uppercase" }}>// быстрый старт по шаблону</div>
+                        <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
+                          {TEMPLATES.map(t => (
+                            <button key={t.name}
+                              onClick={() => setForm(f => ({ ...f, name: f.name || t.name, description: t.desc, industry: t.industry, stage: t.stage }))}
+                              style={{ display:"inline-flex", alignItems:"center", gap:7, padding:"8px 12px", borderRadius:10, cursor:"pointer",
+                                background: form.industry === t.industry ? "rgba(99,102,241,0.14)" : "rgba(255,255,255,0.03)",
+                                border: form.industry === t.industry ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                                color: "rgba(255,255,255,0.7)", fontSize:12, fontWeight:600, transition:"all 0.15s" }}
+                              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.35)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                              onMouseLeave={e => { e.currentTarget.style.borderColor = form.industry === t.industry ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+                              <span style={{ fontSize:15 }}>{t.emoji}</span>{t.name}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
                     <div style={{ padding:"0 28px 28px", display:"flex", flexDirection:"column", gap:20 }}>
