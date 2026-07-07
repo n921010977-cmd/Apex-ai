@@ -2,6 +2,7 @@ import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { ExecutivesSection } from "@/components/landing/ExecutivesSection";
+import { HowAgentsWork } from "@/components/landing/HowAgentsWork";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
@@ -18,6 +19,7 @@ export default function LandingPage() {
       <HeroSection />
       <HowItWorksSection />
       <ExecutivesSection />
+      <HowAgentsWork />
       <FeaturesSection />
       <TestimonialsSection />
       <PricingSection />

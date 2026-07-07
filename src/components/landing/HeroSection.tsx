@@ -471,9 +471,9 @@ export function HeroSection() {
 
           {/* Description */}
           <motion.p variants={it} className="text-[16px] text-white/40 leading-[1.75] mb-10 max-w-lg">
-            Замените консалтинговую команду за&nbsp;$50&thinsp;000 в&nbsp;месяц
-            на&nbsp;AI-совет директоров. Полная бизнес-стратегия — CEO, CFO, CMO, COO,
-            CTO и&nbsp;ещё 15&nbsp;экспертов — работают вместе над вашей идеей за&nbsp;минуты.
+            Получите структурированный анализ бизнес-идеи от AI-совета директоров.
+            CEO, CFO, CMO, COO, CTO и&nbsp;ещё 15&nbsp;экспертов разбирают вашу идею
+            с&nbsp;разных сторон — и&nbsp;готовят стратегию за&nbsp;минуты, а&nbsp;не&nbsp;недели.
           </motion.p>
 
           {/* Metric readout — terminal style */}
