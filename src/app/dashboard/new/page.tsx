@@ -703,14 +703,11 @@ export default function NewStrategyPage() {
                   ))}
                 </div>
 
-                <h1 style={{ fontSize:"clamp(22px,2.8vw,34px)", fontWeight:800, color:"#fff", letterSpacing:"-0.03em", marginBottom:8 }}>
-                  AI Briefing{" "}
-                  <span style={{ background:"linear-gradient(135deg, #8b5cf6, #3b82f6, #10b981)", WebkitBackgroundClip:"text", WebkitTextFillColor:"transparent", backgroundClip:"text" }}>
-                    Command Center
-                  </span>
+                <h1 className="term-mono" style={{ fontSize:"clamp(22px,2.8vw,32px)", fontWeight:800, color:"#fff", letterSpacing:"0.01em", marginBottom:8 }}>
+                  AI BRIEFING<span style={{ color:"rgba(255,255,255,0.25)" }}>_</span>CONSOLE
                 </h1>
-                <p style={{ fontSize:14, color:"rgba(255,255,255,0.38)", lineHeight:1.6 }}>
-                  Чем подробнее бриф — тем точнее анализ от 8 AI-директоров.
+                <p className="term-mono" style={{ fontSize:12.5, color:"rgba(255,255,255,0.4)", lineHeight:1.6, letterSpacing:"0.03em" }}>
+                  // чем подробнее бриф — тем точнее анализ от 20 AI-директоров
                 </p>
               </div>
 

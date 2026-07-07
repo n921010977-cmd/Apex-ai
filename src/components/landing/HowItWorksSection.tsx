@@ -40,7 +40,7 @@ const STEPS = [
     color:       "#60a5fa",
     rgb:         "96,165,250",
     title:       "Executives Work in Parallel",
-    description: "All 8 AI executives simultaneously research, analyze, and create their domain-specific strategies — in real time.",
+    description: "All 20 AI executives simultaneously research, analyze, and create their domain-specific strategies — in real time.",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="28" height="28">
         <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
