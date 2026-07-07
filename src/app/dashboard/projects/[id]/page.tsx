@@ -1536,6 +1536,56 @@ function WhatIfPanel({ financials }: { financials: { label: string; value: strin
   );
 }
 
+// ─── SCENARIOS (crisis / base / growth) ───────────────────────────────────────
+function ScenariosPanel({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
+  const animated = useAnimated(150);
+  const yr3 = financials.find(f => f.label.toLowerCase().includes("год 3"))?.numeric ?? 2400;
+  const be0 = 18;
+
+  const SC = [
+    { key: "crisis", label: "ПЕССИМИСТИЧНЫЙ", tone: "#f87171", rgb: "248,113,113", rev: 0.55, be: 1.6,
+      note: "Медленный рост, высокий CAC, сжатие рынка. Нужен запас хода и жёсткий контроль burn." },
+    { key: "base",   label: "БАЗОВЫЙ",        tone: "#a5b4fc", rgb: "99,102,241", rev: 1.0,  be: 1.0,
+      note: "Реалистичный сценарий при текущих допущениях и стабильном исполнении плана." },
+    { key: "growth", label: "ОПТИМИСТИЧНЫЙ",  tone: "#34d399", rgb: "52,211,153", rev: 1.7,  be: 0.65,
+      note: "PMF найден, органика и сетевой эффект работают, привлечение дешевеет с масштабом." },
+  ];
+
+  return (
+    <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", overflow: "hidden" }}>
+      <div className="term-mono" style={{ padding: "13px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 11, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>
+        // сценарный анализ — выручка год 3
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 0 }}>
+        {SC.map((s, i) => {
+          const rev = yr3 * s.rev;
+          const be = Math.round(be0 * s.be);
+          return (
+            <div key={s.key} style={{
+              padding: "20px", borderRight: i < 2 ? "1px solid rgba(255,255,255,0.06)" : "none",
+              background: s.key === "base" ? `rgba(${s.rgb},0.04)` : "transparent",
+              opacity: animated ? 1 : 0, transform: animated ? "translateY(0)" : "translateY(12px)",
+              transition: `opacity 0.5s ${i * 100}ms, transform 0.5s ${i * 100}ms`,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 14 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: s.tone, boxShadow: `0 0 6px ${s.tone}` }} />
+                <span className="term-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: s.tone }}>{s.label}</span>
+              </div>
+              <div className="term-value" style={{ fontSize: 30, fontWeight: 800, color: "#fff", lineHeight: 1, marginBottom: 4 }}>{fmtMoney(rev)}</div>
+              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>окупаемость ≈ {be} мес</div>
+              {/* bar */}
+              <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden", marginBottom: 14 }}>
+                <div style={{ height: "100%", borderRadius: 2, background: s.tone, width: animated ? `${Math.min(100, s.rev / 1.7 * 100)}%` : "0%", transition: `width 1.2s cubic-bezier(0.22,1,0.36,1) ${200 + i * 100}ms` }} />
+              </div>
+              <p style={{ fontSize: 11, color: "rgba(255,255,255,0.42)", lineHeight: 1.55, margin: 0 }}>{s.note}</p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ─── FINANCE TAB ──────────────────────────────────────────────────────────────
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -1652,6 +1702,9 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
 
       {/* ── What-if simulator ── */}
       <WhatIfPanel financials={project.financials} />
+
+      {/* ── Scenario analysis ── */}
+      <ScenariosPanel financials={project.financials} />
 
       {/* ── AGENT PANELS ── */}
       {FIN_AGENTS.length > 0 ? (
