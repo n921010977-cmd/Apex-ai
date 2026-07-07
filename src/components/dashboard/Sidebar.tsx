@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
   MessageSquare, Bot, BookOpen, Settings, HelpCircle, ChevronRight,
-  X,
+  X, Sparkles,
 } from "lucide-react";
 
 const NAV_GROUPS = [
@@ -25,6 +25,7 @@ const NAV_GROUPS = [
     label: "AI Система",
     items: [
       { label: "Исполн. совет",   href: "/dashboard/executives", icon: Users },
+      { label: "Apex Chat",       href: "/chat",                 icon: Sparkles, accent: true },
     ],
   },
   {

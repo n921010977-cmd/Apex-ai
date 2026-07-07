@@ -80,13 +80,6 @@ export function Navbar() {
         {/* Actions */}
         <div className="flex items-center gap-2.5">
           <Link
-            href="/chat"
-            className="hidden md:inline-flex items-center gap-1.5 h-9 px-4 text-sm font-medium text-white/55 rounded-xl border border-white/[0.09] hover:text-white hover:border-white/[0.18] transition-all duration-200"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-            AI Чат
-          </Link>
-          <Link
             href="/login"
             className="hidden md:inline-flex items-center h-9 px-4 text-sm font-medium text-white/55 rounded-xl border border-white/[0.09] hover:text-white hover:border-white/[0.18] transition-all duration-200"
           >
