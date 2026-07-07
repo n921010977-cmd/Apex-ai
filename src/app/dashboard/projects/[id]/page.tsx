@@ -663,36 +663,70 @@ function AgentBrief({ letter, name, role, color, rgb, text }:
     };
   }, []);
 
-  // Pick the best available Russian FEMALE voice
-  const pickFemaleRuVoice = () => {
+  // Rank all available Russian voices and pick the best FEMALE one.
+  // Network/neural voices (Google, Microsoft Online, "Natural") sound far
+  // cleaner than the local robotic ones, so they score highest.
+  const pickBestVoice = () => {
     const voices = window.speechSynthesis.getVoices();
     const ru = voices.filter(v => v.lang?.toLowerCase().startsWith("ru"));
-    if (ru.length === 0) return voices.find(v => v.lang?.toLowerCase().startsWith("ru")) ?? null;
-    // Known female Russian voices across platforms
-    const femaleNames = ["irina", "svetlana", "dariya", "milena", "alyona", "katya", "tatyana", "elena", "female", "женский", "google"];
-    const byName = ru.find(v => femaleNames.some(n => v.name.toLowerCase().includes(n)));
-    if (byName) return byName;
-    // Explicitly avoid known male voices, else fall back to first ru voice
-    const maleNames = ["pavel", "dmitry", "yuri", "male", "мужской", "aleksandr"];
-    const notMale = ru.find(v => !maleNames.some(n => v.name.toLowerCase().includes(n)));
-    return notMale ?? ru[0];
+    if (ru.length === 0) return null;
+    const female = ["irina","svetlana","dariya","milena","alyona","katya","tatyana","elena","female","женск"];
+    const male   = ["pavel","dmitry","yuri","maxim","male","мужск","aleksandr"];
+    const quality = ["google","natural","online","neural","premium","enhanced"];
+    const score = (v: SpeechSynthesisVoice) => {
+      const n = v.name.toLowerCase();
+      let s = 0;
+      if (quality.some(q => n.includes(q))) s += 10;   // neural/network = best
+      if (female.some(f => n.includes(f)))  s += 5;    // female preferred
+      if (male.some(m => n.includes(m)))    s -= 4;    // avoid male
+      if (!v.localService)                  s += 3;    // remote voices are richer
+      return s;
+    };
+    return [...ru].sort((a, b) => score(b) - score(a))[0];
+  };
+
+  // Chrome stops speechSynthesis after ~15s — speak sentence-by-sentence and
+  // keep the engine alive with a periodic pause/resume so it never stutters out.
+  const keepAlive = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const speakSentences = (sentences: string[], voice: SpeechSynthesisVoice | null) => {
+    let i = 0;
+    const next = () => {
+      if (i >= sentences.length) { setSpeaking(false); return; }
+      const u = new SpeechSynthesisUtterance(sentences[i]);
+      u.lang = "ru-RU";
+      u.rate = 0.98;
+      u.pitch = 1.12;
+      if (voice) u.voice = voice;
+      u.onend = () => { i++; next(); };
+      u.onerror = () => { i++; next(); };
+      window.speechSynthesis.speak(u);
+    };
+    next();
   };
 
   const toggleSpeak = () => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
-    if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
+    if (speaking) {
+      window.speechSynthesis.cancel();
+      if (keepAlive.current) clearInterval(keepAlive.current);
+      setSpeaking(false);
+      return;
+    }
     window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    u.lang = "ru-RU";
-    u.rate = 1.0;
-    u.pitch = 1.15; // slightly higher — softer, more feminine tone
-    const voice = pickFemaleRuVoice();
-    if (voice) u.voice = voice;
-    u.onend = () => setSpeaking(false);
-    u.onerror = () => setSpeaking(false);
+    const sentences = text.match(/[^.!?]+[.!?]*/g)?.map(s => s.trim()).filter(Boolean) ?? [text];
     setSpeaking(true);
-    window.speechSynthesis.speak(u);
+    speakSentences(sentences, pickBestVoice());
+    // keep-alive against Chrome's cutoff bug
+    if (keepAlive.current) clearInterval(keepAlive.current);
+    keepAlive.current = setInterval(() => {
+      if (!window.speechSynthesis.speaking) { if (keepAlive.current) clearInterval(keepAlive.current); return; }
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    }, 9000);
   };
+
+  useEffect(() => () => { if (keepAlive.current) clearInterval(keepAlive.current); }, []);
 
   return (
     <div style={{
