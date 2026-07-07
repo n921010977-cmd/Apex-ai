@@ -584,10 +584,13 @@ export default function ProjectsPage() {
         {/* Hero header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
           <div>
-            <h1 style={{ fontSize: 28, fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 6 }}>
-              Portfolio Intelligence
+            <div className="term-mono" style={{ fontSize: 10.5, letterSpacing: "0.16em", color: "rgba(99,102,241,0.7)", marginBottom: 8, textTransform: "uppercase" }}>// portfolio</div>
+            <h1 className="term-mono" style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "0.01em", lineHeight: 1.1, marginBottom: 8 }}>
+              PORTFOLIO<span style={{ color: "rgba(255,255,255,0.25)" }}>_</span>INTEL
             </h1>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.35)" }}>AI Executive Board управляет {ALL_PROJECTS.length} стратегиями</p>
+            <p className="term-mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", letterSpacing: "0.04em", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981" }} />{ALL_PROJECTS.length} STRATEGIES · TRACKED
+            </p>
           </div>
           <Link
             href="/dashboard/new"

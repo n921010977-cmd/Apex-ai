@@ -384,10 +384,10 @@ export default function ReportsPage() {
               <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(99,102,241,0.1)", border: `1px solid ${S.accent}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <FileText size={18} color={S.accent} />
               </div>
-              <span style={{ fontSize: 11, color: S.textMuted, textTransform: "uppercase", letterSpacing: "0.14em" }}>Research Hub</span>
+              <span className="term-mono" style={{ fontSize: 10.5, color: "rgba(99,102,241,0.7)", textTransform: "uppercase", letterSpacing: "0.16em" }}>// research hub</span>
             </div>
-            <h1 style={{ fontSize: "clamp(22px,4vw,32px)", fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>Отчёты</h1>
-            <p style={{ fontSize: 14, color: S.textSecondary, marginTop: 6 }}>AI-анализ бизнес-идей, рынков и стратегий</p>
+            <h1 className="term-mono" style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "0.01em", margin: 0 }}>REPORTS<span style={{ color: "rgba(255,255,255,0.25)" }}>_</span>ARCHIVE</h1>
+            <p className="term-mono" style={{ fontSize: 11, color: S.textSecondary, marginTop: 8, letterSpacing: "0.04em" }}>// AI-анализ идей, рынков и стратегий</p>
           </div>
 
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>

@@ -1145,9 +1145,9 @@ export default function SettingsPage() {
                 <current.icon size={15} style={{ color: "#6366f1" }} />
               </div>
             )}
-            <h1 style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.4px" }}>{current?.label}</h1>
+            <h1 className="term-mono" style={{ fontSize: 19, fontWeight: 800, color: "#fff", letterSpacing: "0.01em", textTransform: "uppercase" }}>{current?.label}</h1>
           </div>
-          <div style={{ fontSize: 12, color: "rgba(255,255,255,0.28)", paddingLeft: 42 }}>{DESCRIPTIONS[active]}</div>
+          <div className="term-mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", paddingLeft: 42, letterSpacing: "0.03em" }}>// {DESCRIPTIONS[active]}</div>
         </div>
 
         <AnimatePresence mode="wait">

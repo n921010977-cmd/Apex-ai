@@ -374,13 +374,13 @@ export default function NotepadPage() {
           <>
             {/* Doc Toolbar */}
             <div style={{ padding: "11px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-              {/* Breadcrumb */}
-              <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, color: "rgba(255,255,255,0.25)" }}>
-                <span>Блокнот</span>
-                <ChevronRight size={10} />
-                <span>{active.folder || "Все"}</span>
-                <ChevronRight size={10} />
-                <span style={{ color: "rgba(255,255,255,0.6)", fontWeight: 600 }}>{active.title}</span>
+              {/* Breadcrumb — terminal path */}
+              <div className="term-mono" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.28)", letterSpacing: "0.03em" }}>
+                <span>notepad</span>
+                <span style={{ color: "rgba(99,102,241,0.5)" }}>/</span>
+                <span>{active.folder || "все"}</span>
+                <span style={{ color: "rgba(99,102,241,0.5)" }}>/</span>
+                <span style={{ color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{active.title}</span>
               </div>
 
               <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
