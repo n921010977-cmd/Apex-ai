@@ -355,6 +355,10 @@ export function HeroSection() {
           0%, 100% { transform: scale(1); }
           50%       { transform: scale(1.035); }
         }
+        @keyframes hero-metric-float {
+          0%, 100% { transform: translateY(0); }
+          50%       { transform: translateY(-2px); }
+        }
 
         /* Orb column — give it more of the row and let the orb breathe */
         .hero-orb-col { flex: 1.15; }
@@ -475,56 +479,50 @@ export function HeroSection() {
           {/* Metric chips */}
           <motion.div variants={it} className="flex flex-wrap gap-3 mb-10 justify-center lg:justify-start">
             {[
-              { val: "10 000+", label: "Стратегий запущено", spark: [3, 5, 4, 7, 6, 9, 11], color: "#a78bfa" },
-              { val: "< 5 минут", label: "Полный анализ", spark: [10, 8, 9, 6, 5, 4, 3], color: "#38bdf8" },
-              { val: "20 Экспертов", label: "AI-директоров", spark: [4, 6, 5, 8, 7, 9, 10], color: "#34d399" },
-            ].map((m) => (
-              <div
+              { val: "10 000+", label: "Стратегий запущено", color: "#a78bfa", rgb: "167,139,250",
+                icon: <><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/></> },
+              { val: "< 5 минут", label: "Полный анализ", color: "#38bdf8", rgb: "56,189,248",
+                icon: <><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></> },
+              { val: "20 Экспертов", label: "AI-директоров", color: "#34d399", rgb: "52,211,153",
+                icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
+            ].map((m, mi) => (
+              <motion.div
                 key={m.val}
-                className="relative px-4 py-2.5 rounded-2xl overflow-hidden"
+                className="relative flex items-center gap-3 pl-2.5 pr-4 py-2.5 rounded-2xl overflow-hidden"
+                whileHover={{ y: -3, transition: { type: "spring", stiffness: 320, damping: 20 } }}
                 style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.015) 100%)",
+                  background: "linear-gradient(135deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%)",
                   border: "1px solid rgba(255,255,255,0.08)",
                   backdropFilter: "blur(12px)",
                   boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
                 }}
               >
-                {/* micro-sparkline in the corner */}
-                <svg
-                  aria-hidden
-                  viewBox="0 0 60 24"
-                  className="absolute bottom-1.5 right-2 pointer-events-none"
-                  style={{ width: 44, height: 18, opacity: 0.5 }}
-                >
-                  <polyline
-                    points={m.spark.map((v, i) => `${(i / (m.spark.length - 1)) * 58 + 1},${22 - (v / 12) * 20}`).join(" ")}
-                    fill="none"
-                    stroke={m.color}
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                  <circle
-                    cx={59}
-                    cy={22 - (m.spark[m.spark.length - 1] / 12) * 20}
-                    r="1.8"
-                    fill={m.color}
-                  />
-                </svg>
-                {/* shimmer */}
-                <div
-                  className="text-[22px] font-bold font-mono leading-tight"
-                  style={{
-                    background: "linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.7) 100%)",
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  {m.val}
+                {/* colored ambient glow */}
+                <div aria-hidden className="absolute pointer-events-none" style={{
+                  left: -20, top: -20, width: 80, height: 80,
+                  background: `radial-gradient(circle, rgba(${m.rgb},0.22), transparent 70%)`,
+                }} />
+                {/* icon tile */}
+                <div className="relative flex items-center justify-center flex-shrink-0" style={{
+                  width: 40, height: 40, borderRadius: 12,
+                  background: `linear-gradient(135deg, rgba(${m.rgb},0.9), rgba(${m.rgb},0.5))`,
+                  boxShadow: `0 6px 18px rgba(${m.rgb},0.4), inset 0 1px 0 rgba(255,255,255,0.3)`,
+                }}>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="19" height="19"
+                    style={{ animation: `hero-metric-float 3s ease-in-out ${mi * 0.4}s infinite` }}>
+                    {m.icon}
+                  </svg>
                 </div>
-                <div className="text-[10px] text-white/30 mt-0.5 font-medium tracking-wide">{m.label}</div>
-              </div>
+                <div className="relative">
+                  <div className="text-[21px] font-bold font-mono leading-tight" style={{
+                    background: "linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.72) 100%)",
+                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
+                  }}>
+                    {m.val}
+                  </div>
+                  <div className="text-[10px] text-white/32 mt-0.5 font-medium tracking-wide">{m.label}</div>
+                </div>
+              </motion.div>
             ))}
           </motion.div>
 
@@ -563,21 +561,52 @@ export function HeroSection() {
           </motion.div>
 
           {/* Social proof */}
-          <motion.div variants={it} className="mt-8 flex items-center gap-3 justify-center lg:justify-start">
-            <div className="flex -space-x-2">
-              {(["#7c3aed","#3b82f6","#10b981","#f59e0b","#ec4899"] as const).map((c, i) => (
-                <div
+          <motion.div variants={it} className="mt-8 flex items-center gap-3.5 justify-center lg:justify-start">
+            <div className="flex -space-x-2.5">
+              {([
+                ["А","#7c3aed","#a855f7"],
+                ["С","#3b82f6","#22d3ee"],
+                ["М","#10b981","#34d399"],
+                ["Д","#f59e0b","#fbbf24"],
+                ["Р","#ec4899","#f472b6"],
+              ] as const).map(([ch, c1, c2], i) => (
+                <motion.div
                   key={i}
-                  className="size-8 rounded-full border-2 border-[#06060c] flex items-center justify-center text-[10px] font-bold text-white"
-                  style={{ background: c }}
+                  initial={{ opacity: 0, scale: 0.5, x: -8 }}
+                  animate={{ opacity: 1, scale: 1, x: 0 }}
+                  transition={{ delay: 0.6 + i * 0.08, type: "spring", stiffness: 320, damping: 18 }}
+                  whileHover={{ y: -4, scale: 1.12, zIndex: 10, transition: { type: "spring", stiffness: 400, damping: 15 } }}
+                  className="relative size-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
+                  style={{
+                    background: `linear-gradient(135deg, ${c1}, ${c2})`,
+                    border: "2px solid #06060c",
+                    boxShadow: `0 4px 12px ${c1}66, inset 0 1px 0 rgba(255,255,255,0.35)`,
+                  }}
                 >
-                  {["А","С","М","Д","Р"][i]}
-                </div>
+                  <span style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>{ch}</span>
+                </motion.div>
               ))}
+              {/* "+more" bubble */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.5 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 1.0, type: "spring", stiffness: 320, damping: 18 }}
+                className="relative size-9 rounded-full flex items-center justify-center text-[9px] font-bold text-white/70"
+                style={{ background: "rgba(255,255,255,0.08)", border: "2px solid #06060c", backdropFilter: "blur(8px)" }}
+              >
+                +2K
+              </motion.div>
             </div>
-            <div className="text-[12px] text-white/30">
-              <span className="text-white/55 font-semibold">4.9/5</span>
-              {" "}от 2 300+ основателей
+            <div className="text-[12px] text-white/32 leading-tight">
+              <div className="flex items-center gap-1 mb-0.5">
+                {[0,1,2,3,4].map(i => (
+                  <svg key={i} viewBox="0 0 24 24" fill="#fbbf24" width="11" height="11">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                ))}
+                <span className="text-white/60 font-semibold ml-1">4.9/5</span>
+              </div>
+              от 2 300+ основателей
             </div>
           </motion.div>
         </motion.div>
