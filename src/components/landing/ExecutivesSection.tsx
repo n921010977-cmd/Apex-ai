@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, useEffect } from "react";
+import Link from "next/link";
 import { motion, useInView } from "framer-motion";
 import type { Variants } from "framer-motion";
 
@@ -93,13 +94,15 @@ function ExecCard({ exec, index }: { exec: typeof EXECUTIVES[number]; index: num
   const delay = col * 0.06 + row * 0.08;
 
   return (
-    <motion.div
+    <motion.a
+      href={`/chat?agent=${encodeURIComponent(exec.role)}`}
       variants={cardVar}
       transition={{ duration: 0.55, delay, ease: [0.22, 1, 0.36, 1] }}
       whileHover={{ y: -8, transition: { type: "spring", stiffness: 300, damping: 20 } }}
       onHoverStart={() => setHover(true)}
       onHoverEnd={() => setHover(false)}
       style={{
+        textDecoration: "none",
         position: "relative", borderRadius: 18, padding: "18px 16px 18px",
         overflow: "hidden", height: "100%", display: "flex", flexDirection: "column", gap: 12,
         background: hover
@@ -189,7 +192,18 @@ function ExecCard({ exec, index }: { exec: typeof EXECUTIVES[number]; index: num
           }}>{t}</span>
         ))}
       </div>
-    </motion.div>
+
+      {/* Chat hint on hover */}
+      <div style={{
+        display: "flex", alignItems: "center", gap: 5,
+        fontSize: 10.5, fontWeight: 600, color: exec.color,
+        opacity: hover ? 1 : 0, maxHeight: hover ? 20 : 0,
+        transition: "opacity 0.22s, max-height 0.22s",
+      }}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="12" height="12"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Обсудить в чате →
+      </div>
+    </motion.a>
   );
 }
 
@@ -262,6 +276,47 @@ export function ExecutivesSection() {
           {EXECUTIVES.map((exec, i) => (
             <ExecCard key={exec.role} exec={exec} index={i} />
           ))}
+        </motion.div>
+
+        {/* Action row */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-40px" }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{
+            marginTop: 20, padding: "22px 24px", borderRadius: 20,
+            background: "linear-gradient(135deg, rgba(99,102,241,0.08), rgba(255,255,255,0.02))",
+            border: "1px solid rgba(99,102,241,0.22)",
+            display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 16,
+          }}
+        >
+          <div style={{ minWidth: 220, flex: 1 }}>
+            <div style={{ fontSize: 17, fontWeight: 700, color: "#fff", marginBottom: 4, letterSpacing: "-0.01em" }}>
+              Обсудите свою идею с командой
+            </div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
+              Задайте вопрос AI-ассистенту или запустите полный анализ проекта — совет из 20 экспертов ответит за минуты.
+            </div>
+          </div>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
+            <Link href="/chat" style={{
+              display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 22px", borderRadius: 13,
+              background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 13.5, fontWeight: 700,
+              textDecoration: "none", boxShadow: "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)",
+            }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              Открыть AI-чат
+            </Link>
+            <Link href="/register" style={{
+              display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 20px", borderRadius: 13,
+              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.12)",
+              color: "rgba(255,255,255,0.7)", fontSize: 13.5, fontWeight: 600, textDecoration: "none",
+            }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+              Запустить анализ
+            </Link>
+          </div>
         </motion.div>
 
       </div>

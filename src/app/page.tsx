@@ -9,7 +9,6 @@ import { FaqSection } from "@/components/landing/FaqSection";
 import { CtaBanner } from "@/components/landing/CtaBanner";
 import { ScrollProgress } from "@/components/landing/ScrollProgress";
 import { Footer } from "@/components/landing/Footer";
-import { ApexChatWidget } from "@/components/ApexChatWidget";
 
 export default function LandingPage() {
   return (
@@ -25,7 +24,6 @@ export default function LandingPage() {
       <FaqSection />
       <CtaBanner />
       <Footer />
-      <ApexChatWidget />
     </main>
   );
 }

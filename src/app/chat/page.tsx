@@ -31,7 +31,14 @@ export default function ChatPage() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => { scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" }); }, [messages, busy]);
-  useEffect(() => { inputRef.current?.focus(); }, []);
+  useEffect(() => {
+    inputRef.current?.focus();
+    // Greet from a specific agent if opened via ?agent=
+    const agent = new URLSearchParams(window.location.search).get("agent");
+    if (agent) {
+      setMessages([{ role: "assistant", content: `Здравствуйте! Я ваш ${agent} из совета Apex AI. Расскажите о вашей задаче или идее — помогу разобраться.` }]);
+    }
+  }, []);
 
   const send = async (preset?: string) => {
     const text = (preset ?? input).trim();
