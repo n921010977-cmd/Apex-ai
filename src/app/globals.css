@@ -24,6 +24,27 @@
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
+
+  /* ── Spacing scale (8px grid) ── */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-10: 40px;
+  --sp-12: 48px; --sp-16: 64px; --sp-24: 96px;
+
+  /* ── Radius scale ── */
+  --r-chip: 10px; --r-btn: 12px; --r-card: 16px; --r-panel: 22px; --r-pill: 999px;
+
+  /* ── Type scale ── */
+  --fs-micro: 11px; --fs-caption: 12px; --fs-body: 14px; --fs-lg: 16px;
+  --fs-h3: 20px; --fs-h2: 28px; --fs-h1: 40px;
+
+  /* ── Elevation (matte, non-neon) ── */
+  --sh-1: 0 1px 2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.045);
+  --sh-2: 0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05);
+  --sh-3: 0 8px 32px rgba(0,0,0,0.28), 0 1px 2px rgba(0,0,0,0.4);
+
+  /* ── Z-index scale (use these, not raw numbers) ── */
+  --z-base: 1; --z-raised: 10; --z-sticky: 20; --z-dropdown: 40;
+  --z-overlay: 60; --z-modal: 80; --z-toast: 100;
 }
 
 * { box-sizing: border-box; }
@@ -44,6 +65,20 @@ body {
 
 /* Prevent callout on long-press mobile */
 a, button, img { -webkit-touch-callout: none; }
+
+/* ── Responsive media (prevents overflow + layout shift) ── */
+img, video { max-width: 100%; height: auto; }
+
+/* ── Readability floor: never render body copy below 12px ── */
+body { font-size: 14px; line-height: 1.6; }
+
+/* ── Reusable type scale (opt-in) ── */
+.t-h1 { font-size: clamp(28px, 4vw, 40px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.1; text-wrap: balance; }
+.t-h2 { font-size: clamp(22px, 3vw, 28px); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; text-wrap: balance; }
+.t-h3 { font-size: 20px; font-weight: 700; letter-spacing: -0.01em; }
+.t-body { font-size: 14px; line-height: 1.65; }
+.t-caption { font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
+.t-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
 
 /* ── Scrollbars ────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
