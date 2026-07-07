@@ -13,7 +13,7 @@ import { AnimatePresence } from "framer-motion";
 
 // ─── AGENTS ──────────────────────────────────────────────────────────────────
 
-const AGENTS = [
+const AGENTS_ALL = [
   // Руководство
   { id:"ceo",     dept:"Руководство",   name:"CEO",              role:"Стратег",           desc:"Стратегическое видение, приоритеты, ключевые решения",    icon:"👑", color:"#8b5cf6", model:"Claude Opus", tasks:2847, rating:4.9, speed:"1.2s", online:true  },
   { id:"coo",     dept:"Руководство",   name:"COO",              role:"Операционист",      desc:"Процессы, масштабирование, операционная эффективность",   icon:"📈", color:"#3b82f6", model:"Claude Opus", tasks:2103, rating:4.8, speed:"1.4s", online:true  },
@@ -74,6 +74,9 @@ const AGENTS = [
   { id:"decision",dept:"Универсальные", name:"Decision Maker",    role:"Решения",          desc:"Структурированный анализ и помощь в принятии решений",    icon:"🎯", color:"#f59e0b", model:"Claude Opus", tasks:2341,rating:4.9, speed:"1.9s", online:true  },
   { id:"startup", dept:"Универсальные", name:"Startup Advisor",   role:"Стартап",          desc:"Полный советник для стартапа: продукт, рост, инвестиции", icon:"🚀", color:"#f43f5e", model:"Claude Opus", tasks:1876,rating:5.0, speed:"1.6s", online:true  },
 ];
+
+// Canonical roster: 20 agents (matches landing / executives / sidebar)
+const AGENTS = AGENTS_ALL.slice(0, 20);
 
 const DEPARTMENTS = ["Все","Руководство","Финансы","Маркетинг","Продажи","Продукт","Разработка","Аналитика","Юридический","HR","Универсальные"];
 

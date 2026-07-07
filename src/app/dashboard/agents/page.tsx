@@ -37,7 +37,7 @@ interface Agent {
   memory: boolean; created: string; prompt: string;
 }
 
-const AGENTS: Agent[] = [
+const AGENTS_ALL: Agent[] = [
   { id:"a1",  name:"Victoria Sterling",  role:"Chief Executive Officer",     dept:"exec",      emoji:"👑", color:"#8b5cf6", description:"Стратегическое руководство, принятие ключевых решений и управление исполнительной командой.",       model:"claude-opus-4-8",  status:"active", runs:2847, rating:4.9, speed:"medium", cost:"$$$", tools:["web","docs","analytics"],        memory:true,  created:"2024-01-15", prompt:"Ты Victoria Sterling — CEO с 20-летним опытом. Принимаешь стратегические решения, координируешь топ-менеджмент." },
   { id:"a2",  name:"Marcus Webb",        role:"Chief Strategy Officer",      dept:"exec",      emoji:"🎯", color:"#3b82f6", description:"Долгосрочное планирование, конкурентный анализ и трансформация бизнес-модели.",                    model:"claude-sonnet-5",  status:"active", runs:1923, rating:4.8, speed:"fast",   cost:"$$",  tools:["web","analytics","docs"],        memory:true,  created:"2024-01-20", prompt:"Ты Marcus Webb — CSO. Разрабатываешь долгосрочные стратегии, анализируешь рынок." },
   { id:"a3",  name:"Elena Vasquez",      role:"Chief Operating Officer",     dept:"exec",      emoji:"⚙️", color:"#10b981", description:"Оптимизация операций, KPI, процессы и операционная эффективность.",                               model:"claude-sonnet-5",  status:"idle",   runs:3102, rating:4.7, speed:"fast",   cost:"$$",  tools:["docs","analytics"],              memory:true,  created:"2024-01-18", prompt:"Ты Elena Vasquez — COO. Управляешь операционными процессами, оптимизируешь KPI." },
@@ -85,6 +85,9 @@ const AGENTS: Agent[] = [
   { id:"a45", name:"Isabelle Dupont",    role:"Market Research Lead",        dept:"research",  emoji:"🔍", color:"#3b82f6", description:"Первичные исследования, фокус-группы и исследование потребителей.",                             model:"claude-opus-4-8",  status:"active", runs:1230, rating:4.8, speed:"medium", cost:"$$$", tools:["web","docs","analytics"],        memory:true,  created:"2024-02-05", prompt:"Ты Isabelle Dupont — руководитель исследований. Проводишь фокус-группы, рыночные исследования." },
   { id:"a46", name:"Raj Patel",          role:"Competitive Intelligence",    dept:"research",  emoji:"🕵️", color:"#10b981", description:"Мониторинг конкурентов, анализ трендов и battlecard.",                                         model:"claude-sonnet-5",  status:"idle",   runs:2890, rating:4.7, speed:"fast",   cost:"$$",  tools:["web","docs","analytics"],        memory:false, created:"2024-02-15", prompt:"Ты Raj Patel — конкурентная разведка. Мониторишь конкурентов, создаёшь battlecard." },
 ];
+
+// Canonical roster: 20 agents (matches landing / executives / sidebar)
+const AGENTS: Agent[] = AGENTS_ALL.slice(0, 20);
 
 const STATUS_CONFIG: Record<AgentStatus, { label: string; color: string; Icon: typeof Circle }> = {
   active: { label: "Активен",  color: "#10b981", Icon: CheckCircle2 },
