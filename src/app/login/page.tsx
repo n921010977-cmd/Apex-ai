@@ -11,6 +11,7 @@ function LoginForm() {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
 
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
@@ -18,10 +19,12 @@ function LoginForm() {
 
   const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) { setError("Заполните все поля"); return; }
+    if (!name || !email || !password) { setError("Заполните все поля"); return; }
+    if (password.length < 6) { setError("Пароль минимум 6 символов"); return; }
     setLoading("credentials");
     setError("");
     const res = await signIn("credentials", {
+      name,
       email,
       password,
       redirect: false,
@@ -58,6 +61,16 @@ function LoginForm() {
 
         <div className="bg-white/[0.03] border border-white/[0.07] rounded-2xl p-6">
           <form onSubmit={handleCredentials} className="space-y-3">
+            <div>
+              <label className="text-[11px] font-medium text-white/40 block mb-1.5">Ник</label>
+              <input
+                type="text"
+                placeholder="Ваш никнейм"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full h-10 bg-white/[0.04] border border-white/[0.08] rounded-xl text-sm text-white placeholder:text-white/20 px-3.5 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/10 transition-all"
+              />
+            </div>
             <div>
               <label className="text-[11px] font-medium text-white/40 block mb-1.5">Email</label>
               <input

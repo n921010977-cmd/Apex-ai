@@ -64,18 +64,34 @@ const config: NextAuthConfig = {
         ]
       : []),
 
-    // ── Email + Password ──────────────────────────────────────────────────
+    // ── Nickname + Email + Password ───────────────────────────────────────
     Credentials({
       name: "credentials",
       credentials: {
+        name:     { label: "Nickname", type: "text"     },
         email:    { label: "Email",    type: "email"    },
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        const name     = (credentials?.name     as string | undefined)?.trim();
         const email    = (credentials?.email    as string | undefined)?.trim().toLowerCase();
         const password =  credentials?.password as string | undefined;
 
-        if (!email || !password || password.length < 8) return null;
+        if (!email || !password || password.length < 6) return null;
+
+        // ── Demo mode: no database configured → accept any valid input ──────
+        // Lets users sign in with nickname + email + password when Supabase
+        // env vars are not set (local / preview deployments).
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+          return {
+            id:    `demo-${Buffer.from(email).toString("hex").slice(0, 16)}`,
+            email,
+            name:  name || email.split("@")[0],
+            image: null,
+            role:  "FREE",
+            tier:  "FREE",
+          };
+        }
 
         const user = await findUserByEmail(email);
         if (!user) return null;
@@ -89,7 +105,7 @@ const config: NextAuthConfig = {
         return {
           id:    user.id,
           email: user.email,
-          name:  user.name ?? email.split("@")[0],
+          name:  user.name ?? name ?? email.split("@")[0],
           image: user.image ?? user.avatar_url ?? null,
           role:  user.role  ?? "FREE",
           tier:  user.tier  ?? "FREE",
