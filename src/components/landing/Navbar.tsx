@@ -45,11 +45,12 @@ export function Navbar() {
       }
     >
       <nav aria-label="Главная навигация" className="max-w-7xl mx-auto px-6 flex items-center justify-between">
-        {/* Brand */}
-        <Link href="/" className="flex items-center gap-3 group rounded-lg" aria-label="Business Command Center — на главную">
+        {/* Brand — terminal wordmark */}
+        <Link href="/" className="flex items-center gap-2.5 group rounded-lg" aria-label="Apex Command Center — на главную">
           <div
-            className="size-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(99,102,241,0.35)]"
+            className="size-9 flex items-center justify-center flex-shrink-0 transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(99,102,241,0.35)]"
             style={{
+              borderRadius: 10,
               background: "linear-gradient(135deg, #6366f1, #4f46e5)",
               boxShadow: "0 2px 12px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.18)",
             }}
@@ -58,19 +59,20 @@ export function Navbar() {
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
           </div>
-          <div className="hidden sm:block">
-            <div className="text-sm font-bold text-white leading-tight tracking-tight">Business Command Center</div>
-            <div className="text-[10px] text-white/35 tracking-[0.18em] uppercase leading-tight">AI Executive Board</div>
+          <div className="hidden sm:flex items-baseline gap-2 term-mono">
+            <span className="text-sm font-bold text-white tracking-tight">APEX</span>
+            <span className="text-white/20">//</span>
+            <span className="text-[11px] text-white/40 tracking-[0.18em] uppercase">Command&nbsp;Center</span>
           </div>
         </Link>
 
-        {/* Desktop nav */}
-        <div className="hidden md:flex items-center gap-1">
+        {/* Desktop nav — mono uppercase */}
+        <div className="hidden md:flex items-center gap-0.5">
           {NAV_ITEMS.map((item) => (
             <a
               key={item.label}
               href={item.href}
-              className="px-3.5 py-2 rounded-lg text-sm text-white/45 hover:text-white hover:bg-white/[0.05] transition-colors duration-200"
+              className="term-mono px-3 py-2 rounded-md text-[11px] tracking-[0.08em] uppercase text-white/40 hover:text-white hover:bg-white/[0.05] transition-colors duration-200"
             >
               {item.label}
             </a>
@@ -79,15 +81,20 @@ export function Navbar() {
 
         {/* Actions */}
         <div className="flex items-center gap-2.5">
+          {/* live status readout */}
+          <div className="hidden lg:flex items-center gap-2 term-mono px-3 h-9 rounded-lg" style={{ border: "1px solid rgba(16,185,129,0.18)", background: "rgba(16,185,129,0.05)" }}>
+            <span className="size-1.5 rounded-full bg-emerald-400 term-blink" />
+            <span className="text-[10.5px] tracking-[0.12em] text-emerald-400/90">20 AGENTS ONLINE</span>
+          </div>
           <Link
             href="/login"
-            className="hidden md:inline-flex items-center h-9 px-4 text-sm font-medium text-white/55 rounded-xl border border-white/[0.09] hover:text-white hover:border-white/[0.18] transition-all duration-200"
+            className="term-mono hidden md:inline-flex items-center h-9 px-4 text-[11px] tracking-[0.1em] uppercase text-white/55 rounded-lg border border-white/[0.09] hover:text-white hover:border-white/[0.18] transition-all duration-200"
           >
             Войти
           </Link>
           <Link
-            href="/dashboard"
-            className="inline-flex items-center gap-2 h-9 px-5 text-sm font-semibold text-white rounded-xl transition-all duration-200 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(99,102,241,0.35)]"
+            href="/register"
+            className="term-mono inline-flex items-center gap-2 h-9 px-5 text-[11px] tracking-[0.08em] uppercase font-semibold text-white rounded-lg transition-all duration-200 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(99,102,241,0.35)]"
             style={{
               background: "linear-gradient(135deg, #6366f1, #4f46e5)",
               boxShadow: "0 4px 16px rgba(99,102,241,0.28), inset 0 1px 0 rgba(255,255,255,0.16)",

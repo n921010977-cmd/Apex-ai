@@ -80,6 +80,26 @@ body { font-size: 14px; line-height: 1.6; }
 .t-caption { font-size: 12px; line-height: 1.5; color: var(--text-secondary); }
 .t-label { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; }
 
+/* ── Command Terminal design language ─────────────────── */
+.term-mono   { font-family: var(--font-geist-mono), ui-monospace, SFMono-Regular, Menlo, monospace; }
+.term-label  { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: rgba(255,255,255,0.4); }
+.term-value  { font-family: var(--font-geist-mono), ui-monospace, monospace; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; }
+.term-rule   { border-top: 1px solid var(--border); }
+.term-vrule  { border-left: 1px solid var(--border); }
+/* faint hairline grid backdrop */
+.term-grid::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+  background-size: 48px 48px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 40%, transparent 100%);
+          mask-image: radial-gradient(ellipse 80% 70% at 50% 40%, #000 40%, transparent 100%);
+}
+/* blinking live cursor / status dot */
+@keyframes term-blink { 0%,49%{opacity:1} 50%,100%{opacity:0.15} }
+.term-blink { animation: term-blink 1.4s steps(1) infinite; }
+
 /* ── Scrollbars ────────────────────────────────────────── */
 ::-webkit-scrollbar { width: 4px; height: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }

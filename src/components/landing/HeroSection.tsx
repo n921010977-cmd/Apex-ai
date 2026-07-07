@@ -476,54 +476,29 @@ export function HeroSection() {
             CTO и&nbsp;ещё 15&nbsp;экспертов — работают вместе над вашей идеей за&nbsp;минуты.
           </motion.p>
 
-          {/* Metric chips */}
-          <motion.div variants={it} className="flex flex-wrap gap-3 mb-10 justify-center lg:justify-start">
-            {[
-              { val: "10 000+", label: "Стратегий запущено", color: "#a78bfa", rgb: "167,139,250",
-                icon: <><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91 0z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/></> },
-              { val: "< 5 минут", label: "Полный анализ", color: "#38bdf8", rgb: "56,189,248",
-                icon: <><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></> },
-              { val: "20 Экспертов", label: "AI-директоров", color: "#34d399", rgb: "52,211,153",
-                icon: <><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></> },
-            ].map((m, mi) => (
-              <motion.div
-                key={m.val}
-                className="relative flex items-center gap-3 pl-2.5 pr-4 py-2.5 rounded-2xl overflow-hidden"
-                whileHover={{ y: -3, transition: { type: "spring", stiffness: 320, damping: 20 } }}
-                style={{
-                  background: "linear-gradient(135deg, rgba(255,255,255,0.045) 0%, rgba(255,255,255,0.015) 100%)",
-                  border: "1px solid rgba(255,255,255,0.08)",
-                  backdropFilter: "blur(12px)",
-                  boxShadow: "inset 0 1px 0 rgba(255,255,255,0.06)",
-                }}
-              >
-                {/* colored ambient glow */}
-                <div aria-hidden className="absolute pointer-events-none" style={{
-                  left: -20, top: -20, width: 80, height: 80,
-                  background: `radial-gradient(circle, rgba(${m.rgb},0.22), transparent 70%)`,
-                }} />
-                {/* icon tile */}
-                <div className="relative flex items-center justify-center flex-shrink-0" style={{
-                  width: 40, height: 40, borderRadius: 12,
-                  background: `linear-gradient(135deg, rgba(${m.rgb},0.9), rgba(${m.rgb},0.5))`,
-                  boxShadow: `0 6px 18px rgba(${m.rgb},0.4), inset 0 1px 0 rgba(255,255,255,0.3)`,
-                }}>
-                  <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="19" height="19"
-                    style={{ animation: `hero-metric-float 3s ease-in-out ${mi * 0.4}s infinite` }}>
-                    {m.icon}
-                  </svg>
-                </div>
-                <div className="relative">
-                  <div className="text-[21px] font-bold font-mono leading-tight" style={{
-                    background: "linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.72) 100%)",
-                    WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-                  }}>
-                    {m.val}
+          {/* Metric readout — terminal style */}
+          <motion.div variants={it} className="mb-10 max-w-md mx-auto lg:mx-0 rounded-xl overflow-hidden"
+            style={{ border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)" }}>
+            <div className="term-mono flex items-center justify-between px-3.5 py-2" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <span className="text-[10px] tracking-[0.16em] uppercase text-white/35">// LIVE&nbsp;METRICS</span>
+              <span className="flex items-center gap-1.5 text-[10px] tracking-[0.12em] text-emerald-400/90">
+                <span className="size-1.5 rounded-full bg-emerald-400 term-blink" /> ONLINE
+              </span>
+            </div>
+            <div className="grid grid-cols-3">
+              {[
+                { val: "10 000+", label: "STRATEGIES" },
+                { val: "< 5 MIN",  label: "FULL ANALYSIS" },
+                { val: "20",       label: "AI DIRECTORS" },
+              ].map((m, i) => (
+                <div key={m.label} className="px-3.5 py-3" style={{ borderLeft: i > 0 ? "1px solid rgba(255,255,255,0.06)" : "none" }}>
+                  <div className="term-value text-[19px] font-bold text-white leading-none flex items-center gap-1">
+                    <span className="text-indigo-400/80">▸</span>{m.val}
                   </div>
-                  <div className="text-[10px] text-white/32 mt-0.5 font-medium tracking-wide">{m.label}</div>
+                  <div className="term-label mt-1.5" style={{ fontSize: 8.5, letterSpacing: "0.14em" }}>{m.label}</div>
                 </div>
-              </motion.div>
-            ))}
+              ))}
+            </div>
           </motion.div>
 
           {/* CTA row */}
