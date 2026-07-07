@@ -254,58 +254,33 @@ function ReportCard() {
             <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", letterSpacing: "0.01em" }}>
               Business Viability Score
             </span>
-            <span
-              style={{
-                fontSize:             42,
-                fontWeight:           800,
-                lineHeight:           1,
-                letterSpacing:        "-0.03em",
-                background:           "linear-gradient(135deg, #a78bfa 0%, #06b6d4 55%, #34d399 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor:  "transparent",
-                backgroundClip:       "text",
-              }}
-            >
-              <CountUp to={87} /><span style={{ fontSize: 22, opacity: 0.75 }}>/100</span>
+            <span style={{ fontSize: 42, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.03em", color: "#fff", display: "flex", alignItems: "baseline", gap: 2 }}>
+              <CountUp to={87} /><span style={{ fontSize: 20, opacity: 0.4, fontWeight: 700 }}>/100</span>
             </span>
           </div>
 
-          {/* Progress bar with glow */}
-          <div style={{ position: "relative" }}>
-            {/* Track */}
-            <div style={{
-              height: 10, background: "rgba(255,255,255,0.05)", borderRadius: 999, overflow: "hidden",
-            }}>
-              <motion.div
-                style={{
-                  height: "100%",
-                  background: "linear-gradient(90deg, #7c3aed, #06b6d4 55%, #10b981)",
-                  borderRadius: 999,
-                }}
-                initial={{ width: 0 }}
-                whileInView={{ width: "87%" }}
-                viewport={{ once: true }}
-                transition={{ duration: 1.5, delay: 0.35, ease: "easeOut" }}
-              />
-            </div>
-            {/* Glow layer (outside overflow:hidden) */}
-            <motion.div
-              style={{
-                position: "absolute", top: -6, bottom: -6, left: 0, borderRadius: 999,
-                background: "linear-gradient(90deg, rgba(124,58,237,0.5), rgba(6,182,212,0.5) 55%, rgba(16,185,129,0.5))",
-                filter: "blur(10px)",
-                pointerEvents: "none",
-              }}
-              initial={{ width: 0 }}
-              whileInView={{ width: "87%" }}
-              viewport={{ once: true }}
-              transition={{ duration: 1.5, delay: 0.35, ease: "easeOut" }}
-            />
-          </div>
-
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 7 }}>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.22)" }}>Poor</span>
-            <span style={{ fontSize: 10, color: "#34d399", fontWeight: 600 }}>Excellent</span>
+          {/* Category breakdown — mini bar chart (single indigo accent) */}
+          <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+            {[
+              { label: "Market Potential",   v: 91 },
+              { label: "Financial Health",   v: 83 },
+              { label: "Feasibility",        v: 87 },
+              { label: "Competitive Edge",   v: 79 },
+            ].map((c, i) => (
+              <div key={c.label} style={{ display: "grid", gridTemplateColumns: "120px 1fr 30px", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 11, color: "rgba(255,255,255,0.42)" }}>{c.label}</span>
+                <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 999, overflow: "hidden" }}>
+                  <motion.div
+                    style={{ height: "100%", background: "linear-gradient(90deg, rgba(99,102,241,0.5), #6366f1)", borderRadius: 999 }}
+                    initial={{ width: 0 }}
+                    whileInView={{ width: `${c.v}%` }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 1.1, delay: 0.3 + i * 0.12, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </div>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#a5b4fc", fontVariantNumeric: "tabular-nums", textAlign: "right" }}>{c.v}</span>
+              </div>
+            ))}
           </div>
         </div>
 
