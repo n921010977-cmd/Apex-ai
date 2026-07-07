@@ -902,6 +902,19 @@ const SCORE_METRICS = [
   },
 ];
 
+// Explains WHY a category earned its score (transparency)
+const SCORE_REASONS: Record<number, { hi: string; mid: string; lo: string }> = {
+  0: { hi: "Крупный растущий рынок, спрос подтверждён",       mid: "Рынок есть, но высокая конкуренция",        lo: "Узкая или насыщенная ниша" },
+  1: { hi: "Здоровая unit-экономика, LTV/CAC > 3:1",          mid: "Модель рабочая, нужен контроль burn rate",   lo: "Слабая экономика, высокий CAC" },
+  2: { hi: "Реализуемо текущей командой и стеком",            mid: "Выполнимо, но нужны процессы и найм",        lo: "Высокая операционная сложность" },
+  3: { hi: "Чёткая дифференциация и барьеры входа",           mid: "Преимущество есть, но легко копируемо",      lo: "Слабая дифференциация от лидеров" },
+};
+function scoreReason(key: number, val: number): string {
+  const r = SCORE_REASONS[key];
+  if (!r) return "";
+  return val >= 82 ? r.hi : val >= 68 ? r.mid : r.lo;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
   const animated = useAnimated(120);
@@ -948,6 +961,9 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
           <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.12em", textAlign: "center", marginTop: -4 }}>
             {project.score >= 85 ? "ОТЛИЧНО" : project.score >= 70 ? "ХОРОШО" : "ТРЕБУЕТ РАБОТЫ"}
           </div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.28)", textAlign: "center", marginTop: 8, lineHeight: 1.5, maxWidth: 150 }}>
+            Средневзвешенное по 4 категориям →
+          </div>
         </div>
 
         {/* Middle: 4 metric cards */}
@@ -964,7 +980,7 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
                   <div style={{ filter: `drop-shadow(0 0 6px rgba(${m.rgb},0.6))`, flexShrink: 0 }}>{m.icon}</div>
                 </div>
-                <div style={{ fontSize: 28, fontWeight: 900, color: m.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, marginBottom: 4 }}>{val}</div>
+                <div style={{ fontSize: 28, fontWeight: 900, color: m.color, fontFamily: "ui-monospace,monospace", lineHeight: 1, marginBottom: 4 }}>{val}<span style={{ fontSize: 12, opacity: 0.4 }}>/100</span></div>
                 <div style={{ fontSize: 8, fontWeight: 800, color: m.color, letterSpacing: "0.1em", lineHeight: 1.3, marginBottom: 8, opacity: 0.85 }}>{m.label}</div>
                 <div style={{ height: 3, borderRadius: 2, background: `rgba(${m.rgb},0.1)`, overflow: "hidden" }}>
                   <div style={{
@@ -973,6 +989,11 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
                     background: m.color,
                     transition: `width 1.3s cubic-bezier(0.22,1,0.36,1) ${200 + i * 80}ms`,
                   }}/>
+                </div>
+                {/* WHY — transparency */}
+                <div style={{ marginTop: 8, fontSize: 9.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.45, display: "flex", gap: 5 }}>
+                  <span style={{ color: `rgba(${m.rgb},0.7)`, flexShrink: 0 }}>&gt;</span>
+                  <span>{scoreReason(m.key, val)}</span>
                 </div>
               </div>
             );
