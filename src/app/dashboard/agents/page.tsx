@@ -322,7 +322,7 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
 
 export default function AgentsPage() {
   const router = useRouter();
-  const [dept, setDept] = useState("all");
+  const [dept] = useState("all");
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState<Agent | null>(null);
   const [showCreate, setShowCreate] = useState(false);
@@ -460,15 +460,15 @@ export default function AgentsPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #8b5cf6, #3b82f6)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Bot size={16} color="white" />
               </div>
-              <h1 style={{ fontSize: 20, fontWeight: 700, color: "rgba(255,255,255,0.92)", margin: 0 }}>AI Agent Studio</h1>
-              <span style={{ fontSize: 11, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981", borderRadius: 6, padding: "2px 8px", fontWeight: 600 }}>
-                {agents.filter(a => a.status === "active").length} активно
+              <h1 className="term-mono" style={{ fontSize: 18, fontWeight: 700, color: "#fff", margin: 0, letterSpacing: "0.02em" }}>AGENT<span style={{ color: "rgba(255,255,255,0.25)" }}>_</span>STUDIO</h1>
+              <span className="term-mono" style={{ fontSize: 10, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)", color: "#10b981", borderRadius: 6, padding: "3px 8px", letterSpacing: "0.1em", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981" }} />{agents.filter(a => a.status === "active").length} ACTIVE
               </span>
             </div>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0 }}>Управляйте, настраивайте и запускайте интеллектуальных AI-агентов</p>
+            <p className="term-mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", margin: 0, letterSpacing: "0.04em" }}>// управление, настройка и запуск AI-агентов</p>
           </div>
           <div style={{ display: "flex", gap: 8 }}>
             <button style={{ padding: "8px 16px", borderRadius: 10, fontSize: 12, fontWeight: 500, cursor: "pointer", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", display: "flex", alignItems: "center", gap: 6 }}>
@@ -504,30 +504,6 @@ export default function AgentsPage() {
           })}
         </div>
 
-        {/* Dept tabs */}
-        <div style={{ display: "flex", gap: 4, overflowX: "auto" }}>
-          {DEPARTMENTS.map((d) => {
-            const Icon = d.icon;
-            const active = dept === d.id;
-            return (
-              <button
-                key={d.id}
-                onClick={() => setDept(d.id)}
-                style={{
-                  padding: "7px 12px", borderRadius: "8px 8px 0 0", fontSize: 11, fontWeight: 500, cursor: "pointer", whiteSpace: "nowrap",
-                  background: active ? "rgba(139,92,246,0.12)" : "none",
-                  border: active ? "1px solid rgba(139,92,246,0.25)" : "1px solid transparent",
-                  borderBottom: "none",
-                  color: active ? "#a78bfa" : "rgba(255,255,255,0.35)",
-                  display: "flex", alignItems: "center", gap: 5,
-                  transition: "all 0.15s",
-                }}
-              >
-                <Icon size={11} />{d.label}
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* Body */}

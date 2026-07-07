@@ -202,7 +202,7 @@ function buildPersona(agent: typeof AGENTS[0]): string {
 }
 
 export default function ChatPage() {
-  const [dept, setDept] = useState("Все");
+  const [dept] = useState("Все");
   const [search, setSearch] = useState("");
   const [chatSearch, setChatSearch] = useState("");
   const [viewMode, setViewMode] = useState<"grid"|"list">("grid");
@@ -749,8 +749,10 @@ export default function ChatPage() {
             <div style={{ padding: "18px 24px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)", flexShrink: 0 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 14 }}>
                 <div>
-                  <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>AI Command Center</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>{AGENTS.length} специализированных агентов · {AGENTS.filter(a=>a.online).length} онлайн</div>
+                  <div className="term-mono" style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: "0.02em" }}>COMMAND<span style={{ color: "rgba(255,255,255,0.25)" }}>_</span>CENTER</div>
+                  <div className="term-mono" style={{ fontSize: 10.5, color: "rgba(255,255,255,0.32)", marginTop: 2, letterSpacing: "0.05em", display: "inline-flex", alignItems: "center", gap: 6 }}>
+                    <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981" }} />{AGENTS.length} AGENTS · {AGENTS.filter(a=>a.online).length} ONLINE
+                  </div>
                 </div>
                 <div style={{ display: "flex", gap: 8 }}>
                   <div style={{ position: "relative" }}>
@@ -767,13 +769,6 @@ export default function ChatPage() {
                 </div>
               </div>
 
-              {/* Dept Filters */}
-              <div style={{ display: "flex", gap: 6, overflowX: "auto", paddingBottom: 2 }}>
-                {DEPARTMENTS.map(d => (
-                  <button key={d} onClick={() => setDept(d)}
-                    style={{ padding: "5px 12px", borderRadius: 20, fontSize: 11, fontWeight: 600, border: `1px solid ${dept === d ? "rgba(139,92,246,0.4)" : "rgba(255,255,255,0.07)"}`, background: dept === d ? "rgba(139,92,246,0.14)" : "transparent", color: dept === d ? "#a78bfa" : "rgba(255,255,255,0.35)", cursor: "pointer", whiteSpace: "nowrap", flexShrink: 0, transition: "all 0.15s" }}>{d}</button>
-                ))}
-              </div>
             </div>
 
             <div style={{ flex: 1, overflowY: "auto", padding: "18px 20px" }}>
