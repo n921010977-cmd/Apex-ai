@@ -345,11 +345,12 @@ export default function SupportPage() {
       {/* ── HERO ── */}
       <div style={{ padding: "48px 40px 40px", textAlign: "center" }}>
         <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 12px", borderRadius: 20, background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.15)", marginBottom: 20 }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
-            <span style={{ fontSize: 11, color: "#10b981", fontWeight: 600 }}>Support Online · Среднее время ответа: 1.4 ч</span>
+          <div className="term-mono" style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "4px 12px", borderRadius: 8, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.18)", marginBottom: 20 }}>
+            <span className="term-blink" style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", display: "inline-block" }} />
+            <span style={{ fontSize: 10.5, color: "#10b981", letterSpacing: "0.12em" }}>SUPPORT ONLINE · SLA 1.4H</span>
           </div>
 
+          <div className="term-mono" style={{ fontSize: 11, letterSpacing: "0.16em", color: "rgba(99,102,241,0.7)", marginBottom: 8, textTransform: "uppercase" }}>// support console</div>
           <h1 style={{ fontSize: 36, fontWeight: 800, color: "#E5E7EB", letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 12 }}>
             Центр поддержки
           </h1>
