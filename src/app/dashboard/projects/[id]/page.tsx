@@ -1487,16 +1487,17 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
     </svg>
   );
 
+  const IND = "#6366f1", INDRGB = "99,102,241";
   const rightCards = [
-    { label: "ПРОГНОЗ (ГОД 1):", value: yr1?.value ?? "—", color: "#3b82f6", rgb: "59,130,246", Icon: IconRevYear },
-    { label: "ПРОГНОЗ (ГОД 3):", value: yr3?.value ?? "—", color: "#8b5cf6", rgb: "139,92,246", Icon: IconTrendUp },
-    { label: "ТОЧКА БЕЗУБЫТОЧНОСТИ:", value: breakeven?.value ?? "—", color: "#10b981", rgb: "16,185,129", Icon: IconClock },
+    { label: "ПРОГНОЗ (ГОД 1):", value: yr1?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconRevYear },
+    { label: "ПРОГНОЗ (ГОД 3):", value: yr3?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconTrendUp },
+    { label: "ТОЧКА БЕЗУБЫТОЧНОСТИ:", value: breakeven?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconClock },
   ];
   const bottomCards = [
-    { label: "LTV ПОЛЬЗОВАТЕЛЯ:", value: ltv?.value ?? "—", color: "#a78bfa", rgb: "167,139,250", Icon: IconUser },
-    { label: "CAC:", value: cac?.value ?? "—", color: "#3b82f6", rgb: "59,130,246", Icon: IconFilter },
+    { label: "LTV ПОЛЬЗОВАТЕЛЯ:", value: ltv?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconUser },
+    { label: "CAC:", value: cac?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconFilter },
     { label: "LTV/CAC RATIO:", value: ltvcac?.value ?? "—", suffix: true, color: "#10b981", rgb: "16,185,129", Icon: IconCalc },
-    { label: "ТАЙМФРЕЙМ:", value: timeframeVal?.value ?? (project.financials[5]?.value ?? "—"), color: "#f59e0b", rgb: "245,158,11", Icon: IconCalendar },
+    { label: "ТАЙМФРЕЙМ:", value: timeframeVal?.value ?? (project.financials[5]?.value ?? "—"), color: IND, rgb: INDRGB, Icon: IconCalendar },
   ];
 
   const finBrief = `Коротко о финансах: выручка растёт с ${project.financials[0]?.value ?? ""} до ${project.financials[1]?.value ?? ""} за 3 года, окупаемость — ${project.financials.find(f => f.label.toLowerCase().includes("безубыт"))?.value ?? "около 18 месяцев"}. Соотношение LTV к CAC здоровое. Держите burn под контролем и запас хода минимум 18 месяцев.`;
@@ -1601,8 +1602,8 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
         opacity: animated ? 1 : 0, transition: "opacity 0.5s 200ms",
       }}>
         {project.market.map((m, i) => {
-          const colors = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b"];
-          const color = colors[i % 4];
+          // Single indigo accent; SOM (target) stays green as the semantic goal
+          const color = i === 2 ? "#10b981" : "#6366f1";
           return (
             <div key={i} style={{
               padding: "18px 16px",
