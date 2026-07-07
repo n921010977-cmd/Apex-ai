@@ -102,11 +102,13 @@ function ExecCard({ exec, index }: { exec: typeof EXECUTIVES[number]; index: num
       style={{
         position: "relative", borderRadius: 18, padding: "18px 16px 18px",
         overflow: "hidden", height: "100%", display: "flex", flexDirection: "column", gap: 12,
-        background: hover ? `rgba(${exec.rgb},0.055)` : "rgba(255,255,255,0.025)",
-        border: `1px solid rgba(${exec.rgb},${hover ? 0.4 : 0.16})`,
+        background: hover
+          ? `linear-gradient(160deg, rgba(${exec.rgb},0.14), rgba(255,255,255,0.02))`
+          : `linear-gradient(160deg, rgba(${exec.rgb},0.06), rgba(255,255,255,0.02))`,
+        border: `1px solid rgba(${exec.rgb},${hover ? 0.5 : 0.24})`,
         boxShadow: hover
-          ? `0 16px 40px rgba(${exec.rgb},0.18), 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)`
-          : "0 4px 20px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.05)",
+          ? `0 16px 44px rgba(${exec.rgb},0.28), 0 8px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)`
+          : `0 4px 20px rgba(0,0,0,0.32), 0 0 0 1px rgba(${exec.rgb},0.04), inset 0 1px 0 rgba(255,255,255,0.05)`,
         transition: "background 0.25s, border-color 0.25s, box-shadow 0.25s",
       }}
     >
@@ -122,20 +124,38 @@ function ExecCard({ exec, index }: { exec: typeof EXECUTIVES[number]; index: num
 
       {/* Icon + online dot */}
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between" }}>
-        <motion.div
-          animate={hover ? { rotate: [0, -8, 6, 0], scale: 1.08 } : { rotate: 0, scale: 1 }}
-          transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-          style={{
-            width: 46, height: 46, borderRadius: 14, flexShrink: 0,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            background: `rgba(${exec.rgb},${hover ? 0.16 : 0.1})`,
-            border: `1px solid rgba(${exec.rgb},${hover ? 0.45 : 0.28})`,
-            boxShadow: hover ? `0 6px 18px rgba(${exec.rgb},0.3)` : "0 2px 10px rgba(0,0,0,0.3)",
-            color: exec.color, transition: "background 0.25s, border-color 0.25s, box-shadow 0.25s",
-          }}
-        >
-          <Icon paths={exec.icon} />
-        </motion.div>
+        {/* Icon with always-spinning conic ring */}
+        <div style={{ position: "relative", width: 48, height: 48, flexShrink: 0 }}>
+          {/* rotating conic gradient ring */}
+          <div aria-hidden style={{
+            position: "absolute", inset: -2, borderRadius: 16,
+            background: `conic-gradient(from 0deg, transparent 0deg, rgba(${exec.rgb},0.9) 90deg, transparent 200deg, rgba(${exec.rgb},0.5) 300deg, transparent 360deg)`,
+            animation: `exec-spin ${hover ? 2.2 : 5}s linear infinite`,
+            opacity: hover ? 1 : 0.75,
+            transition: "opacity 0.25s",
+            WebkitMask: "radial-gradient(circle, transparent 58%, #000 60%)",
+            mask: "radial-gradient(circle, transparent 58%, #000 60%)",
+          }} />
+          <motion.div
+            animate={hover ? { scale: 1.1 } : { scale: 1 }}
+            transition={{ type: "spring", stiffness: 300, damping: 18 }}
+            style={{
+              position: "absolute", inset: 2, borderRadius: 14,
+              display: "flex", alignItems: "center", justifyContent: "center",
+              background: `linear-gradient(135deg, rgba(${exec.rgb},${hover ? 0.42 : 0.28}), rgba(${exec.rgb},0.12))`,
+              border: `1px solid rgba(${exec.rgb},${hover ? 0.6 : 0.4})`,
+              boxShadow: hover
+                ? `0 6px 22px rgba(${exec.rgb},0.5), inset 0 1px 0 rgba(255,255,255,0.2)`
+                : `0 3px 14px rgba(${exec.rgb},0.28), inset 0 1px 0 rgba(255,255,255,0.12)`,
+              color: "#fff",
+              transition: "background 0.25s, border-color 0.25s, box-shadow 0.25s",
+            }}
+          >
+            <div style={{ filter: `drop-shadow(0 0 6px rgba(${exec.rgb},0.9))`, color: exec.color }}>
+              <Icon paths={exec.icon} />
+            </div>
+          </motion.div>
+        </div>
         <span style={{
           width: 7, height: 7, borderRadius: "50%", background: "#10b981",
           boxShadow: "0 0 8px rgba(16,185,129,0.8)", marginTop: 4,
@@ -177,7 +197,10 @@ function ExecCard({ exec, index }: { exec: typeof EXECUTIVES[number]; index: num
 export function ExecutivesSection() {
   return (
     <section id="executives" style={{ position: "relative", padding: "96px 24px 112px", overflow: "hidden" }}>
-      <style>{`@keyframes exec-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }`}</style>
+      <style>{`
+        @keyframes exec-pulse { 0%,100%{opacity:0.5} 50%{opacity:1} }
+        @keyframes exec-spin { to { transform: rotate(360deg); } }
+      `}</style>
 
       <div aria-hidden style={{ position: "absolute", inset: 0, backgroundImage: "radial-gradient(ellipse 70% 55% at 50% 40%, rgba(139,92,246,0.05) 0%, transparent 65%)", pointerEvents: "none" }} />
 
