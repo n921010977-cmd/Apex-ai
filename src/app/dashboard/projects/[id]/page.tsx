@@ -652,18 +652,42 @@ function AgentBrief({ letter, name, role, color, rgb, text }:
   const [supported, setSupported] = useState(true);
 
   useEffect(() => {
-    if (typeof window === "undefined" || !("speechSynthesis" in window)) setSupported(false);
-    return () => { if (typeof window !== "undefined" && window.speechSynthesis) window.speechSynthesis.cancel(); };
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) { setSupported(false); return; }
+    // Prime the voice list (loads async in Chrome)
+    const warm = () => window.speechSynthesis.getVoices();
+    warm();
+    window.speechSynthesis.addEventListener("voiceschanged", warm);
+    return () => {
+      window.speechSynthesis.removeEventListener("voiceschanged", warm);
+      window.speechSynthesis.cancel();
+    };
   }, []);
+
+  // Pick the best available Russian FEMALE voice
+  const pickFemaleRuVoice = () => {
+    const voices = window.speechSynthesis.getVoices();
+    const ru = voices.filter(v => v.lang?.toLowerCase().startsWith("ru"));
+    if (ru.length === 0) return voices.find(v => v.lang?.toLowerCase().startsWith("ru")) ?? null;
+    // Known female Russian voices across platforms
+    const femaleNames = ["irina", "svetlana", "dariya", "milena", "alyona", "katya", "tatyana", "elena", "female", "женский", "google"];
+    const byName = ru.find(v => femaleNames.some(n => v.name.toLowerCase().includes(n)));
+    if (byName) return byName;
+    // Explicitly avoid known male voices, else fall back to first ru voice
+    const maleNames = ["pavel", "dmitry", "yuri", "male", "мужской", "aleksandr"];
+    const notMale = ru.find(v => !maleNames.some(n => v.name.toLowerCase().includes(n)));
+    return notMale ?? ru[0];
+  };
 
   const toggleSpeak = () => {
     if (typeof window === "undefined" || !window.speechSynthesis) return;
     if (speaking) { window.speechSynthesis.cancel(); setSpeaking(false); return; }
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = "ru-RU"; u.rate = 1.03; u.pitch = 1;
-    const ru = window.speechSynthesis.getVoices().find(v => v.lang?.toLowerCase().startsWith("ru"));
-    if (ru) u.voice = ru;
+    u.lang = "ru-RU";
+    u.rate = 1.0;
+    u.pitch = 1.15; // slightly higher — softer, more feminine tone
+    const voice = pickFemaleRuVoice();
+    if (voice) u.voice = voice;
     u.onend = () => setSpeaking(false);
     u.onerror = () => setSpeaking(false);
     setSpeaking(true);
