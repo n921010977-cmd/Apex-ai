@@ -13,15 +13,15 @@ import {
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 const QUICK_ACTIONS = [
-  { icon: BookOpen,     label: "Документация",    desc: "Гайды и туториалы",     href: "#" },
-  { icon: Play,         label: "Видеоуроки",      desc: "Обучающие видео",        href: "#" },
-  { icon: Bot,          label: "AI Помощник",     desc: "Мгновенные ответы",      href: "#" },
-  { icon: MessageSquare,label: "Live Chat",       desc: "Онлайн прямо сейчас",   href: "#" },
-  { icon: Ticket,       label: "Создать тикет",   desc: "Официальное обращение",  href: "#" },
-  { icon: Activity,     label: "Статус системы",  desc: "Все сервисы работают",   href: "#" },
-  { icon: Calendar,     label: "Демо-звонок",     desc: "Запланировать встречу",  href: "#" },
-  { icon: Users,        label: "Сообщество",      desc: "Форум и Discord",        href: "#" },
-];
+  { icon: BookOpen,     label: "Документация",    desc: "Гайды и туториалы",      act: "kb"     },
+  { icon: Play,         label: "Видеоуроки",      desc: "Обучающие видео",         act: "kb"     },
+  { icon: Bot,          label: "AI Помощник",     desc: "Мгновенные ответы",       act: "chat"   },
+  { icon: MessageSquare,label: "Live Chat",       desc: "Онлайн прямо сейчас",     act: "chat"   },
+  { icon: Ticket,       label: "Создать тикет",   desc: "Официальное обращение",   act: "ticket" },
+  { icon: Activity,     label: "Статус системы",  desc: "Все сервисы работают",    act: "status" },
+  { icon: Calendar,     label: "Демо-звонок",     desc: "Запланировать встречу",   act: "mail"   },
+  { icon: Users,        label: "Сообщество",      desc: "Написать нам",            act: "mail"   },
+] as const;
 
 const KB_CATEGORIES = [
   { icon: Zap,         label: "Начало работы",     articles: 12 },
@@ -394,7 +394,13 @@ export default function SupportPage() {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
           style={{ display: "grid", gridTemplateColumns: "repeat(8,1fr)", gap: 8, marginBottom: 24 }}>
           {QUICK_ACTIONS.map((a, i) => (
-            <button key={i} style={{
+            <button key={i} aria-label={a.label} onClick={() => {
+              if (a.act === "ticket") setTicketOpen(true);
+              else if (a.act === "chat") window.location.href = "/chat";
+              else if (a.act === "kb") document.getElementById("support-kb")?.scrollIntoView({ behavior: "smooth" });
+              else if (a.act === "status") document.getElementById("support-status")?.scrollIntoView({ behavior: "smooth" });
+              else if (a.act === "mail") window.location.href = "mailto:n921010977@gmail.com";
+            }} style={{
               ...card, padding: "16px 8px", textAlign: "center", cursor: "pointer",
               transition: "border-color 0.15s, transform 0.15s",
               borderRadius: 12,
@@ -420,8 +426,8 @@ export default function SupportPage() {
           {/* Status + Contacts */}
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             {/* System Status */}
-            <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
-              style={{ ...card, padding: "20px", borderRadius: 16, flex: 1 }}>
+            <motion.div id="support-status" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}
+              style={{ ...card, padding: "20px", borderRadius: 16, flex: 1, scrollMarginTop: 76 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
                 <div style={{ fontSize: 13, fontWeight: 700, color: "#E5E7EB" }}>Статус системы</div>
                 <span style={{ fontSize: 10, padding: "3px 8px", borderRadius: 20, background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.12)", color: "#10b981", fontWeight: 700 }}>Работает</span>
@@ -465,8 +471,8 @@ export default function SupportPage() {
         </div>
 
         {/* ── KNOWLEDGE BASE ── */}
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
-          style={{ ...card, padding: "24px", marginBottom: 16, borderRadius: 16 }}>
+        <motion.div id="support-kb" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
+          style={{ ...card, padding: "24px", marginBottom: 16, borderRadius: 16, scrollMarginTop: 76 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
             <div>
               <div style={{ fontSize: 15, fontWeight: 700, color: "#E5E7EB", letterSpacing: "-0.01em" }}>База знаний</div>

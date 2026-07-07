@@ -268,7 +268,7 @@ export default function ChatPage() {
             </button>
           </div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", textAlign: "center", marginTop: 8 }}>
-            {research ? "🔬 Режим исследования включён · " : ""}Apex AI может ошибаться · на базе Claude
+            {research ? "Режим исследования включён · " : ""}Apex AI может ошибаться · на базе Claude
           </div>
         </div>
       </div>

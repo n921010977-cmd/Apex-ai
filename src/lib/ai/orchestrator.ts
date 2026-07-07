@@ -688,7 +688,7 @@ export async function startAiOrchestrator(
   const ai  = getAi();
   const db  = getDb();
 
-  console.log(`[orchestrator] Starting report ${reportId} for project "${project.name}"`);
+  if (process.env.NODE_ENV !== "production") console.log(`[orchestrator] Starting report ${reportId} for project "${project.name}"`);
 
   // ── Phase 1: Run 6 department tracks in parallel ───────────────────────────
   const [
@@ -759,7 +759,7 @@ export async function startAiOrchestrator(
     console.error("[orchestrator] Failed to mark report COMPLETED:", updateErr);
   }
 
-  console.log(
+  if (process.env.NODE_ENV !== "production") console.log(
     `[orchestrator] Report ${reportId} completed — score: ${overallScore}/100, pages: ${totalPages}, time: ${(durationMs / 1000).toFixed(1)}s`,
   );
 }

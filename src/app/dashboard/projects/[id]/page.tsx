@@ -1381,12 +1381,6 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
           </div>
         )}
 
-        {/* Bottom star sparkle (decorative) */}
-        <div style={{
-          position: "absolute", bottom: 16, right: 20,
-          color: "rgba(255,255,255,0.12)", fontSize: 36, pointerEvents: "none",
-          animation: "pipe-glow 3s ease-in-out infinite",
-        }}>✦</div>
       </div>
 
       {/* Selected agent full detail panel below */}
