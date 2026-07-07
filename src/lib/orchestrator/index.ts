@@ -235,15 +235,24 @@ export async function directChat(opts: {
   agentId?: string;
   persona?: string;
   history?: { role: "user" | "assistant"; content: string }[];
+  image?: { data: string; mediaType: string };
   onToken?: (token: string) => void;
 }): Promise<{ content: string; tokensUsed: number }> {
-  const { message, agentId, persona, history = [], onToken } = opts;
+  const { message, agentId, persona, history = [], image, onToken } = opts;
   const agent = (agentId && AGENT_REGISTRY[agentId]) ? AGENT_REGISTRY[agentId] : AGENT_REGISTRY.general ?? Object.values(AGENT_REGISTRY)[0];
   const systemPrompt = persona && persona.trim().length > 0 ? persona : agent.systemPrompt;
 
+  // Vision: attach an image to the latest user message when provided
+  const lastUserContent: Anthropic.MessageParam["content"] = image
+    ? [
+        { type: "image", source: { type: "base64", media_type: image.mediaType as "image/png" | "image/jpeg" | "image/gif" | "image/webp", data: image.data } },
+        { type: "text", text: message || "Опиши и проанализируй это изображение." },
+      ]
+    : message;
+
   const messages: Anthropic.MessageParam[] = [
     ...history.map(m => ({ role: m.role, content: m.content })),
-    { role: "user" as const, content: message },
+    { role: "user" as const, content: lastUserContent },
   ];
 
   let fullContent = "";

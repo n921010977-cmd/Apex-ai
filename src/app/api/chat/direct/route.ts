@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
   const { data, error } = validateBody(SendMessageSchema, rawBody);
   if (error || !data) return NextResponse.json({ success: false, error }, { status: 422 });
 
-  const { message, agentId, persona, history } = data;
+  const { message, agentId, persona, history, image } = data;
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
           agentId,
           persona,
           history,
+          image,
           onToken: (token) => send({ type: "token", token }),
         });
         send({ type: "done" });

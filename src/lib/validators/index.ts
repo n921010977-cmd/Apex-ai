@@ -31,7 +31,7 @@ export const UpdateProjectSchema = CreateProjectSchema.partial().extend({
 // ─── Messages / Chat ──────────────────────────────────────────────────────────
 
 export const SendMessageSchema = z.object({
-  message: z.string().min(1).max(10_000),
+  message: z.string().max(10_000).default(""),
   projectId: z.string().optional(),
   agentId: z.string().optional(),
   persona: z.string().max(4000).optional(),
@@ -39,6 +39,12 @@ export const SendMessageSchema = z.object({
     role: z.enum(["user", "assistant"]),
     content: z.string(),
   })).max(50).default([]),
+  image: z.object({
+    data: z.string().max(9_000_000),
+    mediaType: z.enum(["image/png", "image/jpeg", "image/gif", "image/webp"]),
+  }).optional(),
+}).refine(d => (d.message && d.message.trim().length > 0) || d.image, {
+  message: "message or image required",
 });
 
 // ─── Agents ───────────────────────────────────────────────────────────────────
