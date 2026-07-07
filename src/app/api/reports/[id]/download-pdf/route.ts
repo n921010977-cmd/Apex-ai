@@ -78,7 +78,7 @@ export async function GET(
 
   const { data: report, error } = await db
     .from("reports")
-    .select(`id, title, summary, overall_score, total_pages, created_at, report_sections ( type, title, content, sort_order )`)
+    .select(`id, title, summary, overall_score, total_pages, gen_status, created_at, report_sections ( type, title, content, sort_order )`)
     .eq("id", id)
     .eq("user_id", session.user.id)
     .single();
