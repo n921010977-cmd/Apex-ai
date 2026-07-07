@@ -140,18 +140,19 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         <Menu size={16} />
       </button>
 
-      {/* Breadcrumb — hidden on small mobile */}
-      <div className="hidden sm:flex items-center gap-2 flex-shrink-0" style={{ fontSize: 12, color: "rgba(255,255,255,0.28)" }}>
+      {/* Breadcrumb — terminal path */}
+      <div className="hidden sm:flex items-center gap-2 flex-shrink-0 term-mono" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.28)", letterSpacing: "0.04em" }}>
         <Cpu size={13} style={{ color: "rgba(99,102,241,0.7)" }} />
-        <span>Apex AI</span>
-        <span style={{ color: "rgba(255,255,255,0.14)" }}>›</span>
-        <span style={{ color: "rgba(255,255,255,0.65)", fontWeight: 500 }}>{pageLabel}</span>
+        <span style={{ color: "rgba(255,255,255,0.4)" }}>apex</span>
+        <span style={{ color: "rgba(99,102,241,0.5)" }}>/</span>
+        <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{pageLabel}</span>
+        <span className="term-blink" style={{ color: "rgba(99,102,241,0.8)" }}>▋</span>
       </div>
 
       {/* Mobile page title */}
       <span
-        className="sm:hidden font-semibold truncate flex-1"
-        style={{ fontSize: 14, color: "rgba(255,255,255,0.85)" }}
+        className="sm:hidden truncate flex-1 term-mono"
+        style={{ fontSize: 13, color: "rgba(255,255,255,0.85)", letterSpacing: "0.02em" }}
       >
         {pageLabel}
       </span>

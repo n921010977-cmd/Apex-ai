@@ -103,9 +103,9 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
           </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em", lineHeight: 1.1 }}>Apex AI</div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", letterSpacing: "0.18em", textTransform: "uppercase" }}>Executive Board</div>
+          <div className="term-mono">
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", letterSpacing: "0.02em", lineHeight: 1.1 }}>APEX <span style={{ color: "rgba(255,255,255,0.2)" }}>//</span> CMD</div>
+            <div style={{ fontSize: 8.5, color: "rgba(255,255,255,0.28)", letterSpacing: "0.18em", textTransform: "uppercase" }}>Command Center</div>
           </div>
         </Link>
 
@@ -120,18 +120,15 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         </button>
       </div>
 
-      {/* AI Status pill */}
+      {/* AI Status readout */}
       <div className="px-3 pt-3 pb-1 flex-shrink-0">
         <div
-          className="flex items-center gap-2 px-3 py-2 rounded-xl"
-          style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.12)" }}
+          className="term-mono flex items-center gap-2 px-3 py-2 rounded-lg"
+          style={{ background: "rgba(16,185,129,0.05)", border: "1px solid rgba(16,185,129,0.15)" }}
         >
-          <span
-            className="size-2 rounded-full flex-shrink-0 pulse-dot"
-            style={{ background: "#10b981", boxShadow: "0 0 6px rgba(16,185,129,0.7)" }}
-          />
-          <span style={{ fontSize: 10, fontWeight: 600, color: "#10b981", letterSpacing: "0.03em" }}>
-            AI Online · 20 агентов
+          <span className="term-blink size-1.5 rounded-full flex-shrink-0" style={{ background: "#10b981", boxShadow: "0 0 6px rgba(16,185,129,0.7)" }} />
+          <span style={{ fontSize: 9.5, color: "#10b981", letterSpacing: "0.1em" }}>
+            20 AGENTS · ONLINE
           </span>
         </div>
       </div>
@@ -140,8 +137,9 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       <nav className="flex-1 px-2 py-2 overflow-y-auto space-y-4">
         {NAV_GROUPS.map((group) => (
           <div key={group.label}>
-            <div className="px-3 mb-1.5">
-              <span style={{ fontSize: 9, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.16)" }}>
+            <div className="px-3 mb-1.5 term-mono" style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              <span style={{ color: "rgba(99,102,241,0.5)", fontSize: 9 }}>//</span>
+              <span style={{ fontSize: 9, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(255,255,255,0.22)" }}>
                 {group.label}
               </span>
             </div>
