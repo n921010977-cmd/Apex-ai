@@ -443,17 +443,17 @@ export function HeroSection() {
             >
               <span className="size-1.5 rounded-full bg-violet-400 animate-pulse" />
               <span className="text-[11px] font-semibold text-violet-300/90 tracking-wide">
-                AI Executive Board · Доступно сейчас
+                2 300+ основателей уже проверили свои идеи
               </span>
             </div>
           </motion.div>
 
-          {/* H1 — three-line premium headline */}
+          {/* H1 — concrete benefit headline */}
           <motion.h1
             variants={it}
-            className="text-5xl sm:text-6xl xl:text-[68px] font-bold leading-[1.06] mb-6 tracking-tight"
+            className="text-5xl sm:text-6xl xl:text-[64px] font-bold leading-[1.08] mb-6 tracking-tight"
           >
-            <span className="text-white">Твой бизнес.</span>
+            <span className="text-white">Узнай, взлетит ли твоя идея —</span>
             <br />
             <span
               style={{
@@ -463,17 +463,16 @@ export function HeroSection() {
                 backgroundClip: "text",
               }}
             >
-              Экспертная стратегия.
-            </span>
-            <br />
-            <span className="text-white/50">Мгновенная реализация.</span>
+              за 5 минут,
+            </span>{" "}
+            <span className="text-white/50">а не за год и все сбережения.</span>
           </motion.h1>
 
           {/* Description */}
           <motion.p variants={it} className="text-[16px] text-white/40 leading-[1.75] mb-10 max-w-lg">
-            Получите структурированный анализ бизнес-идеи от AI-совета директоров.
-            CEO, CFO, CMO, COO, CTO и&nbsp;ещё 15&nbsp;экспертов разбирают вашу идею
-            с&nbsp;разных сторон — и&nbsp;готовят стратегию за&nbsp;минуты, а&nbsp;не&nbsp;недели.
+            20 AI-директоров — CEO, CFO, CMO, юрист, аналитик и&nbsp;другие — разберут
+            вашу идею с&nbsp;разных сторон, посчитают экономику, найдут риски и&nbsp;выдадут
+            план действий на&nbsp;первые 90&nbsp;дней. Честно, с&nbsp;цифрами и&nbsp;без&nbsp;воды.
           </motion.p>
 
           {/* Metric readout — terminal style */}
@@ -517,12 +516,12 @@ export function HeroSection() {
               <svg viewBox="0 0 24 24" className="size-4.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
               </svg>
-              Запускайте свою стратегию
+              Проверить мою идею — бесплатно
             </Link>
 
             {/* Secondary glass */}
-            <Link
-              href="/register"
+            <a
+              href="#how-agents"
               className="inline-flex items-center gap-2 px-7 text-[14px] font-medium text-white/60 rounded-2xl transition-all duration-200 hover:text-white hover:border-white/15"
               style={{
                 height: 52,
@@ -531,8 +530,8 @@ export function HeroSection() {
                 backdropFilter: "blur(12px)",
               }}
             >
-              Начать бесплатно →
-            </Link>
+              Как это работает ↓
+            </a>
           </motion.div>
 
           {/* Social proof */}
