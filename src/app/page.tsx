@@ -1,5 +1,6 @@
 import { Navbar } from "@/components/landing/Navbar";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { LiveDemo } from "@/components/landing/LiveDemo";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { ExecutivesSection } from "@/components/landing/ExecutivesSection";
 import { HowAgentsWork } from "@/components/landing/HowAgentsWork";
@@ -18,6 +19,7 @@ export default function LandingPage() {
       <ScrollProgress />
       <Navbar />
       <HeroSection />
+      <LiveDemo />
       <HowItWorksSection />
       <ExecutivesSection />
       <HowAgentsWork />
