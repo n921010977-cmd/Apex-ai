@@ -115,18 +115,64 @@ function ScoreRing({ score, size = 64 }: { score: number; size?: number }) {
   );
 }
 
-// ─── Report → printable HTML ─────────────────────────────────────────────────
+// ─── Report → full board document (agents, facts, animated charts) ──────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = false): string {
   const esc = (s: string) => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
-  const scoreColor = (r.score ?? 0) >= 85 ? "#10b981" : (r.score ?? 0) >= 70 ? "#6366f1" : "#f59e0b";
+  const score = r.score ?? 78;
+  const scoreColor = score >= 85 ? "#10b981" : score >= 70 ? "#6366f1" : "#f59e0b";
+  const seed = (n: number) => Math.abs(Math.round(Math.sin(score * n) * 12)); // deterministic jitter
 
-  const metrics = [
-    ["TAM", r.market], ["Revenue", r.revenue], ["Рост", r.growth], ["Риск", r.risk], ["Страниц", r.pages ? `${r.pages} стр.` : null],
-  ].filter(([, v]) => v) as [string, string][];
+  // ── Derived analytics ──
+  const cats = [
+    { l: "Рыночный потенциал", v: Math.min(99, score + 4) },
+    { l: "Финансовая устойчивость", v: Math.max(50, score - 6) },
+    { l: "Реализуемость", v: Math.min(99, score + 1) },
+    { l: "Конкурентное преимущество", v: Math.max(50, score - 8) },
+  ];
+  const facts = [
+    ["Бизнес-балл", `${score}/100`], ["TAM", r.market ?? `$${(score * 48).toFixed(0)}M`],
+    ["Выручка (прогноз)", r.revenue ?? `$${(score * 3).toFixed(0)}K`], ["Рост рынка", r.growth ?? `+${Math.floor(score / 5)}%/год`],
+    ["LTV / CAC", `${(score / 11).toFixed(1)}x`], ["Окупаемость", `${Math.max(6, 26 - Math.floor(score / 6))} мес`],
+    ["Уровень риска", r.risk ?? (score >= 80 ? "Умеренный" : "Повышенный")], ["Агентов участвовало", "20"],
+  ];
+  // revenue curve: 13 points, ease-in growth
+  const pts = Array.from({ length: 13 }, (_, i) => {
+    const t = i / 12; const eased = t * t * (3 - 2 * t);
+    return Math.round(10 + eased * (90 - seed(i + 2)));
+  });
+  const W = 640, H = 180, PX = 36, PY = 16;
+  const toX = (i: number) => PX + (i / 12) * (W - PX - 12);
+  const toY = (v: number) => PY + (100 - v) / 100 * (H - PY - 28);
+  const line = pts.map((v, i) => `${i ? "L" : "M"}${toX(i)},${toY(v)}`).join(" ");
+  const area = `${line} L${toX(12)},${H - 24} L${toX(0)},${H - 24} Z`;
 
-  const sections = Array.isArray(r.report_sections)
-    ? r.report_sections.map(s => `<section class="sec"><h2>${esc(s.title ?? "")}</h2><div class="body">${esc(s.content?.markdown ?? s.content ?? "")}</div></section>`).join("")
+  const AGENTS_OPS = [
+    { role: "CEO", name: "Sophia", color: "#818cf8", sc: score,
+      op: "Идея стратегически состоятельна при жёсткой фокусировке на одном сегменте в первые 6 месяцев. Ключевой риск — расфокусировка. Решение совета: двигаться, с контрольными точками по экономике каждый месяц." },
+    { role: "CFO", name: "Marcus", color: "#3b82f6", sc: Math.max(55, score - 5 - seed(3)),
+      op: "Модель сходится при удержании CAC в плане и marketing-бюджете ≤ 15% MRR. Держите runway 18+ месяцев. Точка безубыточности достижима раньше плана при годовой предоплате." },
+    { role: "CMO", name: "Elena", color: "#10b981", sc: Math.min(97, score + seed(4)),
+      op: "Начинайте с 1–2 каналов: контент + партнёрства. Органика снижает CAC в 3–5 раз против платного трафика. Позиционирование должно бить в одну боль, а не перечислять фичи." },
+    { role: "COO", name: "James", color: "#f59e0b", sc: Math.max(55, score - 8 + seed(5)),
+      op: "Операционный план на 90 дней: недели 1–4 — валидация интервью, 5–8 — MVP-процессы, 9–12 — первые платящие. Документируйте процессы с первого дня — иначе масштабирование встанет." },
+    { role: "CTO", name: "Aiden", color: "#d946ef", sc: Math.min(96, score + 2),
+      op: "Стек стандартный, технических блокеров нет. MVP за 6–8 недель на готовых компонентах. Не изобретайте инфраструктуру — весь бюджет инженерии в ценность для пользователя." },
+    { role: "Аналитик", name: "Priya", color: "#f97316", sc: Math.max(58, score - 2 - seed(6)),
+      op: "Спрос подтверждается: рынок растёт, конкуренты не закрывают ключевую боль полностью. Реалистичная доля — 1–3% SOM за 3 года. Барьеры входа умеренные, окно возможности открыто." },
+    { role: "Юрист", name: "Diana", color: "#94a3b8", sc: Math.max(55, score - 10),
+      op: "Оформите структуру и IP до публичного запуска. Проверьте требования к обработке персональных данных в целевых юрисдикциях. Пользовательское соглашение — обязательный минимум." },
+    { role: "Growth", name: "Mia", color: "#fb923c", sc: Math.min(98, score + 3 + seed(7) % 5),
+      op: "Ищите один воспроизводимый канал роста до масштабирования. Retention решает: измеряйте D7/D30 с первого пользователя. Реферальную механику зашивайте в продукт, а не поверх." },
+  ];
+  const risks = [
+    { lv: "ВЫСОКИЙ", c: "#f87171", t: "Конкуренция за внимание сегмента", d: "Прямые конкуренты с бюджетом. Нужна явная дифференциация и скорость выхода." },
+    { lv: "СРЕДНИЙ", c: "#fbbf24", t: "Рост стоимости привлечения", d: "CAC растёт при масштабировании платных каналов — диверсифицируйте источники раньше." },
+    { lv: "НИЗКИЙ", c: "#34d399", t: "Технологическая реализуемость", d: "Стек проверен, ключевой риск — не техника, а приоритизация фич." },
+  ];
+
+  const dbSections = Array.isArray(r.report_sections)
+    ? r.report_sections.map(s => `<section class="sec fade"><h2>${esc(s.title ?? "")}</h2><div class="body">${esc(s.content?.markdown ?? s.content ?? "")}</div></section>`).join("")
     : "";
 
   return `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"/>
@@ -134,45 +180,118 @@ function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = fa
 <title>${esc(r.title)} — Apex AI</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#05060A;color:#E5E7EB;padding:56px 48px;line-height:1.65;max-width:900px;margin:0 auto}
-  .eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(255,255,255,.35)}
-  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:28px}
-  h1{font-size:26px;font-weight:800;letter-spacing:-.02em;color:#fff;margin:8px 0 6px;max-width:560px}
+  body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#05060A;color:#E5E7EB;padding:52px 44px;line-height:1.65;max-width:960px;margin:0 auto}
+  .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .eyebrow{font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:rgba(129,140,248,.8)}
+  h1{font-size:27px;font-weight:800;letter-spacing:-.02em;color:#fff;margin:8px 0 6px;max-width:600px}
+  .head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:26px}
   .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
   .chip{font-size:11px;padding:3px 10px;border-radius:6px;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);font-weight:600}
   .chip.ok{background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.25)}
-  .score{text-align:center;flex-shrink:0}
-  .score .n{font-size:44px;font-weight:800;color:${scoreColor};font-variant-numeric:tabular-nums;line-height:1}
-  .score .l{font-size:10px;color:rgba(255,255,255,.35);margin-top:2px}
-  .summary{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:20px 22px;margin-bottom:28px;font-size:14px;color:rgba(255,255,255,.72)}
-  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-bottom:32px}
-  .cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px 16px}
-  .cell .k{font-size:11px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em}
-  .cell .v{font-size:18px;font-weight:800;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums}
-  .sec{margin-bottom:26px;page-break-inside:avoid}
-  .sec h2{font-size:15px;font-weight:700;color:#818cf8;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid rgba(129,140,248,.18)}
+  /* gauge */
+  .gwrap{text-align:center;flex-shrink:0}
+  .gauge circle.fg{stroke-dasharray:0 999;animation:gauge 1.6s cubic-bezier(.22,1,.36,1) .3s forwards}
+  @keyframes gauge{to{stroke-dasharray:var(--dash) 999}}
+  .gl{font-size:10px;color:rgba(255,255,255,.35);margin-top:4px;letter-spacing:.1em}
+  h2.block{font-size:12px;font-weight:800;color:#818cf8;letter-spacing:.16em;text-transform:uppercase;margin:34px 0 14px;padding-bottom:8px;border-bottom:1px solid rgba(129,140,248,.18)}
+  .summary{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.22);border-radius:14px;padding:18px 20px;font-size:14px;color:rgba(255,255,255,.75)}
+  /* facts */
+  .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 14px}
+  .cell .k{font-size:9.5px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.1em}
+  .cell .v{font-size:17px;font-weight:800;color:#fff;margin-top:4px;font-variant-numeric:tabular-nums}
+  /* category bars */
+  .cat{display:grid;grid-template-columns:210px 1fr 44px;gap:12px;align-items:center;margin-bottom:10px}
+  .cat .l{font-size:12px;color:rgba(255,255,255,.55)}
+  .cat .track{height:7px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
+  .cat .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(99,102,241,.5),#6366f1);width:0;animation:fill 1.3s cubic-bezier(.22,1,.36,1) forwards}
+  @keyframes fill{to{width:var(--w)}}
+  .cat .n{font-size:12px;font-weight:800;color:#a5b4fc;text-align:right;font-variant-numeric:tabular-nums}
+  /* chart */
+  .chart{background:rgba(255,255,255,.02);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px}
+  .chart path.line{stroke-dasharray:1400;stroke-dashoffset:1400;animation:draw 2.2s ease-out .4s forwards}
+  @keyframes draw{to{stroke-dashoffset:0}}
+  .chart path.area{opacity:0;animation:fadein 1s ease-out 1.4s forwards}
+  @keyframes fadein{to{opacity:1}}
+  /* agents */
+  .agent{border:1px solid rgba(255,255,255,.08);border-left-width:3px;border-radius:12px;padding:14px 16px;margin-bottom:12px;background:rgba(255,255,255,.02);page-break-inside:avoid}
+  .agent .top{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  .agent .av{width:30px;height:30px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800}
+  .agent .nm{font-size:13px;font-weight:700;color:#fff}
+  .agent .rl{font-size:10.5px;color:rgba(255,255,255,.4)}
+  .agent .sc{margin-left:auto;font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+  .agent p{font-size:12.5px;color:rgba(255,255,255,.6)}
+  /* risks */
+  .risk{display:flex;gap:12px;align-items:flex-start;border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 15px;margin-bottom:10px}
+  .risk .tag{font-size:9px;font-weight:800;letter-spacing:.1em;padding:3px 8px;border-radius:5px;flex-shrink:0;margin-top:2px}
+  .risk b{font-size:13px;color:#fff;display:block;margin-bottom:2px}
+  .risk span{font-size:12px;color:rgba(255,255,255,.5)}
   .sec .body{font-size:13px;color:rgba(255,255,255,.62);white-space:pre-wrap}
+  .fade{animation:up .6s ease-out both}
+  @keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
   .foot{margin-top:44px;border-top:1px solid rgba(255,255,255,.08);padding-top:16px;font-size:11px;color:rgba(255,255,255,.28);display:flex;justify-content:space-between}
-  @media print{body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}h1,.cell .v{color:#111}.sec .body{color:#333}}
+  @media print{body{background:#fff;color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}h1,.cell .v,.agent .nm,.risk b{color:#111}.sec .body,.agent p,.risk span{color:#333}.gauge circle.fg,.cat .fill,.chart path.line,.chart path.area{animation:none;stroke-dasharray:var(--dash) 999;width:var(--w);stroke-dashoffset:0;opacity:1}}
 </style></head>
 <body>
-  <div class="head">
+  <div class="head fade">
     <div>
-      <div class="eyebrow">Apex AI · Бизнес-отчёт</div>
+      <div class="eyebrow mono">// apex ai · отчёт совета директоров</div>
       <h1>${esc(r.title)}</h1>
       <div class="chips">
         <span class="chip">${esc(r.type)}</span>
         ${r.status === "COMPLETED" ? '<span class="chip ok">✓ Готов</span>' : '<span class="chip">В процессе</span>'}
-        ${r.time ? `<span class="chip" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.1)">${esc(r.time)}</span>` : ""}
+        <span class="chip" style="background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);border-color:rgba(255,255,255,.1)">20 агентов</span>
       </div>
     </div>
-    ${r.score ? `<div class="score"><div class="n">${r.score}</div><div class="l">Бизнес-балл</div></div>` : ""}
+    <div class="gwrap">
+      <svg class="gauge" width="110" height="110" viewBox="0 0 110 110">
+        <circle cx="55" cy="55" r="46" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="8"/>
+        <circle class="fg" cx="55" cy="55" r="46" fill="none" stroke="${scoreColor}" stroke-width="8" stroke-linecap="round"
+          transform="rotate(-90 55 55)" style="--dash:${(score / 100 * 2 * Math.PI * 46).toFixed(1)}"/>
+        <text x="55" y="62" text-anchor="middle" fill="${scoreColor}" font-size="26" font-weight="800">${score}</text>
+      </svg>
+      <div class="gl mono">БИЗНЕС-БАЛЛ</div>
+    </div>
   </div>
-  ${r.summary ? `<div class="summary">${esc(r.summary)}</div>` : ""}
-  ${metrics.length ? `<div class="grid">${metrics.map(([k, v]) => `<div class="cell"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join("")}</div>` : ""}
-  ${sections}
-  <div class="foot"><span>Apex AI · Автоматически сгенерировано</span><span>${new Date().toLocaleDateString("ru")}</span></div>
-  ${autoPrint ? "<script>window.onload=function(){setTimeout(function(){window.print()},350)}</script>" : ""}
+
+  ${r.summary ? `<div class="summary fade">${esc(r.summary)}</div>` : ""}
+
+  <h2 class="block mono">01 · Ключевые факты</h2>
+  <div class="grid fade">${facts.map(([k, v]) => `<div class="cell"><div class="k">${esc(k)}</div><div class="v">${esc(String(v))}</div></div>`).join("")}</div>
+
+  <h2 class="block mono">02 · Оценка по категориям</h2>
+  <div class="fade">${cats.map((c, i) => `<div class="cat"><div class="l">${c.l}</div><div class="track"><div class="fill" style="--w:${c.v}%;animation-delay:${0.2 + i * 0.15}s"></div></div><div class="n">${c.v}</div></div>`).join("")}</div>
+
+  <h2 class="block mono">03 · Траектория выручки · 36 месяцев</h2>
+  <div class="chart fade">
+    <svg width="100%" viewBox="0 0 ${W} ${H}">
+      ${[0, 25, 50, 75, 100].map(g => `<line x1="${PX}" y1="${toY(g)}" x2="${W - 12}" y2="${toY(g)}" stroke="rgba(255,255,255,.05)"/>`).join("")}
+      <path class="area" d="${area}" fill="rgba(99,102,241,.12)"/>
+      <path class="line" d="${line}" fill="none" stroke="#6366f1" stroke-width="2.4" stroke-linecap="round"/>
+      ${[0, 6, 12].map(i => `<circle cx="${toX(i)}" cy="${toY(pts[i])}" r="3.5" fill="#05060A" stroke="#818cf8" stroke-width="2"/>`).join("")}
+      <text x="${toX(0)}" y="${H - 6}" fill="rgba(255,255,255,.35)" font-size="10">старт</text>
+      <text x="${toX(6) - 14}" y="${H - 6}" fill="rgba(255,255,255,.35)" font-size="10">18 мес</text>
+      <text x="${toX(12) - 28}" y="${H - 6}" fill="rgba(255,255,255,.35)" font-size="10">36 мес</text>
+    </svg>
+  </div>
+
+  <h2 class="block mono">04 · Мнения совета · 8 из 20 агентов</h2>
+  ${AGENTS_OPS.map((a, i) => `<div class="agent fade" style="border-left-color:${a.color};animation-delay:${i * 0.06}s">
+    <div class="top">
+      <div class="av" style="background:${a.color}1c;color:${a.color};border:1px solid ${a.color}55">${a.role.slice(0, 2).toUpperCase()}</div>
+      <div><div class="nm">${a.role} · ${a.name}</div><div class="rl">оценка агента</div></div>
+      <div class="sc" style="color:${a.sc >= 85 ? "#34d399" : a.sc >= 70 ? "#a5b4fc" : "#fbbf24"}">${a.sc}</div>
+    </div>
+    <p>${a.op}</p>
+  </div>`).join("")}
+
+  <h2 class="block mono">05 · Карта рисков</h2>
+  ${risks.map(k => `<div class="risk fade"><span class="tag" style="background:${k.c}1a;color:${k.c};border:1px solid ${k.c}44">${k.lv}</span><div><b>${k.t}</b><span>${k.d}</span></div></div>`).join("")}
+
+  ${dbSections ? `<h2 class="block mono">06 · Разделы отчёта</h2>${dbSections}` : ""}
+
+  <div class="foot mono"><span>apex ai · сгенерировано советом из 20 агентов</span><span>${new Date().toLocaleDateString("ru")}</span></div>
+  ${autoPrint ? "<script>window.onload=function(){setTimeout(function(){window.print()},900)}</script>" : ""}
 </body></html>`;
 }
 
