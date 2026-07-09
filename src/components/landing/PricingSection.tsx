@@ -1,238 +1,206 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ACCENT     = "#6366f1";
 const ACCENT_RGB = "99,102,241";
 
-const PLANS = [
-  {
-    name:        "Starter",
-    price:       { monthly: 0, annual: 0 },
-    description: "Идеально для изучения вашей первой бизнес-идеи.",
-    cta:         "Начать бесплатно",
-    href:        "/register",
-    features:    ["3 стратегических отчёта / мес.", "Все 20 AI-руководителей", "Экспорт в PDF", "Базовая финансовая модель", "Email-поддержка"],
-    popular:     false,
+// ─── Plan model ───────────────────────────────────────────────────────────────
+const PLANS = {
+  starter: {
+    id: "starter", name: "Starter", monthly: 0, annual: 0,
+    tagline: "Для проверки первой идеи",
+    features: ["3 стратегии / мес.", "Все 20 AI-директоров", "Экспорт в PDF", "Базовая финмодель"],
   },
-  {
-    name:        "Pro",
-    price:       { monthly: 49, annual: 39 },
-    description: "Для основателей, создающих и запускающих бизнес.",
-    cta:         "Попробовать Pro",
-    href:        "/register",
-    features:    ["Безлимитные стратегии", "Все 20 AI-руководителей", "Расширенный экспорт PDF", "Продвинутые финансовые модели", "Конкурентная разведка", "Приоритетная обработка", "Интеграция со Slack", "Приоритетная поддержка"],
-    popular:     true,
+  pro: {
+    id: "pro", name: "Pro", monthly: 49, annual: 39,
+    tagline: "Для основателей, которые строят",
+    features: ["Безлимитные стратегии", "Все 20 AI-директоров", "Продвинутые финмодели", "Конкурентная разведка", "Приоритетная обработка", "Slack-интеграция"],
   },
-  {
-    name:        "Agency",
-    price:       { monthly: 149, annual: 119 },
-    description: "Для агентств и консультантов с несколькими клиентами.",
-    cta:         "Попробовать Agency",
-    href:        "/register",
-    features:    ["Всё из Pro", "Безлимитные проекты клиентов", "White-label отчёты", "Кастомный брендинг", "Командная работа", "API-доступ", "Персональный менеджер", "SLA-гарантия"],
-    popular:     false,
+  agency: {
+    id: "agency", name: "Agency", monthly: 149, annual: 119,
+    tagline: "Для агентств и консультантов",
+    features: ["Всё из Pro", "Безлимит клиентских проектов", "White-label отчёты", "API-доступ", "Персональный менеджер", "SLA-гарантия"],
   },
-];
+} as const;
+
+type PlanId = keyof typeof PLANS;
 
 export function PricingSection() {
-  const [annual, setAnnual] = useState(false);
+  const [annual, setAnnual]       = useState(true);
+  const [strategies, setStrategies] = useState(4);   // стратегий в месяц
+  const [clients, setClients]     = useState(1);     // клиентских проектов
+  const [whiteLabel, setWhiteLabel] = useState(false);
+
+  // ── Recommendation engine ──
+  const rec: PlanId = useMemo(() => {
+    if (whiteLabel || clients > 1) return "agency";
+    if (strategies > 3) return "pro";
+    return "starter";
+  }, [strategies, clients, whiteLabel]);
+
+  const plan = PLANS[rec];
+  const price = annual ? plan.annual : plan.monthly;
+
+  const Row = ({ label, value, children }: { label: string; value: string; children: React.ReactNode }) => (
+    <div>
+      <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8 }}>
+        <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)" }}>{label}</span>
+        <span className="term-mono" style={{ fontSize: 12, fontWeight: 700, color: "#a5b4fc" }}>{value}</span>
+      </div>
+      {children}
+    </div>
+  );
 
   return (
     <section id="pricing" style={{ position: "relative", padding: "96px 24px 112px", overflow: "hidden" }}>
-
-      {/* Subtle background tint */}
       <div aria-hidden style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(ellipse 70% 60% at 50% 50%, rgba(${ACCENT_RGB},0.04) 0%, transparent 65%)`, pointerEvents: "none" }} />
 
-      <div style={{ maxWidth: 1100, margin: "0 auto" }}>
+      <div style={{ maxWidth: 1000, margin: "0 auto" }}>
 
         {/* Header */}
         <motion.div
-          style={{ textAlign: "center", marginBottom: 56 }}
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-80px" }}
-          transition={{ duration: 0.65, ease: "easeOut" }}
+          style={{ textAlign: "center", marginBottom: 48 }}
+          initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.65, ease: "easeOut" }}
         >
-          <div className="term-mono" style={{
-            display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "6px 14px", borderRadius: 8, marginBottom: 24,
-            border: `1px solid rgba(${ACCENT_RGB},0.25)`,
-            background: `rgba(${ACCENT_RGB},0.05)`,
-          }}>
-            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${ACCENT_RGB},0.85)` }}>
-              // тарифы
-            </span>
+          <div className="term-mono" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 8, marginBottom: 24, border: `1px solid rgba(${ACCENT_RGB},0.25)`, background: `rgba(${ACCENT_RGB},0.05)` }}>
+            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${ACCENT_RGB},0.85)` }}>// калькулятор тарифа</span>
+          </div>
+          <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.08, margin: "0 0 14px", color: "#fff" }}>
+            Соберите свой тариф
+          </h2>
+          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.35)", maxWidth: 460, margin: "0 auto", lineHeight: 1.65 }}>
+            Ответьте на три вопроса — мы посчитаем, что вам нужно. Без таблиц сравнения на 40 строк.
+          </p>
+        </motion.div>
+
+        {/* Configurator */}
+        <motion.div
+          initial={{ opacity: 0, y: 28 }} whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-60px" }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          style={{ borderRadius: 22, overflow: "hidden", border: "1px solid rgba(255,255,255,0.09)", background: "rgba(10,11,18,0.7)", backdropFilter: "blur(20px)", boxShadow: "0 24px 70px rgba(0,0,0,0.45)" }}
+        >
+          {/* Terminal title bar */}
+          <div className="term-mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
+            <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>apex — pricing configurator</span>
+            {/* Billing toggle */}
+            <div style={{ display: "inline-flex", padding: 3, borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              {([{ k: false, l: "МЕС" }, { k: true, l: "ГОД −20%" }] as const).map(o => (
+                <button key={String(o.k)} onClick={() => setAnnual(o.k)} style={{
+                  position: "relative", padding: "4px 12px", borderRadius: 7, fontSize: 10, fontWeight: 700,
+                  letterSpacing: "0.08em", border: "none", cursor: "pointer", background: "transparent",
+                  color: annual === o.k ? "#fff" : "rgba(255,255,255,0.35)", transition: "color 0.15s",
+                }}>
+                  {annual === o.k && (
+                    <motion.span layoutId="cfg-billing" style={{ position: "absolute", inset: 0, borderRadius: 7, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)` }} transition={{ type: "spring", stiffness: 420, damping: 32 }} />
+                  )}
+                  <span style={{ position: "relative", zIndex: 1 }}>{o.l}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.08, margin: "0 0 14px", color: "#fff" }}>
-            Инвестируй в бизнес,<br />не в консалтинг
-          </h2>
-          <p style={{ fontSize: 16, color: "rgba(255,255,255,0.35)", maxWidth: 460, margin: "0 auto 32px", lineHeight: 1.65 }}>
-            Стратегический анализ, который обычно стоит тысячи долларов и недели работы — за минуты и меньше стоимости бизнес-ланча.
-          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2" style={{ gap: 0 }}>
+            {/* ── Left: controls ── */}
+            <div style={{ padding: "28px 28px 30px", display: "flex", flexDirection: "column", gap: 24, borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+              <Row label="Сколько стратегий в месяц?" value={strategies >= 20 ? "20+" : String(strategies)}>
+                <input type="range" min={1} max={20} step={1} value={strategies}
+                  onChange={e => setStrategies(parseInt(e.target.value))}
+                  style={{ width: "100%", accentColor: ACCENT, cursor: "pointer" }} />
+                <div className="term-mono" style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>
+                  <span>1</span><span>бесплатно до 3</span><span>20+</span>
+                </div>
+              </Row>
 
-          {/* Toggle */}
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 2, padding: 4, borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-            {([
-              { key: false, label: "Ежемесячно" },
-              { key: true,  label: "Ежегодно" },
-            ] as const).map((opt) => (
-              <button
-                key={String(opt.key)}
-                onClick={() => setAnnual(opt.key)}
-                style={{
-                  position: "relative",
-                  padding: "6px 16px",
-                  borderRadius: 9,
-                  fontSize: 13,
-                  fontWeight: 500,
-                  cursor: "pointer",
-                  border: "none",
-                  background: "transparent",
-                  color: annual === opt.key ? "#fff" : "rgba(255,255,255,0.38)",
-                  transition: "color 0.15s",
-                }}
-              >
-                {annual === opt.key && (
-                  <motion.span
-                    layoutId="pricing-pill"
-                    style={{ position: "absolute", inset: 0, borderRadius: 9, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: `0 2px 10px rgba(${ACCENT_RGB},0.3)` }}
-                    transition={{ type: "spring", stiffness: 420, damping: 32 }}
-                  />
-                )}
-                <span style={{ position: "relative", zIndex: 1 }}>
-                  {opt.label}
-                  {opt.key && (
-                    <span style={{ marginLeft: 8, fontSize: 9, padding: "2px 6px", borderRadius: 999, background: "rgba(16,185,129,0.18)", color: "#10b981", fontWeight: 700, letterSpacing: "0.04em" }}>
-                      −20%
-                    </span>
-                  )}
+              <Row label="Сколько клиентских проектов?" value={clients >= 10 ? "10+" : String(clients)}>
+                <input type="range" min={1} max={10} step={1} value={clients}
+                  onChange={e => setClients(parseInt(e.target.value))}
+                  style={{ width: "100%", accentColor: ACCENT, cursor: "pointer" }} />
+                <div className="term-mono" style={{ display: "flex", justifyContent: "space-between", fontSize: 9, color: "rgba(255,255,255,0.25)", marginTop: 4 }}>
+                  <span>только свой</span><span>клиенты = Agency</span>
+                </div>
+              </Row>
+
+              {/* White-label toggle */}
+              <button onClick={() => setWhiteLabel(w => !w)} style={{
+                display: "flex", alignItems: "center", justifyContent: "space-between",
+                padding: "13px 16px", borderRadius: 12, cursor: "pointer", textAlign: "left",
+                background: whiteLabel ? `rgba(${ACCENT_RGB},0.1)` : "rgba(255,255,255,0.03)",
+                border: whiteLabel ? `1px solid rgba(${ACCENT_RGB},0.4)` : "1px solid rgba(255,255,255,0.08)",
+                transition: "all 0.2s",
+              }}>
+                <span>
+                  <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 2 }}>White-label отчёты</span>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ваш бренд вместо Apex AI</span>
+                </span>
+                <span style={{
+                  width: 40, height: 22, borderRadius: 999, position: "relative", flexShrink: 0,
+                  background: whiteLabel ? ACCENT : "rgba(255,255,255,0.1)", transition: "background 0.2s",
+                }}>
+                  <span style={{
+                    position: "absolute", top: 3, left: whiteLabel ? 21 : 3,
+                    width: 16, height: 16, borderRadius: "50%", background: "#fff",
+                    transition: "left 0.2s cubic-bezier(0.22,1,0.36,1)",
+                  }} />
                 </span>
               </button>
-            ))}
+            </div>
+
+            {/* ── Right: live quote ── */}
+            <div style={{ padding: "28px 28px 30px", background: `rgba(${ACCENT_RGB},0.04)`, display: "flex", flexDirection: "column" }}>
+              <div className="term-mono" style={{ fontSize: 9.5, letterSpacing: "0.16em", color: `rgba(${ACCENT_RGB},0.8)`, textTransform: "uppercase", marginBottom: 14 }}>
+                &gt; рекомендованный тариф
+              </div>
+
+              <AnimatePresence mode="wait">
+                <motion.div key={rec + String(annual)}
+                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                  transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  style={{ flex: 1, display: "flex", flexDirection: "column" }}
+                >
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 4 }}>
+                    <span className="term-mono" style={{ fontSize: 24, fontWeight: 800, color: "#fff", letterSpacing: "0.01em" }}>{plan.name.toUpperCase()}</span>
+                    <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>{plan.tagline}</span>
+                  </div>
+
+                  <div style={{ display: "flex", alignItems: "baseline", gap: 6, margin: "10px 0 20px" }}>
+                    <span className="term-value" style={{ fontSize: 52, fontWeight: 800, color: "#fff", lineHeight: 1 }}>${price}</span>
+                    <span style={{ fontSize: 14, color: "rgba(255,255,255,0.35)" }}>/мес.{annual && price > 0 ? " при оплате за год" : ""}</span>
+                  </div>
+
+                  <ul style={{ display: "flex", flexDirection: "column", gap: 8, margin: "0 0 24px", padding: 0, listStyle: "none", flex: 1 }}>
+                    {plan.features.map(f => (
+                      <li key={f} style={{ display: "flex", alignItems: "center", gap: 9, fontSize: 13, color: "rgba(255,255,255,0.6)" }}>
+                        <span className="term-mono" style={{ color: ACCENT, fontSize: 11 }}>▸</span>{f}
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Link href="/register" className="term-mono" style={{
+                    display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
+                    height: 48, borderRadius: 12, textDecoration: "none",
+                    fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff",
+                    background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`,
+                    boxShadow: `0 6px 20px rgba(${ACCENT_RGB},0.3), inset 0 1px 0 rgba(255,255,255,0.16)`,
+                  }}>
+                    ▸ Начать с {plan.name}{price === 0 ? " — бесплатно" : ""}
+                  </Link>
+                </motion.div>
+              </AnimatePresence>
+            </div>
           </div>
         </motion.div>
 
-        {/* Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 12, alignItems: "start" }}>
-          {PLANS.map((plan, i) => (
-            <motion.div
-              key={plan.name}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.55, delay: i * 0.09, ease: [0.22, 1, 0.36, 1] }}
-              whileHover={{ y: -6, transition: { duration: 0.22 } }}
-              style={{
-                position: "relative",
-                borderRadius: 20,
-                padding: plan.popular ? "28px 24px 24px" : "24px 22px 22px",
-                background: plan.popular ? "rgba(99,102,241,0.06)" : "rgba(255,255,255,0.025)",
-                border: plan.popular ? `1px solid rgba(${ACCENT_RGB},0.28)` : "1px solid rgba(255,255,255,0.07)",
-                boxShadow: plan.popular
-                  ? `0 4px 32px rgba(${ACCENT_RGB},0.12), 0 8px 48px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)`
-                  : "0 4px 24px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.04)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 0,
-              }}
-            >
-              {/* Popular top bevel */}
-              {plan.popular && (
-                <div style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: `linear-gradient(90deg, transparent, rgba(${ACCENT_RGB},0.6), transparent)` }} />
-              )}
-
-              {plan.popular && (
-                <div style={{
-                  display: "inline-flex", alignItems: "center", gap: 5,
-                  alignSelf: "flex-start", marginBottom: 16,
-                  padding: "4px 10px", borderRadius: 999,
-                  background: `rgba(${ACCENT_RGB},0.12)`,
-                  border: `1px solid rgba(${ACCENT_RGB},0.28)`,
-                  fontSize: 10, fontWeight: 700, letterSpacing: "0.16em", textTransform: "uppercase",
-                  color: `rgba(${ACCENT_RGB},0.95)`,
-                }}>
-                  <span style={{ width: 4, height: 4, borderRadius: "50%", background: ACCENT, display: "block" }} />
-                  Популярный
-                </div>
-              )}
-
-              {/* Name + description */}
-              <div style={{ marginBottom: 20 }}>
-                <h3 style={{ fontSize: 17, fontWeight: 700, color: "#fff", margin: "0 0 6px", letterSpacing: "-0.01em" }}>{plan.name}</h3>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: 0, lineHeight: 1.6 }}>{plan.description}</p>
-              </div>
-
-              {/* Price */}
-              <div style={{ display: "flex", alignItems: "baseline", gap: 4, marginBottom: 24 }}>
-                <span style={{ fontSize: 42, fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", lineHeight: 1 }}>
-                  ${annual ? plan.price.annual : plan.price.monthly}
-                </span>
-                {plan.price.monthly > 0 && (
-                  <span style={{ fontSize: 13, color: "rgba(255,255,255,0.28)" }}>/мес.</span>
-                )}
-              </div>
-
-              {/* Features */}
-              <ul style={{ display: "flex", flexDirection: "column", gap: 9, flex: 1, margin: "0 0 24px", padding: 0, listStyle: "none" }}>
-                {plan.features.map((f) => (
-                  <li key={f} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                    <div style={{
-                      width: 16, height: 16, borderRadius: "50%", flexShrink: 0,
-                      display: "flex", alignItems: "center", justifyContent: "center",
-                      background: plan.popular ? `rgba(${ACCENT_RGB},0.18)` : "rgba(255,255,255,0.06)",
-                      border: plan.popular ? `1px solid rgba(${ACCENT_RGB},0.28)` : "1px solid rgba(255,255,255,0.1)",
-                    }}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke={plan.popular ? ACCENT : "rgba(255,255,255,0.5)"} strokeWidth="2.5" width="9" height="9">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </div>
-                    <span style={{ fontSize: 13, color: "rgba(255,255,255,0.58)" }}>{f}</span>
-                  </li>
-                ))}
-              </ul>
-
-              {/* CTA */}
-              <Link
-                href={plan.href}
-                style={{
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  height: 44, borderRadius: 12, fontSize: 13, fontWeight: 600,
-                  textDecoration: "none", transition: "all 0.18s",
-                  ...(plan.popular ? {
-                    background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`,
-                    color: "#fff",
-                    boxShadow: `0 4px 18px rgba(${ACCENT_RGB},0.32), inset 0 1px 0 rgba(255,255,255,0.16)`,
-                  } : {
-                    background: "rgba(255,255,255,0.04)",
-                    color: "rgba(255,255,255,0.62)",
-                    border: "1px solid rgba(255,255,255,0.1)",
-                  }),
-                }}
-              >
-                {plan.cta}
-              </Link>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Guarantee */}
+        {/* Footnote */}
         <motion.div
-          style={{ marginTop: 32, textAlign: "center" }}
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.35 }}
+          initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.3 }}
+          className="term-mono"
+          style={{ marginTop: 20, textAlign: "center", fontSize: 11, color: "rgba(255,255,255,0.3)", letterSpacing: "0.04em" }}
         >
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, fontSize: 13, color: "rgba(255,255,255,0.28)" }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" width="15" height="15">
-              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-            </svg>
-            14-дневная гарантия возврата средств — без вопросов
-          </div>
+          все тарифы включают 20 AI-директоров · 14 дней возврат без вопросов · отмена в один клик
         </motion.div>
 
       </div>
