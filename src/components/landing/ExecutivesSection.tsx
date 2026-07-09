@@ -63,6 +63,29 @@ const ring2 = AGENTS.filter(a => a.ring === 2);
 const POS: Record<string, { x: number; y: number }> = {};
 ring1.forEach((a, i) => { POS[a.id] = pos(a, i, ring1); });
 ring2.forEach((a, i) => { POS[a.id] = pos(a, i, ring2); });
+POS["ceo"] = { x: CX, y: CY };
+
+// ── Data-flow edges: agent → agent, and only the last hop reaches the CEO ──
+const EDGES: [string, string][] = [
+  // спецы внешнего кольца → профильные топы
+  ["grw", "cmo"], ["brd", "cmo"], ["cs", "cmo"],
+  ["sale", "cmo"],
+  ["ds", "cdo"], ["cdo", "cpo"],
+  ["ciso", "cto"], ["vpe", "cto"],
+  ["hr", "coo"],
+  ["inv", "ir"],
+  ["ds", "cfo"],
+  // аналитик питает финансы и маркетинг
+  ["ba", "cfo"], ["ba", "cmo"],
+  // продукт → технологии
+  ["cpo", "cto"], ["cs", "cpo"],
+  ["law", "ciso"],
+  // финальный хоп — только топы заносят результат CEO
+  ["cfo", "ceo"], ["cmo", "ceo"], ["coo", "ceo"], ["cto", "ceo"],
+  ["cpo", "ceo"], ["law", "ceo"], ["ir", "ceo"], ["str", "ceo"], ["ba", "ceo"],
+];
+
+const outOf = (id: string) => EDGES.filter(([f]) => f === id);
 
 // ─── Section ──────────────────────────────────────────────────────────────────
 export function ExecutivesSection() {
@@ -106,25 +129,59 @@ export function ExecutivesSection() {
           {/* Canvas */}
           <div style={{ overflowX: "auto", overflowY: "hidden" }}>
             <div style={{ width: W, height: H, position: "relative", margin: "0 auto" }}>
-              {/* orbit guides + edges */}
+              {/* orbit guides + agent-to-agent data-flow edges */}
               <svg width={W} height={H} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
                 <circle cx={CX} cy={CY} r={R1} fill="none" stroke="rgba(255,255,255,0.045)" strokeDasharray="2 6" />
                 <circle cx={CX} cy={CY} r={R2} fill="none" stroke="rgba(255,255,255,0.035)" strokeDasharray="2 6" />
-                {AGENTS.map(a => {
-                  const p = POS[a.id];
-                  const active = sel === a.id;
+
+                {/* base mesh — every real data route, faint */}
+                {EDGES.map(([f, t]) => {
+                  const a = POS[f], b = POS[t];
+                  return <line key={`${f}-${t}`} x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                    stroke={`rgba(${RGB},0.08)`} strokeWidth={1} />;
+                })}
+
+                {/* active chain: selected agent → its targets → CEO (last hop) */}
+                {sel !== "ceo" && (() => {
+                  const selAgent = AGENTS.find(a => a.id === sel)!;
+                  const hop1 = outOf(sel);
+                  const hop2: [string, string][] = hop1
+                    .filter(([, t]) => t !== "ceo")
+                    .map(([, t]) => [t, "ceo"] as [string, string]);
+                  const draw = (edges: [string, string][], color: string, dur: string, delay = 0) =>
+                    edges.map(([f, t], i) => {
+                      const a = POS[f], b = POS[t];
+                      return (
+                        <g key={`hl-${f}-${t}`}>
+                          <line x1={a.x} y1={a.y} x2={b.x} y2={b.y}
+                            stroke={color} strokeWidth={1.6} strokeDasharray="5 5"
+                            style={{ animation: "org-dash 0.7s linear infinite" }} />
+                          <circle r="3" fill={color}>
+                            <animateMotion dur={dur} begin={`${delay + i * 0.15}s`} repeatCount="indefinite"
+                              path={`M${a.x},${a.y} L${b.x},${b.y}`} />
+                          </circle>
+                        </g>
+                      );
+                    });
                   return (
-                    <g key={a.id}>
-                      <line x1={CX} y1={CY} x2={p.x} y2={p.y}
-                        stroke={active ? a.color : `rgba(${RGB},0.12)`}
-                        strokeWidth={active ? 1.6 : 1}
-                        strokeDasharray={active ? "5 5" : "none"}
-                        style={active ? { animation: "org-dash 0.7s linear infinite" } : { transition: "stroke 0.3s" }} />
-                      {active && (
-                        <circle r="3" fill={a.color}>
-                          <animateMotion dur="1.4s" repeatCount="indefinite" path={`M${p.x},${p.y} L${CX},${CY}`} />
-                        </circle>
-                      )}
+                    <>
+                      {draw(hop1, selAgent.color, "1.2s")}
+                      {draw(hop2, "#818cf8", "1.2s", 0.6)}
+                    </>
+                  );
+                })()}
+
+                {/* CEO selected: all last-hop routes light up inbound */}
+                {sel === "ceo" && EDGES.filter(([, t]) => t === "ceo").map(([f], i) => {
+                  const a = POS[f];
+                  return (
+                    <g key={`ceo-${f}`}>
+                      <line x1={a.x} y1={a.y} x2={CX} y2={CY} stroke={`rgba(${RGB},0.5)`} strokeWidth={1.4}
+                        strokeDasharray="5 5" style={{ animation: "org-dash 0.7s linear infinite" }} />
+                      <circle r="2.6" fill="#818cf8">
+                        <animateMotion dur="1.6s" begin={`${i * 0.12}s`} repeatCount="indefinite"
+                          path={`M${a.x},${a.y} L${CX},${CY}`} />
+                      </circle>
                     </g>
                   );
                 })}
