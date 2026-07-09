@@ -187,7 +187,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 justifyContent: collapsed ? "center" : "flex-start",
                 gap: 10,
                 background: active ? "rgba(99,102,241,0.12)" : "transparent",
-                color: active ? "#fff" : item.accent ? "rgba(165,180,252,0.85)" : "rgba(255,255,255,0.45)",
+                color: active ? "#fff" : "rgba(255,255,255,0.45)",
                 fontSize: 13, fontWeight: 500, textDecoration: "none",
               }}
               onMouseEnter={e => { if (!active) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
