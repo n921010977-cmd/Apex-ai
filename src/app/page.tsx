@@ -3,6 +3,7 @@ import { HeroSection } from "@/components/landing/HeroSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { ExecutivesSection } from "@/components/landing/ExecutivesSection";
 import { HowAgentsWork } from "@/components/landing/HowAgentsWork";
+import { WhyNotChatGPT } from "@/components/landing/WhyNotChatGPT";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
 import { PricingSection } from "@/components/landing/PricingSection";
@@ -20,6 +21,7 @@ export default function LandingPage() {
       <HowItWorksSection />
       <ExecutivesSection />
       <HowAgentsWork />
+      <WhyNotChatGPT />
       <FeaturesSection />
       <TestimonialsSection />
       <PricingSection />
