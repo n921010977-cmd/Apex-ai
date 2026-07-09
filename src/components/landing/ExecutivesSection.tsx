@@ -228,14 +228,14 @@ export function ExecutivesSection() {
           viewport={{ once: true, margin: "-80px" }}
           transition={{ duration: 0.65, ease: "easeOut" }}
         >
-          <div style={{
+          <div className="term-mono" style={{
             display: "inline-flex", alignItems: "center", gap: 8,
-            padding: "6px 18px", borderRadius: 999, marginBottom: 24,
-            border: "1px solid rgba(139,92,246,0.28)", background: "rgba(139,92,246,0.07)",
+            padding: "6px 14px", borderRadius: 8, marginBottom: 24,
+            border: "1px solid rgba(99,102,241,0.25)", background: "rgba(99,102,241,0.05)",
           }}>
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#8b5cf6", animation: "exec-pulse 2s ease-in-out infinite" }} />
-            <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "rgba(196,181,253,0.9)" }}>
-              AI Команда · 20 агентов
+            <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#6366f1" }} />
+            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(165,180,252,0.9)" }}>
+              // ai команда · 20 агентов
             </span>
           </div>
 

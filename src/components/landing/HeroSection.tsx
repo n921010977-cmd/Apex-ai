@@ -455,17 +455,8 @@ export function HeroSection() {
           >
             <span className="text-white">Узнай, взлетит ли твоя идея —</span>
             <br />
-            <span
-              style={{
-                background: "linear-gradient(135deg, #a78bfa 0%, #818cf8 40%, #38bdf8 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
-              }}
-            >
-              за 5 минут,
-            </span>{" "}
-            <span className="text-white/50">а не за год и все сбережения.</span>
+            <span style={{ color: "#818cf8" }}>за 5 минут,</span>{" "}
+            <span className="text-white/45">а не за год и все сбережения.</span>
           </motion.h1>
 
           {/* Description */}
@@ -507,8 +498,8 @@ export function HeroSection() {
               href="/register"
               className="relative inline-flex items-center gap-2.5 h-13 px-8 text-[15px] font-semibold text-white rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.04] hover:brightness-110"
               style={{
-                background: "linear-gradient(135deg, #7c3aed 0%, #4f46e5 50%, #3b82f6 100%)",
-                boxShadow: "0 8px 30px rgba(124,58,237,0.45), 0 2px 8px rgba(59,130,246,0.25), inset 0 1px 0 rgba(255,255,255,0.18)",
+                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+                boxShadow: "0 4px 18px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.16)",
                 height: 52,
               }}
             >
