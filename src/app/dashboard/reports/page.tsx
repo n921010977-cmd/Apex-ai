@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
 import {
   FileText, Search, Download, Plus, CheckCircle, Loader2,
@@ -443,11 +444,12 @@ export default function ReportsPage() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const { toast } = useToast();
 
+  const router = useRouter();
+
   const handleView = useCallback(async (r: Report) => {
     if (r.status !== "COMPLETED") { toast("Отчёт ещё генерируется", "info"); return; }
-    const ok = await openReportView(r);
-    if (!ok) toast("Разрешите всплывающие окна для просмотра", "error");
-  }, [toast]);
+    router.push(`/dashboard/reports/${r.id}`);
+  }, [toast, router]);
 
   const handlePdf = useCallback(async (r: Report) => {
     if (r.status !== "COMPLETED") { toast("Отчёт ещё генерируется", "info"); return; }
