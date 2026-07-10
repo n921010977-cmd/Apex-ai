@@ -1,10 +1,26 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useEffect, useRef, useMemo } from "react";
+import { usePathname, useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { Search, Bell, Plus, Cpu, Menu, Command } from "lucide-react";
+import { Search, Bell, Plus, Cpu, Menu, Command, CornerDownLeft, LayoutGrid, FolderKanban, FileText, Users, Bot, Sparkles, Settings, LifeBuoy } from "lucide-react";
+
+// ─── Command palette targets ────────────────────────────────────────────────
+type CmdTarget = { label: string; hint: string; href: string; kind: "Страница" | "Действие" | "Агент"; icon: typeof LayoutGrid; keywords?: string };
+const CMD_TARGETS: CmdTarget[] = [
+  { label: "Обзор",                hint: "Дашборд",              href: "/dashboard",            kind: "Страница", icon: LayoutGrid,   keywords: "dashboard главная overview" },
+  { label: "Новая стратегия",      hint: "Проверить идею",       href: "/dashboard/new",        kind: "Действие", icon: Sparkles,     keywords: "создать анализ идея new strategy" },
+  { label: "Мои проекты",          hint: "Портфель стратегий",   href: "/dashboard/projects",   kind: "Страница", icon: FolderKanban, keywords: "projects портфель" },
+  { label: "Отчёты",               hint: "Готовые отчёты",       href: "/dashboard/reports",    kind: "Страница", icon: FileText,     keywords: "reports pdf" },
+  { label: "Исполнительный совет", hint: "Спросить совет",       href: "/dashboard/executives", kind: "Страница", icon: Users,        keywords: "board совет батл директора" },
+  { label: "AI Агенты",            hint: "20 директоров",        href: "/dashboard/agents",     kind: "Страница", icon: Bot,          keywords: "agents команда team" },
+  { label: "Настройки",            hint: "Аккаунт и подписка",   href: "/dashboard/settings",   kind: "Страница", icon: Settings,     keywords: "settings профиль подписка" },
+  { label: "Поддержка",            hint: "Помощь",               href: "/dashboard/support",    kind: "Страница", icon: LifeBuoy,     keywords: "support помощь тикет" },
+  { label: "Спросить CFO",         hint: "Финансовый директор",  href: "/dashboard/executives", kind: "Агент",    icon: Bot,          keywords: "финансы деньги cfo" },
+  { label: "Спросить CMO",         hint: "Директор по маркетингу", href: "/dashboard/executives", kind: "Агент",  icon: Bot,          keywords: "маркетинг рост cmo" },
+  { label: "Спросить CTO",         hint: "Технический директор", href: "/dashboard/executives", kind: "Агент",    icon: Bot,          keywords: "технологии продукт cto" },
+];
 
 const ROUTE_LABELS: Record<string, string> = {
   "/dashboard":            "Dashboard",
@@ -56,13 +72,32 @@ interface TopNavProps {
 
 export function TopNav({ onMenuClick }: TopNavProps) {
   const pathname    = usePathname();
+  const router      = useRouter();
   const { data: session } = useSession();
   const [focused,   setFocused]   = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [query,     setQuery]     = useState("");
+  const [active,    setActive]    = useState(0);
   const [notifications, setNotifications] = useState<Notification[]>(DEMO_NOTIFICATIONS);
   const notifRef    = useRef<HTMLDivElement>(null);
+  const searchRef   = useRef<HTMLDivElement>(null);
   const inputRef    = useRef<HTMLInputElement>(null);
+
+  const results = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    if (!q) return CMD_TARGETS.filter(t => t.kind !== "Агент");
+    return CMD_TARGETS.filter(t =>
+      t.label.toLowerCase().includes(q) || t.hint.toLowerCase().includes(q) || (t.keywords ?? "").includes(q)
+    );
+  }, [query]);
+
+  const paletteOpen = focused;
+  useEffect(() => { setActive(0); }, [query, focused]);
+
+  const goTo = (t: CmdTarget) => {
+    setFocused(false); setQuery(""); inputRef.current?.blur();
+    router.push(t.href);
+  };
 
   const pageLabel = Object.entries(ROUTE_LABELS).find(([k]) =>
     k === pathname || pathname.startsWith(k + "/")
@@ -96,6 +131,9 @@ export function TopNav({ onMenuClick }: TopNavProps) {
     const handler = (e: MouseEvent) => {
       if (notifRef.current && !notifRef.current.contains(e.target as Node)) {
         setNotifOpen(false);
+      }
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setFocused(false);
       }
     };
     document.addEventListener("mousedown", handler);
@@ -157,8 +195,9 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         {pageLabel}
       </span>
 
-      {/* Search — expands on focus */}
+      {/* Search + command palette */}
       <div
+        ref={searchRef}
         className="hidden md:block relative flex-1 max-w-xs transition-all duration-300"
         style={{ maxWidth: focused ? 400 : 280 }}
       >
@@ -172,9 +211,14 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Поиск проектов, агентов…"
+          placeholder="Поиск команд, страниц, агентов…"
           onFocus={() => setFocused(true)}
-          onBlur={() => setFocused(false)}
+          onKeyDown={e => {
+            if (e.key === "ArrowDown") { e.preventDefault(); setActive(a => Math.min(a + 1, results.length - 1)); }
+            else if (e.key === "ArrowUp") { e.preventDefault(); setActive(a => Math.max(a - 1, 0)); }
+            else if (e.key === "Enter") { e.preventDefault(); if (results[active]) goTo(results[active]); }
+            else if (e.key === "Escape") { setFocused(false); inputRef.current?.blur(); }
+          }}
           className="w-full focus:outline-none transition-all"
           style={{
             height:       34,
@@ -195,6 +239,60 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           <Command size={9} />
           <span>K</span>
         </div>
+
+        {/* Results dropdown */}
+        {paletteOpen && (
+          <div
+            className="absolute left-0 right-0 top-full mt-2 overflow-hidden"
+            style={{
+              background: "rgba(10,11,18,0.98)", border: "1px solid rgba(255,255,255,0.09)",
+              borderRadius: 12, boxShadow: "0 16px 48px rgba(0,0,0,0.55)", backdropFilter: "blur(20px)",
+              maxHeight: 380, overflowY: "auto", zIndex: 40,
+            }}
+          >
+            {results.length === 0 ? (
+              <div className="term-mono" style={{ padding: "16px", fontSize: 11.5, color: "rgba(255,255,255,0.35)" }}>
+                Ничего не найдено по «{query}»
+              </div>
+            ) : (
+              <>
+                <div className="term-label" style={{ padding: "10px 14px 6px", fontSize: 9, letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)" }}>
+                  {query.trim() ? "РЕЗУЛЬТАТЫ" : "БЫСТРЫЙ ПЕРЕХОД"}
+                </div>
+                {results.map((t, i) => {
+                  const Icon = t.icon;
+                  const sel = i === active;
+                  return (
+                    <button
+                      key={t.label + i}
+                      onMouseEnter={() => setActive(i)}
+                      onClick={() => goTo(t)}
+                      className="w-full flex items-center gap-3 text-left transition-colors"
+                      style={{
+                        padding: "9px 14px",
+                        background: sel ? "rgba(99,102,241,0.14)" : "transparent",
+                        borderLeft: `2px solid ${sel ? "#6366f1" : "transparent"}`,
+                      }}
+                    >
+                      <span style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                        <Icon size={13} style={{ color: sel ? "#a5b4fc" : "rgba(255,255,255,0.5)" }} />
+                      </span>
+                      <span style={{ flex: 1, minWidth: 0 }}>
+                        <span style={{ display: "block", fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.9)" }}>{t.label}</span>
+                        <span style={{ display: "block", fontSize: 10.5, color: "rgba(255,255,255,0.4)" }}>{t.hint}</span>
+                      </span>
+                      <span className="term-mono" style={{ fontSize: 8.5, color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>{t.kind}</span>
+                      {sel && <CornerDownLeft size={12} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />}
+                    </button>
+                  );
+                })}
+              </>
+            )}
+            <div className="term-mono" style={{ display: "flex", gap: 12, padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: 9, color: "rgba(255,255,255,0.28)" }}>
+              <span>↑↓ навигация</span><span>↵ открыть</span><span>esc закрыть</span>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Right actions */}
