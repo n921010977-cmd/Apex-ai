@@ -113,7 +113,7 @@ export interface OrchestratorResult {
   toolsCalled: { tool: string; input: unknown; result: unknown }[];
 }
 
-export async function runConversation(opts: OrchestratorOptions): Promise<OrchestratorResult> {
+export async function runOrchestrator(opts: OrchestratorOptions): Promise<OrchestratorResult> {
   const { agentId, conversationId, organizationId, userId, message, onToken, onToolCall } = opts;
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

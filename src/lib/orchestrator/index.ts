@@ -1,8 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { AGENT_REGISTRY, detectRequiredAgents } from "@/lib/agents/registry";
-
-// Conversation engine (DB-persisted chats: history + memory + tools)
-export { runConversation } from "./conversation";
 import { TOOL_DEFINITIONS, executeTool } from "@/lib/tools";
 import type { AgentResult, OrchestratorRequest, StreamEvent, AgentConfig } from "@/types";
 import type { AgentRole } from "@/types";

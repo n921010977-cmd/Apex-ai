@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { runConversation } from "@/lib/orchestrator";
+import { runOrchestrator } from "@/lib/orchestrator.legacy";
 
 export const maxDuration = 120;
 
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     async start(controller) {
       const send = (data: object) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
       try {
-        await runConversation({
+        await runOrchestrator({
           agentId: convo.agent_id ?? undefined,
           conversationId,
           organizationId: convo.organization_id,
