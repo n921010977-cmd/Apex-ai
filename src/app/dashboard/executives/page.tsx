@@ -74,6 +74,72 @@ const FOCUS_DEFAULT = (n: Node) => ({ now: `${n.role}: текущий анали
 
 const KIND_META = { signal: { l: "СИГНАЛ", c: "#60a5fa" }, debate: { l: "ДЕБАТЫ", c: "#fbbf24" }, decision: { l: "РЕШЕНИЕ", c: "#34d399" } } as const;
 
+// ─── Board Battle: вопрос → CEO → дебаты → вердикт ───────────────────────────
+type BattleMsg = { agent: string; text: string; done: boolean };
+type Battle = {
+  q: string;
+  phase: "route" | "debate" | "verdict" | "done";
+  debaters: string[];
+  msgs: BattleMsg[];
+  verdict: string;
+  current?: string;
+  offline?: boolean;
+};
+
+function pickDebaters(q: string): string[] {
+  const s = q.toLowerCase();
+  const picks = new Set<string>();
+  if (/(финанс|деньг|бюджет|цен|стоимост|инвест|прибыл|выручк|касс|окупа)/.test(s)) { picks.add("cfo"); picks.add("ia"); }
+  if (/(маркет|клиент|прода|рост|реклам|бренд|аудитор|канал|конверси)/.test(s)) { picks.add("cmo"); picks.add("gh"); }
+  if (/(продукт|технолог|разработ|ai|ии|фич|интеграц|платформ|данн)/.test(s)) { picks.add("cto"); picks.add("pm"); }
+  if (/(риск|опас|провал|конкурент|угроз)/.test(s)) picks.add("ra");
+  if (/(команд|найм|сотрудник|процесс|операц|юрид|договор)/.test(s)) picks.add("coo");
+  const arr = Array.from(picks).slice(0, 3);
+  while (arr.length < 3) for (const d of ["cfo", "cmo", "cto"]) { if (arr.length < 3 && !arr.includes(d)) arr.push(d); }
+  return arr;
+}
+
+async function streamChat(message: string, persona: string, onToken: (t: string) => void): Promise<string> {
+  const res = await fetch("/api/chat/direct", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message, persona }),
+  });
+  if (!res.ok || !res.body) throw new Error("api_unavailable");
+  const reader = res.body.getReader();
+  const dec = new TextDecoder();
+  let buf = "", full = "";
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    buf += dec.decode(value, { stream: true });
+    const lines = buf.split("\n");
+    buf = lines.pop() ?? "";
+    for (const l of lines) {
+      if (!l.startsWith("data: ")) continue;
+      let ev: { type?: string; token?: string; message?: string };
+      try { ev = JSON.parse(l.slice(6)); } catch { continue; }
+      if (ev.type === "token" && ev.token) { full += ev.token; onToken(ev.token); }
+      if (ev.type === "error") throw new Error("api_unavailable");
+    }
+  }
+  if (!full.trim()) throw new Error("api_unavailable");
+  return full;
+}
+
+// офлайн-сценарий, если API недоступен — совет всё равно «думает»
+const FALLBACK_OPINIONS: Record<string, string> = {
+  cfo: "ПРОТИВ поспешности. Сначала считаем юнит-экономику: если LTV/CAC ниже 3, идея съест кэш быстрее, чем даст выручку. Предлагаю пилот с жёстким лимитом бюджета и точкой пересмотра через 30 дней.",
+  cmo: "ЗА, но с фокусом. Спрос проверяем дешёвым тестом: лендинг + 2 канала трафика, решение по данным конверсии, а не по ощущениям. Если CTR и заявки выше бенчмарка — масштабируем.",
+  cto: "РИСКОВАННО без прототипа. Технически реализуемо, но закладываю 2–3 недели на MVP и интеграции. Предлагаю начать с самого узкого сценария, который проверяет гипотезу, — остальное не строим, пока нет спроса.",
+  coo: "ЗА при готовых процессах. До запуска нужны: ответственный владелец, SLA на обработку заявок и чек-лист комплаенса. Иначе рост превратится в хаос поддержки.",
+  ia: "Смотрю на цифры: рынок должен позволять x10 от текущей выручки, иначе усилия не окупятся. Прошу неделю на оценку TAM/SAM и сравнимые сделки — потом дам точную рекомендацию.",
+  gh: "ЗА быстрый эксперимент. За 7 дней прогоняю A/B: два оффера, два сегмента, бюджет минимальный. Данные покажут, где спрос настоящий — дальше вкладываемся только туда.",
+  pm: "Смотрю от пользователя: какую боль решаем и почему сейчас? Предлагаю 5 проблемных интервью до строчки кода. Если боль подтверждается — режем скоуп до одной ключевой фичи.",
+  ra: "Главные риски: конкуренты с большим бюджетом и регуляторика. Оба управляемы, если входим поэтапно и не жжём больше 10% резерва. Стоп-лосс обязателен.",
+};
+const FALLBACK_VERDICT = "Вердикт совета: гипотеза достойна проверки, но входим поэтапно. Шаг 1 — дешёвый тест спроса за 7–14 дней с жёстким лимитом бюджета. Шаг 2 — если метрики выше порога, собираем минимальный MVP. Шаг 3 — пересмотр через 30 дней по фактическим цифрам, а не ожиданиям. Полный анализ доступен после подключения API-ключа.";
+
 // ─── Layout: орбиты вокруг ядра ──────────────────────────────────────────────
 const W = 880, H = 600, CX = W / 2, CY = H / 2 - 10;
 
@@ -102,6 +168,9 @@ export default function ExecutivesPage() {
   const [log, setLog] = useState<LogItem[]>([]);
   const [selected, setSelected] = useState<string | null>(null);
   const [paused, setPaused] = useState(false);
+  const [battle, setBattle] = useState<Battle | null>(null);
+  const [question, setQuestion] = useState("");
+  const battleBusy = battle !== null && battle.phase !== "done";
   const reduced = useRef(false);
 
   useEffect(() => {
@@ -110,10 +179,77 @@ export default function ExecutivesPage() {
   }, []);
 
   useEffect(() => {
-    if (paused) return;
+    if (paused || battle) return;
     const iv = setInterval(() => setStep(s => s + 1), 2600);
     return () => clearInterval(iv);
-  }, [paused]);
+  }, [paused, battle]);
+
+  // ── Board Battle runner ──
+  const appendToLast = useCallback((t: string) => {
+    setBattle(b => {
+      if (!b || b.msgs.length === 0) return b;
+      const msgs = [...b.msgs];
+      msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: msgs[msgs.length - 1].text + t };
+      return { ...b, msgs };
+    });
+  }, []);
+
+  const runBattle = useCallback(async (q: string) => {
+    setSelected(null);
+    const debaters = pickDebaters(q);
+    setBattle({ q, phase: "route", debaters, msgs: [], verdict: "" });
+    await new Promise(r => setTimeout(r, 1200));
+
+    const opinions: { id: string; text: string }[] = [];
+    let offline = false;
+
+    for (const id of debaters) {
+      const n = byId[id];
+      setBattle(b => b && ({ ...b, phase: "debate", current: id, offline, msgs: [...b.msgs, { agent: id, text: "", done: false }] }));
+      const prev = opinions.map(o => `${byId[o.id].name} (${byId[o.id].role}): ${o.text}`).join("\n\n");
+      const persona = `Ты — ${n.name}, ${n.role} в совете директоров Apex AI. Основатель задал совету вопрос. ${prev ? `Мнения коллег до тебя:\n${prev}\n\nМожешь согласиться или аргументированно поспорить с ними — это дебаты.` : "Ты выступаешь первым."} Ответь на русском. Максимум 4 предложения. Начни с чёткой позиции одним словом в верхнем регистре (ЗА / ПРОТИВ / РИСКОВАННО), затем аргументы строго из твоей зоны ответственности. Конкретика и цифры, никакой воды.`;
+      let text = "";
+      if (!offline) {
+        try {
+          text = await streamChat(q, persona, appendToLast);
+        } catch { offline = true; }
+      }
+      if (offline) {
+        text = FALLBACK_OPINIONS[id] ?? FALLBACK_OPINIONS.cfo;
+        for (const ch of text) { appendToLast(ch); await new Promise(r => setTimeout(r, 9)); }
+      }
+      opinions.push({ id, text });
+      setBattle(b => {
+        if (!b) return b;
+        const msgs = [...b.msgs];
+        msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], done: true };
+        return { ...b, msgs, offline };
+      });
+      await new Promise(r => setTimeout(r, 350));
+    }
+
+    setBattle(b => b && ({ ...b, phase: "verdict", current: "ceo" }));
+    const ceoPersona = `Ты — CEO Стратег совета директоров Apex AI. Основатель задал вопрос, совет провёл дебаты. Мнения:\n${opinions.map(o => `${byId[o.id].name}: ${o.text}`).join("\n\n")}\n\nВынеси финальный вердикт на русском: взвесь споры, прими однозначное решение и дай 2–3 конкретных следующих шага. Максимум 6 предложений.`;
+    if (!offline) {
+      try {
+        await streamChat(q, ceoPersona, t => setBattle(b => b && ({ ...b, verdict: b.verdict + t })));
+      } catch { offline = true; }
+    }
+    if (offline) {
+      for (const ch of FALLBACK_VERDICT) {
+        setBattle(b => b && ({ ...b, verdict: b.verdict + ch }));
+        await new Promise(r => setTimeout(r, 9));
+      }
+    }
+    setBattle(b => b && ({ ...b, phase: "done", current: undefined, offline }));
+  }, [appendToLast]);
+
+  const submitQuestion = useCallback(() => {
+    const q = question.trim();
+    if (!q || battleBusy) return;
+    setQuestion("");
+    void runBattle(q);
+  }, [question, battleBusy, runBattle]);
 
   useEffect(() => {
     const ev = SCRIPT[step % SCRIPT.length];
@@ -169,6 +305,30 @@ export default function ExecutivesPage() {
         </div>
       </div>
 
+      {/* ── Вопрос совету ── */}
+      <div style={{ display: "flex", gap: 10, marginBottom: 16, alignItems: "center", padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(99,102,241,0.25)", background: "rgba(99,102,241,0.05)" }}>
+        <span className="term-mono" style={{ color: "#818cf8", fontSize: 13, flexShrink: 0 }}>{">"}</span>
+        <input
+          value={question}
+          onChange={e => setQuestion(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") submitQuestion(); }}
+          disabled={battleBusy}
+          placeholder="Задайте вопрос совету — CEO раскидает его директорам, они устроят дебаты и вынесут вердикт…"
+          style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#E5E7EB", fontSize: 13.5, minWidth: 0 }}
+        />
+        <button onClick={submitQuestion} disabled={battleBusy || !question.trim()}
+          className="term-mono"
+          style={{ padding: "9px 18px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, cursor: battleBusy ? "wait" : "pointer", color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", opacity: battleBusy || !question.trim() ? 0.55 : 1, flexShrink: 0 }}>
+          {battleBusy ? "СОВЕТ ДУМАЕТ…" : "▸ СПРОСИТЬ СОВЕТ"}
+        </button>
+        {battle && !battleBusy && (
+          <button onClick={() => setBattle(null)} className="term-mono"
+            style={{ padding: "9px 14px", borderRadius: 10, fontSize: 11, cursor: "pointer", color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0 }}>
+            СБРОС
+          </button>
+        )}
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 340px", gap: 16, alignItems: "start" }}>
         {/* ── Living field ── */}
         <div style={{ borderRadius: 22, border: "1px solid rgba(255,255,255,0.07)", background: "radial-gradient(ellipse at 50% 42%, rgba(99,102,241,0.08), transparent 55%), rgba(255,255,255,0.015)", overflow: "hidden", position: "relative" }}>
@@ -200,8 +360,31 @@ export default function ExecutivesPage() {
               );
             })}
 
+            {/* связи батла: CEO → дебатёры */}
+            {battle && [ "ceo", ...battle.debaters ].map(id => {
+              if (id === "ceo") return null;
+              const a = POS.ceo, b = POS[id];
+              const isCur = battle.current === id;
+              const c = byId[id].c;
+              const d = `M${a.x},${a.y} Q${CX},${CY} ${b.x},${b.y}`;
+              return (
+                <g key={`bt-${id}`}>
+                  <path d={d} fill="none" stroke={c} strokeWidth={isCur ? 2.2 : 1.2} strokeOpacity={isCur ? 0.8 : 0.35} strokeDasharray="6 6" style={{ animation: "exl-dash 1.1s linear infinite" }} />
+                  {isCur && (
+                    <circle r={4} fill={c}>
+                      <animateMotion dur="1.3s" repeatCount="indefinite" path={d} />
+                    </circle>
+                  )}
+                </g>
+              );
+            })}
+            {battle?.phase === "verdict" && (
+              <circle cx={POS.ceo.x} cy={POS.ceo.y} r={42} fill="none" stroke="#818cf8" strokeWidth={1.6} strokeOpacity={0.7}
+                style={{ animation: "exl-ping 1.4s ease-out infinite", transformOrigin: `${POS.ceo.x}px ${POS.ceo.y}px` }} />
+            )}
+
             {/* живые связи последних событий */}
-            {!sel && active.map((e, i) => {
+            {!sel && !battle && active.map((e, i) => {
               const a = POS[e.from], b = POS[e.to];
               if (!a || !b) return null;
               const d = `M${a.x},${a.y} Q${CX},${CY} ${b.x},${b.y}`;
@@ -231,12 +414,14 @@ export default function ExecutivesPage() {
             {ALL.map(n => {
               const p = POS[n.id];
               const isSel = selected === n.id;
-              const isActive = activeIds.has(n.id) && !selected;
-              const dim = selected ? (isSel || selLinks.includes(n.id) ? 1 : 0.18) : 1;
+              const isActive = activeIds.has(n.id) && !selected && !battle;
+              const inBattle = battle ? (n.id === "ceo" || battle.debaters.includes(n.id)) : false;
+              const isSpeaking = battle?.current === n.id;
+              const dim = battle ? (inBattle ? 1 : 0.15) : selected ? (isSel || selLinks.includes(n.id) ? 1 : 0.18) : 1;
               const r = n.id === "ceo" ? 30 : CHIEFS.some(c => c.id === n.id) ? 26 : 21;
               return (
                 <g key={n.id} onClick={() => onSelect(n.id)} style={{ cursor: "pointer", opacity: dim, transition: "opacity 0.35s" }}>
-                  {(isActive || isSel) && (
+                  {(isActive || isSel || isSpeaking) && (
                     <circle cx={p.x} cy={p.y} r={r + 7} fill="none" stroke={n.c} strokeWidth={1.4} strokeOpacity={0.65}
                       style={paused ? undefined : { animation: "exl-ping 1.6s ease-out infinite", transformOrigin: `${p.x}px ${p.y}px` }} />
                   )}
@@ -250,7 +435,7 @@ export default function ExecutivesPage() {
 
           {/* текущая мысль поверх поля */}
           <AnimatePresence mode="wait">
-            {current && !selected && (
+            {current && !selected && !battle && (
               <motion.div key={current.id}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
@@ -264,8 +449,47 @@ export default function ExecutivesPage() {
 
         {/* ── Right rail ── */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Command mode / Debate stream */}
-          {sel && selFocus ? (
+          {/* Battle / Command mode / Debate stream */}
+          {battle ? (
+            <div style={{ borderRadius: 16, border: "1px solid rgba(99,102,241,0.3)", background: "rgba(255,255,255,0.02)", padding: 16 }}>
+              <div className="term-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>{"// СОВЕТ-БАТЛ"}</div>
+              <div style={{ fontSize: 12.5, color: "#E5E7EB", fontWeight: 600, lineHeight: 1.45, marginBottom: 10 }}>«{battle.q}»</div>
+              {battle.phase === "route" && (
+                <div className="term-mono" style={{ fontSize: 11, color: "#818cf8" }}>
+                  ▸ CEO распределяет вопрос: {battle.debaters.map(d => byId[d].ab).join(" · ")}<span className="term-blink">▋</span>
+                </div>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 320, overflowY: "auto" }}>
+                {battle.msgs.map((m, i) => {
+                  const n = byId[m.agent];
+                  return (
+                    <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
+                      style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
+                      <span style={{ width: 28, height: 28, flexShrink: 0, borderRadius: 8, background: `linear-gradient(135deg,${n.g[0]},${n.g[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "var(--font-geist-mono), monospace" }}>{n.ab}</span>
+                      <div style={{ minWidth: 0 }}>
+                        <div className="term-mono" style={{ fontSize: 9.5, color: n.c, marginBottom: 2 }}>{n.name.toUpperCase()}</div>
+                        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5, margin: 0, whiteSpace: "pre-wrap" }}>
+                          {m.text}{!m.done && <span className="term-blink" style={{ color: n.c }}>▋</span>}
+                        </p>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+                {(battle.phase === "verdict" || battle.phase === "done") && (
+                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                    style={{ borderRadius: 12, border: "1px solid rgba(129,140,248,0.4)", background: "rgba(99,102,241,0.08)", padding: 12 }}>
+                    <div className="term-mono" style={{ fontSize: 9.5, color: "#818cf8", marginBottom: 4 }}>▸ ВЕРДИКТ CEO</div>
+                    <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.55, margin: 0, whiteSpace: "pre-wrap" }}>
+                      {battle.verdict}{battle.phase === "verdict" && <span className="term-blink" style={{ color: "#818cf8" }}>▋</span>}
+                    </p>
+                  </motion.div>
+                )}
+              </div>
+              {battle.offline && battle.phase === "done" && (
+                <div className="term-mono" style={{ fontSize: 10, color: "rgba(251,191,36,0.8)", marginTop: 8 }}>⚠ OFFLINE-РЕЖИМ: API-ключ не настроен, показан демо-сценарий</div>
+              )}
+            </div>
+          ) : sel && selFocus ? (
             <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
               style={{ borderRadius: 16, border: `1px solid ${sel.c}44`, background: "rgba(255,255,255,0.025)", padding: 18 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
