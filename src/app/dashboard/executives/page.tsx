@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import Link from "next/link";
+import { streamChat } from "@/lib/stream-chat";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ─── Agents ───────────────────────────────────────────────────────────────────
@@ -99,33 +100,6 @@ function pickDebaters(q: string): string[] {
   return arr;
 }
 
-async function streamChat(message: string, persona: string, onToken: (t: string) => void): Promise<string> {
-  const res = await fetch("/api/chat/direct", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message, persona }),
-  });
-  if (!res.ok || !res.body) throw new Error("api_unavailable");
-  const reader = res.body.getReader();
-  const dec = new TextDecoder();
-  let buf = "", full = "";
-  for (;;) {
-    const { done, value } = await reader.read();
-    if (done) break;
-    buf += dec.decode(value, { stream: true });
-    const lines = buf.split("\n");
-    buf = lines.pop() ?? "";
-    for (const l of lines) {
-      if (!l.startsWith("data: ")) continue;
-      let ev: { type?: string; token?: string; message?: string };
-      try { ev = JSON.parse(l.slice(6)); } catch { continue; }
-      if (ev.type === "token" && ev.token) { full += ev.token; onToken(ev.token); }
-      if (ev.type === "error") throw new Error("api_unavailable");
-    }
-  }
-  if (!full.trim()) throw new Error("api_unavailable");
-  return full;
-}
 
 // офлайн-сценарий, если API недоступен — совет всё равно «думает»
 const FALLBACK_OPINIONS: Record<string, string> = {
@@ -207,7 +181,7 @@ export default function ExecutivesPage() {
       const n = byId[id];
       setBattle(b => b && ({ ...b, phase: "debate", current: id, offline, msgs: [...b.msgs, { agent: id, text: "", done: false }] }));
       const prev = opinions.map(o => `${byId[o.id].name} (${byId[o.id].role}): ${o.text}`).join("\n\n");
-      const persona = `Ты — ${n.name}, ${n.role} в совете директоров Apex AI. Основатель задал совету вопрос. ${prev ? `Мнения коллег до тебя:\n${prev}\n\nМожешь согласиться или аргументированно поспорить с ними — это дебаты.` : "Ты выступаешь первым."} Ответь на русском. Максимум 4 предложения. Начни с чёткой позиции одним словом в верхнем регистре (ЗА / ПРОТИВ / РИСКОВАННО), затем аргументы строго из твоей зоны ответственности. Конкретика и цифры, никакой воды.`;
+      const persona = `Ты — ${n.name}, ${n.role} в совете директоров Apex AI. Основатель задал совету вопрос. ${prev ? `Мнения коллег до тебя:\n${prev}\n\nМожешь согласиться или аргументированно поспорить с ними — это дебаты.` : "Ты выступаешь первым."} Ответь на русском. Максимум 4 предложения. Начни с чёткой позиции одним словом в верхнем регистре (ЗА / ПРОТИВ / РИСКОВАННО), затем аргументы строго из твоей зоны ответственности. Конкретика и цифры, никакой воды. Обычный текст без markdown-разметки (никаких ** и #).`;
       let text = "";
       if (!offline) {
         try {
@@ -229,7 +203,7 @@ export default function ExecutivesPage() {
     }
 
     setBattle(b => b && ({ ...b, phase: "verdict", current: "ceo" }));
-    const ceoPersona = `Ты — CEO Стратег совета директоров Apex AI. Основатель задал вопрос, совет провёл дебаты. Мнения:\n${opinions.map(o => `${byId[o.id].name}: ${o.text}`).join("\n\n")}\n\nВынеси финальный вердикт на русском: взвесь споры, прими однозначное решение и дай 2–3 конкретных следующих шага. Максимум 6 предложений.`;
+    const ceoPersona = `Ты — CEO Стратег совета директоров Apex AI. Основатель задал вопрос, совет провёл дебаты. Мнения:\n${opinions.map(o => `${byId[o.id].name}: ${o.text}`).join("\n\n")}\n\nВынеси финальный вердикт на русском: взвесь споры, прими однозначное решение и дай 2–3 конкретных следующих шага. Максимум 6 предложений. Обычный текст без markdown-разметки (никаких ** и #).`;
     if (!offline) {
       try {
         await streamChat(q, ceoPersona, t => setBattle(b => b && ({ ...b, verdict: b.verdict + t })));
@@ -427,7 +401,7 @@ export default function ExecutivesPage() {
                   )}
                   <circle cx={p.x} cy={p.y} r={r} fill={`url(#exl-g-${n.id})`} stroke="rgba(255,255,255,0.18)" strokeWidth={1} />
                   <text x={p.x} y={p.y + 4} textAnchor="middle" fill="#fff" fontSize={r > 24 ? 11 : 9.5} fontWeight={800} fontFamily="var(--font-geist-mono), monospace">{n.ab}</text>
-                  <text x={p.x} y={p.y + r + 15} textAnchor="middle" fill={isSel ? n.c : "rgba(255,255,255,0.45)"} fontSize={9.5} fontFamily="var(--font-geist-mono), monospace">{n.name}</text>
+                  <text x={p.x} y={p.y + r + 15} textAnchor="middle" fill={isSel ? n.c : "rgba(255,255,255,0.6)"} fontSize={9.5} fontFamily="var(--font-geist-mono), monospace" paintOrder="stroke" stroke="#05060A" strokeWidth={3}>{n.name}</text>
                 </g>
               );
             })}
@@ -469,7 +443,7 @@ export default function ExecutivesPage() {
                       <div style={{ minWidth: 0 }}>
                         <div className="term-mono" style={{ fontSize: 9.5, color: n.c, marginBottom: 2 }}>{n.name.toUpperCase()}</div>
                         <p style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5, margin: 0, whiteSpace: "pre-wrap" }}>
-                          {m.text}{!m.done && <span className="term-blink" style={{ color: n.c }}>▋</span>}
+                          {m.text.replace(/\*\*/g, "")}{!m.done && <span className="term-blink" style={{ color: n.c }}>▋</span>}
                         </p>
                       </div>
                     </motion.div>
@@ -480,7 +454,7 @@ export default function ExecutivesPage() {
                     style={{ borderRadius: 12, border: "1px solid rgba(129,140,248,0.4)", background: "rgba(99,102,241,0.08)", padding: 12 }}>
                     <div className="term-mono" style={{ fontSize: 9.5, color: "#818cf8", marginBottom: 4 }}>▸ ВЕРДИКТ CEO</div>
                     <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.55, margin: 0, whiteSpace: "pre-wrap" }}>
-                      {battle.verdict}{battle.phase === "verdict" && <span className="term-blink" style={{ color: "#818cf8" }}>▋</span>}
+                      {battle.verdict.replace(/\*\*/g, "")}{battle.phase === "verdict" && <span className="term-blink" style={{ color: "#818cf8" }}>▋</span>}
                     </p>
                   </motion.div>
                 )}
@@ -576,14 +550,14 @@ export default function ExecutivesPage() {
 
 // ─── 6-axis radar ────────────────────────────────────────────────────────────
 function Radar() {
-  const S = 150, C = S / 2, R = 56;
+  const S = 210, C = S / 2, R = 62;
   const pt = (i: number, v: number) => {
     const a = -Math.PI / 2 + (i * 2 * Math.PI) / RADAR.length;
     return [C + R * v * Math.cos(a), C + R * v * Math.sin(a)] as const;
   };
   const poly = RADAR.map((d, i) => pt(i, d.v).join(",")).join(" ");
   return (
-    <svg viewBox={`0 0 ${S} ${S}`} style={{ width: "100%", maxWidth: 220, display: "block", margin: "0 auto" }}>
+    <svg viewBox={`-24 -6 ${S + 48} ${S + 12}`} style={{ width: "100%", maxWidth: 250, display: "block", margin: "0 auto" }}>
       {[0.33, 0.66, 1].map(f => (
         <polygon key={f} points={RADAR.map((_, i) => pt(i, f).join(",")).join(" ")} fill="none" stroke="rgba(255,255,255,0.07)" />
       ))}
@@ -592,8 +566,9 @@ function Radar() {
         initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
         style={{ transformOrigin: "50% 50%" }} />
       {RADAR.map((d, i) => {
-        const [x, y] = pt(i, 1.24);
-        return <text key={d.l} x={x} y={y + 3} textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize={7.5} fontFamily="var(--font-geist-mono), monospace">{d.l.toUpperCase()}</text>;
+        const [x, y] = pt(i, 1.28);
+        const anchor = Math.abs(x - C) < 8 ? "middle" : x > C ? "start" : "end";
+        return <text key={d.l} x={x} y={y + 3} textAnchor={anchor} fill="rgba(255,255,255,0.55)" fontSize={8.5} fontFamily="var(--font-geist-mono), monospace">{d.l.toUpperCase()}</text>;
       })}
       {RADAR.map((d, i) => { const [x, y] = pt(i, d.v); return <circle key={i} cx={x} cy={y} r={2.2} fill="#818cf8" />; })}
     </svg>
