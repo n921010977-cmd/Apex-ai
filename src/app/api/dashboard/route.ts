@@ -1,10 +1,29 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+
+const EMPTY_DASHBOARD = {
+  kpis: {
+    projects: { total: 0, active: 0, completed: 0 },
+    tasks: { total: 0, todo: 0, in_progress: 0, done: 0 },
+    ai_usage: { messages_30d: 0, tokens_30d: 0 },
+    strategies: { total: 0, generated: 0, drafts: 0 },
+    risks: { total: 0, active: 0, critical: 0, mitigated: 0 },
+    board_meetings: { total: 0, completed: 0 },
+    notes: { total: 0, recent_7d: 0, total_words: 0 },
+    notifications: { unread: 0 },
+  },
+  recent: { projects: [], strategies: [] },
+};
 
 export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  // Demo mode (no Supabase): return an empty-but-valid payload instead of crashing.
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ success: true, demo: true, data: EMPTY_DASHBOARD });
+  }
 
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,10 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  if (!isSupabaseConfigured()) {
+    return NextResponse.json({ success: true, demo: true, data: [], total: 0, unread_count: 0 });
+  }
 
   const { searchParams } = new URL(req.url);
   const unread_only = searchParams.get("unread") === "true";
