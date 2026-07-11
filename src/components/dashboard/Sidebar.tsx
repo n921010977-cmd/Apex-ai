@@ -7,7 +7,7 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
-  Bot, Settings, HelpCircle,
+  Bot, Settings, HelpCircle, Cpu,
   X, Search, PanelLeftClose, PanelLeft, ChevronRight,
 } from "lucide-react";
 
@@ -18,6 +18,7 @@ const NAV = [
   { key: "3", label: "Отчёты",    href: "/dashboard/reports",    icon: FileText },
   { key: "4", label: "Совет",     href: "/dashboard/executives", icon: Users },
   { key: "5", label: "Агенты",    href: "/dashboard/agents",     icon: Bot },
+  { key: "6", label: "Apex OS",   href: "/dashboard/os",         icon: Cpu },
 ];
 
 interface SidebarProps {
