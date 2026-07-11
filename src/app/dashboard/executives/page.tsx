@@ -1,576 +1,463 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, useCallback } from "react";
-import Link from "next/link";
-import { streamChat } from "@/lib/stream-chat";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { streamChat } from "@/lib/stream-chat";
+import {
+  getBoardAgents, getBoardMetrics, BOARD_DEBATE, BOARD_TIMELINE, BOARD_RECS,
+  type BoardAgent, type BoardMetrics,
+} from "@/lib/board";
 
-// ─── Agents ───────────────────────────────────────────────────────────────────
-type Node = { id: string; ab: string; name: string; role: string; dept: string; score: number; c: string; g: [string, string] };
+// ─── Fallback offline deep-dive / verdict text ───────────────────────────────
+const OFFLINE_DEEP = (a: BoardAgent) =>
+  `${a.name} (${a.role}): по задаче «${a.task}» ключевой вывод — двигаться поэтапно и проверять гипотезу дешёвым тестом до крупных вложений. Точные цифры и полный разбор появятся после настройки API-ключа (ANTHROPIC_API_KEY).`;
+const OFFLINE_VERDICT =
+  "Совет провёл разбор: гипотеза достойна проверки, но входим поэтапно — сначала дешёвый тест спроса, затем MVP, затем масштабирование по фактическим метрикам. Полный живой анализ доступен после подключения API-ключа.";
 
-const CEO: Node = { id: "ceo", ab: "CEO", name: "Sophia Rivers", role: "Стратегическое лидерство", dept: "leadership", score: 96, c: "#818cf8", g: ["#6366f1", "#4f46e5"] };
+const KIND_META = {
+  recommendation: { l: "РЕКОМЕНДАЦИЯ", c: "#818cf8" },
+  alert:          { l: "ALERT",        c: "#f59e0b" },
+  action:         { l: "ДЕЙСТВИЕ",     c: "#34d399" },
+} as const;
+const TL_META = {
+  milestone: { l: "Milestones", c: "#34d399" },
+  risk:      { l: "Risks",      c: "#f43f5e" },
+  decision:  { l: "Decisions",  c: "#818cf8" },
+} as const;
 
-const CHIEFS: Node[] = [
-  { id: "cfo", ab: "CFO", name: "Marcus Chen",    role: "Финансовая стратегия",       dept: "finance",    score: 93, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
-  { id: "cmo", ab: "CMO", name: "Elena Torres",  role: "Рост и маркетинг",           dept: "marketing",  score: 94, c: "#34d399", g: ["#10b981", "#059669"] },
-  { id: "coo", ab: "COO", name: "James Wright",   role: "Операционное превосходство", dept: "operations", score: 92, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
-  { id: "cto", ab: "CTO", name: "Aiden Park", role: "Технологии и инновации",     dept: "tech",       score: 95, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
+// 6 anchor positions for agent cards around the core (xl screens)
+const ANCHORS = [
+  { top: "1%",  left: "36%" },  // CEO — top center
+  { top: "4%",  left: "63%" },  // CFO — top right
+  { top: "42%", left: "0%"  },  // RESEARCH — mid left
+  { top: "42%", left: "63%" },  // MARKETING — mid right
+  { top: "74%", left: "18%" },  // LEGAL — bottom left
+  { top: "74%", left: "55%" },  // TECH — bottom right
 ];
 
-const SPECIALISTS: Node[] = [
-  { id: "fp", ab: "FP", name: "Kim Park", role: "Планирование и бюджет",    dept: "finance",    score: 91, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
-  { id: "ra", ab: "RA", name: "Omar Hassan",      role: "Управление рисками",       dept: "finance",    score: 90, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
-  { id: "ia", ab: "IA", name: "Tom Evans",    role: "Инвест-оценка",            dept: "finance",    score: 92, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
-  { id: "bs", ab: "BS", name: "Chloe Martin",  role: "Бренд и позиционирование", dept: "marketing",  score: 92, c: "#34d399", g: ["#10b981", "#059669"] },
-  { id: "gh", ab: "GH", name: "Alex Kim",     role: "Growth-маркетинг",         dept: "marketing",  score: 91, c: "#34d399", g: ["#10b981", "#059669"] },
-  { id: "mr", ab: "MR", name: "Nina Brown", role: "Рыночная разведка",        dept: "marketing",  score: 91, c: "#34d399", g: ["#10b981", "#059669"] },
-  { id: "po", ab: "PO", name: "Jake Turner", role: "Оптимизация процессов",    dept: "operations", score: 90, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
-  { id: "hr", ab: "HR", name: "Maya Scott",        role: "Персонал и культура",      dept: "operations", score: 87, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
-  { id: "la", ab: "LA", name: "Mia Larson",     role: "Право и комплаенс",        dept: "operations", score: 88, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
-  { id: "ar", ab: "AR", name: "Leo Zhang",     role: "AI и инновации",           dept: "tech",       score: 93, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
-  { id: "da", ab: "DA", name: "Zoe Carter",    role: "Данные и аналитика",       dept: "tech",       score: 92, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
-  { id: "pm", ab: "PM", name: "Sara Patel",   role: "Продуктовая стратегия",    dept: "tech",       score: 93, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
-];
-
-const ALL: Node[] = [CEO, ...CHIEFS, ...SPECIALISTS];
-const byId = Object.fromEntries(ALL.map(n => [n.id, n])) as Record<string, Node>;
-
-// ─── Intelligence script: события, которые «проживает» совет ─────────────────
-type Ev = { from: string; to: string; action: string; thought: string; kind: "signal" | "debate" | "decision" };
-
-const SCRIPT: Ev[] = [
-  { from: "mr",  to: "cmo", action: "Передал анализ рынка",          thought: "Спрос в сегменте B2B вырос на 18% — окно для экспансии",           kind: "signal" },
-  { from: "cmo", to: "ceo", action: "Предложил ускорить экспансию",  thought: "Предлагаю удвоить бюджет каналов, CAC сейчас минимальный",          kind: "debate" },
-  { from: "cfo", to: "ceo", action: "Возразил по бюджету",           thought: "Против: runway сократится до 11 месяцев. Нужен поэтапный план",     kind: "debate" },
-  { from: "ra",  to: "cfo", action: "Оценил риск сценария",          thought: "Риск умеренный: при поэтапном входе просадка кэша ограничена 8%",   kind: "signal" },
-  { from: "cto", to: "ceo", action: "Подтвердил готовность платформы", thought: "Инфраструктура выдержит ×3 нагрузку без доп. затрат",             kind: "debate" },
-  { from: "gh",  to: "cmo", action: "Запустил эксперимент",          thought: "A/B на онбординге: конверсия +2.4 п.п., раскатываю на 100%",        kind: "signal" },
-  { from: "ceo", to: "cfo", action: "Принял решение",                thought: "Решение: экспансия в 2 этапа. CFO — контроль burn, CMO — каналы",   kind: "decision" },
-  { from: "po",  to: "coo", action: "Оптимизировал процесс",         thought: "Цикл обработки заявок сокращён с 46 до 31 часа",                    kind: "signal" },
-  { from: "da",  to: "cto", action: "Обновил витрину данных",        thought: "Метрики удержания теперь считаются в реальном времени",             kind: "signal" },
-  { from: "ia",  to: "cfo", action: "Пересчитал юнит-экономику",     thought: "LTV/CAC = 4.1 — подтверждаю целесообразность инвестиций в рост",    kind: "signal" },
-  { from: "bs",  to: "cmo", action: "Предложил новое позиционирование", thought: "Смещаем фокус с 'AI-инструмент' на 'AI-команда' — резонирует сильнее", kind: "debate" },
-  { from: "hr",  to: "coo", action: "Отчитался по найму",            thought: "Закрыты 2 ключевые позиции, скорость найма +30%",                   kind: "signal" },
-  { from: "pm",  to: "ceo", action: "Защитил роадмап Q3",            thought: "Приоритет: API-интеграции. 62% запросов клиентов — про них",        kind: "debate" },
-  { from: "la",  to: "coo", action: "Проверил комплаенс",            thought: "Новые рынки: юридических блокеров для запуска нет",                 kind: "signal" },
-  { from: "ceo", to: "cmo", action: "Утвердил план",                 thought: "Утверждаю: новое позиционирование + этап 1 экспансии с 1 августа",  kind: "decision" },
-  { from: "ar",  to: "cto", action: "Улучшил модель скоринга",       thought: "Точность прогноза выручки выросла до 91% на бэктестах",             kind: "signal" },
-];
-
-// ─── Radar (6 осей) ───────────────────────────────────────────────────────────
-const RADAR = [
-  { l: "Рост",       v: 0.86 }, { l: "Риск",     v: 0.62 }, { l: "Финансы",  v: 0.9 },
-  { l: "Маркетинг",  v: 0.84 }, { l: "Продажи",  v: 0.78 }, { l: "Операции", v: 0.88 },
-];
-
-// ─── Профили для Command Mode ────────────────────────────────────────────────
-const FOCUS: Record<string, { now: string; tasks: string[]; decision: string }> = {
-  ceo: { now: "Синтез позиций совета по экспансии",            tasks: ["Утвердить план Q3", "Ревью KPI департаментов", "Подготовка к раунду"],            decision: "Экспансия в 2 этапа с контролем burn" },
-  cfo: { now: "Стресс-тест финмодели экспансии",               tasks: ["Пересчёт runway", "Бюджет этапа 1", "Отчёт инвесторам"],                          decision: "Лимит просадки кэша — 8%" },
-  cmo: { now: "Подготовка каналов к этапу 1",                  tasks: ["Медиаплан августа", "Новое позиционирование", "Раскатка A/B на 100%"],            decision: "Фокус на B2B-сегмент" },
-  coo: { now: "Масштабирование операций под рост",             tasks: ["Цикл заявок < 30ч", "Найм в саппорт", "Комплаенс новых рынков"],                   decision: "SLA сохраняем при ×2 нагрузке" },
-  cto: { now: "Готовность платформы к ×3 нагрузке",            tasks: ["API-интеграции", "Реалтайм-метрики", "Модель скоринга v2"],                        decision: "Инфра-бюджет не увеличиваем" },
-};
-const FOCUS_DEFAULT = (n: Node) => ({ now: `${n.role}: текущий анализ`, tasks: ["Сбор данных", "Анализ", "Отчёт руководителю"], decision: "Передаёт выводы в C-level" });
-
-const KIND_META = { signal: { l: "СИГНАЛ", c: "#60a5fa" }, debate: { l: "ДЕБАТЫ", c: "#fbbf24" }, decision: { l: "РЕШЕНИЕ", c: "#34d399" } } as const;
-
-// ─── Board Battle: вопрос → CEO → дебаты → вердикт ───────────────────────────
-type BattleMsg = { agent: string; text: string; done: boolean };
-type Battle = {
-  q: string;
-  phase: "route" | "debate" | "verdict" | "done";
-  debaters: string[];
-  msgs: BattleMsg[];
-  verdict: string;
-  current?: string;
-  offline?: boolean;
-};
-
-function pickDebaters(q: string): string[] {
-  const s = q.toLowerCase();
-  const picks = new Set<string>();
-  if (/(финанс|деньг|бюджет|цен|стоимост|инвест|прибыл|выручк|касс|окупа)/.test(s)) { picks.add("cfo"); picks.add("ia"); }
-  if (/(маркет|клиент|прода|рост|реклам|бренд|аудитор|канал|конверси)/.test(s)) { picks.add("cmo"); picks.add("gh"); }
-  if (/(продукт|технолог|разработ|ai|ии|фич|интеграц|платформ|данн)/.test(s)) { picks.add("cto"); picks.add("pm"); }
-  if (/(риск|опас|провал|конкурент|угроз)/.test(s)) picks.add("ra");
-  if (/(команд|найм|сотрудник|процесс|операц|юрид|договор)/.test(s)) picks.add("coo");
-  const arr = Array.from(picks).slice(0, 3);
-  while (arr.length < 3) for (const d of ["cfo", "cmo", "cto"]) { if (arr.length < 3 && !arr.includes(d)) arr.push(d); }
-  return arr;
-}
-
-
-// офлайн-сценарий, если API недоступен — совет всё равно «думает»
-const FALLBACK_OPINIONS: Record<string, string> = {
-  cfo: "ПРОТИВ поспешности. Сначала считаем юнит-экономику: если LTV/CAC ниже 3, идея съест кэш быстрее, чем даст выручку. Предлагаю пилот с жёстким лимитом бюджета и точкой пересмотра через 30 дней.",
-  cmo: "ЗА, но с фокусом. Спрос проверяем дешёвым тестом: лендинг + 2 канала трафика, решение по данным конверсии, а не по ощущениям. Если CTR и заявки выше бенчмарка — масштабируем.",
-  cto: "РИСКОВАННО без прототипа. Технически реализуемо, но закладываю 2–3 недели на MVP и интеграции. Предлагаю начать с самого узкого сценария, который проверяет гипотезу, — остальное не строим, пока нет спроса.",
-  coo: "ЗА при готовых процессах. До запуска нужны: ответственный владелец, SLA на обработку заявок и чек-лист комплаенса. Иначе рост превратится в хаос поддержки.",
-  ia: "Смотрю на цифры: рынок должен позволять x10 от текущей выручки, иначе усилия не окупятся. Прошу неделю на оценку TAM/SAM и сравнимые сделки — потом дам точную рекомендацию.",
-  gh: "ЗА быстрый эксперимент. За 7 дней прогоняю A/B: два оффера, два сегмента, бюджет минимальный. Данные покажут, где спрос настоящий — дальше вкладываемся только туда.",
-  pm: "Смотрю от пользователя: какую боль решаем и почему сейчас? Предлагаю 5 проблемных интервью до строчки кода. Если боль подтверждается — режем скоуп до одной ключевой фичи.",
-  ra: "Главные риски: конкуренты с большим бюджетом и регуляторика. Оба управляемы, если входим поэтапно и не жжём больше 10% резерва. Стоп-лосс обязателен.",
-};
-const FALLBACK_VERDICT = "Вердикт совета: гипотеза достойна проверки, но входим поэтапно. Шаг 1 — дешёвый тест спроса за 7–14 дней с жёстким лимитом бюджета. Шаг 2 — если метрики выше порога, собираем минимальный MVP. Шаг 3 — пересмотр через 30 дней по фактическим цифрам, а не ожиданиям. Полный анализ доступен после подключения API-ключа.";
-
-// ─── Layout: орбиты вокруг ядра ──────────────────────────────────────────────
-const W = 880, H = 600, CX = W / 2, CY = H / 2 - 10;
-
-function orbitPos() {
-  const pos: Record<string, { x: number; y: number }> = {};
-  // CEO + chiefs — внутренняя орбита
-  const inner = [CEO, ...CHIEFS];
-  inner.forEach((n, i) => {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / inner.length;
-    pos[n.id] = { x: CX + 158 * Math.cos(a), y: CY + 138 * Math.sin(a) };
-  });
-  // специалисты — внешняя орбита
-  SPECIALISTS.forEach((n, i) => {
-    const a = -Math.PI / 2 + Math.PI / 12 + (i * 2 * Math.PI) / SPECIALISTS.length;
-    pos[n.id] = { x: CX + 330 * Math.cos(a), y: CY + 242 * Math.sin(a) };
-  });
-  return pos;
-}
-const POS = orbitPos();
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
-type LogItem = Ev & { t: string; id: number };
-
-export default function ExecutivesPage() {
-  const [step, setStep] = useState(0);
-  const [log, setLog] = useState<LogItem[]>([]);
-  const [selected, setSelected] = useState<string | null>(null);
-  const [paused, setPaused] = useState(false);
-  const [battle, setBattle] = useState<Battle | null>(null);
-  const [question, setQuestion] = useState("");
-  const battleBusy = battle !== null && battle.phase !== "done";
+export default function BoardCorePage() {
+  const [agents, setAgents]   = useState<BoardAgent[]>(() => getBoardAgents());
+  const [metrics, setMetrics] = useState<BoardMetrics>(() => getBoardMetrics());
+  const [debate, setDebate]   = useState(() => BOARD_DEBATE.map(d => ({ ...d, state: "" as "" | "accepted" | "rejected" })));
+  const [status, setStatus]   = useState("ACTIVE // OPTIMIZING");
   const reduced = useRef(false);
+
+  // Deep dive overlay
+  const [dive, setDive] = useState<{ agent: BoardAgent; text: string; busy: boolean; offline: boolean } | null>(null);
+  // Command line
+  const [cmd, setCmd] = useState("");
+  const [cmdOut, setCmdOut] = useState<{ text: string; busy: boolean; offline: boolean } | null>(null);
 
   useEffect(() => {
     reduced.current = typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduced.current) setPaused(true);
   }, []);
 
+  // Live state from backend (demo-safe) + periodic refresh
   useEffect(() => {
-    if (paused || battle) return;
-    const iv = setInterval(() => setStep(s => s + 1), 2600);
-    return () => clearInterval(iv);
-  }, [paused, battle]);
-
-  // ── Board Battle runner ──
-  const appendToLast = useCallback((t: string) => {
-    setBattle(b => {
-      if (!b || b.msgs.length === 0) return b;
-      const msgs = [...b.msgs];
-      msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], text: msgs[msgs.length - 1].text + t };
-      return { ...b, msgs };
-    });
+    let alive = true;
+    const load = () =>
+      fetch("/api/board/state").then(r => r.json()).then(d => {
+        if (!alive || !d.success) return;
+        setAgents(d.data.agents); setMetrics(d.data.metrics); setStatus(d.data.status);
+      }).catch(() => {});
+    load();
+    const iv = setInterval(load, 5000);
+    return () => { alive = false; clearInterval(iv); };
   }, []);
 
-  const runBattle = useCallback(async (q: string) => {
-    setSelected(null);
-    const debaters = pickDebaters(q);
-    setBattle({ q, phase: "route", debaters, msgs: [], verdict: "" });
-    await new Promise(r => setTimeout(r, 1200));
-
-    const opinions: { id: string; text: string }[] = [];
-    let offline = false;
-
-    for (const id of debaters) {
-      const n = byId[id];
-      setBattle(b => b && ({ ...b, phase: "debate", current: id, offline, msgs: [...b.msgs, { agent: id, text: "", done: false }] }));
-      const prev = opinions.map(o => `${byId[o.id].name} (${byId[o.id].role}): ${o.text}`).join("\n\n");
-      const persona = `Ты — ${n.name}, ${n.role} в совете директоров Apex AI. Основатель задал совету вопрос. ${prev ? `Мнения коллег до тебя:\n${prev}\n\nМожешь согласиться или аргументированно поспорить с ними — это дебаты.` : "Ты выступаешь первым."} Ответь на русском. Максимум 4 предложения. Начни с чёткой позиции одним словом в верхнем регистре (ЗА / ПРОТИВ / РИСКОВАННО), затем аргументы строго из твоей зоны ответственности. Конкретика и цифры, никакой воды. Обычный текст без markdown-разметки (никаких ** и #).`;
-      let text = "";
-      if (!offline) {
-        try {
-          text = await streamChat(q, persona, appendToLast);
-        } catch { offline = true; }
-      }
-      if (offline) {
-        text = FALLBACK_OPINIONS[id] ?? FALLBACK_OPINIONS.cfo;
-        for (const ch of text) { appendToLast(ch); await new Promise(r => setTimeout(r, 9)); }
-      }
-      opinions.push({ id, text });
-      setBattle(b => {
-        if (!b) return b;
-        const msgs = [...b.msgs];
-        msgs[msgs.length - 1] = { ...msgs[msgs.length - 1], done: true };
-        return { ...b, msgs, offline };
-      });
-      await new Promise(r => setTimeout(r, 350));
+  const runDeepDive = useCallback(async (a: BoardAgent) => {
+    setDive({ agent: a, text: "", busy: true, offline: false });
+    const persona = `Ты — ${a.name}, ${a.role} в совете директоров Apex AI. Твоя текущая задача: «${a.task}». Дай глубокий разбор по своей зоне ответственности на русском: 5–8 предложений, конкретика и цифры, обычный текст без markdown (никаких ** и #). Заверши 2–3 практическими шагами.`;
+    try {
+      await streamChat(a.task, persona, t => setDive(d => d ? { ...d, text: d.text + t } : d));
+      setDive(d => d ? { ...d, busy: false } : d);
+    } catch {
+      const fb = OFFLINE_DEEP(a);
+      for (const ch of fb) { setDive(d => d ? { ...d, text: d.text + ch, offline: true } : d); await new Promise(r => setTimeout(r, 7)); }
+      setDive(d => d ? { ...d, busy: false } : d);
     }
-
-    setBattle(b => b && ({ ...b, phase: "verdict", current: "ceo" }));
-    const ceoPersona = `Ты — Sophia Rivers, CEO совета директоров Apex AI. Основатель задал вопрос, совет провёл дебаты. Мнения:\n${opinions.map(o => `${byId[o.id].name}: ${o.text}`).join("\n\n")}\n\nВынеси финальный вердикт на русском: взвесь споры, прими однозначное решение и дай 2–3 конкретных следующих шага. Максимум 6 предложений. Обычный текст без markdown-разметки (никаких ** и #).`;
-    if (!offline) {
-      try {
-        await streamChat(q, ceoPersona, t => setBattle(b => b && ({ ...b, verdict: b.verdict + t })));
-      } catch { offline = true; }
-    }
-    if (offline) {
-      for (const ch of FALLBACK_VERDICT) {
-        setBattle(b => b && ({ ...b, verdict: b.verdict + ch }));
-        await new Promise(r => setTimeout(r, 9));
-      }
-    }
-    setBattle(b => b && ({ ...b, phase: "done", current: undefined, offline }));
-  }, [appendToLast]);
-
-  const submitQuestion = useCallback(() => {
-    const q = question.trim();
-    if (!q || battleBusy) return;
-    setQuestion("");
-    void runBattle(q);
-  }, [question, battleBusy, runBattle]);
-
-  useEffect(() => {
-    const ev = SCRIPT[step % SCRIPT.length];
-    const t = new Date();
-    const ts = `${String(t.getHours()).padStart(2, "0")}:${String(t.getMinutes()).padStart(2, "0")}:${String(t.getSeconds()).padStart(2, "0")}`;
-    setLog(l => [{ ...ev, t: ts, id: step }, ...l].slice(0, 24));
-  }, [step]);
-
-  // активные связи = последние 3 события
-  const active = useMemo(() => log.slice(0, 3), [log]);
-  const current = log[0];
-  const activeIds = useMemo(() => new Set(active.flatMap(e => [e.from, e.to])), [active]);
-
-  const onSelect = useCallback((id: string) => setSelected(s => (s === id ? null : id)), []);
-  useEffect(() => {
-    const h = (e: KeyboardEvent) => { if (e.key === "Escape") setSelected(null); };
-    window.addEventListener("keydown", h);
-    return () => window.removeEventListener("keydown", h);
   }, []);
 
-  const sel = selected ? byId[selected] : null;
-  const selFocus = sel ? (FOCUS[sel.id] ?? FOCUS_DEFAULT(sel)) : null;
-  // связи выбранного агента из скрипта
-  const selLinks = useMemo(() => {
-    if (!selected) return [];
-    const ids = new Set<string>();
-    SCRIPT.forEach(e => { if (e.from === selected) ids.add(e.to); if (e.to === selected) ids.add(e.from); });
-    return Array.from(ids);
-  }, [selected]);
+  const runCommand = useCallback(async () => {
+    const q = cmd.trim();
+    if (!q || cmdOut?.busy) return;
+    setCmd("");
+    setCmdOut({ text: "", busy: true, offline: false });
+    const persona = `Ты — Sophia Rivers, CEO совета директоров Apex AI. Основатель отдал команду совету: «${q}». Синтезируй ответ от лица совета на русском: что делаем, кто из директоров задействован, 2–3 конкретных шага. Максимум 6 предложений, обычный текст без markdown.`;
+    try {
+      await streamChat(q, persona, t => setCmdOut(o => o ? { ...o, text: o.text + t } : o));
+      setCmdOut(o => o ? { ...o, busy: false } : o);
+    } catch {
+      for (const ch of OFFLINE_VERDICT) { setCmdOut(o => o ? { ...o, text: o.text + ch, offline: true } : o); await new Promise(r => setTimeout(r, 7)); }
+      setCmdOut(o => o ? { ...o, busy: false } : o);
+    }
+  }, [cmd, cmdOut]);
+
+  const paused = reduced.current;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#05060A", padding: "28px 28px 20px" }}>
+    <div style={{ minHeight: "100vh", background: "#05060A", padding: "20px 20px 16px" }}>
       {/* Header */}
-      <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", flexWrap: "wrap", gap: 16, marginBottom: 20 }}>
-        <div>
-          <div className="term-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>{"// EXECUTIVE INTELLIGENCE"}</div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#E5E7EB", letterSpacing: "-0.02em" }}>
-            Живой интеллект совета <span className="term-blink" style={{ color: "#6366f1" }}>▋</span>
-          </h1>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginTop: 4 }}>
-            {selected ? `Командный режим: ${byId[selected].name}. Esc — выход.` : "20 агентов думают, спорят и принимают решения вокруг ядра. Кликните агента — командный режим."}
-          </p>
-        </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          <span className="term-mono" style={{ fontSize: 11, color: current ? KIND_META[current.kind].c : "rgba(255,255,255,0.4)" }}>
-            ● {current ? KIND_META[current.kind].l : "OFFLINE"}
-          </span>
-          <button onClick={() => setPaused(p => !p)}
-            className="term-mono"
-            style={{ padding: "8px 14px", borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.7)", fontSize: 11, cursor: "pointer" }}>
-            {paused ? "▶ ВОЗОБНОВИТЬ" : "‖ ПАУЗА"}
-          </button>
-        </div>
+      <div style={{ marginBottom: 16 }}>
+        <div className="term-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>{"// АПЕКС АЙ: СОВЕТ ДИРЕКТОРОВ · РАСШИРЕННЫЙ ФУНКЦИОНАЛ"}</div>
+        <h1 style={{ fontSize: 28, fontWeight: 800, color: "#E5E7EB", letterSpacing: "-0.02em", margin: 0 }}>
+          AI BOARD CORE <span className="term-blink" style={{ color: "#6366f1" }}>▋</span>
+        </h1>
       </div>
 
-      {/* ── Вопрос совету ── */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, alignItems: "center", padding: "12px 16px", borderRadius: 14, border: "1px solid rgba(99,102,241,0.25)", background: "rgba(99,102,241,0.05)" }}>
-        <span className="term-mono" style={{ color: "#818cf8", fontSize: 13, flexShrink: 0 }}>{">"}</span>
-        <input
-          value={question}
-          onChange={e => setQuestion(e.target.value)}
-          onKeyDown={e => { if (e.key === "Enter") submitQuestion(); }}
-          disabled={battleBusy}
-          placeholder="Задайте вопрос совету — CEO раскидает его директорам, они устроят дебаты и вынесут вердикт…"
-          style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "#E5E7EB", fontSize: 13.5, minWidth: 0 }}
-        />
-        <button onClick={submitQuestion} disabled={battleBusy || !question.trim()}
-          className="term-mono"
-          style={{ padding: "9px 18px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, cursor: battleBusy ? "wait" : "pointer", color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", opacity: battleBusy || !question.trim() ? 0.55 : 1, flexShrink: 0 }}>
-          {battleBusy ? "СОВЕТ ДУМАЕТ…" : "▸ СПРОСИТЬ СОВЕТ"}
-        </button>
-        {battle && !battleBusy && (
-          <button onClick={() => setBattle(null)} className="term-mono"
-            style={{ padding: "9px 14px", borderRadius: 10, fontSize: 11, cursor: "pointer", color: "rgba(255,255,255,0.65)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0 }}>
-            СБРОС
-          </button>
-        )}
-      </div>
+      <div className="bc-grid">
+        {/* ── LEFT RAIL ── */}
+        <aside style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <Panel label="BUSINESS HEALTH & SUSTAINABILITY">
+            <HealthRing value={metrics.healthIndex} />
+          </Panel>
+          <Panel label="REVENUE PREDICTION">
+            <div style={{ fontSize: 30, fontWeight: 800, color: "#34d399", letterSpacing: "-0.02em" }}>+{metrics.revenuePrediction}%</div>
+            <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>вероятность роста MoM</div>
+            <AreaSpark data={metrics.marketPosition} color="#34d399" />
+          </Panel>
+          <Panel label="MARKET POSITION">
+            <BarsSpark data={metrics.marketPosition} />
+          </Panel>
+          <Panel label="RISK LEVEL">
+            <RiskRadar data={metrics.riskRadar} />
+          </Panel>
+          <Panel label="SCENARIO">
+            {metrics.scenarios.map(s => (
+              <div key={s.l} style={{ marginBottom: 8 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10.5, color: "rgba(255,255,255,0.55)", marginBottom: 3 }}>
+                  <span>{s.l}</span><span className="term-value">{Math.round(s.v * 100)}%</span>
+                </div>
+                <div style={{ height: 5, borderRadius: 99, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+                  <motion.div initial={{ width: 0 }} animate={{ width: `${s.v * 100}%` }} transition={{ duration: 1.1, ease: [0.22, 1, 0.36, 1] }}
+                    style={{ height: "100%", background: s.l === "Худший" ? "#f43f5e" : s.l === "Базовый" ? "#f59e0b" : "#34d399" }} />
+                </div>
+              </div>
+            ))}
+          </Panel>
+          <Panel label="АВТО-РЕКОМЕНДАЦИИ ИИ">
+            {BOARD_RECS.map(r => (
+              <div key={r} style={{ display: "flex", gap: 7, fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 6, lineHeight: 1.4 }}>
+                <span style={{ color: "#818cf8", flexShrink: 0 }}>▸</span>{r}
+              </div>
+            ))}
+          </Panel>
+        </aside>
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 340px", gap: 16, alignItems: "start" }}>
-        {/* ── Living field ── */}
-        <div style={{ borderRadius: 22, border: "1px solid rgba(255,255,255,0.07)", background: "radial-gradient(ellipse at 50% 42%, rgba(99,102,241,0.08), transparent 55%), rgba(255,255,255,0.015)", overflow: "hidden", position: "relative" }}>
-          <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
-            <defs>
-              <radialGradient id="exl-core" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#818cf8" stopOpacity="0.9" />
-                <stop offset="55%" stopColor="#6366f1" stopOpacity="0.35" />
-                <stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
-              </radialGradient>
-              {ALL.map(n => (
-                <linearGradient key={n.id} id={`exl-g-${n.id}`} x1="0" y1="0" x2="1" y2="1">
-                  <stop offset="0%" stopColor={n.g[0]} /><stop offset="100%" stopColor={n.g[1]} />
-                </linearGradient>
-              ))}
-            </defs>
-
-            {/* орбиты */}
-            <ellipse cx={CX} cy={CY} rx={158} ry={138} fill="none" stroke="rgba(255,255,255,0.05)" strokeDasharray="2 6" />
-            <ellipse cx={CX} cy={CY} rx={330} ry={242} fill="none" stroke="rgba(255,255,255,0.04)" strokeDasharray="2 6" />
-
-            {/* связи выбранного агента (command mode) */}
-            {sel && selLinks.map(id => {
-              const a = POS[sel.id], b = POS[id];
-              return (
-                <path key={id} d={`M${a.x},${a.y} Q${CX},${CY} ${b.x},${b.y}`} fill="none"
-                  stroke={sel.c} strokeWidth={1.4} strokeOpacity={0.5} strokeDasharray="5 5"
-                  style={{ animation: "exl-dash 1.2s linear infinite" }} />
-              );
-            })}
-
-            {/* связи батла: CEO → дебатёры */}
-            {battle && [ "ceo", ...battle.debaters ].map(id => {
-              if (id === "ceo") return null;
-              const a = POS.ceo, b = POS[id];
-              const isCur = battle.current === id;
-              const c = byId[id].c;
-              const d = `M${a.x},${a.y} Q${CX},${CY} ${b.x},${b.y}`;
-              return (
-                <g key={`bt-${id}`}>
-                  <path d={d} fill="none" stroke={c} strokeWidth={isCur ? 2.2 : 1.2} strokeOpacity={isCur ? 0.8 : 0.35} strokeDasharray="6 6" style={{ animation: "exl-dash 1.1s linear infinite" }} />
-                  {isCur && (
-                    <circle r={4} fill={c}>
-                      <animateMotion dur="1.3s" repeatCount="indefinite" path={d} />
-                    </circle>
-                  )}
-                </g>
-              );
-            })}
-            {battle?.phase === "verdict" && (
-              <circle cx={POS.ceo.x} cy={POS.ceo.y} r={42} fill="none" stroke="#818cf8" strokeWidth={1.6} strokeOpacity={0.7}
-                style={{ animation: "exl-ping 1.4s ease-out infinite", transformOrigin: `${POS.ceo.x}px ${POS.ceo.y}px` }} />
-            )}
-
-            {/* живые связи последних событий */}
-            {!sel && !battle && active.map((e, i) => {
-              const a = POS[e.from], b = POS[e.to];
-              if (!a || !b) return null;
-              const d = `M${a.x},${a.y} Q${CX},${CY} ${b.x},${b.y}`;
-              const c = byId[e.from].c;
-              return (
-                <g key={e.id} opacity={1 - i * 0.32}>
-                  <path d={d} fill="none" stroke={c} strokeWidth={i === 0 ? 1.8 : 1.1} strokeOpacity={0.55} strokeDasharray="6 6" style={{ animation: "exl-dash 1.1s linear infinite" }} />
-                  {i === 0 && !paused && (
-                    <circle r={3.5} fill={c}>
-                      <animateMotion dur="1.6s" repeatCount="indefinite" path={d} />
-                    </circle>
-                  )}
-                </g>
-              );
-            })}
-
-            {/* ядро сознания */}
-            <g style={{ cursor: "default" }}>
-              <circle cx={CX} cy={CY} r={92} fill="url(#exl-core)" style={paused ? undefined : { animation: "exl-breathe 3.2s ease-in-out infinite" }} />
-              <circle cx={CX} cy={CY} r={46} fill="#0B0D16" stroke="rgba(129,140,248,0.5)" strokeWidth={1.2} />
-              <circle cx={CX} cy={CY} r={58} fill="none" stroke="rgba(99,102,241,0.35)" strokeWidth={1} strokeDasharray="3 7" style={paused ? undefined : { animation: "exl-spin 14s linear infinite", transformOrigin: `${CX}px ${CY}px` }} />
-              <text x={CX} y={CY - 4} textAnchor="middle" fill="#E5E7EB" fontSize={13} fontWeight={800} fontFamily="var(--font-geist-mono), monospace">APEX</text>
-              <text x={CX} y={CY + 12} textAnchor="middle" fill="rgba(129,140,248,0.9)" fontSize={9} fontFamily="var(--font-geist-mono), monospace" letterSpacing="2">CORE</text>
-            </g>
-
-            {/* агенты */}
-            {ALL.map(n => {
-              const p = POS[n.id];
-              const isSel = selected === n.id;
-              const isActive = activeIds.has(n.id) && !selected && !battle;
-              const inBattle = battle ? (n.id === "ceo" || battle.debaters.includes(n.id)) : false;
-              const isSpeaking = battle?.current === n.id;
-              const dim = battle ? (inBattle ? 1 : 0.15) : selected ? (isSel || selLinks.includes(n.id) ? 1 : 0.18) : 1;
-              const r = n.id === "ceo" ? 30 : CHIEFS.some(c => c.id === n.id) ? 26 : 21;
-              return (
-                <g key={n.id} onClick={() => onSelect(n.id)} style={{ cursor: "pointer", opacity: dim, transition: "opacity 0.35s" }}>
-                  {(isActive || isSel || isSpeaking) && (
-                    <circle cx={p.x} cy={p.y} r={r + 7} fill="none" stroke={n.c} strokeWidth={1.4} strokeOpacity={0.65}
-                      style={paused ? undefined : { animation: "exl-ping 1.6s ease-out infinite", transformOrigin: `${p.x}px ${p.y}px` }} />
-                  )}
-                  <circle cx={p.x} cy={p.y} r={r} fill={`url(#exl-g-${n.id})`} stroke="rgba(255,255,255,0.18)" strokeWidth={1} />
-                  <text x={p.x} y={p.y + 4} textAnchor="middle" fill="#fff" fontSize={r > 24 ? 11 : 9.5} fontWeight={800} fontFamily="var(--font-geist-mono), monospace">{n.ab}</text>
-                  <text x={p.x} y={p.y + r + 15} textAnchor="middle" fill={isSel ? n.c : "rgba(255,255,255,0.6)"} fontSize={9.5} fontFamily="var(--font-geist-mono), monospace" paintOrder="stroke" stroke="#05060A" strokeWidth={3}>{n.name}</text>
-                </g>
-              );
+        {/* ── CENTER STAGE ── */}
+        <section className="bc-stage">
+          {/* connecting lines */}
+          <svg className="bc-lines" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden>
+            {ANCHORS.map((_, i) => {
+              const pts = [[48,14],[84,18],[11,54],[85,54],[27,84],[69,84]][i];
+              return <line key={i} x1="50" y1="50" x2={pts[0]} y2={pts[1]} stroke="rgba(99,102,241,0.22)" strokeWidth="0.3" strokeDasharray="1 1" />;
             })}
           </svg>
 
-          {/* текущая мысль поверх поля */}
-          <AnimatePresence mode="wait">
-            {current && !selected && !battle && (
-              <motion.div key={current.id}
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                style={{ position: "absolute", left: 16, bottom: 14, right: 16, display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 14px", borderRadius: 12, background: "rgba(5,6,10,0.82)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(8px)" }}>
-                <span className="term-mono" style={{ fontSize: 10, fontWeight: 800, color: KIND_META[current.kind].c, whiteSpace: "nowrap", marginTop: 2 }}>▸ {byId[current.from].ab} → {byId[current.to].ab}</span>
-                <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.78)", lineHeight: 1.5 }}>{current.thought}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+          {/* APEX CORE */}
+          <div className="bc-core">
+            <div className="bc-core-glow" style={paused ? undefined : { animation: "bc-breathe 3.4s ease-in-out infinite" }} />
+            <div className="bc-core-ring" style={paused ? undefined : { animation: "bc-spin 16s linear infinite" }} />
+            <div className="bc-core-inner">
+              <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+                <CoreStat l="RES" v={`${metrics.resourceUtilization}%`} />
+                <CoreStat l="LAT" v={`${metrics.decisionLatency}ms`} />
+                <CoreStat l="COLLAB" v={`${metrics.collaborationIndex}%`} />
+              </div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#fff", letterSpacing: "0.02em", fontFamily: "var(--font-geist-mono), monospace" }}>APEX CORE</div>
+              <div className="term-mono" style={{ fontSize: 9.5, color: "#34d399", marginTop: 4, letterSpacing: "0.08em" }}>
+                SYSTEM INTELLIGENCE: <span style={{ color: "#a5b4fc" }}>{status}</span>
+              </div>
+            </div>
+          </div>
 
-        {/* ── Right rail ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          {/* Battle / Command mode / Debate stream */}
-          {battle ? (
-            <div style={{ borderRadius: 16, border: "1px solid rgba(99,102,241,0.3)", background: "rgba(255,255,255,0.02)", padding: 16 }}>
-              <div className="term-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 4 }}>{"// СОВЕТ-БАТЛ"}</div>
-              <div style={{ fontSize: 12.5, color: "#E5E7EB", fontWeight: 600, lineHeight: 1.45, marginBottom: 10 }}>«{battle.q}»</div>
-              {battle.phase === "route" && (
-                <div className="term-mono" style={{ fontSize: 11, color: "#818cf8" }}>
-                  ▸ CEO распределяет вопрос: {battle.debaters.map(d => byId[d].ab).join(" · ")}<span className="term-blink">▋</span>
-                </div>
-              )}
-              <div style={{ display: "flex", flexDirection: "column", gap: 10, maxHeight: 320, overflowY: "auto" }}>
-                {battle.msgs.map((m, i) => {
-                  const n = byId[m.agent];
-                  return (
-                    <motion.div key={i} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}
-                      style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-                      <span style={{ width: 28, height: 28, flexShrink: 0, borderRadius: 8, background: `linear-gradient(135deg,${n.g[0]},${n.g[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff", fontFamily: "var(--font-geist-mono), monospace" }}>{n.ab}</span>
-                      <div style={{ minWidth: 0 }}>
-                        <div className="term-mono" style={{ fontSize: 9.5, color: n.c, marginBottom: 2 }}>{n.name.toUpperCase()}</div>
-                        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.5, margin: 0, whiteSpace: "pre-wrap" }}>
-                          {m.text.replace(/\*\*/g, "")}{!m.done && <span className="term-blink" style={{ color: n.c }}>▋</span>}
-                        </p>
+          {/* agent cards */}
+          {agents.slice(0, 6).map((a, i) => (
+            <div key={a.slug} className="bc-agent" style={{ top: ANCHORS[i].top, left: ANCHORS[i].left }}>
+              <AgentCard a={a} onDive={() => runDeepDive(a)} paused={paused} />
+            </div>
+          ))}
+        </section>
+
+        {/* ── RIGHT RAIL ── */}
+        <aside style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <Panel label="ИНТЕРАКТИВНОЕ ОБСУЖДЕНИЕ СОВЕТА ИИ">
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {debate.map((d, i) => {
+                const km = KIND_META[d.kind];
+                return (
+                  <div key={i} style={{ borderRadius: 12, border: `1px solid ${km.c}33`, background: "rgba(255,255,255,0.02)", padding: 11 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                      <span className="term-mono" style={{ fontSize: 10, fontWeight: 800, color: km.c }}>{d.role}</span>
+                      <span className="term-mono" style={{ fontSize: 8, color: "rgba(255,255,255,0.35)" }}>{km.l}</span>
+                    </div>
+                    <div style={{ fontSize: 12, color: "rgba(255,255,255,0.72)", lineHeight: 1.45, marginBottom: 8 }}>{d.text}</div>
+                    {d.state ? (
+                      <div className="term-mono" style={{ fontSize: 10, color: d.state === "accepted" ? "#34d399" : "#f43f5e" }}>
+                        {d.state === "accepted" ? "✓ ПРИНЯТО К РЕАЛИЗАЦИИ" : "✕ ОТКЛОНЕНО · НА ПЕРЕСМОТР"}
                       </div>
-                    </motion.div>
-                  );
-                })}
-                {(battle.phase === "verdict" || battle.phase === "done") && (
-                  <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    style={{ borderRadius: 12, border: "1px solid rgba(129,140,248,0.4)", background: "rgba(99,102,241,0.08)", padding: 12 }}>
-                    <div className="term-mono" style={{ fontSize: 9.5, color: "#818cf8", marginBottom: 4 }}>▸ ВЕРДИКТ CEO</div>
-                    <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.85)", lineHeight: 1.55, margin: 0, whiteSpace: "pre-wrap" }}>
-                      {battle.verdict.replace(/\*\*/g, "")}{battle.phase === "verdict" && <span className="term-blink" style={{ color: "#818cf8" }}>▋</span>}
-                    </p>
-                  </motion.div>
+                    ) : (
+                      <div style={{ display: "flex", gap: 6 }}>
+                        <button onClick={() => setDebate(p => p.map((x, j) => j === i ? { ...x, state: "accepted" } : x))}
+                          className="term-mono" style={{ flex: 1, padding: "6px", borderRadius: 8, border: "none", cursor: "pointer", fontSize: 9.5, fontWeight: 700, color: "#fff", background: "linear-gradient(135deg,#10b981,#059669)" }}>
+                          ПРИНЯТЬ
+                        </button>
+                        <button onClick={() => setDebate(p => p.map((x, j) => j === i ? { ...x, state: "rejected" } : x))}
+                          className="term-mono" style={{ flex: 1, padding: "6px", borderRadius: 8, cursor: "pointer", fontSize: 9.5, fontWeight: 700, color: "#fca5a5", background: "rgba(244,63,94,0.1)", border: "1px solid rgba(244,63,94,0.3)" }}>
+                          ОТКЛОНИТЬ
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </Panel>
+
+          <Panel label="ЦЕНТР УПРАВЛЕНИЯ МИССИЯМИ">
+            {["Запрос по конкуренту Y", "Симуляция стратегии Z", "Финмодель Германии"].map(p => (
+              <div key={p} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "7px 0", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.7)" }}>{p}</span>
+                <span className="term-mono" style={{ fontSize: 9, color: "#34d399", display: "flex", alignItems: "center", gap: 4 }}>
+                  <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#34d399" }} />Active
+                </span>
+              </div>
+            ))}
+          </Panel>
+
+          <Panel label="КОМАНДНАЯ СТРОКА АПЕКС АЙ">
+            <div style={{ display: "flex", gap: 6, marginBottom: 8 }}>
+              {["Запрос по конкуренту Y", "Симуляция стратегии Z"].map(q => (
+                <button key={q} onClick={() => setCmd(q)} className="term-mono"
+                  style={{ flex: 1, padding: "6px 8px", borderRadius: 8, cursor: "pointer", fontSize: 9, color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", lineHeight: 1.3 }}>
+                  {q}
+                </button>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 6 }}>
+              <span className="term-mono" style={{ color: "#818cf8", fontSize: 13, alignSelf: "center" }}>{">"}</span>
+              <input value={cmd} onChange={e => setCmd(e.target.value)} onKeyDown={e => { if (e.key === "Enter") void runCommand(); }}
+                disabled={cmdOut?.busy} placeholder="Команда совету…"
+                style={{ flex: 1, minWidth: 0, height: 34, padding: "0 10px", borderRadius: 9, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.1)", outline: "none", color: "#E5E7EB", fontSize: 12 }} />
+              <button onClick={() => void runCommand()} disabled={cmdOut?.busy || !cmd.trim()} className="term-mono"
+                style={{ height: 34, padding: "0 12px", borderRadius: 9, border: "none", fontSize: 10, fontWeight: 800, color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", cursor: cmdOut?.busy ? "wait" : "pointer", opacity: cmdOut?.busy || !cmd.trim() ? 0.55 : 1 }}>
+                {cmdOut?.busy ? "…" : "▸"}
+              </button>
+            </div>
+            {cmdOut && (
+              <div style={{ marginTop: 10, borderRadius: 9, background: "rgba(5,6,10,0.6)", border: "1px solid rgba(255,255,255,0.07)", padding: "10px 12px" }}>
+                <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.78)", lineHeight: 1.55, margin: 0, whiteSpace: "pre-wrap" }}>
+                  {cmdOut.text}{cmdOut.busy && <span className="term-blink" style={{ color: "#818cf8" }}>▋</span>}
+                </p>
+                {cmdOut.offline && !cmdOut.busy && (
+                  <div className="term-mono" style={{ fontSize: 9, color: "rgba(251,191,36,0.8)", marginTop: 6 }}>⚠ OFFLINE — настройте API-ключ</div>
                 )}
               </div>
-              {battle.offline && battle.phase === "done" && (
-                <div className="term-mono" style={{ fontSize: 10, color: "rgba(251,191,36,0.8)", marginTop: 8 }}>⚠ OFFLINE-РЕЖИМ: API-ключ не настроен, показан демо-сценарий</div>
-              )}
-            </div>
-          ) : sel && selFocus ? (
-            <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              style={{ borderRadius: 16, border: `1px solid ${sel.c}44`, background: "rgba(255,255,255,0.025)", padding: 18 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 12 }}>
-                <div style={{ width: 44, height: 44, borderRadius: 12, background: `linear-gradient(135deg,${sel.g[0]},${sel.g[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: "#fff", fontFamily: "var(--font-geist-mono), monospace" }}>{sel.ab}</div>
-                <div>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "#E5E7EB" }}>{sel.name}</div>
-                  <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.5)" }}>{sel.role} · score {sel.score}</div>
-                </div>
-              </div>
-              <div className="term-label" style={{ color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>{"// СЕЙЧАС"}</div>
-              <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", marginBottom: 12, lineHeight: 1.5 }}>{selFocus.now}</div>
-              <div className="term-label" style={{ color: "rgba(255,255,255,0.35)", marginBottom: 6 }}>{"// ЗАДАЧИ"}</div>
-              {selFocus.tasks.map(t => (
-                <div key={t} style={{ display: "flex", gap: 8, fontSize: 12.5, color: "rgba(255,255,255,0.65)", marginBottom: 5 }}>
-                  <span style={{ color: sel.c }}>▸</span>{t}
-                </div>
-              ))}
-              <div className="term-label" style={{ color: "rgba(255,255,255,0.35)", margin: "10px 0 4px" }}>{"// ПОСЛЕДНЕЕ РЕШЕНИЕ"}</div>
-              <div style={{ fontSize: 12.5, color: sel.c, lineHeight: 1.5 }}>{selFocus.decision}</div>
-              <Link href={`/dashboard/chat?agent=${sel.id}`} className="term-mono"
-                style={{ display: "block", marginTop: 14, padding: "10px", borderRadius: 10, textAlign: "center", fontSize: 11, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${sel.g[0]},${sel.g[1]})`, textDecoration: "none" }}>
-                ▸ ОБСУДИТЬ С {sel.ab}
-              </Link>
-            </motion.div>
-          ) : (
-            <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", padding: 16 }}>
-              <div className="term-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>{"// ДЕБАТЫ СОВЕТА · LIVE"}</div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, maxHeight: 236, overflow: "hidden" }}>
-                <AnimatePresence initial={false}>
-                  {log.slice(0, 5).map(e => (
-                    <motion.div key={e.id} layout initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                      transition={{ duration: 0.3 }}
-                      style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-                      <span style={{ width: 26, height: 26, flexShrink: 0, borderRadius: 8, background: `linear-gradient(135deg,${byId[e.from].g[0]},${byId[e.from].g[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 8.5, fontWeight: 800, color: "#fff", fontFamily: "var(--font-geist-mono), monospace" }}>{byId[e.from].ab}</span>
-                      <div style={{ minWidth: 0 }}>
-                        <span className="term-mono" style={{ fontSize: 9.5, color: KIND_META[e.kind].c }}>{KIND_META[e.kind].l}</span>
-                        <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.65)", lineHeight: 1.45, margin: 0 }}>{e.thought}</p>
-                      </div>
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-              </div>
-            </div>
-          )}
+            )}
+          </Panel>
+        </aside>
+      </div>
 
-          {/* Executive Radar */}
-          <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", padding: 16 }}>
-            <div className="term-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>{"// EXECUTIVE RADAR"}</div>
-            <Radar />
+      {/* ── TIMELINE ── */}
+      <div style={{ marginTop: 14, borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.015)", padding: "14px 18px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 8, marginBottom: 14 }}>
+          <div>
+            <div className="term-label" style={{ color: "rgba(255,255,255,0.4)" }}>{"// ДЕТАЛИЗИРОВАННАЯ ХРОНОЛОГИЯ МИССИЙ"}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>Клик по событию подсвечивает связанные знания</div>
+          </div>
+          <div style={{ display: "flex", gap: 14 }}>
+            {Object.values(TL_META).map(m => (
+              <span key={m.l} style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10.5, color: "rgba(255,255,255,0.5)" }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: m.c }} />{m.l}
+              </span>
+            ))}
           </div>
         </div>
-      </div>
-
-      {/* ── Intelligence Timeline ── */}
-      <div style={{ marginTop: 16, borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.015)", padding: "14px 16px" }}>
-        <div className="term-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>{"// INTELLIGENCE TIMELINE — журнал решений"}</div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 6, maxHeight: 176, overflowY: "auto" }}>
-          <AnimatePresence initial={false}>
-            {log.map(e => (
-              <motion.div key={e.id} layout initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.3 }}
-                className="term-mono" style={{ display: "flex", gap: 12, fontSize: 11, alignItems: "baseline" }}>
-                <span style={{ color: "rgba(255,255,255,0.3)", flexShrink: 0 }}>{e.t}</span>
-                <span style={{ color: KIND_META[e.kind].c, flexShrink: 0, width: 62 }}>{KIND_META[e.kind].l}</span>
-                <span style={{ color: byId[e.from].c, flexShrink: 0 }}>{byId[e.from].ab}→{byId[e.to].ab}</span>
-                <span style={{ color: "rgba(255,255,255,0.6)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.action}: {e.thought}</span>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        <div style={{ position: "relative", display: "grid", gridTemplateColumns: `repeat(${BOARD_TIMELINE.length}, 1fr)`, gap: 8 }}>
+          <div style={{ position: "absolute", top: 6, left: "8%", right: "8%", height: 1, background: "rgba(255,255,255,0.1)" }} />
+          {BOARD_TIMELINE.map((e, i) => (
+            <motion.div key={i} initial={{ opacity: 0, y: 8 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ delay: i * 0.08 }}
+              style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", position: "relative", zIndex: 1 }}>
+              <span style={{ width: 13, height: 13, borderRadius: "50%", background: TL_META[e.kind].c, boxShadow: `0 0 10px ${TL_META[e.kind].c}80`, marginBottom: 8 }} />
+              <span style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.8)", lineHeight: 1.3 }}>{e.label}</span>
+              <span className="term-mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 3 }}>{e.t}</span>
+            </motion.div>
+          ))}
         </div>
       </div>
 
+      {/* ── DEEP DIVE OVERLAY ── */}
+      <AnimatePresence>
+        {dive && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setDive(null)}
+            style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(5,6,10,0.72)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <motion.div initial={{ scale: 0.94, y: 12 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.96, opacity: 0 }}
+              onClick={e => e.stopPropagation()}
+              style={{ width: "min(640px, 100%)", maxHeight: "80vh", overflowY: "auto", borderRadius: 18, border: `1px solid ${dive.agent.c}44`, background: "#0B0D16", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", padding: 22 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+                <div style={{ width: 44, height: 44, borderRadius: 12, background: `linear-gradient(135deg,${dive.agent.g[0]},${dive.agent.g[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 13, color: "#fff", fontFamily: "var(--font-geist-mono), monospace" }}>{dive.agent.ab}</div>
+                <div style={{ flex: 1 }}>
+                  <div style={{ fontSize: 15, fontWeight: 700, color: "#E5E7EB" }}>{dive.agent.name} · {dive.agent.role}</div>
+                  <div className="term-mono" style={{ fontSize: 11, color: dive.agent.c }}>DEEP DIVE · {dive.agent.task}</div>
+                </div>
+                <button onClick={() => setDive(null)} className="term-mono" style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 8, color: "rgba(255,255,255,0.6)", cursor: "pointer", padding: "5px 10px", fontSize: 11 }}>ESC ✕</button>
+              </div>
+              <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.82)", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>
+                {dive.text || (dive.busy ? "" : "")}{dive.busy && <span className="term-blink" style={{ color: dive.agent.c }}>▋</span>}
+              </p>
+              {dive.offline && !dive.busy && (
+                <div className="term-mono" style={{ fontSize: 10, color: "rgba(251,191,36,0.8)", marginTop: 12 }}>⚠ OFFLINE-РЕЖИМ: показан демо-разбор, настройте ANTHROPIC_API_KEY</div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <style jsx global>{`
-        @keyframes exl-dash { to { stroke-dashoffset: -24; } }
-        @keyframes exl-breathe { 0%,100% { opacity: 0.75; } 50% { opacity: 1; } }
-        @keyframes exl-spin { to { transform: rotate(360deg); } }
-        @keyframes exl-ping { 0% { transform: scale(0.9); opacity: 0.8; } 100% { transform: scale(1.35); opacity: 0; } }
-        @media (prefers-reduced-motion: reduce) {
-          [style*="exl-"] { animation: none !important; }
+        .bc-grid { display: grid; grid-template-columns: 240px minmax(0,1fr) 320px; gap: 14px; align-items: start; }
+        .bc-stage { position: relative; min-height: 620px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.06);
+          background: radial-gradient(ellipse at 50% 46%, rgba(99,102,241,0.09), transparent 60%), rgba(255,255,255,0.012); overflow: hidden; }
+        .bc-lines { position: absolute; inset: 0; width: 100%; height: 100%; }
+        .bc-core { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 300px; height: 300px;
+          display: flex; align-items: center; justify-content: center; }
+        .bc-core-glow { position: absolute; inset: 0; border-radius: 50%;
+          background: radial-gradient(circle, rgba(129,140,248,0.35), rgba(99,102,241,0.12) 45%, transparent 70%); }
+        .bc-core-ring { position: absolute; inset: 40px; border-radius: 50%; border: 1px dashed rgba(99,102,241,0.35); }
+        .bc-core-inner { position: relative; width: 190px; height: 190px; border-radius: 50%; background: rgba(11,13,22,0.9);
+          border: 1px solid rgba(129,140,248,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center;
+          text-align: center; box-shadow: inset 0 0 40px rgba(99,102,241,0.2); }
+        .bc-agent { position: absolute; width: 216px; z-index: 2; }
+        @keyframes bc-breathe { 0%,100%{opacity:.7;transform:scale(1)} 50%{opacity:1;transform:scale(1.04)} }
+        @keyframes bc-spin { to { transform: rotate(360deg); } }
+        @keyframes ait-pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
+        @media (max-width: 1280px) {
+          .bc-grid { grid-template-columns: 1fr; }
+          .bc-stage { min-height: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+          .bc-lines { display: none; }
+          .bc-core { position: relative; top: auto; left: auto; transform: none; }
+          .bc-agent { position: relative; top: auto !important; left: auto !important; width: 100%; max-width: 340px; }
         }
+        @media (prefers-reduced-motion: reduce) { .bc-core-glow, .bc-core-ring { animation: none !important; } }
       `}</style>
     </div>
   );
 }
 
-// ─── 6-axis radar ────────────────────────────────────────────────────────────
-function Radar() {
-  const S = 210, C = S / 2, R = 62;
+// ─── Sub-components ──────────────────────────────────────────────────────────
+function Panel({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div style={{ borderRadius: 14, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", padding: 14 }}>
+      <div className="term-label" style={{ color: "rgba(255,255,255,0.4)", marginBottom: 10, fontSize: 9.5, letterSpacing: "0.12em" }}>{"// " + label}</div>
+      {children}
+    </div>
+  );
+}
+
+function CoreStat({ l, v }: { l: string; v: string }) {
+  return (
+    <div style={{ padding: "4px 7px", borderRadius: 7, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.25)" }}>
+      <div className="term-mono" style={{ fontSize: 7, color: "rgba(255,255,255,0.45)" }}>{l}</div>
+      <div className="term-mono" style={{ fontSize: 10, fontWeight: 800, color: "#a5b4fc" }}>{v}</div>
+    </div>
+  );
+}
+
+function AgentCard({ a, onDive, paused }: { a: BoardAgent; onDive: () => void; paused: boolean }) {
+  return (
+    <div style={{ borderRadius: 14, border: `1px solid ${a.c}44`, background: "rgba(12,13,20,0.92)", padding: 12, boxShadow: `0 8px 28px rgba(0,0,0,0.4)` }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 9 }}>
+        <div style={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg,${a.g[0]},${a.g[1]})`, display: "flex", alignItems: "center", justifyContent: "center", fontWeight: 800, fontSize: 11, color: "#fff", fontFamily: "var(--font-geist-mono), monospace" }}>{a.ab}</div>
+          <span style={{ position: "absolute", bottom: -2, right: -2, width: 9, height: 9, borderRadius: "50%", background: a.c, border: "2px solid #0c0d14", animation: paused ? undefined : "ait-pulse 1.6s infinite" }} />
+        </div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 12.5, fontWeight: 800, color: "#fff", fontFamily: "var(--font-geist-mono), monospace" }}>{a.role}</div>
+          <div style={{ fontSize: 10, color: a.c }}>{a.statusLabel}</div>
+        </div>
+      </div>
+      <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.5)", marginBottom: 8, lineHeight: 1.35 }}>{a.task}</div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9.5, color: "rgba(255,255,255,0.45)", marginBottom: 4 }}>
+        <span>Confidence: <span style={{ color: "#a5b4fc", fontWeight: 700 }}>{a.confidence}%</span></span>
+        <span>{a.tokensPerSec}k tok/sec</span>
+      </div>
+      <div style={{ height: 4, borderRadius: 99, background: "rgba(255,255,255,0.08)", overflow: "hidden", marginBottom: 8 }}>
+        <motion.div animate={{ width: `${a.progress}%` }} transition={{ duration: 0.8 }} style={{ height: "100%", background: `linear-gradient(90deg,${a.g[0]},${a.g[1]})` }} />
+      </div>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 9.5, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>
+        <span>Задач: <span style={{ color: "rgba(255,255,255,0.7)" }}>{a.tasksCompleted}</span></span>
+        <span>Качество: <span style={{ color: "#34d399" }}>{a.quality}%</span></span>
+      </div>
+      <div style={{ display: "flex", gap: 4, marginBottom: 9, flexWrap: "wrap" }}>
+        {a.tools.map(t => (
+          <span key={t} className="term-mono" style={{ fontSize: 8, padding: "2px 6px", borderRadius: 5, background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)" }}>{t}</span>
+        ))}
+      </div>
+      <button onClick={onDive} className="term-mono"
+        style={{ width: "100%", padding: "7px", borderRadius: 9, border: `1px solid ${a.c}55`, cursor: "pointer", fontSize: 9.5, fontWeight: 700, letterSpacing: "0.06em", color: a.c, background: `${a.c}12` }}>
+        DEEP DIVE · ГЛУБОКИЙ АНАЛИЗ
+      </button>
+    </div>
+  );
+}
+
+function HealthRing({ value }: { value: number }) {
+  const r = 44, circ = 2 * Math.PI * r;
+  return (
+    <div style={{ position: "relative", width: 118, height: 118, margin: "0 auto" }}>
+      <svg width={118} height={118} style={{ transform: "rotate(-90deg)" }}>
+        <circle cx={59} cy={59} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={8} />
+        <motion.circle cx={59} cy={59} r={r} fill="none" stroke="url(#hg)" strokeWidth={8} strokeLinecap="round"
+          initial={{ strokeDasharray: `0 ${circ}` }} animate={{ strokeDasharray: `${(value / 100) * circ} ${circ}` }} transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1] }} />
+        <defs><linearGradient id="hg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stopColor="#8b5cf6" /><stop offset="100%" stopColor="#6366f1" /></linearGradient></defs>
+      </svg>
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+        <span className="term-value" style={{ fontSize: 26, fontWeight: 800, color: "#fff" }}>{value}%</span>
+      </div>
+    </div>
+  );
+}
+
+function AreaSpark({ data, color }: { data: number[]; color: string }) {
+  const max = Math.max(...data), min = Math.min(...data);
+  const W = 200, H = 42;
+  const pts = data.map((d, i) => [(i / (data.length - 1)) * W, H - ((d - min) / (max - min || 1)) * (H - 4) - 2]);
+  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  const area = `${line} L${W},${H} L0,${H} Z`;
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} style={{ width: "100%", height: "auto", display: "block" }}>
+      <defs><linearGradient id={`ag-${color}`} x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor={color} stopOpacity="0.35" /><stop offset="100%" stopColor={color} stopOpacity="0" /></linearGradient></defs>
+      <path d={area} fill={`url(#ag-${color})`} />
+      <motion.path d={line} fill="none" stroke={color} strokeWidth={1.6} initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 1.3, ease: [0.22, 1, 0.36, 1] }} />
+    </svg>
+  );
+}
+
+function BarsSpark({ data }: { data: number[] }) {
+  const max = Math.max(...data);
+  return (
+    <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 48 }}>
+      {data.map((d, i) => (
+        <motion.div key={i} initial={{ height: 0 }} animate={{ height: `${(d / max) * 100}%` }} transition={{ duration: 0.8, delay: i * 0.05 }}
+          style={{ flex: 1, borderRadius: 3, background: "linear-gradient(180deg,#818cf8,#4f46e5)", minHeight: 3 }} />
+      ))}
+    </div>
+  );
+}
+
+function RiskRadar({ data }: { data: { l: string; v: number }[] }) {
+  const S = 150, C = S / 2, R = 46;
   const pt = (i: number, v: number) => {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / RADAR.length;
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / data.length;
     return [C + R * v * Math.cos(a), C + R * v * Math.sin(a)] as const;
   };
-  const poly = RADAR.map((d, i) => pt(i, d.v).join(",")).join(" ");
+  const poly = data.map((d, i) => pt(i, d.v).join(",")).join(" ");
   return (
-    <svg viewBox={`-24 -6 ${S + 48} ${S + 12}`} style={{ width: "100%", maxWidth: 250, display: "block", margin: "0 auto" }}>
-      {[0.33, 0.66, 1].map(f => (
-        <polygon key={f} points={RADAR.map((_, i) => pt(i, f).join(",")).join(" ")} fill="none" stroke="rgba(255,255,255,0.07)" />
-      ))}
-      {RADAR.map((_, i) => { const [x, y] = pt(i, 1); return <line key={i} x1={C} y1={C} x2={x} y2={y} stroke="rgba(255,255,255,0.06)" />; })}
-      <motion.polygon points={poly} fill="rgba(99,102,241,0.18)" stroke="#6366f1" strokeWidth={1.4}
-        initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-        style={{ transformOrigin: "50% 50%" }} />
-      {RADAR.map((d, i) => {
-        const [x, y] = pt(i, 1.28);
-        const anchor = Math.abs(x - C) < 8 ? "middle" : x > C ? "start" : "end";
-        return <text key={d.l} x={x} y={y + 3} textAnchor={anchor} fill="rgba(255,255,255,0.55)" fontSize={8.5} fontFamily="var(--font-geist-mono), monospace">{d.l.toUpperCase()}</text>;
-      })}
-      {RADAR.map((d, i) => { const [x, y] = pt(i, d.v); return <circle key={i} cx={x} cy={y} r={2.2} fill="#818cf8" />; })}
+    <svg viewBox={`0 0 ${S} ${S}`} style={{ width: "100%", maxWidth: 150, display: "block", margin: "0 auto" }}>
+      {[0.5, 1].map(f => <polygon key={f} points={data.map((_, i) => pt(i, f).join(",")).join(" ")} fill="none" stroke="rgba(255,255,255,0.08)" />)}
+      {data.map((_, i) => { const [x, y] = pt(i, 1); return <line key={i} x1={C} y1={C} x2={x} y2={y} stroke="rgba(255,255,255,0.06)" />; })}
+      <motion.polygon points={poly} fill="rgba(244,63,94,0.16)" stroke="#f43f5e" strokeWidth={1.3} initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.8 }} style={{ transformOrigin: "50% 50%" }} />
+      {data.map((d, i) => { const [x, y] = pt(i, 1.2); return <text key={d.l} x={x} y={y + 3} textAnchor="middle" fill="rgba(255,255,255,0.45)" fontSize={7} fontFamily="var(--font-geist-mono), monospace">{d.l}</text>; })}
     </svg>
   );
 }
