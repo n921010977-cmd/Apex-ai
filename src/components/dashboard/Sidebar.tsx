@@ -7,17 +7,18 @@ import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
-  Bot, Settings, HelpCircle,
+  Bot, Settings, HelpCircle, Radio,
   X, Search, PanelLeftClose, PanelLeft, ChevronRight,
 } from "lucide-react";
 
 // ─── Flat navigation (one list, hotkeys 1–7) ──────────────────────────────────
 const NAV = [
-  { key: "1", label: "Обзор",     href: "/dashboard",            exact: true, icon: LayoutDashboard },
-  { key: "2", label: "Проекты",   href: "/dashboard/projects",   icon: FolderOpen },
-  { key: "3", label: "Отчёты",    href: "/dashboard/reports",    icon: FileText },
-  { key: "4", label: "Совет",     href: "/dashboard/executives", icon: Users },
-  { key: "5", label: "Агенты",    href: "/dashboard/agents",     icon: Bot },
+  { key: "1", label: "Обзор",           href: "/dashboard",            exact: true, icon: LayoutDashboard },
+  { key: "2", label: "Командный центр", href: "/dashboard/command",    icon: Radio },
+  { key: "3", label: "Проекты",         href: "/dashboard/projects",   icon: FolderOpen },
+  { key: "4", label: "Отчёты",          href: "/dashboard/reports",    icon: FileText },
+  { key: "5", label: "Совет",           href: "/dashboard/executives", icon: Users },
+  { key: "6", label: "Агенты",          href: "/dashboard/agents",     icon: Bot },
 ];
 
 interface SidebarProps {
