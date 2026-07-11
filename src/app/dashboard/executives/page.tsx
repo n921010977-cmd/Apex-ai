@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { CornerDownLeft, Check, Loader2, ArrowUpRight, MessageSquare, X } from "lucide-react";
 import { streamChat } from "@/lib/stream-chat";
-import { TEAM, TEAM_BY_SLUG, type TeamMember } from "@/lib/team";
+import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/team";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -207,16 +207,52 @@ export default function BoardPage() {
           )}
         </AnimatePresence>
 
-        {/* All agents with characteristics — dashboard style */}
+        {/* Org structure — who works under which director */}
         <div className="ex-roster-head">
-          <h2 className="ex-roster-title">Состав совета</h2>
-          <span className="ex-roster-count">20 директоров · нажмите, чтобы спросить</span>
+          <h2 className="ex-roster-title">Кто на кого работает</h2>
+          <span className="ex-roster-count">Структура совета · нажмите на любого, чтобы спросить</span>
         </div>
-        <div className="ex-grid">
-          {AGENTS.map((a, i) => (
-            <AgentCard key={a.slug} a={a} index={i} onClick={() => setAsk(a)} />
-          ))}
-        </div>
+
+        {C_LEVEL.map(lead => {
+          const director = AGENTS.find(a => a.slug === lead.slug)!;
+          const team = reportsOf(lead.slug).filter(m => m.tier === "specialist").map(m => AGENTS.find(a => a.slug === m.slug)!);
+          const directReports = lead.slug === "ceo" ? C_LEVEL.filter(c => c.slug !== "ceo") : [];
+          return (
+            <div key={lead.slug} className="ex-dept">
+              <motion.button className="ex-lead" onClick={() => setAsk(director)}
+                initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.4, ease: EASE }}
+                whileHover={{ y: -3 }}
+                style={{ background: `linear-gradient(135deg, rgba(${hexToRgb(director.c)},0.14), rgba(255,255,255,0.03))`, borderColor: `rgba(${hexToRgb(director.c)},0.3)` }}>
+                <span className="ex-lead-av" style={{ background: `linear-gradient(135deg,${director.g[0]},${director.g[1]})` }}>{director.ab}</span>
+                <div className="ex-lead-id">
+                  <div className="ex-lead-name">{director.name} <span className="ex-lead-role" style={{ color: director.c }}>{director.role}</span></div>
+                  <div className="ex-lead-title">{director.title}</div>
+                </div>
+                <div className="ex-lead-meta">
+                  <div className="ex-lead-conf" style={{ color: director.c }}>{director.confidence}%</div>
+                  <div className="ex-lead-sub">{lead.slug === "ceo" ? "руководит всем советом" : `${team.length} в команде`}</div>
+                </div>
+              </motion.button>
+
+              {directReports.length > 0 && (
+                <div className="ex-directs">
+                  <span className="ex-directs-label">Прямые подчинённые</span>
+                  {directReports.map(c => (
+                    <span key={c.slug} className="ex-direct-chip" style={{ color: c.c, borderColor: `${c.c}44` }}>{c.role}</span>
+                  ))}
+                </div>
+              )}
+
+              {team.length > 0 && (
+                <div className="ex-grid">
+                  {team.map((a, i) => (
+                    <AgentCard key={a.slug} a={a} index={i} lead={director} onClick={() => setAsk(a)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
 
       <AnimatePresence>{ask && <AskModal agent={ask} onClose={() => setAsk(null)} />}</AnimatePresence>
@@ -226,7 +262,7 @@ export default function BoardPage() {
 }
 
 // ─── Agent card (dashboard style) ────────────────────────────────────────────
-function AgentCard({ a, index, onClick }: { a: AgentFull; index: number; onClick: () => void }) {
+function AgentCard({ a, index, lead, onClick }: { a: AgentFull; index: number; lead?: TeamMember; onClick: () => void }) {
   const [hovered, setHovered] = useState(false);
   return (
     <motion.button
@@ -246,7 +282,7 @@ function AgentCard({ a, index, onClick }: { a: AgentFull; index: number; onClick
           <span className="ex-card-role" style={{ color: a.c }}>{a.role}</span>
           <span className="ex-card-title">{a.title}</span>
         </div>
-        <span className="ex-card-dot" />
+        {lead ? <span className="ex-card-reports" style={{ color: lead.c, borderColor: `${lead.c}44` }} title={`Подчиняется ${lead.name}`}>→ {lead.role}</span> : <span className="ex-card-dot" />}
       </div>
       <div className="ex-card-name">{a.name}</div>
       <div className="ex-card-spec">{a.specialty}</div>
@@ -401,9 +437,26 @@ function ExStyles() {
       .ex-new:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
 
       /* Roster grid — dashboard-style cards */
-      .ex-roster-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 40px 0 16px; }
+      .ex-roster-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 44px 0 18px; }
       .ex-roster-title { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: #E5E7EB; margin: 0; }
       .ex-roster-count { font-size: 12px; color: rgba(255,255,255,0.4); }
+
+      /* Department / director group */
+      .ex-dept { margin-bottom: 26px; padding-left: 14px; border-left: 1px solid rgba(255,255,255,0.06); }
+      .ex-lead { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; cursor: pointer; padding: 13px 16px; border-radius: 14px; border: 1px solid; margin-bottom: 12px;
+        box-shadow: 0 6px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05); transition: border-color .2s; }
+      .ex-lead-av { width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-geist-mono), monospace; font-size: 14px; font-weight: 800; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
+      .ex-lead-id { flex: 1; min-width: 0; }
+      .ex-lead-name { font-size: 15.5px; font-weight: 800; color: #fff; letter-spacing: -0.01em; display: flex; align-items: center; gap: 8px; }
+      .ex-lead-role { font-family: var(--font-geist-mono), monospace; font-size: 10px; font-weight: 700; letter-spacing: 0.1em; padding: 2px 7px; border-radius: 6px; background: rgba(255,255,255,0.06); }
+      .ex-lead-title { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
+      .ex-lead-meta { text-align: right; flex-shrink: 0; }
+      .ex-lead-conf { font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
+      .ex-lead-sub { font-size: 10px; color: rgba(255,255,255,0.35); margin-top: 1px; }
+      .ex-directs { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; margin: 0 0 14px 4px; }
+      .ex-directs-label { font-family: var(--font-geist-mono), monospace; font-size: 9.5px; letter-spacing: 0.08em; color: rgba(255,255,255,0.35); }
+      .ex-direct-chip { font-family: var(--font-geist-mono), monospace; font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 7px; border: 1px solid; background: rgba(255,255,255,0.02); }
+      .ex-card-reports { font-family: var(--font-geist-mono), monospace; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; border: 1px solid; flex-shrink: 0; }
       .ex-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; }
       .ex-card { text-align: left; cursor: pointer; border-radius: 16px; padding: 18px 16px; position: relative; overflow: hidden;
         box-shadow: 0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.045); transition: border-color .3s, box-shadow .3s; }
