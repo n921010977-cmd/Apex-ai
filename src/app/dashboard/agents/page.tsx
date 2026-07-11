@@ -1,14 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useMemo, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { Settings2, ArrowRight } from "lucide-react";
+import { Search, CornerDownLeft, ArrowUpRight } from "lucide-react";
 import { streamChat } from "@/lib/stream-chat";
-import { TEAM } from "@/lib/team";
+import { TEAM, type TeamMember } from "@/lib/team";
 
-// ─── Team data — производится из канонического реестра (@/lib/team) ─────────────
-// desc + статус-глагол на каждого агента (единственное, что не хранится в реестре)
+// desc + статус-глагол на каждого агента
 const META: Record<string, { desc: string; st: string }> = {
   ceo:      { desc: "Определяет стратегию, синтезирует мнения совета, строит роадмап.", st: "Анализирует" },
   cfo:      { desc: "Считает юнит-экономику, прогнозы, ROI и точку безубыточности.",    st: "Считает" },
@@ -32,364 +31,233 @@ const META: Record<string, { desc: string; st: string }> = {
   strategy: { desc: "Даёт независимый стратегический взгляд и сценарии.",               st: "Стратегирует" },
 };
 
-const AGENTS = TEAM.map(m => ({
-  slug: m.slug, ab: m.ab, name: m.name, dept: m.title, deptKey: m.dept,
-  desc: META[m.slug]?.desc ?? m.title, st: META[m.slug]?.st ?? "Работает",
-  c: m.c, g: m.g,
-}));
+const DEPTS: { key: TeamMember["dept"]; label: string }[] = [
+  { key: "leadership", label: "Руководство" },
+  { key: "finance",    label: "Финансы" },
+  { key: "marketing",  label: "Маркетинг" },
+  { key: "operations", label: "Операции" },
+  { key: "tech",       label: "Технологии" },
+  { key: "product",    label: "Продукт" },
+];
 
-// офлайн-ответы, если API недоступен — по департаменту агента
 const FALLBACK: Record<string, string> = {
-  leadership: "Смотрю стратегически: сформулируйте цель на 90 дней и одну ключевую метрику. Я разложу её на инициативы по департаментам и укажу самое узкое место. Полный живой анализ доступен после настройки API-ключа.",
-  finance:    "По финансам: пришлите цену, себестоимость и ожидаемый объём — посчитаю маржу, точку безубыточности и чувствительность прибыли. В демо-режиме показываю методику; для расчёта по вашим цифрам нужен API-ключ.",
-  marketing:  "По маркетингу: для старта хватит двух каналов и одного оффера. Я предложу связку канал→сегмент→сообщение и метрики для проверки за 7 дней. Живые рекомендации включатся после настройки API-ключа.",
-  operations: "По операциям: назовите процесс, который болит, — я разложу его на шаги, найду узкое место и предложу, что автоматизировать первым. Демо-режим: для детального плана подключите API-ключ.",
-  tech:       "По технологиям: опишите ключевой сценарий — я оценю реализуемость, риски и минимальный MVP. Живой разбор доступен после настройки API-ключа.",
-  product:    "По продукту: сформулируйте боль пользователя одним предложением — я проверю, решает ли её текущая фича, и предложу минимальный скоуп MVP. Живой анализ доступен после настройки API-ключа.",
+  leadership: "Смотрю стратегически: сформулируйте цель на 90 дней и одну ключевую метрику. Я разложу её на инициативы и укажу самое узкое место. Полный живой анализ доступен после настройки API-ключа.",
+  finance:    "По финансам: пришлите цену, себестоимость и объём — посчитаю маржу, точку безубыточности и чувствительность прибыли. Для расчёта по вашим цифрам нужен API-ключ.",
+  marketing:  "По маркетингу: для старта хватит двух каналов и одного оффера. Предложу связку канал→сегмент→сообщение и метрики на 7 дней. Живые рекомендации — после настройки API-ключа.",
+  operations: "По операциям: назовите процесс, который болит, — разложу на шаги, найду узкое место и что автоматизировать первым. Для детального плана подключите API-ключ.",
+  tech:       "По технологиям: опишите ключевой сценарий — оценю реализуемость, риски и минимальный MVP. Живой разбор доступен после настройки API-ключа.",
+  product:    "По продукту: сформулируйте боль пользователя одним предложением — проверю, решает ли её текущая фича, и предложу минимальный скоуп MVP. Живой анализ — после настройки API-ключа.",
 };
 
-const ACTIVITY = [
-  { c: "#34d399", t: "Nina Brown",     s: "Проанализировала 15 конкурентов",  time: "2 мин назад" },
-  { c: "#60a5fa", t: "Marcus Chen",    s: "Завершил прогноз ROI",             time: "3 мин назад" },
-  { c: "#34d399", t: "Elena Torres",   s: "Сгенерировала стратегии роста",    time: "4 мин назад" },
-  { c: "#818cf8", t: "Sophia Rivers",  s: "Обновила стратегический роадмап",  time: "5 мин назад" },
-  { c: "#fbbf24", t: "Ryan Cole",      s: "Оптимизировал воронку продаж",     time: "6 мин назад" },
-];
+type Agent = TeamMember & { desc: string; st: string };
+const AGENTS: Agent[] = TEAM.map(m => ({ ...m, desc: META[m.slug]?.desc ?? m.title, st: META[m.slug]?.st ?? "Работает" }));
 
-const STAGES = [
-  { n: 1, t: "Анализ проблемы",     d: "Определение ключевых вызовов",     st: "done" },
-  { n: 2, t: "Сбор данных",         d: "Сбор релевантных данных и фактов", st: "done" },
-  { n: 3, t: "Анализ и рисёрч",     d: "Глубокий анализ и изучение рынка", st: "progress" },
-  { n: 4, t: "Разработка стратегии",d: "Создание стратегий и решений",     st: "pending" },
-  { n: 5, t: "Синтез решения",      d: "Сведение инсайтов в финальный отчёт", st: "pending" },
-];
+const EASE = [0.22, 1, 0.36, 1] as const;
 
-function useCountUp(to: number, dur = 1200) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    let raf = 0; let t0: number | null = null;
-    const step = (ts: number) => {
-      if (t0 === null) t0 = ts;
-      const p = Math.min((ts - t0) / dur, 1);
-      setV(Math.round((1 - Math.pow(1 - p, 3)) * to));
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [to, dur]);
-  return v;
-}
-
-const card: React.CSSProperties = {
-  background: "rgba(255,255,255,0.025)",
-  border: "1px solid rgba(255,255,255,0.07)",
-  borderRadius: 16,
-  boxShadow: "0 4px 24px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.04)",
-};
-
-export default function AITeamPage() {
-  const eff = useCountUp(92, 1400);
-  const r = 42, circ = 2 * Math.PI * r;
-  const progress = 67;
-
-  // ── Спросить агента (реальный бэкенд + офлайн-фолбэк) ──
-  const [ask, setAsk] = useState<number | null>(null);
+export default function TeamPage() {
+  const [query, setQuery] = useState("");
+  const [selected, setSelected] = useState<string>("ceo");
   const [q, setQ] = useState("");
   const [answer, setAnswer] = useState("");
   const [busy, setBusy] = useState(false);
   const [offline, setOffline] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const agent = AGENTS.find(a => a.slug === selected)!;
+
+  const groups = useMemo(() => {
+    const ql = query.trim().toLowerCase();
+    return DEPTS.map(d => ({
+      ...d,
+      items: AGENTS.filter(a => a.dept === d.key && (!ql || a.name.toLowerCase().includes(ql) || a.title.toLowerCase().includes(ql) || a.role.toLowerCase().includes(ql))),
+    })).filter(g => g.items.length > 0);
+  }, [query]);
+
+  const pick = useCallback((slug: string) => {
+    setSelected(slug); setAnswer(""); setQ(""); setOffline(false);
+    requestAnimationFrame(() => inputRef.current?.focus());
+  }, []);
 
   const submit = useCallback(async () => {
     const question = q.trim();
-    if (!question || busy || ask === null) return;
-    const a = AGENTS[ask];
+    if (!question || busy) return;
     setBusy(true); setAnswer(""); setOffline(false);
-    const persona = `Ты — ${a.name}, ${a.dept} в AI-команде Apex AI, работаешь на основателя бизнеса. ${a.desc} Ответь на русском, конкретно и по делу, 4–7 предложений, без воды. Обычный текст без markdown-разметки (никаких ** и #). Если не хватает данных — задай 1–2 уточняющих вопроса в конце.`;
+    const persona = `Ты — ${agent.name}, ${agent.title} в AI-команде Apex AI, работаешь на основателя бизнеса. ${agent.desc} Ответь на русском, конкретно и по делу, 4–7 предложений, без воды. Обычный текст без markdown-разметки (никаких ** и #). Если не хватает данных — задай 1–2 уточняющих вопроса в конце.`;
     try {
       await streamChat(question, persona, t => setAnswer(prev => prev + t));
     } catch {
       setOffline(true);
-      const fb = FALLBACK[a.deptKey] ?? FALLBACK.leadership;
-      for (const ch of fb) {
-        setAnswer(prev => prev + ch);
-        await new Promise(res => setTimeout(res, 8));
-      }
+      const fb = FALLBACK[agent.dept] ?? FALLBACK.leadership;
+      for (const ch of fb) { setAnswer(prev => prev + ch); await new Promise(r => setTimeout(r, 7)); }
     }
     setBusy(false);
-  }, [q, busy, ask]);
-
-  const selectAgent = useCallback((i: number) => {
-    setAsk(prev => (prev === i ? null : i));
-    setAnswer(""); setQ(""); setOffline(false);
-  }, []);
+  }, [q, busy, agent]);
 
   return (
-    <div style={{ padding: "22px 24px 48px", maxWidth: 1440, margin: "0 auto" }}>
-      <style>{`
-        @keyframes ait-pulse { 0%,100%{opacity:.5} 50%{opacity:1} }
-        @keyframes ait-hub { 0%,100%{box-shadow:0 0 30px rgba(99,102,241,.4)} 50%{box-shadow:0 0 55px rgba(99,102,241,.7)} }
-        @keyframes ait-flow { to { stroke-dashoffset: -24; } }
-        .ait-scroll::-webkit-scrollbar{height:6px}
-        .ait-scroll::-webkit-scrollbar-thumb{background:rgba(99,102,241,.25);border-radius:3px}
-      `}</style>
-
+    <div className="tm-wrap">
       {/* Header */}
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 12, marginBottom: 6 }}>
+      <div className="tm-head">
         <div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", margin: 0 }}>AI Team</h1>
-          <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", margin: "6px 0 0" }}>Ваши специализированные AI-агенты работают вместе</p>
+          <div className="tm-eyebrow">КОМАНДА · 20 AI-ДИРЕКТОРОВ</div>
+          <h1 className="tm-title">Ваша AI-команда</h1>
         </div>
-        <div className="term-mono" style={{ display: "flex", alignItems: "center", gap: 7, height: 34, padding: "0 13px", borderRadius: 10, background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.2)" }}>
-          <span className="term-blink" style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981" }} />
-          <span style={{ fontSize: 10.5, letterSpacing: "0.08em", color: "#34d399" }}>СТАТУС КОМАНДЫ: АКТИВНА</span>
+        <div className="tm-search">
+          <Search size={14} strokeWidth={2} />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Найти директора…" spellCheck={false} />
         </div>
-      </motion.div>
-
-      {/* Hint */}
-      <div className="term-mono" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, color: "rgba(255,255,255,0.4)", borderBottom: "1px solid rgba(255,255,255,0.06)", padding: "8px 0 12px", marginBottom: 18 }}>
-        <span style={{ color: "#818cf8" }}>▸</span> Кликните на агента — и задайте ему вопрос напрямую. Совместные решения принимает <Link href="/dashboard/executives" style={{ color: "#818cf8" }}>Совет</Link>.
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-[1fr_300px]" style={{ gap: 16 }}>
-        {/* ── Left ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16, minWidth: 0 }}>
-          {/* Working panel */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} style={{ ...card, padding: 20 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 4 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Ваша AI-команда работает</span>
-                <span className="term-mono" style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 9, padding: "3px 9px", borderRadius: 20, background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.3)", color: "#34d399", letterSpacing: ".08em" }}>
-                  <span className="term-blink" style={{ width: 4, height: 4, borderRadius: "50%", background: "#34d399" }} />LIVE
-                </span>
-              </div>
-              <Link href="/dashboard/executives" style={{ display: "flex", alignItems: "center", gap: 6, height: 32, padding: "0 13px", borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.09)", fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>
-                <Settings2 size={12} /> Настройки команды
-              </Link>
-            </div>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", margin: "0 0 16px" }}>Совместная работа в реальном времени</p>
-
-            {/* Agent cards */}
-            <div className="ait-scroll" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 6 }}>
-              {AGENTS.map((a, i) => (
-                <motion.div key={a.slug}
-                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 + i * 0.06 }}
-                  onClick={() => selectAgent(i)}
-                  whileHover={{ y: -4 }}
-                  style={{ flex: "0 0 150px", borderRadius: 14, padding: 12, cursor: "pointer",
-                    background: ask === i ? `linear-gradient(160deg, ${a.g[0]}14, rgba(255,255,255,0.02))` : "rgba(255,255,255,0.02)",
-                    border: ask === i ? `1.5px solid ${a.c}88` : "1px solid rgba(255,255,255,0.08)",
-                    boxShadow: ask === i ? `0 0 24px ${a.c}22` : "none",
-                    display: "flex", flexDirection: "column" }}>
-                  <div style={{ height: 76, borderRadius: 10, marginBottom: 10, background: `linear-gradient(160deg, ${a.g[0]}30, #0b0c14 75%)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <div style={{ width: 46, height: 46, borderRadius: 14, background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 18px ${a.g[0]}55, inset 0 1px 0 rgba(255,255,255,.3)` }}>
-                      <span className="term-mono" style={{ fontSize: 12, fontWeight: 800, color: "#fff" }}>{a.ab}</span>
-                    </div>
-                  </div>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{a.name}</div>
-                  <div style={{ fontSize: 9.5, color: `${a.c}cc`, marginBottom: 6 }}>{a.dept}</div>
-                  <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.38)", lineHeight: 1.45, flex: 1 }}>{a.desc}</div>
-                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 5, marginTop: 9, paddingTop: 8, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-                    <span style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                      <span style={{ width: 5, height: 5, borderRadius: "50%", background: a.c, animation: "ait-pulse 1.6s infinite" }} />
-                      <span style={{ fontSize: 9.5, fontWeight: 600, color: a.c }}>{a.st}</span>
+      <div className="tm-body">
+        {/* ── LIST ── */}
+        <aside className="tm-list">
+          {groups.length === 0 && <div className="tm-empty">Никого не найдено</div>}
+          {groups.map(g => (
+            <div key={g.key} className="tm-group">
+              <div className="tm-group-label">{g.label}</div>
+              {g.items.map(a => {
+                const on = a.slug === selected;
+                return (
+                  <button key={a.slug} onClick={() => pick(a.slug)} className={`tm-row${on ? " on" : ""}`}>
+                    <span className="tm-avatar" style={{ color: a.c, borderColor: on ? a.c : "rgba(255,255,255,0.1)" }}>{a.ab}</span>
+                    <span className="tm-row-text">
+                      <span className="tm-row-name">{a.name}</span>
+                      <span className="tm-row-role">{a.title}</span>
                     </span>
-                    <span className="term-mono" style={{ fontSize: 8.5, fontWeight: 700, color: ask === i ? a.c : "rgba(255,255,255,0.3)" }}>{ask === i ? "▾ ОТКРЫТ" : "▸ СПРОСИТЬ"}</span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-
-            {/* Ask console */}
-            <AnimatePresence>
-              {ask !== null && (() => {
-                const a = AGENTS[ask];
-                return (
-                  <motion.div key={a.slug}
-                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ overflow: "hidden" }}>
-                    <div style={{ marginTop: 12, borderRadius: 14, border: `1px solid ${a.c}44`, background: "rgba(255,255,255,0.02)", padding: 16 }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                        <div style={{ width: 32, height: 32, borderRadius: 10, background: `linear-gradient(135deg,${a.g[0]},${a.g[1]})`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                          <span className="term-mono" style={{ fontSize: 10, fontWeight: 800, color: "#fff" }}>{a.ab}</span>
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>{a.name}</div>
-                          <div style={{ fontSize: 10.5, color: `${a.c}cc` }}>{a.dept}</div>
-                        </div>
-                      </div>
-                      <div style={{ display: "flex", gap: 8 }}>
-                        <span className="term-mono" style={{ color: a.c, fontSize: 13, alignSelf: "center" }}>{">"}</span>
-                        <input value={q} onChange={e => setQ(e.target.value)} disabled={busy}
-                          onKeyDown={e => { if (e.key === "Enter") void submit(); }}
-                          placeholder={`Вопрос для ${a.name}…`}
-                          style={{ flex: 1, minWidth: 0, height: 38, padding: "0 12px", borderRadius: 10, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.1)", outline: "none", color: "#E5E7EB", fontSize: 13 }} />
-                        <button onClick={() => void submit()} disabled={busy || !q.trim()} className="term-mono"
-                          style={{ height: 38, padding: "0 16px", borderRadius: 10, border: "none", fontSize: 11, fontWeight: 800, color: "#fff", background: `linear-gradient(135deg,${a.g[0]},${a.g[1]})`, cursor: busy ? "wait" : "pointer", opacity: busy || !q.trim() ? 0.55 : 1, flexShrink: 0 }}>
-                          {busy ? "ДУМАЕТ…" : "▸ СПРОСИТЬ"}
-                        </button>
-                      </div>
-                      {(answer || busy) && (
-                        <div style={{ marginTop: 12, borderRadius: 10, background: "rgba(5,6,10,0.6)", border: "1px solid rgba(255,255,255,0.07)", padding: "12px 14px" }}>
-                          <div className="term-mono" style={{ fontSize: 9.5, color: a.c, marginBottom: 5 }}>{a.name.toUpperCase()} // ОТВЕТ</div>
-                          <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.78)", lineHeight: 1.6, margin: 0, whiteSpace: "pre-wrap" }}>
-                            {answer.replace(/\*\*/g, "")}{busy && <span className="term-blink" style={{ color: a.c }}>▋</span>}
-                          </p>
-                          {offline && !busy && (
-                            <div className="term-mono" style={{ fontSize: 10, color: "rgba(251,191,36,0.8)", marginTop: 8 }}>⚠ OFFLINE-РЕЖИМ: API-ключ не настроен на сервере, показан демо-ответ</div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-                );
-              })()}
-            </AnimatePresence>
-
-            {/* Collaboration hub — converging flows */}
-            <div style={{ position: "relative", marginTop: 4 }}>
-              <svg viewBox="0 0 700 110" style={{ width: "100%", height: "auto", display: "block" }}>
-                <defs>
-                  {AGENTS.map((a, i) => (
-                    <linearGradient key={i} id={`hubg${i}`} x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor={a.c} stopOpacity="0.8" />
-                      <stop offset="100%" stopColor="#6366f1" stopOpacity="0.5" />
-                    </linearGradient>
-                  ))}
-                </defs>
-                {AGENTS.map((a, i) => {
-                  const x = 20 + (i * (700 - 40)) / (AGENTS.length - 1);
-                  const d = `M${x},0 C${x},60 350,50 350,100`;
-                  return (
-                    <path key={i} d={d} fill="none" stroke={`url(#hubg${i})`} strokeWidth="1.4"
-                      strokeDasharray="6 6" style={{ animation: `ait-flow ${1.2 + (i % 8) * 0.12}s linear infinite` }} />
-                  );
-                })}
-              </svg>
-              <div style={{ display: "flex", flexDirection: "column", alignItems: "center", marginTop: -6 }}>
-                <div style={{ width: 62, height: 62, borderRadius: "50%", background: "radial-gradient(circle at 35% 30%, #a5b4fc, #4f46e5 70%)", display: "flex", alignItems: "center", justifyContent: "center", animation: "ait-hub 3s ease-in-out infinite" }}>
-                  <span className="term-mono" style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>AI</span>
-                </div>
-                <div style={{ fontSize: 13.5, fontWeight: 700, color: "#fff", marginTop: 10 }}>Хаб совместной работы</div>
-                <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginTop: 3 }}>Синтез инсайтов и генерация комплексных решений</div>
-              </div>
-            </div>
-          </motion.div>
-
-          {/* Current workflow */}
-          <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.15 }} style={{ ...card, padding: 20 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10, marginBottom: 14 }}>
-              <div>
-                <div style={{ fontSize: 15, fontWeight: 800, color: "#fff" }}>Текущий процесс</div>
-                <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>Мультиагентная работа в процессе</div>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <span style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)" }}>Общий прогресс</span>
-                <div style={{ width: 140, height: 6, borderRadius: 99, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
-                  <motion.div initial={{ width: 0 }} animate={{ width: `${progress}%` }} transition={{ duration: 1.2, delay: 0.4, ease: [0.22, 1, 0.36, 1] }}
-                    style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg,#6366f1,#8b5cf6)" }} />
-                </div>
-                <span className="term-value" style={{ fontSize: 13, fontWeight: 800, color: "#a5b4fc" }}>{progress}%</span>
-              </div>
-            </div>
-
-            <div className="ait-scroll" style={{ display: "flex", gap: 10, overflowX: "auto", paddingBottom: 4 }}>
-              {STAGES.map((s, i) => {
-                const done = s.st === "done", prog = s.st === "progress";
-                return (
-                  <div key={s.n} style={{ display: "flex", alignItems: "center", gap: 10, flex: "0 0 auto" }}>
-                    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 + i * 0.08 }}
-                      style={{
-                        width: 168, borderRadius: 12, padding: "13px 14px",
-                        background: prog ? "rgba(99,102,241,0.08)" : done ? "rgba(255,255,255,0.03)" : "rgba(255,255,255,0.015)",
-                        border: prog ? "1.5px solid rgba(99,102,241,0.6)" : "1px solid rgba(255,255,255,0.08)",
-                        boxShadow: prog ? "0 0 24px rgba(99,102,241,0.15)" : "none",
-                      }}>
-                      <div className="term-mono" style={{ fontSize: 9, letterSpacing: ".1em", color: "rgba(255,255,255,0.35)", marginBottom: 5 }}>ЭТАП {s.n}</div>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", marginBottom: 4 }}>{s.t}</div>
-                      <div style={{ fontSize: 10, color: "rgba(255,255,255,0.38)", lineHeight: 1.45, marginBottom: 9, height: 28 }}>{s.d}</div>
-                      <div style={{ fontSize: 10, fontWeight: 700, color: done ? "#34d399" : prog ? "#a5b4fc" : "rgba(255,255,255,0.3)", display: "flex", alignItems: "center", gap: 5 }}>
-                        {done ? "✓ Завершён" : prog ? <><span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#818cf8" }} />В процессе</> : "◷ Ожидает"}
-                      </div>
-                    </motion.div>
-                    {i < STAGES.length - 1 && <ArrowRight size={14} style={{ color: "rgba(255,255,255,0.2)", flexShrink: 0 }} />}
-                  </div>
+                    {on && <motion.span layoutId="tm-marker" className="tm-marker" style={{ background: a.c }} transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
+                  </button>
                 );
               })}
             </div>
-          </motion.div>
-        </div>
+          ))}
+        </aside>
 
-        {/* ── Right rail ── */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-          {/* Activity */}
-          <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }} style={{ ...card, padding: 18 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 800, color: "#fff", marginBottom: 3 }}>Активность команды</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>Живые обновления от вашей AI-команды</div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-              {ACTIVITY.map((a, i) => (
-                <motion.div key={i} initial={{ opacity: 0, x: 8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 + i * 0.07 }}
-                  style={{ display: "flex", gap: 9, alignItems: "flex-start" }}>
-                  <span style={{ width: 7, height: 7, borderRadius: "50%", background: a.c, marginTop: 4, flexShrink: 0, boxShadow: `0 0 6px ${a.c}80` }} />
-                  <span style={{ flex: 1, minWidth: 0 }}>
-                    <span style={{ display: "block", fontSize: 11.5, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>{a.t}</span>
-                    <span style={{ display: "block", fontSize: 10.5, color: "rgba(255,255,255,0.38)", marginTop: 1 }}>{a.s}</span>
-                  </span>
-                  <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.25)", flexShrink: 0 }}>{a.time}</span>
-                </motion.div>
-              ))}
-            </div>
-            <Link href="/dashboard/reports" style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 14, fontSize: 11, color: "#818cf8", textDecoration: "none" }}>
-              Вся активность <ArrowRight size={11} />
-            </Link>
-          </motion.div>
-
-          {/* Performance */}
-          <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.25 }} style={{ ...card, padding: 18 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 800, color: "#fff", marginBottom: 3 }}>Эффективность команды</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>Текущая сессия</div>
-            <div style={{ display: "flex", gap: 16, alignItems: "center" }}>
-              <div style={{ position: "relative", width: 100, height: 100, flexShrink: 0 }}>
-                <svg width={100} height={100} style={{ transform: "rotate(-90deg)" }}>
-                  <circle cx={50} cy={50} r={r} fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth={7} />
-                  <motion.circle cx={50} cy={50} r={r} fill="none" stroke="#34d399" strokeWidth={7} strokeLinecap="round"
-                    initial={{ strokeDasharray: `0 ${circ}` }} animate={{ strokeDasharray: `${0.92 * circ} ${circ}` }}
-                    transition={{ duration: 1.4, ease: [0.22, 1, 0.36, 1], delay: 0.3 }} />
-                </svg>
-                <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-                  <span className="term-value" style={{ fontSize: 22, fontWeight: 800, color: "#fff" }}>{eff}%</span>
-                  <span style={{ fontSize: 7.5, color: "rgba(255,255,255,0.35)", letterSpacing: ".06em" }}>ЭФФЕКТИВН.</span>
+        {/* ── DETAIL ── */}
+        <section className="tm-detail">
+          <AnimatePresence mode="wait">
+            <motion.div key={agent.slug}
+              initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.22, ease: EASE }}>
+              {/* Agent header */}
+              <div className="tm-d-head">
+                <span className="tm-d-avatar" style={{ color: agent.c, borderColor: `${agent.c}55` }}>
+                  {agent.ab}
+                  <span className="tm-d-dot" style={{ background: agent.c }} />
+                </span>
+                <div style={{ minWidth: 0 }}>
+                  <h2 className="tm-d-name">{agent.name}</h2>
+                  <div className="tm-d-role">{agent.title} · <span style={{ color: agent.c }}>{agent.st}</span></div>
                 </div>
+                <Link href={`/dashboard/executives`} className="tm-d-board">
+                  Совет <ArrowUpRight size={13} strokeWidth={2} />
+                </Link>
               </div>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                {[["20", "Активных агентов", "#34d399"], ["24", "Задач завершено", "#818cf8"], ["98%", "Оценка качества", "#c084fc"]].map(([v, l, c]) => (
-                  <div key={l} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: c as string }} />
-                    <span className="term-value" style={{ fontSize: 14, fontWeight: 800, color: "#fff" }}>{v}</span>
-                    <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.4)" }}>{l}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </motion.div>
 
-          {/* Insights */}
-          <motion.div initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.35 }} style={{ ...card, padding: 18 }}>
-            <div style={{ fontSize: 13.5, fontWeight: 800, color: "#fff", marginBottom: 3 }}>Инсайты команды</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>Ключевые выводы этой сессии</div>
-            <div style={{ borderRadius: 12, padding: "13px 14px", background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.25)", display: "flex", gap: 11 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.35)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" strokeWidth="2" width="15" height="15"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
+              <p className="tm-d-desc">{agent.desc}</p>
+
+              {/* Ask console */}
+              <div className="tm-ask-label">Спросить {agent.name.split(" ")[0]}</div>
+              <div className="tm-ask">
+                <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter") void submit(); }}
+                  disabled={busy} placeholder={`Например: оцени мою идею с точки зрения «${agent.title.toLowerCase()}»`} spellCheck={false} />
+                <button onClick={() => void submit()} disabled={busy || !q.trim()} aria-label="Отправить"
+                  style={{ background: agent.c }}>
+                  {busy ? <span className="tm-dots"><i /><i /><i /></span> : <CornerDownLeft size={15} strokeWidth={2.4} />}
+                </button>
               </div>
-              <div>
-                <div style={{ fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 3 }}>Сильная рыночная возможность</div>
-                <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>Анализ показывает 78% product-market fit с высоким потенциалом роста</div>
-              </div>
-            </div>
-          </motion.div>
-        </div>
+
+              <AnimatePresence>
+                {(answer || busy) && (
+                  <motion.div className="tm-answer"
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                    transition={{ duration: 0.2, ease: EASE }}>
+                    <p>{answer}{busy && <span className="tm-cursor" style={{ background: agent.c }} />}</p>
+                    {offline && !busy && <div className="tm-offline">Демо-ответ — настройте ANTHROPIC_API_KEY для живого анализа</div>}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </motion.div>
+          </AnimatePresence>
+        </section>
       </div>
+
+      <style jsx global>{`
+        .tm-wrap { max-width: 1200px; margin: 0 auto; padding: 28px 24px 56px; }
+        .tm-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 24px; }
+        .tm-eyebrow { font-family: var(--font-geist-mono), monospace; font-size: 10.5px; letter-spacing: 0.14em; color: rgba(255,255,255,0.32); margin-bottom: 8px; }
+        .tm-title { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; color: #E5E7EB; margin: 0; }
+        .tm-search { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border-radius: 10px;
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.4);
+          transition: border-color 0.18s ease, background 0.18s ease; }
+        .tm-search:focus-within { border-color: rgba(99,102,241,0.5); background: rgba(255,255,255,0.05); }
+        .tm-search input { background: none; border: none; outline: none; color: #E5E7EB; font-size: 13px; width: 190px; }
+        .tm-search input::placeholder { color: rgba(255,255,255,0.3); }
+
+        .tm-body { display: grid; grid-template-columns: 300px minmax(0,1fr); gap: 28px; align-items: start; }
+        .tm-list { display: flex; flex-direction: column; gap: 18px; }
+        .tm-empty { font-size: 13px; color: rgba(255,255,255,0.35); padding: 8px 4px; }
+        .tm-group-label { font-family: var(--font-geist-mono), monospace; font-size: 9.5px; letter-spacing: 0.12em;
+          color: rgba(255,255,255,0.3); padding: 0 10px 8px; }
+        .tm-row { position: relative; display: flex; align-items: center; gap: 11px; width: 100%; text-align: left;
+          padding: 8px 10px; border-radius: 10px; border: none; background: transparent; cursor: pointer;
+          transition: background 0.16s ease; }
+        .tm-row:hover { background: rgba(255,255,255,0.03); }
+        .tm-row.on { background: rgba(255,255,255,0.045); }
+        .tm-row:focus-visible { outline: 2px solid rgba(99,102,241,0.6); outline-offset: -2px; }
+        .tm-avatar { flex-shrink: 0; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center;
+          font-family: var(--font-geist-mono), monospace; font-size: 11px; font-weight: 800;
+          background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.1); transition: border-color 0.16s ease; }
+        .tm-row-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+        .tm-row-name { font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.88); line-height: 1.25; }
+        .tm-row.on .tm-row-name { color: #fff; }
+        .tm-row-role { font-size: 11px; color: rgba(255,255,255,0.4); line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .tm-marker { position: absolute; left: 0; top: 9px; bottom: 9px; width: 2.5px; border-radius: 2px; }
+
+        .tm-detail { border-radius: 16px; border: 1px solid rgba(255,255,255,0.07); background: rgba(255,255,255,0.018);
+          box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 40px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.04);
+          padding: 26px 28px; min-height: 340px; }
+        .tm-d-head { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; }
+        .tm-d-avatar { position: relative; flex-shrink: 0; width: 52px; height: 52px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
+          font-family: var(--font-geist-mono), monospace; font-size: 15px; font-weight: 800;
+          background: rgba(255,255,255,0.025); border: 1px solid; box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+        .tm-d-dot { position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; border-radius: 50%; border: 2.5px solid #0a0b12; }
+        .tm-d-name { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: #fff; margin: 0 0 2px; }
+        .tm-d-role { font-size: 13px; color: rgba(255,255,255,0.5); }
+        .tm-d-board { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; height: 32px; padding: 0 12px; border-radius: 9px;
+          font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6); text-decoration: none;
+          background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); transition: color 0.16s, border-color 0.16s; }
+        .tm-d-board:hover { color: #fff; border-color: rgba(255,255,255,0.16); }
+        .tm-d-desc { font-size: 14px; line-height: 1.6; color: rgba(255,255,255,0.6); max-width: 62ch; margin: 0 0 24px;
+          padding-bottom: 22px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .tm-ask-label { font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.1em; color: rgba(255,255,255,0.35); margin-bottom: 9px; }
+        .tm-ask { display: flex; gap: 8px; }
+        .tm-ask input { flex: 1; min-width: 0; height: 44px; padding: 0 14px; border-radius: 11px; font-size: 13.5px; color: #E5E7EB;
+          background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.09); outline: none; transition: border-color 0.18s, box-shadow 0.18s; }
+        .tm-ask input::placeholder { color: rgba(255,255,255,0.3); }
+        .tm-ask input:focus { border-color: rgba(99,102,241,0.5); box-shadow: 0 0 0 3px rgba(99,102,241,0.09); }
+        .tm-ask button { flex-shrink: 0; width: 44px; height: 44px; border-radius: 11px; border: none; cursor: pointer; color: #fff;
+          display: flex; align-items: center; justify-content: center; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);
+          transition: transform 0.15s ease, opacity 0.15s ease; }
+        .tm-ask button:hover:not(:disabled) { transform: translateY(-1px); }
+        .tm-ask button:active:not(:disabled) { transform: translateY(0); }
+        .tm-ask button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .tm-dots { display: inline-flex; gap: 3px; }
+        .tm-dots i { width: 4px; height: 4px; border-radius: 50%; background: #fff; animation: tm-blink 1s infinite; }
+        .tm-dots i:nth-child(2) { animation-delay: 0.15s; } .tm-dots i:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes tm-blink { 0%,100%{opacity:0.3} 50%{opacity:1} }
+        .tm-answer { margin-top: 14px; border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); padding: 16px 18px; }
+        .tm-answer p { font-size: 13.5px; line-height: 1.65; color: rgba(255,255,255,0.82); margin: 0; white-space: pre-wrap; }
+        .tm-cursor { display: inline-block; width: 7px; height: 14px; margin-left: 2px; border-radius: 1px; vertical-align: text-bottom; animation: tm-caret 1s step-end infinite; }
+        @keyframes tm-caret { 50% { opacity: 0; } }
+        .tm-offline { font-family: var(--font-geist-mono), monospace; font-size: 10px; color: rgba(251,191,36,0.8); margin-top: 10px; }
+
+        @media (max-width: 820px) {
+          .tm-body { grid-template-columns: 1fr; }
+          .tm-list { flex-direction: row; overflow-x: auto; gap: 12px; padding-bottom: 6px; }
+          .tm-group { flex-shrink: 0; }
+        }
+        @media (prefers-reduced-motion: reduce) { .tm-dots i, .tm-cursor { animation: none; } }
+      `}</style>
     </div>
   );
 }
