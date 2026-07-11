@@ -8,28 +8,28 @@ import { motion, AnimatePresence } from "framer-motion";
 // ─── Agents ───────────────────────────────────────────────────────────────────
 type Node = { id: string; ab: string; name: string; role: string; dept: string; score: number; c: string; g: [string, string] };
 
-const CEO: Node = { id: "ceo", ab: "CEO", name: "CEO Стратег", role: "Стратегическое лидерство", dept: "leadership", score: 96, c: "#818cf8", g: ["#6366f1", "#4f46e5"] };
+const CEO: Node = { id: "ceo", ab: "CEO", name: "Sophia Rivers", role: "Стратегическое лидерство", dept: "leadership", score: 96, c: "#818cf8", g: ["#6366f1", "#4f46e5"] };
 
 const CHIEFS: Node[] = [
-  { id: "cfo", ab: "CFO", name: "CFO Финансы",    role: "Финансовая стратегия",       dept: "finance",    score: 93, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
-  { id: "cmo", ab: "CMO", name: "CMO Маркетинг",  role: "Рост и маркетинг",           dept: "marketing",  score: 94, c: "#34d399", g: ["#10b981", "#059669"] },
-  { id: "coo", ab: "COO", name: "COO Операции",   role: "Операционное превосходство", dept: "operations", score: 92, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
-  { id: "cto", ab: "CTO", name: "CTO Технологии", role: "Технологии и инновации",     dept: "tech",       score: 95, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
+  { id: "cfo", ab: "CFO", name: "Marcus Chen",    role: "Финансовая стратегия",       dept: "finance",    score: 93, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
+  { id: "cmo", ab: "CMO", name: "Elena Torres",  role: "Рост и маркетинг",           dept: "marketing",  score: 94, c: "#34d399", g: ["#10b981", "#059669"] },
+  { id: "coo", ab: "COO", name: "James Wright",   role: "Операционное превосходство", dept: "operations", score: 92, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
+  { id: "cto", ab: "CTO", name: "Aiden Park", role: "Технологии и инновации",     dept: "tech",       score: 95, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
 ];
 
 const SPECIALISTS: Node[] = [
-  { id: "fp", ab: "FP", name: "Financial Planner", role: "Планирование и бюджет",    dept: "finance",    score: 91, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
-  { id: "ra", ab: "RA", name: "Risk Analyst",      role: "Управление рисками",       dept: "finance",    score: 90, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
-  { id: "ia", ab: "IA", name: "Invest Analyst",    role: "Инвест-оценка",            dept: "finance",    score: 92, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
-  { id: "bs", ab: "BS", name: "Brand Strategist",  role: "Бренд и позиционирование", dept: "marketing",  score: 92, c: "#34d399", g: ["#10b981", "#059669"] },
-  { id: "gh", ab: "GH", name: "Growth Hacker",     role: "Growth-маркетинг",         dept: "marketing",  score: 91, c: "#34d399", g: ["#10b981", "#059669"] },
-  { id: "mr", ab: "MR", name: "Market Researcher", role: "Рыночная разведка",        dept: "marketing",  score: 91, c: "#34d399", g: ["#10b981", "#059669"] },
-  { id: "po", ab: "PO", name: "Process Optimizer", role: "Оптимизация процессов",    dept: "operations", score: 90, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
-  { id: "hr", ab: "HR", name: "HR Manager",        role: "Персонал и культура",      dept: "operations", score: 87, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
-  { id: "la", ab: "LA", name: "Legal Advisor",     role: "Право и комплаенс",        dept: "operations", score: 88, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
-  { id: "ar", ab: "AR", name: "AI Researcher",     role: "AI и инновации",           dept: "tech",       score: 93, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
-  { id: "da", ab: "DA", name: "Data Architect",    role: "Данные и аналитика",       dept: "tech",       score: 92, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
-  { id: "pm", ab: "PM", name: "Product Manager",   role: "Продуктовая стратегия",    dept: "tech",       score: 93, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
+  { id: "fp", ab: "FP", name: "Kim Park", role: "Планирование и бюджет",    dept: "finance",    score: 91, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
+  { id: "ra", ab: "RA", name: "Omar Hassan",      role: "Управление рисками",       dept: "finance",    score: 90, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
+  { id: "ia", ab: "IA", name: "Tom Evans",    role: "Инвест-оценка",            dept: "finance",    score: 92, c: "#60a5fa", g: ["#3b82f6", "#2563eb"] },
+  { id: "bs", ab: "BS", name: "Chloe Martin",  role: "Бренд и позиционирование", dept: "marketing",  score: 92, c: "#34d399", g: ["#10b981", "#059669"] },
+  { id: "gh", ab: "GH", name: "Alex Kim",     role: "Growth-маркетинг",         dept: "marketing",  score: 91, c: "#34d399", g: ["#10b981", "#059669"] },
+  { id: "mr", ab: "MR", name: "Nina Brown", role: "Рыночная разведка",        dept: "marketing",  score: 91, c: "#34d399", g: ["#10b981", "#059669"] },
+  { id: "po", ab: "PO", name: "Jake Turner", role: "Оптимизация процессов",    dept: "operations", score: 90, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
+  { id: "hr", ab: "HR", name: "Maya Scott",        role: "Персонал и культура",      dept: "operations", score: 87, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
+  { id: "la", ab: "LA", name: "Mia Larson",     role: "Право и комплаенс",        dept: "operations", score: 88, c: "#fbbf24", g: ["#f59e0b", "#d97706"] },
+  { id: "ar", ab: "AR", name: "Leo Zhang",     role: "AI и инновации",           dept: "tech",       score: 93, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
+  { id: "da", ab: "DA", name: "Zoe Carter",    role: "Данные и аналитика",       dept: "tech",       score: 92, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
+  { id: "pm", ab: "PM", name: "Sara Patel",   role: "Продуктовая стратегия",    dept: "tech",       score: 93, c: "#c084fc", g: ["#a855f7", "#9333ea"] },
 ];
 
 const ALL: Node[] = [CEO, ...CHIEFS, ...SPECIALISTS];
@@ -203,7 +203,7 @@ export default function ExecutivesPage() {
     }
 
     setBattle(b => b && ({ ...b, phase: "verdict", current: "ceo" }));
-    const ceoPersona = `Ты — CEO Стратег совета директоров Apex AI. Основатель задал вопрос, совет провёл дебаты. Мнения:\n${opinions.map(o => `${byId[o.id].name}: ${o.text}`).join("\n\n")}\n\nВынеси финальный вердикт на русском: взвесь споры, прими однозначное решение и дай 2–3 конкретных следующих шага. Максимум 6 предложений. Обычный текст без markdown-разметки (никаких ** и #).`;
+    const ceoPersona = `Ты — Sophia Rivers, CEO совета директоров Apex AI. Основатель задал вопрос, совет провёл дебаты. Мнения:\n${opinions.map(o => `${byId[o.id].name}: ${o.text}`).join("\n\n")}\n\nВынеси финальный вердикт на русском: взвесь споры, прими однозначное решение и дай 2–3 конкретных следующих шага. Максимум 6 предложений. Обычный текст без markdown-разметки (никаких ** и #).`;
     if (!offline) {
       try {
         await streamChat(q, ceoPersona, t => setBattle(b => b && ({ ...b, verdict: b.verdict + t })));
