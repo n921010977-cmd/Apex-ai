@@ -8,7 +8,7 @@ import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/t
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
-// ─── Характеристики агентов (для карточек в стиле дашборда) ───────────────────
+// ─── Характеристики агентов ───────────────────────────────────────────────────
 const CHAR: Record<string, { specialty: string; confidence: number; tasks: number }> = {
   ceo:      { specialty: "Стратегия & Видение",       confidence: 96, tasks: 12 },
   cfo:      { specialty: "Финансы & Модели",          confidence: 93, tasks: 8 },
@@ -74,6 +74,15 @@ const FB_SOLUTION = "Решение совета: гипотеза достой�
 type Contribution = { slug: string; text: string; done: boolean };
 type Session = { q: string; team: string[]; phase: "work" | "solution" | "done"; current?: string; contribs: Contribution[]; solution: string; offline: boolean };
 
+// рассадка 5 директоров вокруг овального стола (в % контейнера)
+const SEATS: Record<string, { x: number; y: number }> = {
+  ceo: { x: 50, y: 4 },
+  cfo: { x: 13, y: 30 },
+  cmo: { x: 87, y: 30 },
+  coo: { x: 24, y: 74 },
+  cto: { x: 76, y: 74 },
+};
+
 export default function BoardPage() {
   const [q, setQ] = useState("");
   const [s, setS] = useState<Session | null>(null);
@@ -123,94 +132,190 @@ export default function BoardPage() {
 
   return (
     <div className="ex-root">
+      {/* верхний световой конус зала */}
+      <div className="ex-ambient" aria-hidden />
+
       <div className="ex-wrap">
-        <div className="ex-head">
-          <div className="ex-eyebrow">СОВЕТ ДИРЕКТОРОВ · 20 AI-АГЕНТОВ</div>
-          <h1 className="ex-title">Опишите задачу — совет её решит</h1>
-          <p className="ex-sub">Профильные директора разберут вашу ситуацию каждый со своей стороны и соберут единое решение с конкретными шагами.</p>
-        </div>
-
-        <div className="ex-ask">
-          <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === "Enter") submit(); }}
-            disabled={busy} placeholder="Например: стоит ли запускать вторую линейку продукта?" spellCheck={false} />
-          <button onClick={submit} disabled={busy || !q.trim()}>
-            {busy ? <span className="ex-dots"><i /><i /><i /></span> : <><span>Собрать совет</span><CornerDownLeft size={14} strokeWidth={2.4} /></>}
-          </button>
-        </div>
-
-        {!s && (
-          <div className="ex-examples">
-            {EXAMPLES.map(e => (
-              <button key={e} onClick={() => { setQ(e); requestAnimationFrame(() => inputRef.current?.focus()); }}>
-                <span>{e}</span><ArrowUpRight size={13} strokeWidth={2} />
-              </button>
-            ))}
+        {/* ── Зал заседаний ── */}
+        <div className="ex-hall-head">
+          <div className="ex-live">
+            <span className="ex-live-dot" />
+            СОВЕТ В СБОРЕ · {C_LEVEL.length} ДИРЕКТОРОВ
           </div>
-        )}
+          <h1 className="ex-title">Зал заседаний</h1>
+          <p className="ex-sub">Вынесите вопрос на повестку — совет обсудит его при вас и подпишет протокол решения.</p>
+        </div>
 
-        {/* Solve session */}
+        {/* стол совета */}
+        <div className="ex-scene">
+          <svg className="ex-table" viewBox="0 0 640 260" preserveAspectRatio="xMidYMid meet" aria-hidden>
+            <defs>
+              <radialGradient id="exTableTop" cx="50%" cy="38%" r="75%">
+                <stop offset="0%" stopColor="rgba(99,102,241,0.16)" />
+                <stop offset="45%" stopColor="rgba(30,32,52,0.55)" />
+                <stop offset="100%" stopColor="rgba(10,11,18,0.9)" />
+              </radialGradient>
+              <linearGradient id="exTableEdge" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stopColor="rgba(255,255,255,0.10)" />
+                <stop offset="100%" stopColor="rgba(255,255,255,0.02)" />
+              </linearGradient>
+            </defs>
+            {/* тень / основание */}
+            <ellipse cx="320" cy="150" rx="252" ry="76" fill="rgba(0,0,0,0.5)" />
+            {/* столешница */}
+            <ellipse cx="320" cy="138" rx="248" ry="72" fill="url(#exTableTop)" stroke="url(#exTableEdge)" strokeWidth="1.2" />
+            {/* внутренняя кромка */}
+            <ellipse cx="320" cy="138" rx="196" ry="52" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="1" />
+            {/* блик света сверху */}
+            <ellipse cx="320" cy="112" rx="120" ry="22" fill="rgba(129,140,248,0.07)" />
+            {/* эмблема в центре */}
+            <g opacity="0.5">
+              <circle cx="320" cy="138" r="17" fill="none" stroke="rgba(129,140,248,0.35)" strokeWidth="1" />
+              <path d="M320 127l3.1 6.3 7 1-5 4.9 1.2 6.9-6.3-3.3-6.3 3.3 1.2-6.9-5-4.9 7-1z" fill="rgba(129,140,248,0.5)" />
+            </g>
+          </svg>
+
+          {/* кресла директоров */}
+          {C_LEVEL.map((d, i) => {
+            const seat = SEATS[d.slug] ?? { x: 50, y: 50 };
+            const speaking = s?.current === d.slug && busy;
+            const spoke = s?.contribs.some(c => c.slug === d.slug && c.done) || (d.slug === "ceo" && s?.phase === "done");
+            const inTeam = s?.team.includes(d.slug) || d.slug === "ceo";
+            const dim = s !== null && !inTeam;
+            return (
+              <motion.button
+                key={d.slug}
+                className="ex-seat"
+                style={{ left: `${seat.x}%`, top: `${seat.y}%` }}
+                initial={{ opacity: 0, y: 14 }}
+                animate={{ opacity: dim ? 0.35 : 1, y: 0 }}
+                transition={{ duration: 0.5, ease: EASE, delay: i * 0.08 }}
+                onClick={() => setAsk(AGENTS.find(a => a.slug === d.slug)!)}
+                title={`${d.name} — ${d.title}`}
+              >
+                <span className="ex-seat-av" style={{
+                  background: `linear-gradient(135deg,${d.g[0]},${d.g[1]})`,
+                  boxShadow: speaking
+                    ? `0 0 0 2px ${d.c}, 0 0 26px ${d.c}66, inset 0 1px 0 rgba(255,255,255,0.25)`
+                    : `0 6px 22px rgba(0,0,0,0.5), 0 0 14px ${d.c}22, inset 0 1px 0 rgba(255,255,255,0.22)`,
+                }}>
+                  {d.ab}
+                  {speaking && <motion.span className="ex-seat-ring" style={{ borderColor: d.c }}
+                    animate={{ scale: [1, 1.45], opacity: [0.7, 0] }} transition={{ duration: 1.2, repeat: Infinity, ease: "easeOut" }} />}
+                  {spoke && !speaking && <span className="ex-seat-check"><Check size={9} strokeWidth={3.5} /></span>}
+                </span>
+                <span className="ex-seat-name">{d.name.split(" ")[0]}</span>
+                <span className="ex-seat-role" style={{ color: speaking ? d.c : undefined }}>
+                  {speaking ? "выступает…" : d.role}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* трибуна — вынесение вопроса */}
+        <div className="ex-podium">
+          <div className="ex-ask">
+            <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} onKeyDown={e => { if (e.key === "Enter") submit(); }}
+              disabled={busy} placeholder="Вынести вопрос на повестку совета…" spellCheck={false} />
+            <button onClick={submit} disabled={busy || !q.trim()}>
+              {busy ? <span className="ex-dots"><i /><i /><i /></span> : <><span>Открыть заседание</span><CornerDownLeft size={14} strokeWidth={2.4} /></>}
+            </button>
+          </div>
+          {!s && (
+            <div className="ex-examples">
+              {EXAMPLES.map(e => (
+                <button key={e} onClick={() => { setQ(e); requestAnimationFrame(() => inputRef.current?.focus()); }}>
+                  <span>{e}</span><ArrowUpRight size={13} strokeWidth={2} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* ── Стенограмма заседания ── */}
         <AnimatePresence>
           {s && (
-            <motion.div className="ex-session" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-              <div className="ex-q">{s.q}</div>
-              <div className="ex-team">
-                <span className="ex-team-label">Над задачей работают</span>
-                <div className="ex-team-list">
-                  {s.team.map(slug => {
-                    const m = TEAM_BY_SLUG[slug];
-                    const contrib = s.contribs.find(c => c.slug === slug);
-                    const state = contrib?.done ? "done" : s.current === slug ? "work" : contrib ? "done" : "wait";
+            <motion.div className="ex-session" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.25 }}>
+              <div className="ex-agenda">
+                <span className="ex-agenda-label">Повестка</span>
+                <span className="ex-agenda-q">{s.q}</span>
+              </div>
+
+              <div className="ex-transcript">
+                <div className="ex-transcript-head">
+                  <span className="ex-transcript-title">Стенограмма</span>
+                  {busy && <span className="ex-transcript-live"><span className="ex-live-dot" />идёт обсуждение</span>}
+                </div>
+
+                <div className="ex-rail">
+                  {s.contribs.map((c, i) => {
+                    const m = TEAM_BY_SLUG[c.slug];
                     return (
-                      <div key={slug} className="ex-member">
-                        <span className="ex-member-av" style={{ background: `linear-gradient(135deg,${m.g[0]},${m.g[1]})` }}>{m.ab}</span>
-                        <span className="ex-member-info">
-                          <span className="ex-member-name">{m.name}</span>
-                          <span className="ex-member-state" style={{ color: state === "done" ? "#10b981" : state === "work" ? m.c : "rgba(255,255,255,0.35)" }}>
-                            {state === "done" ? <><Check size={10} strokeWidth={3} />готово</> : state === "work" ? <><Loader2 size={10} className="ex-spin" />анализирует…</> : "в очереди"}
-                          </span>
-                        </span>
-                      </div>
+                      <motion.div key={i} className="ex-entry" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: EASE }}>
+                        <div className="ex-entry-marker">
+                          <span className="ex-entry-dot" style={{ background: m.c, boxShadow: `0 0 10px ${m.c}66` }} />
+                          {(i < s.contribs.length - 1 || s.phase !== "work") && <span className="ex-entry-line" />}
+                        </div>
+                        <div className="ex-entry-body">
+                          <div className="ex-entry-head">
+                            <span className="ex-entry-av" style={{ background: `linear-gradient(135deg,${m.g[0]},${m.g[1]})` }}>{m.ab}</span>
+                            <span className="ex-entry-name">{m.name}</span>
+                            <span className="ex-entry-role">{m.title}</span>
+                            <span className="ex-entry-n">реплика {String(i + 1).padStart(2, "0")}</span>
+                          </div>
+                          <p className="ex-entry-text">{c.text}{!c.done && <span className="ex-cursor" style={{ background: m.c }} />}</p>
+                        </div>
+                      </motion.div>
                     );
                   })}
-                </div>
-              </div>
-              <div className="ex-contribs">
-                {s.contribs.map((c, i) => {
-                  const m = TEAM_BY_SLUG[c.slug];
-                  return (
-                    <motion.div key={i} className="ex-contrib" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.26, ease: EASE }}>
-                      <div className="ex-contrib-side" style={{ background: `linear-gradient(180deg,${m.c}, transparent)` }} />
-                      <div className="ex-contrib-body">
-                        <div className="ex-contrib-head">
-                          <span className="ex-contrib-av" style={{ background: `linear-gradient(135deg,${m.g[0]},${m.g[1]})` }}>{m.ab}</span>
-                          <span className="ex-contrib-name">{m.name}</span>
-                          <span className="ex-contrib-role">{m.title}</span>
+
+                  {/* протокол решения */}
+                  {(s.phase === "solution" || s.phase === "done") && (
+                    <motion.div className="ex-entry" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.32, ease: EASE }}>
+                      <div className="ex-entry-marker">
+                        <span className="ex-entry-dot ex-entry-dot-final" />
+                      </div>
+                      <div className="ex-protocol">
+                        <div className="ex-protocol-top">
+                          <div className="ex-protocol-titles">
+                            <span className="ex-protocol-kicker">ПРОТОКОЛ ЗАСЕДАНИЯ</span>
+                            <span className="ex-protocol-title">Решение совета</span>
+                          </div>
+                          <span className="ex-seal" aria-hidden>
+                            <svg viewBox="0 0 44 44">
+                              <circle cx="22" cy="22" r="20" fill="none" stroke="rgba(129,140,248,0.5)" strokeWidth="1.2" strokeDasharray="2.5 3" />
+                              <circle cx="22" cy="22" r="14" fill="none" stroke="rgba(129,140,248,0.35)" strokeWidth="1" />
+                              <path d="M22 13l2.4 4.9 5.4.8-3.9 3.8.9 5.4-4.8-2.5-4.8 2.5.9-5.4-3.9-3.8 5.4-.8z" fill="rgba(129,140,248,0.65)" />
+                            </svg>
+                          </span>
                         </div>
-                        <p className="ex-contrib-text">{c.text}{!c.done && <span className="ex-cursor" style={{ background: m.c }} />}</p>
+                        <p className="ex-protocol-text">{s.solution}{s.phase === "solution" && <span className="ex-cursor" style={{ background: ceo.c }} />}</p>
+                        {s.phase === "done" && (
+                          <div className="ex-protocol-sign">
+                            <span className="ex-sign-av" style={{ background: `linear-gradient(135deg,${ceo.g[0]},${ceo.g[1]})` }}>{ceo.ab}</span>
+                            <span className="ex-sign-txt"><b>{ceo.name}</b> · CEO, председатель совета</span>
+                            {s.offline && <span className="ex-offline">демо-режим · настройте ANTHROPIC_API_KEY</span>}
+                          </div>
+                        )}
+                        {s.phase === "done" && (
+                          <button className="ex-new" onClick={() => { setS(null); requestAnimationFrame(() => inputRef.current?.focus()); }}>
+                            Новый вопрос на повестку
+                          </button>
+                        )}
                       </div>
                     </motion.div>
-                  );
-                })}
+                  )}
+                </div>
               </div>
-              {(s.phase === "solution" || s.phase === "done") && (
-                <motion.div className="ex-solution" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: EASE }}>
-                  <div className="ex-solution-head">
-                    <span className="ex-solution-av" style={{ background: `linear-gradient(135deg,${ceo.g[0]},${ceo.g[1]})` }}>{ceo.ab}</span>
-                    <div><div className="ex-solution-title">Решение совета</div><div className="ex-solution-by">Синтез · {ceo.name}, CEO</div></div>
-                  </div>
-                  <p className="ex-solution-text">{s.solution}{s.phase === "solution" && <span className="ex-cursor" style={{ background: ceo.c }} />}</p>
-                  {s.offline && s.phase === "done" && <div className="ex-offline">Демо-режим — настройте ANTHROPIC_API_KEY</div>}
-                  {s.phase === "done" && <button className="ex-new" onClick={() => { setS(null); requestAnimationFrame(() => inputRef.current?.focus()); }}>Новая задача</button>}
-                </motion.div>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* Org structure — who works under which director */}
+        {/* ── Состав совета ── */}
         <div className="ex-roster-head">
-          <h2 className="ex-roster-title">Кто на кого работает</h2>
-          <span className="ex-roster-count">Структура совета · нажмите на любого, чтобы спросить</span>
+          <h2 className="ex-roster-title">Состав совета</h2>
+          <span className="ex-roster-count">5 директоров · 15 специалистов · нажмите, чтобы спросить лично</span>
         </div>
 
         {C_LEVEL.map(lead => {
@@ -218,11 +323,11 @@ export default function BoardPage() {
           const team = reportsOf(lead.slug).filter(m => m.tier === "specialist").map(m => AGENTS.find(a => a.slug === m.slug)!);
           const directReports = lead.slug === "ceo" ? C_LEVEL.filter(c => c.slug !== "ceo") : [];
           return (
-            <div key={lead.slug} className="ex-dept">
+            <div key={lead.slug} className="ex-dept" style={{ borderLeftColor: `${director.c}33` }}>
               <motion.button className="ex-lead" onClick={() => setAsk(director)}
                 initial={{ opacity: 0, y: 12 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.4, ease: EASE }}
                 whileHover={{ y: -3 }}
-                style={{ background: `linear-gradient(135deg, rgba(${hexToRgb(director.c)},0.14), rgba(255,255,255,0.03))`, borderColor: `rgba(${hexToRgb(director.c)},0.3)` }}>
+                style={{ background: `linear-gradient(135deg, rgba(${hexToRgb(director.c)},0.13), rgba(255,255,255,0.02) 65%)`, borderColor: `rgba(${hexToRgb(director.c)},0.28)` }}>
                 <span className="ex-lead-av" style={{ background: `linear-gradient(135deg,${director.g[0]},${director.g[1]})` }}>{director.ab}</span>
                 <div className="ex-lead-id">
                   <div className="ex-lead-name">{director.name} <span className="ex-lead-role" style={{ color: director.c }}>{director.role}</span></div>
@@ -230,7 +335,7 @@ export default function BoardPage() {
                 </div>
                 <div className="ex-lead-meta">
                   <div className="ex-lead-conf" style={{ color: director.c }}>{director.confidence}%</div>
-                  <div className="ex-lead-sub">{lead.slug === "ceo" ? "руководит всем советом" : `${team.length} в команде`}</div>
+                  <div className="ex-lead-sub">{lead.slug === "ceo" ? "председатель совета" : `${team.length} в команде`}</div>
                 </div>
               </motion.button>
 
@@ -261,7 +366,7 @@ export default function BoardPage() {
   );
 }
 
-// ─── Agent card (dashboard style) ────────────────────────────────────────────
+// ─── Agent card ───────────────────────────────────────────────────────────────
 function AgentCard({ a, index, lead, onClick }: { a: AgentFull; index: number; lead?: TeamMember; onClick: () => void }) {
   const [hovered, setHovered] = useState(false);
   return (
@@ -378,72 +483,115 @@ function hexToRgb(hex: string): string {
 function ExStyles() {
   return (
     <style jsx global>{`
-      .ex-root { background: #05060A; min-height: 100%; }
-      .ex-wrap { max-width: 1160px; margin: 0 auto; padding: 32px 24px 60px; }
-      .ex-eyebrow { font-family: var(--font-geist-mono), monospace; font-size: 10.5px; letter-spacing: 0.14em; color: rgba(255,255,255,0.32); margin-bottom: 9px; }
-      .ex-title { font-size: 29px; font-weight: 800; letter-spacing: -0.025em; color: #E5E7EB; margin: 0 0 8px; text-wrap: balance; }
-      .ex-sub { font-size: 14px; line-height: 1.55; color: rgba(255,255,255,0.5); max-width: 60ch; margin: 0 0 22px; }
+      .ex-root { position: relative; background: #05060A; min-height: 100%; overflow: hidden; }
 
-      .ex-ask { display: flex; gap: 8px; max-width: 760px; }
-      .ex-ask input { flex: 1; min-width: 0; height: 52px; padding: 0 18px; border-radius: 14px; font-size: 15px; color: #E5E7EB;
-        background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); outline: none; transition: border-color .18s, box-shadow .18s; }
+      /* световой конус над столом */
+      .ex-ambient { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(900px, 100%); height: 560px; pointer-events: none;
+        background:
+          radial-gradient(52% 60% at 50% 0%, rgba(99,102,241,0.13), transparent 70%),
+          radial-gradient(30% 34% at 50% 6%, rgba(129,140,248,0.10), transparent 75%);
+      }
+
+      .ex-wrap { position: relative; max-width: 1160px; margin: 0 auto; padding: 40px 24px 60px; }
+
+      /* заголовок зала */
+      .ex-hall-head { text-align: center; margin-bottom: 8px; }
+      .ex-live { display: inline-flex; align-items: center; gap: 8px; font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.16em;
+        color: rgba(52,211,153,0.9); background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.2); border-radius: 999px; padding: 6px 14px; margin-bottom: 16px; }
+      .ex-live-dot { width: 6px; height: 6px; border-radius: 50%; background: #10b981; box-shadow: 0 0 8px #10b981; animation: ex-pulse 2s ease-in-out infinite; }
+      .ex-title { font-size: clamp(28px, 4vw, 38px); font-weight: 800; letter-spacing: -0.03em; color: #F3F4F6; margin: 0 0 10px; text-wrap: balance; }
+      .ex-sub { font-size: 14.5px; line-height: 1.6; color: rgba(255,255,255,0.5); max-width: 52ch; margin: 0 auto; }
+
+      /* сцена со столом */
+      .ex-scene { position: relative; max-width: 720px; height: 300px; margin: 18px auto 0; }
+      .ex-table { position: absolute; left: 50%; top: 54%; transform: translate(-50%, -50%); width: 100%; height: auto; }
+      .ex-seat { position: absolute; transform: translate(-50%, 0); display: flex; flex-direction: column; align-items: center; gap: 5px;
+        background: none; border: none; cursor: pointer; padding: 6px; z-index: 2; transition: transform .2s; }
+      .ex-seat:hover { transform: translate(-50%, -3px); }
+      .ex-seat-av { position: relative; width: 52px; height: 52px; border-radius: 15px; display: flex; align-items: center; justify-content: center;
+        color: #fff; font-family: var(--font-geist-mono), monospace; font-size: 14px; font-weight: 800; transition: box-shadow .3s; }
+      .ex-seat-ring { position: absolute; inset: -5px; border-radius: 19px; border: 1.5px solid; pointer-events: none; }
+      .ex-seat-check { position: absolute; right: -5px; top: -5px; width: 17px; height: 17px; border-radius: 50%;
+        background: #10b981; border: 2px solid #05060A; color: #fff; display: flex; align-items: center; justify-content: center; }
+      .ex-seat-name { font-size: 12px; font-weight: 700; color: rgba(255,255,255,0.88); letter-spacing: -0.01em; }
+      .ex-seat-role { font-family: var(--font-geist-mono), monospace; font-size: 9px; letter-spacing: 0.1em; color: rgba(255,255,255,0.35); }
+
+      /* трибуна */
+      .ex-podium { max-width: 720px; margin: 8px auto 0; }
+      .ex-ask { display: flex; gap: 8px; }
+      .ex-ask input { flex: 1; min-width: 0; height: 54px; padding: 0 20px; border-radius: 16px; font-size: 15px; color: #E5E7EB;
+        background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); outline: none; transition: border-color .18s, box-shadow .18s;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05); }
       .ex-ask input::placeholder { color: rgba(255,255,255,0.3); }
-      .ex-ask input:focus { border-color: rgba(99,102,241,0.55); box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
-      .ex-ask button { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 22px; border-radius: 14px; border: none; cursor: pointer;
+      .ex-ask input:focus { border-color: rgba(99,102,241,0.55); box-shadow: 0 0 0 4px rgba(99,102,241,0.1), 0 10px 40px rgba(0,0,0,0.35); }
+      .ex-ask button { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; height: 54px; padding: 0 22px; border-radius: 16px; border: none; cursor: pointer;
         font-size: 14px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5);
-        box-shadow: 0 4px 16px rgba(99,102,241,0.32), inset 0 1px 0 rgba(255,255,255,0.18); transition: transform .15s, opacity .15s; }
+        box-shadow: 0 4px 18px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18); transition: transform .15s, opacity .15s; }
       .ex-ask button:hover:not(:disabled) { transform: translateY(-1px); }
       .ex-ask button:disabled { opacity: 0.55; cursor: not-allowed; }
       .ex-dots { display: inline-flex; gap: 4px; } .ex-dots i { width: 5px; height: 5px; border-radius: 50%; background: #fff; animation: ex-blink 1s infinite; }
       .ex-dots i:nth-child(2){animation-delay:.15s} .ex-dots i:nth-child(3){animation-delay:.3s}
       @keyframes ex-blink { 0%,100%{opacity:.3} 50%{opacity:1} }
 
-      .ex-examples { margin-top: 14px; display: flex; gap: 8px; flex-wrap: wrap; }
-      .ex-examples button { display: inline-flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 11px; cursor: pointer;
-        background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.65); font-size: 13px; transition: background .16s, border-color .16s, transform .16s; }
-      .ex-examples button:hover { background: rgba(255,255,255,0.04); border-color: rgba(255,255,255,0.13); transform: translateY(-1px); }
+      .ex-examples { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+      .ex-examples button { display: inline-flex; align-items: center; gap: 8px; padding: 9px 14px; border-radius: 999px; cursor: pointer;
+        background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.6); font-size: 12.5px; transition: background .16s, border-color .16s, transform .16s; }
+      .ex-examples button:hover { background: rgba(255,255,255,0.045); border-color: rgba(255,255,255,0.14); transform: translateY(-1px); }
       .ex-examples svg { color: rgba(255,255,255,0.3); }
 
-      .ex-session { margin-top: 24px; display: flex; flex-direction: column; gap: 16px; max-width: 820px; }
-      .ex-q { font-size: 18px; font-weight: 700; color: #fff; letter-spacing: -0.01em; }
-      .ex-team { padding: 14px 16px; border-radius: 14px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); }
-      .ex-team-label { font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.1em; color: rgba(255,255,255,0.4); }
-      .ex-team-list { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 11px; }
-      .ex-member { display: flex; align-items: center; gap: 9px; padding: 8px 12px 8px 8px; border-radius: 11px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); }
-      .ex-member-av { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-geist-mono), monospace; font-size: 10px; font-weight: 800; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); }
-      .ex-member-info { display: flex; flex-direction: column; }
-      .ex-member-name { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.85); line-height: 1.2; }
-      .ex-member-state { display: inline-flex; align-items: center; gap: 4px; font-family: var(--font-geist-mono), monospace; font-size: 9.5px; margin-top: 1px; }
-      .ex-spin { animation: ex-rot 0.9s linear infinite; } @keyframes ex-rot { to { transform: rotate(360deg); } }
-      .ex-contribs { display: flex; flex-direction: column; gap: 12px; }
-      .ex-contrib { display: flex; border-radius: 14px; overflow: hidden; background: rgba(255,255,255,0.018); border: 1px solid rgba(255,255,255,0.07); }
-      .ex-contrib-side { width: 3px; flex-shrink: 0; }
-      .ex-contrib-body { flex: 1; min-width: 0; padding: 14px 16px; }
-      .ex-contrib-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; }
-      .ex-contrib-av { width: 30px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-geist-mono), monospace; font-size: 10px; font-weight: 800; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); }
-      .ex-contrib-name { font-size: 13.5px; font-weight: 700; color: #fff; }
-      .ex-contrib-role { font-size: 11.5px; color: rgba(255,255,255,0.42); }
-      .ex-contrib-text { font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,0.78); margin: 0; white-space: pre-wrap; }
+      /* стенограмма */
+      .ex-session { max-width: 820px; margin: 30px auto 0; }
+      .ex-agenda { display: flex; flex-direction: column; gap: 5px; padding: 16px 20px; border-radius: 16px;
+        background: linear-gradient(135deg, rgba(99,102,241,0.07), rgba(255,255,255,0.015)); border: 1px solid rgba(99,102,241,0.2); margin-bottom: 20px; }
+      .ex-agenda-label { font-family: var(--font-geist-mono), monospace; font-size: 9.5px; letter-spacing: 0.16em; color: rgba(129,140,248,0.8); }
+      .ex-agenda-q { font-size: 17px; font-weight: 700; color: #fff; letter-spacing: -0.01em; line-height: 1.4; }
+
+      .ex-transcript-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+      .ex-transcript-title { font-family: var(--font-geist-mono), monospace; font-size: 10.5px; letter-spacing: 0.16em; color: rgba(255,255,255,0.4); text-transform: uppercase; }
+      .ex-transcript-live { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.08em; color: rgba(52,211,153,0.85); }
+
+      .ex-rail { display: flex; flex-direction: column; }
+      .ex-entry { display: flex; gap: 14px; }
+      .ex-entry-marker { display: flex; flex-direction: column; align-items: center; width: 14px; flex-shrink: 0; padding-top: 14px; }
+      .ex-entry-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+      .ex-entry-dot-final { width: 11px; height: 11px; background: #818cf8; box-shadow: 0 0 14px rgba(129,140,248,0.7); }
+      .ex-entry-line { width: 1px; flex: 1; background: linear-gradient(180deg, rgba(255,255,255,0.14), rgba(255,255,255,0.03)); margin-top: 6px; }
+      .ex-entry-body { flex: 1; min-width: 0; padding: 10px 0 22px; }
+      .ex-entry-head { display: flex; align-items: center; gap: 9px; margin-bottom: 8px; flex-wrap: wrap; }
+      .ex-entry-av { width: 28px; height: 28px; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-geist-mono), monospace; font-size: 9.5px; font-weight: 800; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); }
+      .ex-entry-name { font-size: 13.5px; font-weight: 700; color: #fff; }
+      .ex-entry-role { font-size: 11.5px; color: rgba(255,255,255,0.42); }
+      .ex-entry-n { margin-left: auto; font-family: var(--font-geist-mono), monospace; font-size: 9px; letter-spacing: 0.1em; color: rgba(255,255,255,0.22); }
+      .ex-entry-text { font-size: 13.5px; line-height: 1.65; color: rgba(255,255,255,0.78); margin: 0; white-space: pre-wrap; }
       .ex-cursor { display: inline-block; width: 7px; height: 14px; margin-left: 2px; border-radius: 1px; vertical-align: text-bottom; animation: ex-caret 1s step-end infinite; }
       @keyframes ex-caret { 50% { opacity: 0; } }
-      .ex-solution { border-radius: 16px; border: 1px solid rgba(99,102,241,0.3); background: linear-gradient(180deg, rgba(99,102,241,0.08), rgba(99,102,241,0.02)); padding: 18px 20px; box-shadow: 0 12px 40px rgba(99,102,241,0.08); }
-      .ex-solution-head { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
-      .ex-solution-av { width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-geist-mono), monospace; font-size: 13px; font-weight: 800; box-shadow: inset 0 1px 0 rgba(255,255,255,0.22); }
-      .ex-solution-title { font-size: 16px; font-weight: 800; color: #fff; letter-spacing: -0.01em; }
-      .ex-solution-by { font-size: 11.5px; color: rgba(255,255,255,0.45); }
-      .ex-solution-text { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.85); margin: 0; white-space: pre-wrap; }
-      .ex-offline { font-family: var(--font-geist-mono), monospace; font-size: 10px; color: rgba(251,191,36,0.8); margin-top: 12px; }
-      .ex-new { margin-top: 16px; height: 38px; padding: 0 18px; border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); transition: color .16s, border-color .16s; }
-      .ex-new:hover { color: #fff; border-color: rgba(255,255,255,0.2); }
 
-      /* Roster grid — dashboard-style cards */
-      .ex-roster-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 44px 0 18px; }
-      .ex-roster-title { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; color: #E5E7EB; margin: 0; }
-      .ex-roster-count { font-size: 12px; color: rgba(255,255,255,0.4); }
+      /* протокол решения */
+      .ex-protocol { flex: 1; min-width: 0; margin-bottom: 8px; border-radius: 18px; border: 1px solid rgba(99,102,241,0.32); padding: 20px 22px;
+        background: linear-gradient(160deg, rgba(99,102,241,0.1), rgba(99,102,241,0.02) 70%);
+        box-shadow: 0 16px 50px rgba(99,102,241,0.1), inset 0 1px 0 rgba(255,255,255,0.06); }
+      .ex-protocol-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+      .ex-protocol-titles { display: flex; flex-direction: column; gap: 3px; }
+      .ex-protocol-kicker { font-family: var(--font-geist-mono), monospace; font-size: 9px; letter-spacing: 0.2em; color: rgba(129,140,248,0.75); }
+      .ex-protocol-title { font-size: 18px; font-weight: 800; color: #fff; letter-spacing: -0.015em; }
+      .ex-seal { width: 44px; height: 44px; flex-shrink: 0; opacity: 0.9; animation: ex-seal-in 0.7s cubic-bezier(0.34,1.56,0.64,1) both; }
+      .ex-seal svg { width: 100%; height: 100%; }
+      @keyframes ex-seal-in { from { transform: scale(1.6) rotate(-14deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 0.9; } }
+      .ex-protocol-text { font-size: 14px; line-height: 1.7; color: rgba(255,255,255,0.86); margin: 0; white-space: pre-wrap; }
+      .ex-protocol-sign { display: flex; align-items: center; gap: 10px; margin-top: 16px; padding-top: 14px; border-top: 1px dashed rgba(255,255,255,0.12); flex-wrap: wrap; }
+      .ex-sign-av { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-geist-mono), monospace; font-size: 10px; font-weight: 800; box-shadow: inset 0 1px 0 rgba(255,255,255,0.22); }
+      .ex-sign-txt { font-size: 12px; color: rgba(255,255,255,0.55); } .ex-sign-txt b { color: rgba(255,255,255,0.9); font-weight: 700; }
+      .ex-offline { margin-left: auto; font-family: var(--font-geist-mono), monospace; font-size: 9.5px; color: rgba(251,191,36,0.8); }
+      .ex-new { margin-top: 16px; height: 38px; padding: 0 18px; border-radius: 11px; cursor: pointer; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.13); transition: color .16s, border-color .16s; }
+      .ex-new:hover { color: #fff; border-color: rgba(255,255,255,0.22); }
 
-      /* Department / director group */
-      .ex-dept { margin-bottom: 26px; padding-left: 14px; border-left: 1px solid rgba(255,255,255,0.06); }
-      .ex-lead { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; cursor: pointer; padding: 13px 16px; border-radius: 14px; border: 1px solid; margin-bottom: 12px;
+      /* состав совета */
+      .ex-roster-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin: 52px 0 18px; flex-wrap: wrap; }
+      .ex-roster-title { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: #E5E7EB; margin: 0; }
+      .ex-roster-count { font-size: 12px; color: rgba(255,255,255,0.38); }
+
+      .ex-dept { margin-bottom: 26px; padding-left: 14px; border-left: 1px solid; }
+      .ex-lead { display: flex; align-items: center; gap: 13px; width: 100%; text-align: left; cursor: pointer; padding: 13px 16px; border-radius: 15px; border: 1px solid; margin-bottom: 12px;
         box-shadow: 0 6px 24px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.05); transition: border-color .2s; }
       .ex-lead-av { width: 44px; height: 44px; flex-shrink: 0; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: #fff; font-family: var(--font-geist-mono), monospace; font-size: 14px; font-weight: 800; box-shadow: inset 0 1px 0 rgba(255,255,255,0.25); }
       .ex-lead-id { flex: 1; min-width: 0; }
@@ -479,7 +627,7 @@ function ExStyles() {
       .ex-card-tasks { font-size: 10px; color: rgba(255,255,255,0.28); }
       .ex-card-cta { display: inline-flex; align-items: center; gap: 4px; font-size: 10.5px; font-weight: 600; }
 
-      /* Ask modal */
+      /* модалка вопроса */
       .am-back { position: fixed; inset: 0; z-index: 60; background: rgba(5,6,10,0.72); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 20px; }
       .am-card { position: relative; width: min(580px, 100%); max-height: 84vh; overflow-y: auto; border-radius: 20px; padding: 24px; background: #0b0d16; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
       .am-close { position: absolute; top: 16px; right: 16px; width: 32px; height: 32px; border-radius: 9px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); cursor: pointer; transition: color .16s, border-color .16s; }
@@ -501,8 +649,14 @@ function ExStyles() {
       .am-answer { margin-top: 14px; border-radius: 13px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.07); padding: 16px 18px; }
       .am-answer p { font-size: 13.5px; line-height: 1.65; color: rgba(255,255,255,0.82); margin: 0; white-space: pre-wrap; }
 
-      @media (max-width: 560px) { .ex-ask { flex-wrap: wrap; } .ex-ask button { width: 100%; } }
-      @media (prefers-reduced-motion: reduce) { .ex-dots i, .ex-cursor, .ex-spin, .ex-card-dot { animation: none; } }
+      @media (max-width: 640px) {
+        .ex-scene { height: 250px; }
+        .ex-seat-av { width: 42px; height: 42px; font-size: 12px; border-radius: 12px; }
+        .ex-seat-name { font-size: 10.5px; }
+        .ex-ask { flex-wrap: wrap; } .ex-ask button { width: 100%; }
+        .ex-entry-n { display: none; }
+      }
+      @media (prefers-reduced-motion: reduce) { .ex-dots i, .ex-cursor, .ex-live-dot, .ex-card-dot, .ex-seal { animation: none; } }
     `}</style>
   );
 }
