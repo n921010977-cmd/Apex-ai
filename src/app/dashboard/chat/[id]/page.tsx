@@ -110,6 +110,15 @@ const AGENT_NAMES: Record<string, string> = {
   general: "AI Assistant",
 };
 
+// Профиль агента, переданный со страницы «AI Агенты»
+interface AgentProfile {
+  id: string; name: string; role: string; emoji?: string; color?: string;
+  prompt?: string; model?: string; dept?: string; description?: string;
+  speed?: string; rating?: number; tools?: string[];
+}
+
+const SPEED_RU: Record<string, string> = { fast: "Быстрый", medium: "Средний", slow: "Медленный" };
+
 export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
@@ -117,6 +126,38 @@ export default function ChatPage() {
   const conversationId = params.id as string;
   const agentId = searchParams.get("agent") ?? undefined;
   const isLocal = conversationId.startsWith("local-");
+
+  // Загружаем профиль агента (имя, характеристики, промпт) из localStorage
+  const [agent, setAgent] = useState<AgentProfile | null>(null);
+  useEffect(() => {
+    if (!agentId) return;
+    try {
+      const raw = localStorage.getItem("apex-chat-agent");
+      if (raw) {
+        const p: AgentProfile = JSON.parse(raw);
+        if (p.id === agentId) setAgent(p);
+      }
+    } catch { /* ignore */ }
+  }, [agentId]);
+
+  const agentColor = agent?.color ?? "#8b5cf6";
+  const persona = agent
+    ? `${agent.prompt ?? `Ты — ${agent.name}, ${agent.role}.`}\n\nТвоя роль: ${agent.role}. Отвечай по-русски, профессионально, в характере своей роли, конкретно и по делу.`
+    : undefined;
+
+  // единый аватар ассистента: эмодзи агента в его цвете, иначе — звезда Apex
+  const assistantAvatar = (
+    <div className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 text-sm"
+      style={agent
+        ? { background: `linear-gradient(135deg, ${agentColor}e6, ${agentColor}99)`, boxShadow: `0 4px 12px ${agentColor}33` }
+        : { background: "linear-gradient(135deg, #7c3aed, #2563eb)", boxShadow: "0 4px 12px rgba(139,92,246,0.2)" }}>
+      {agent?.emoji ?? (
+        <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+        </svg>
+      )}
+    </div>
+  );
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -169,6 +210,7 @@ export default function ChatPage() {
         ? JSON.stringify({
             message: userMessage,
             agentId,
+            persona,
             history: messages.map(m => ({ role: m.role, content: m.content })),
           })
         : JSON.stringify({ message: userMessage });
@@ -273,7 +315,7 @@ export default function ChatPage() {
       setStreamingContent("");
       inputRef.current?.focus();
     }
-  }, [input, sending, conversationId]);
+  }, [input, sending, conversationId, persona]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -294,14 +336,29 @@ export default function ChatPage() {
         >
           <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
         </button>
-        <div className="size-7 rounded-lg bg-violet-500/15 border border-violet-500/20 flex items-center justify-center">
-          <svg className="size-3.5 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        <div className="size-8 rounded-lg flex items-center justify-center text-base"
+          style={{ background: `linear-gradient(135deg, ${agentColor}2e, ${agentColor}12)`, border: `1px solid ${agentColor}45` }}>
+          {agent?.emoji ?? (
+            <svg className="size-3.5" style={{ color: agentColor }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          )}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-semibold text-white truncate">{agentId ? (AGENT_NAMES[agentId] ?? "AI Assistant") : "AI Assistant"}</div>
-          <div className="flex items-center gap-1.5">
-            <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-            <span className="text-[10px] text-emerald-400">{isLocal ? "Локальный режим" : "Онлайн"}</span>
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-sm font-semibold text-white truncate">{agent?.name ?? (agentId ? (AGENT_NAMES[agentId] ?? "AI Assistant") : "AI Assistant")}</span>
+            {agent?.role && <span className="text-[11px] text-white/40 truncate hidden sm:inline">· {agent.role}</span>}
+          </div>
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="flex items-center gap-1.5">
+              <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] text-emerald-400">Онлайн</span>
+            </span>
+            {agent?.model && (
+              <span className="text-[9.5px] font-mono px-1.5 py-px rounded border border-white/10 bg-white/[0.04] text-white/40">
+                {agent.model.split("-").slice(0, 2).join("-")}
+              </span>
+            )}
+            {agent?.speed && <span className="text-[10px] text-white/35">{SPEED_RU[agent.speed] ?? agent.speed}</span>}
+            {typeof agent?.rating === "number" && <span className="text-[10px] text-amber-400">★ {agent.rating}</span>}
           </div>
         </div>
         <button className="size-7 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center justify-center text-white/30 hover:text-white/60">
@@ -317,22 +374,52 @@ export default function ChatPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="size-20 rounded-3xl bg-gradient-to-br from-violet-600/15 to-blue-600/15 border border-violet-500/15 flex items-center justify-center mb-5">
-              <svg className="size-9 text-violet-400/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-              </svg>
+            <div className="size-20 rounded-3xl flex items-center justify-center mb-5 text-4xl"
+              style={{ background: `linear-gradient(135deg, ${agentColor}22, ${agentColor}0d)`, border: `1px solid ${agentColor}30`, boxShadow: `0 8px 32px ${agentColor}1a` }}>
+              {agent?.emoji ?? (
+                <svg className="size-9 text-violet-400/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                </svg>
+              )}
             </div>
-            <div className="text-base font-semibold text-white mb-2">Готов к работе</div>
+            <div className="text-base font-semibold text-white mb-1">{agent ? agent.name : "Готов к работе"}</div>
+            {agent?.role && <div className="text-xs font-medium mb-2" style={{ color: agentColor }}>{agent.role}</div>}
             <div className="text-sm text-white/35 max-w-sm leading-relaxed">
-              Задайте любой вопрос о бизнесе, стратегии, финансах или попросите создать задачу
+              {agent?.description ?? "Задайте любой вопрос о бизнесе, стратегии, финансах или попросите создать задачу"}
             </div>
+            {/* характеристики агента */}
+            {agent && (
+              <div className="mt-4 flex flex-wrap gap-1.5 justify-center max-w-md">
+                {agent.model && (
+                  <span className="text-[10px] font-mono px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-white/45">
+                    {agent.model.split("-").slice(0, 2).join("-")}
+                  </span>
+                )}
+                {agent.speed && (
+                  <span className="text-[10px] px-2 py-1 rounded-md border border-emerald-500/25 bg-emerald-500/10 text-emerald-400 font-medium">
+                    {SPEED_RU[agent.speed] ?? agent.speed}
+                  </span>
+                )}
+                {typeof agent.rating === "number" && (
+                  <span className="text-[10px] px-2 py-1 rounded-md border border-amber-500/25 bg-amber-500/10 text-amber-400 font-medium">★ {agent.rating}</span>
+                )}
+                {(agent.tools ?? []).slice(0, 4).map(t => (
+                  <span key={t} className="text-[10px] px-2 py-1 rounded-md border border-white/10 bg-white/[0.04] text-white/40 capitalize">{t}</span>
+                ))}
+              </div>
+            )}
             <div className="mt-6 flex flex-wrap gap-2 justify-center max-w-md">
-              {[
+              {(agent ? [
+                `Экспресс-анализ по зоне: ${agent.role}`,
+                "Дай 3 конкретные рекомендации",
+                "Какие метрики мне отслеживать?",
+                "Составь план на 30 дней",
+              ] : [
                 "Сделай SWOT-анализ моего стартапа",
                 "Посчитай LTV и CAC",
                 "Создай задачу: исследование рынка",
                 "Какие каналы привлечения лучше?",
-              ].map((suggestion) => (
+              ]).map((suggestion) => (
                 <button
                   key={suggestion}
                   onClick={() => { setInput(suggestion); inputRef.current?.focus(); }}
@@ -354,13 +441,7 @@ export default function ChatPage() {
               transition={{ duration: 0.3 }}
               className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              {msg.role === "assistant" && (
-                <div className="size-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-violet-500/20">
-                  <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                  </svg>
-                </div>
-              )}
+              {msg.role === "assistant" && assistantAvatar}
               <div className={`max-w-[75%] ${msg.role === "user" ? "items-end" : "items-start"} flex flex-col gap-1`}>
                 {/* Tool calls in message */}
                 {msg.metadata?.tools && msg.metadata.tools.length > 0 && (
@@ -398,9 +479,7 @@ export default function ChatPage() {
         {/* Active tool calls */}
         {activeTools.length > 0 && (
           <div className="flex justify-start gap-3">
-            <div className="size-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-            </div>
+            {assistantAvatar}
             <div className="space-y-1">
               {activeTools.map((tool) => (
                 <div key={tool} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px]">
@@ -419,12 +498,10 @@ export default function ChatPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
           >
-            <div className="size-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-lg shadow-violet-500/20">
-              <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-            </div>
+            {assistantAvatar}
             <div className="max-w-[75%] px-4 py-3 rounded-2xl bg-white/[0.05] border border-white/[0.08]">
               <MarkdownText text={streamingContent} />
-              <span className="inline-block w-0.5 h-4 bg-violet-400 animate-pulse ml-0.5 align-text-bottom" />
+              <span className="inline-block w-0.5 h-4 animate-pulse ml-0.5 align-text-bottom" style={{ background: agentColor }} />
             </div>
           </motion.div>
         )}
@@ -432,9 +509,7 @@ export default function ChatPage() {
         {/* Typing indicator */}
         {sending && !isStreaming && (
           <div className="flex gap-3 justify-start">
-            <div className="size-7 rounded-lg bg-gradient-to-br from-violet-600 to-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-              <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-            </div>
+            {assistantAvatar}
             <div className="px-4 py-3 rounded-2xl bg-white/[0.05] border border-white/[0.08] flex items-center gap-1">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="size-1.5 rounded-full bg-white/40" style={{ animation: `typing-dot 1.4s ${i * 0.2}s ease-in-out infinite` }} />

@@ -431,9 +431,16 @@ export default function AgentsPage() {
     toastTimer.current = setTimeout(() => setToast(null), 2400);
   };
 
+  // сразу открываем диалог с агентом (без промежуточного экрана выбора)
   const openChat = (a: Agent) => {
-    try { localStorage.setItem("apex-chat-agent", JSON.stringify({ id: a.id, name: a.name, role: a.role, prompt: a.prompt })); } catch { /* ignore */ }
-    router.push("/dashboard/chat");
+    try {
+      localStorage.setItem("apex-chat-agent", JSON.stringify({
+        id: a.id, name: a.name, role: a.role, emoji: a.emoji, color: a.color,
+        prompt: a.prompt, model: a.model, dept: a.dept, description: a.description,
+        speed: a.speed, rating: a.rating, tools: a.tools,
+      }));
+    } catch { /* ignore */ }
+    router.push(`/dashboard/chat/local-${Date.now()}?agent=${a.id}`);
   };
 
   const configureAgent = (a: Agent) => { setSelected(a); showToast(`Открыты настройки: ${a.name}`); };

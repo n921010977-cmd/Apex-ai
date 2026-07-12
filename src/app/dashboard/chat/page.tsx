@@ -3,7 +3,7 @@
 import { useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Search, Star, Play, MessageSquare, Settings, Filter, X } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -209,6 +209,18 @@ export default function ChatPage() {
 
 // ─── Agent Card ──────────────────────────────────────────────────────────────
 function AgentCard({ agent, index, isHovered, onHover }: { agent: any; index: number; isHovered: boolean; onHover: (id: string | null) => void }) {
+  const router = useRouter();
+  // сразу открываем диалог с этим агентом, передавая его профиль
+  const goChat = () => {
+    try {
+      localStorage.setItem("apex-chat-agent", JSON.stringify({
+        id: agent.id, name: agent.name, role: agent.role, emoji: agent.icon, color: agent.color,
+        prompt: `Ты — ${agent.name}, ${agent.role} в AI-компании Apex. ${agent.desc}. Отвечай в характере своей роли.`,
+        model: agent.model, description: agent.desc, rating: agent.rating,
+      }));
+    } catch { /* ignore */ }
+    router.push(`/dashboard/chat/local-${Date.now()}?agent=${agent.id}`);
+  };
   return (
     <motion.div
       className="chat-agent-card"
@@ -260,12 +272,12 @@ function AgentCard({ agent, index, isHovered, onHover }: { agent: any; index: nu
 
         {/* Actions */}
         <div className="chat-card-actions">
-          <button className="chat-action-btn chat-btn-launch" style={{ background: `linear-gradient(135deg, ${agent.deptColor}, ${agent.deptColor}dd)`, color: "#fff" }}>
+          <button onClick={goChat} className="chat-action-btn chat-btn-launch" style={{ background: `linear-gradient(135deg, ${agent.deptColor}, ${agent.deptColor}dd)`, color: "#fff" }}>
             Запуск
           </button>
-          <Link href={`/dashboard/chat/${agent.id}`} className="chat-action-btn chat-btn-chat" style={{ color: agent.deptColor, borderColor: agent.deptColor }}>
+          <button onClick={goChat} className="chat-action-btn chat-btn-chat" style={{ color: agent.deptColor, borderColor: agent.deptColor }}>
             Чат
-          </Link>
+          </button>
           <button className="chat-action-btn chat-btn-settings">
             Настройка
           </button>
