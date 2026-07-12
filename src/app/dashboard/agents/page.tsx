@@ -10,18 +10,30 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 const EASE_OUT_CUBIC = [0.33, 1, 0.68, 1] as const;
 
 // ─── Mock live data ──────────────────────────────────────────────────────────
-type LiveEvent = { time: string; from: string; to: string; action: string; id: string };
+type LiveEvent = { time: string; from: string; to: string; action: string; id: string; priority: "high" | "normal" | "low" };
 
 function generateLiveEvents(): LiveEvent[] {
   const deptNames = DEPARTMENTS.map(d => d.short);
-  const actions = ["планирует задачу", "назначает работу", "генерирует результат", "завершает процесс", "обновляет статус"];
-  return Array.from({ length: 8 }, (_, i) => ({
-    time: new Date(Date.now() - i * 2000).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
-    from: deptNames[Math.floor(Math.random() * deptNames.length)],
-    to: deptNames[Math.floor(Math.random() * deptNames.length)],
-    action: actions[Math.floor(Math.random() * actions.length)],
-    id: `evt-${i}`,
-  }));
+  const actions = [
+    { text: "планирует задачу", priority: "high" as const },
+    { text: "назначает работу", priority: "high" as const },
+    { text: "генерирует результат", priority: "normal" as const },
+    { text: "завершает процесс", priority: "high" as const },
+    { text: "обновляет статус", priority: "low" as const },
+    { text: "синхронизирует данные", priority: "normal" as const },
+    { text: "оптимизирует процесс", priority: "low" as const },
+  ];
+  return Array.from({ length: 8 }, (_, i) => {
+    const action = actions[Math.floor(Math.random() * actions.length)];
+    return {
+      time: new Date(Date.now() - i * 2500).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      from: deptNames[Math.floor(Math.random() * deptNames.length)],
+      to: deptNames[Math.floor(Math.random() * deptNames.length)],
+      action: action.text,
+      priority: action.priority,
+      id: `evt-${i}`,
+    };
+  });
 }
 
 function generateMetrics() {
@@ -153,17 +165,23 @@ export default function AIAgentsPage() {
             </div>
           </div>
           <div className="agents-console-content">
-            {liveEvents.map((evt, i) => (
-              <motion.div key={evt.id} className="agents-console-event" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }}>
-                <div className="agents-event-time">{evt.time}</div>
-                <div className="agents-event-flow">
-                  <span className="agents-event-badge" style={{ background: DEPARTMENTS.find(d => d.short === evt.from)?.color }}>{evt.from}</span>
-                  <ArrowRight size={14} />
-                  <span className="agents-event-badge" style={{ background: DEPARTMENTS.find(d => d.short === evt.to)?.color }}>{evt.to}</span>
-                </div>
-                <div className="agents-event-action">{evt.action}</div>
-              </motion.div>
-            ))}
+            {liveEvents.map((evt, i) => {
+              const priorityColor = evt.priority === "high" ? "#ef4444" : evt.priority === "normal" ? "#f59e0b" : "#6b7280";
+              return (
+                <motion.div key={evt.id} className={`agents-console-event priority-${evt.priority}`} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.08 }} style={{ borderLeftColor: priorityColor }}>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    <div className="agents-event-time">{evt.time}</div>
+                    <motion.div className="agents-priority-dot" animate={{ scale: [1, 1.3, 1] }} transition={{ duration: 2, repeat: Infinity, delay: i * 0.1 }} style={{ background: priorityColor }} />
+                  </div>
+                  <div className="agents-event-flow">
+                    <span className="agents-event-badge" style={{ background: DEPARTMENTS.find(d => d.short === evt.from)?.color }}>{evt.from}</span>
+                    <ArrowRight size={13} strokeWidth={2} />
+                    <span className="agents-event-badge" style={{ background: DEPARTMENTS.find(d => d.short === evt.to)?.color }}>{evt.to}</span>
+                  </div>
+                  <div className="agents-event-action">{evt.action}</div>
+                </motion.div>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -342,14 +360,14 @@ function ExpandedDepartment({ dept, onClose }: { dept: typeof DEPARTMENTS[0]; on
 
                   <div className="agent-mini-metrics">
                     <div className="agent-mini-metric">
-                      <span>Загрузка</span>
-                      <motion.div className="agent-mini-bar" initial={{ scaleX: 0 }} animate={{ scaleX: Math.random() }} transition={{ duration: 1 }}>
+                      <span>Память</span>
+                      <motion.div className="agent-mini-bar" initial={{ scaleX: 0 }} animate={{ scaleX: [Math.random() * 0.7 + 0.2, Math.random() * 0.8 + 0.2, Math.random() * 0.7 + 0.2] }} transition={{ duration: 2, repeat: Infinity }}>
                         <div style={{ background: agentColor, height: "100%", width: "100%" }} />
                       </motion.div>
                     </div>
                     <div className="agent-mini-metric">
-                      <span>Скорость</span>
-                      <motion.div className="agent-mini-bar" initial={{ scaleX: 0 }} animate={{ scaleX: Math.random() }} transition={{ duration: 1 }}>
+                      <span>CPU</span>
+                      <motion.div className="agent-mini-bar" initial={{ scaleX: 0 }} animate={{ scaleX: [Math.random() * 0.6 + 0.1, Math.random() * 0.7 + 0.1, Math.random() * 0.6 + 0.1] }} transition={{ duration: 2, repeat: Infinity }}>
                         <div style={{ background: agentColor, height: "100%", width: "100%" }} />
                       </motion.div>
                     </div>
@@ -448,8 +466,12 @@ function AgentStyles() {
       .company-map svg { filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.1)); }
 
       .agents-console-content { display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; }
-      .agents-console-event { display: flex; flex-direction: column; gap: 8px; padding: 10px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); transition: all 0.2s; }
+      .agents-console-event { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-left: 3px solid; transition: all 0.25s; }
       .agents-console-event:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
+      .agents-console-event.priority-high { background: rgba(239, 68, 68, 0.05); }
+      .agents-console-event.priority-normal { background: rgba(245, 158, 11, 0.04); }
+
+      .agents-priority-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
 
       .agents-event-time { font-family: var(--font-geist-mono), monospace; font-size: 9.5px; color: rgba(255,255,255,0.38); font-weight: 500; }
       .agents-event-flow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
