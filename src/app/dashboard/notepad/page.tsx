@@ -258,21 +258,51 @@ export default function NotepadPage() {
     if (apiMode.current && target) api.update(id, { pinned: !target.pinned });
   };
 
-  const runAI = (action: string) => {
-    if (!active) return;
+  // Реальный AI: стримим ответ через /api/chat/direct; при офлайне — краткий фолбэк
+  const runAI = async (action: string) => {
+    if (!active || aiLoading) return;
     setAiLoading(true);
     setAiResult("");
-    setTimeout(() => {
-      const results: Record<string, string> = {
-        "Суммаризировать":  `**Краткое резюме:** ${active.title}\n\nДокумент охватывает ${active.wordCount} слов. Ключевые темы: стратегия, финансы, задачи. Основные выводы требуют внимания руководства.`,
-        "Ключевые идеи":    `**Ключевые идеи из «${active.title}»:**\n\n1. Фокус на приоритетных направлениях\n2. Критические решения требуют согласования\n3. Временные рамки реалистичны\n4. Риски управляемы при текущих ресурсах`,
-        "Выделить задачи":  `**Задачи из заметки:**\n\n- [ ] Приоритет 1: Немедленные действия\n- [ ] Приоритет 2: Краткосрочные шаги (7 дней)\n- [ ] Приоритет 3: Среднесрочные цели (30 дней)`,
-        "Предложить идеи":  `**Дополнительные идеи:**\n\n💡 Рассмотреть партнёрства для ускорения\n💡 Автоматизировать рутинные процессы\n💡 Внедрить еженедельные метрики\n💡 Создать dashboard для команды`,
-        "Создать резюме":   `**Executive Summary: ${active.title}**\n\nДата: ${fmt(active.updatedAt)}\nАвтор: Founder\n\nДокумент содержит ${active.wordCount} слов. Читается за ${readTime(active.wordCount)} мин. Рекомендуется к рассмотрению командой.`,
-      };
-      setAiResult(results[action] ?? `**${action}:**\n\nAI обработал заметку «${active.title}» (${active.wordCount} слов). Результат готов к использованию.`);
+    const tasks: Record<string, string> = {
+      "Суммаризировать": "Сделай краткое резюме заметки в 3–4 предложениях.",
+      "Ключевые идеи":   "Выдели 4–6 ключевых идей списком.",
+      "Выделить задачи": "Извлеки конкретные задачи в виде чек-листа - [ ] с приоритетами.",
+      "Предложить идеи": "Предложи 4–5 дополнительных идей, развивающих заметку.",
+      "Создать резюме":  "Составь executive summary для руководства: контекст, выводы, следующие шаги.",
+    };
+    const persona = "Ты — AI-редактор заметок в Apex. Отвечай по-русски, кратко и структурно, используй markdown.";
+    const message = `${tasks[action] ?? action}\n\nЗаметка «${active.title}»:\n\n${active.content.slice(0, 6000)}`;
+    try {
+      const res = await fetch("/api/chat/direct", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, agentId: "notepad-ai", persona, history: [] }),
+      });
+      if (!res.ok || !res.body) throw new Error("offline");
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "", acc = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const parts = buffer.split("\n\n");
+        buffer = parts.pop() ?? "";
+        for (const part of parts) {
+          const line = part.trim();
+          if (!line.startsWith("data:")) continue;
+          try {
+            const ev = JSON.parse(line.slice(5).trim());
+            if (ev.type === "token") { acc += ev.token; setAiResult(acc); }
+          } catch { /* ignore */ }
+        }
+      }
+      if (!acc.trim()) setAiResult("Пустой ответ. Попробуйте ещё раз.");
+    } catch {
+      setAiResult(`**${action}: ${active.title}**\n\nДемо-режим (AI недоступен). Заметка: ${active.wordCount} слов, ~${readTime(active.wordCount)} мин чтения. Настройте ANTHROPIC_API_KEY для живого анализа.`);
+    } finally {
       setAiLoading(false);
-    }, 1200);
+    }
   };
 
   const filtered = notes.filter(n => {
@@ -509,8 +539,20 @@ export default function NotepadPage() {
                       </div>
                     )}
                     {aiResult && (
-                      <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 10, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)", fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>
-                        {aiResult}
+                      <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 10, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)" }}>
+                        <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{aiResult}</div>
+                        {!aiLoading && (
+                          <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
+                            <button onClick={() => { updateActive({ content: `${active.content}\n\n---\n\n${aiResult}` }); setAiResult(""); }}
+                              style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer" }}>
+                              <Plus size={11} /> Вставить в заметку
+                            </button>
+                            <button onClick={() => { navigator.clipboard?.writeText(aiResult).catch(() => {}); }}
+                              style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 600, border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>
+                              <Copy size={11} /> Копировать
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
