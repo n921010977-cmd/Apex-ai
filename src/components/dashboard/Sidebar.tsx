@@ -35,7 +35,7 @@ const SECTIONS: NavSection[] = [
     title: "Инструменты",
     items: [
       { key: "6", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
-      { key: "7", label: "Мозг проекта",     href: "/dashboard/brain",      icon: Brain, accent: true },
+      { key: "7", label: "Мемрис",           href: "/dashboard/memories",   icon: Brain, accent: true },
       { key: "8", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
     ],
   },
