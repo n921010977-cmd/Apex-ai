@@ -392,26 +392,32 @@ function ExpandedDepartment({ dept, onClose }: { dept: typeof DEPARTMENTS[0]; on
 // ─── Action Timeline ──────────────────────────────────────────────────────────
 function ActionTimeline() {
   const timeline = [
-    { agent: "CEO", action: "Получила задачу", color: "#818cf8" },
-    { agent: "Strategy", action: "Анализирует цели", color: "#6366f1" },
-    { agent: "Marketing", action: "Планирует кампанию", color: "#10b981" },
-    { agent: "Development", action: "Начинает разработку", color: "#a855f7" },
-    { agent: "Finance", action: "Рассчитывает бюджет", color: "#3b82f6" },
-    { agent: "Analytics", action: "Настраивает метрики", color: "#0ea5e9" },
-    { agent: "CEO", action: "Собирает результаты", color: "#818cf8" },
-    { agent: "User", action: "Получает результат ✓", color: "#10b981" },
+    { agent: "CEO", action: "Получила задачу", color: "#818cf8", icon: "👁️" },
+    { agent: "Strategy", action: "Анализирует цели", color: "#6366f1", icon: "📊" },
+    { agent: "Marketing", action: "Планирует кампанию", color: "#10b981", icon: "📢" },
+    { agent: "Development", action: "Начинает разработку", color: "#a855f7", icon: "⚙️" },
+    { agent: "Finance", action: "Рассчитывает бюджет", color: "#3b82f6", icon: "💰" },
+    { agent: "Analytics", action: "Настраивает метрики", color: "#0ea5e9", icon: "📈" },
+    { agent: "CEO", action: "Собирает результаты", color: "#818cf8", icon: "✅" },
+    { agent: "User", action: "Получает результат", color: "#10b981", icon: "🎯" },
   ];
 
   return (
     <div className="timeline-container">
       {timeline.map((item, i) => (
-        <motion.div key={i} className="timeline-item" initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}>
-          <div className="timeline-dot" style={{ background: item.color, boxShadow: `0 0 16px ${item.color}60` }} />
-          <div className="timeline-content">
+        <motion.div key={i} className="timeline-item" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.12 }}>
+          <motion.div className="timeline-dot" style={{ background: item.color, boxShadow: `0 0 16px ${item.color}60` }} whileHover={{ scale: 1.3 }} whileTap={{ scale: 0.95 }} >
+            <div className="timeline-dot-inner">{item.icon}</div>
+          </motion.div>
+          <motion.div className="timeline-content" whileHover={{ x: 4 }}>
             <div className="timeline-agent" style={{ color: item.color }}>{item.agent}</div>
             <div className="timeline-action">{item.action}</div>
-          </div>
-          {i < timeline.length - 1 && <div className="timeline-arrow"><ArrowRight size={16} /></div>}
+          </motion.div>
+          {i < timeline.length - 1 && (
+            <motion.div className="timeline-arrow" animate={{ x: [0, 4, 0] }} transition={{ duration: 2, repeat: Infinity }}>
+              <ArrowRight size={16} />
+            </motion.div>
+          )}
         </motion.div>
       ))}
     </div>
@@ -519,13 +525,15 @@ function AgentStyles() {
       .agents-timeline-section { max-width: 1200px; margin: 48px auto; padding: 0 24px; }
       .agents-timeline-section h2 { font-size: 17px; font-weight: 800; letter-spacing: -0.01em; color: #E5E7EB; margin: 0 0 20px; }
 
-      .timeline-container { display: flex; align-items: center; gap: 12px; overflow-x: auto; padding: 24px 16px; border-radius: 20px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 1px 3px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05); backdrop-filter: blur(8px); }
-      .timeline-item { display: flex; align-items: center; gap: 14px; flex-shrink: 0; min-width: max-content; }
-      .timeline-dot { width: 14px; height: 14px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 12px currentColor; }
-      .timeline-content { display: flex; flex-direction: column; gap: 3px; }
-      .timeline-agent { font-size: 12px; font-weight: 800; letter-spacing: -0.01em; }
-      .timeline-action { font-size: 11px; color: rgba(255,255,255,0.55); font-weight: 500; }
-      .timeline-arrow { margin: 0 4px; color: rgba(255,255,255,0.25); flex-shrink: 0; }
+      .timeline-container { display: flex; align-items: center; gap: 8px; overflow-x: auto; padding: 28px 20px; border-radius: 22px; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(255,255,255,0.02)); border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 1px 3px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06); backdrop-filter: blur(12px); }
+      .timeline-item { display: flex; align-items: center; gap: 10px; flex-shrink: 0; min-width: max-content; padding: 0 4px; }
+      .timeline-dot { width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; box-shadow: 0 0 20px currentColor; cursor: pointer; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.08); border: 1.5px solid rgba(255,255,255,0.1); transition: all 0.3s; }
+      .timeline-dot:hover { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.25); }
+      .timeline-dot-inner { font-size: 18px; line-height: 1; }
+      .timeline-content { display: flex; flex-direction: column; gap: 4px; cursor: pointer; transition: all 0.3s; }
+      .timeline-agent { font-size: 12.5px; font-weight: 800; letter-spacing: -0.01em; }
+      .timeline-action { font-size: 11px; color: rgba(255,255,255,0.6); font-weight: 500; }
+      .timeline-arrow { margin: 0 -4px; color: rgba(255,255,255,0.3); flex-shrink: 0; font-size: 16px; }
 
       @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.45; } }
