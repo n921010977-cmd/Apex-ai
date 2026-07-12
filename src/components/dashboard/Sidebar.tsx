@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
-  Bot, Settings, HelpCircle, BookOpen,
+  Bot, Settings, HelpCircle, BookOpen, Database,
   X, PanelLeftClose, PanelLeft, ChevronRight,
 } from "lucide-react";
 
@@ -35,7 +35,8 @@ const SECTIONS: NavSection[] = [
     title: "Инструменты",
     items: [
       { key: "6", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
-      { key: "7", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
+      { key: "7", label: "Knowledge Vault",  href: "/dashboard/vault",      icon: Database, accent: true },
+      { key: "8", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
     ],
   },
 ];
