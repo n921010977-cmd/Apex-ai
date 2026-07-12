@@ -232,6 +232,17 @@ export default function MemoriesPage() {
         if (n.kind === "agent" || isSel || (q && matchQ)) { const g = ctx.createRadialGradient(P.x, P.y, 0, P.x, P.y, r * 3.2); g.addColorStop(0, n.color + (dim ? "12" : "44")); g.addColorStop(1, n.color + "00"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(P.x, P.y, r * 3.2, 0, Math.PI * 2); ctx.fill(); }
         ctx.globalAlpha = dim ? 0.24 : 1; ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(P.x, P.y, r, 0, Math.PI * 2); ctx.fill();
         ctx.strokeStyle = isSel ? "#fff" : "rgba(255,255,255,0.16)"; ctx.lineWidth = isSel ? 2 : 1; ctx.stroke(); ctx.globalAlpha = 1;
+        // маркер «закреплено» — точка в углу узла
+        if (n.kind === "memory" && n.mem?.pinned) {
+          const px = P.x + r * 0.72, py = P.y - r * 0.72;
+          const pp = 1 + Math.sin(t * 0.09) * 0.18;
+          const pr = Math.max(2.6, 3 * cam.s) * pp;
+          ctx.globalAlpha = dim ? 0.4 : 1;
+          ctx.beginPath(); ctx.arc(px, py, pr + 2.4, 0, Math.PI * 2); ctx.fillStyle = n.color + "55"; ctx.fill();
+          ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+          ctx.beginPath(); ctx.arc(px, py, pr, 0, Math.PI * 2); ctx.strokeStyle = n.color; ctx.lineWidth = 1.5; ctx.stroke();
+          ctx.globalAlpha = 1;
+        }
         const showLabel = (n.kind !== "memory" || isSel || (hi >= 0 && near) || (q && matchQ)) && cam.s > 0.55;
         if (showLabel && !dim) { const fs = (n.kind === "agent" ? 12 : 10.5) * Math.min(cam.s, 1.3); ctx.font = `${n.kind === "agent" ? 600 : 500} ${fs}px ui-sans-serif, system-ui`; ctx.fillStyle = n.kind === "agent" ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.62)"; ctx.textAlign = "center"; ctx.fillText(n.label, P.x, P.y + r + fs + 1); }
       }
@@ -341,6 +352,7 @@ export default function MemoriesPage() {
                 <span className="mem-chip" style={{ color: selNode.color, borderColor: `${selNode.color}55` }}><span className="mem-dot" style={{ background: selNode.color }} />{selNode.kind === "agent" ? "АГЕНТ" : selNode.kind === "hub" ? "ТОПИК-ХАБ" : "ПАМЯТЬ"}</span>
                 {selNode.role && <span className="mem-chip ghost">{selNode.role}</span>}
                 {selMem && <span className="mem-chip ghost">{CATS[selMem.cat].label}</span>}
+                {selMem?.pinned && <span className="mem-chip" style={{ color: "#818cf8", borderColor: "rgba(99,102,241,0.5)" }}><Pin size={9} fill="currentColor" /> Закреплено</span>}
               </div>
 
               {editing && selMem ? (
