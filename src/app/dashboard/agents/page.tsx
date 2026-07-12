@@ -471,7 +471,11 @@ function AgentStyles() {
       .company-map { height: 420px; display: flex; align-items: center; justify-content: center; }
       .company-map svg { filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.1)); }
 
-      .agents-console-content { display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; }
+      .agents-console-content { display: flex; flex-direction: column; gap: 10px; max-height: 360px; overflow-y: auto; scroll-behavior: smooth; }
+      .agents-console-content::-webkit-scrollbar { width: 6px; }
+      .agents-console-content::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); border-radius: 10px; }
+      .agents-console-content::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 10px; }
+      .agents-console-content::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.6); }
       .agents-console-event { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.06); border-left: 3px solid; transition: all 0.25s; }
       .agents-console-event:hover { background: rgba(255,255,255,0.07); border-color: rgba(255,255,255,0.12); }
       .agents-console-event.priority-high { background: rgba(239, 68, 68, 0.05); }
@@ -485,7 +489,11 @@ function AgentStyles() {
       .agents-event-action { font-size: 12px; color: rgba(255,255,255,0.68); font-weight: 500; }
 
       .expanded-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 50; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.3s ease-out; }
-      .expanded-modal { background: linear-gradient(135deg, rgba(5,6,10,0.95), rgba(5,6,10,0.98)); border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); max-width: 920px; width: 92vw; max-height: 88vh; overflow-y: auto; position: relative; box-shadow: 0 25px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06); }
+      .expanded-modal { background: linear-gradient(135deg, rgba(5,6,10,0.95), rgba(5,6,10,0.98)); border-radius: 28px; border: 1px solid rgba(255,255,255,0.08); max-width: 920px; width: 92vw; max-height: 88vh; overflow-y: auto; scroll-behavior: smooth; position: relative; box-shadow: 0 25px 80px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.06); }
+      .expanded-modal::-webkit-scrollbar { width: 8px; }
+      .expanded-modal::-webkit-scrollbar-track { background: rgba(255,255,255,0.02); }
+      .expanded-modal::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.4); border-radius: 4px; }
+      .expanded-modal::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.6); }
 
       .expanded-close { position: absolute; top: 20px; right: 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.12); border-radius: 12px; width: 40px; height: 40px; cursor: pointer; color: rgba(255,255,255,0.65); z-index: 10; transition: all 0.25s; display: flex; align-items: center; justify-content: center; }
       .expanded-close:hover { background: rgba(255,255,255,0.15); color: #fff; border-color: rgba(255,255,255,0.2); }
