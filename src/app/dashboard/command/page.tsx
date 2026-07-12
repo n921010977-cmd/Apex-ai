@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { CornerDownLeft, Sparkles, Radio, Check, Loader2 } from "lucide-react";
 import { streamChat } from "@/lib/stream-chat";
 import { CEO, DEPARTMENTS, TOTAL_EMPLOYEES, routeDepartments, type Department } from "@/lib/corp";
+import { Autopilot } from "@/components/dashboard/Autopilot";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const byId = Object.fromEntries(DEPARTMENTS.map(d => [d.id, d])) as Record<string, Department>;
@@ -26,6 +27,7 @@ const POS = DEPARTMENTS.map((_, i) => {
 });
 
 export default function CommandCenterPage() {
+  const [mode, setMode] = useState<"mission" | "autopilot">("mission");
   const [goal, setGoal] = useState("");
   const [phase, setPhase] = useState<Phase>("idle");
   const [plan, setPlan] = useState("");
@@ -119,11 +121,25 @@ export default function CommandCenterPage() {
               <div className="cc-brand-sub">Цифровая корпорация · {DEPARTMENTS.length} отделов · {TOTAL_EMPLOYEES} AI-сотрудников</div>
             </div>
           </div>
-          <div className="cc-status">
-            <span className="cc-status-dot" style={{ background: phase === "idle" ? "#64748b" : "#10b981" }} />
-            <span>{phase === "idle" ? "STANDBY" : phase === "done" ? "ЗАВЕРШЕНО" : "РАБОТАЕТ"}</span>
+          <div className="cc-header-right">
+            <div className="cc-tabs">
+              <button className={mode === "mission" ? "on" : ""} onClick={() => setMode("mission")}>
+                Миссия
+                {mode === "mission" && <motion.span layoutId="cc-tab" className="cc-tab-pill" transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
+              </button>
+              <button className={mode === "autopilot" ? "on" : ""} onClick={() => setMode("autopilot")}>
+                Автопилот
+                {mode === "autopilot" && <motion.span layoutId="cc-tab" className="cc-tab-pill" transition={{ type: "spring", stiffness: 380, damping: 32 }} />}
+              </button>
+            </div>
+            <div className="cc-status">
+              <span className="cc-status-dot" style={{ background: phase === "idle" ? "#64748b" : "#10b981" }} />
+              <span>{phase === "idle" ? "STANDBY" : phase === "done" ? "ЗАВЕРШЕНО" : "РАБОТАЕТ"}</span>
+            </div>
           </div>
         </div>
+
+        {mode === "autopilot" ? <Autopilot /> : (<>
 
         {/* Goal input */}
         <div className="cc-goal">
@@ -240,6 +256,7 @@ export default function CommandCenterPage() {
             </div>
           </div>
         )}
+        </>)}
       </div>
       <CcStyles />
     </div>
@@ -323,6 +340,11 @@ function CcStyles() {
       .cc-brand-name { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: #E5E7EB; }
       .cc-brand-sub { font-size: 11.5px; color: rgba(255,255,255,0.42); margin-top: 1px; }
       .cc-status { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); padding: 7px 12px; border-radius: 9px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); }
+      .cc-header-right { display: flex; align-items: center; gap: 10px; }
+      .cc-tabs { display: flex; gap: 2px; padding: 3px; border-radius: 11px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
+      .cc-tabs button { position: relative; padding: 7px 15px; border-radius: 8px; border: none; background: none; cursor: pointer; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.5); transition: color .18s; }
+      .cc-tabs button.on { color: #fff; }
+      .cc-tab-pill { position: absolute; inset: 0; border-radius: 8px; background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.4); z-index: -1; }
       .cc-status-dot { width: 6px; height: 6px; border-radius: 50%; animation: cc-pulse 2s infinite; }
 
       .cc-goal { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 56px; border-radius: 15px; background: rgba(255,255,255,0.04); border: 1px solid rgba(99,102,241,0.28); box-shadow: 0 0 0 4px rgba(99,102,241,0.06), 0 12px 40px rgba(0,0,0,0.3); transition: border-color .18s, box-shadow .18s; }
