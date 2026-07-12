@@ -331,7 +331,8 @@ export default function ChatPage() {
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.06] bg-[#080808]/80 backdrop-blur-sm flex-shrink-0">
         <button
-          onClick={() => router.push("/dashboard/chat")}
+          onClick={() => router.push("/dashboard/agents")}
+          title="К агентам"
           className="size-7 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center justify-center text-white/40 hover:text-white/70"
         >
           <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
