@@ -1,17 +1,23 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 // Экран выбора агентов удалён: «AI Чат» сразу открывает новый диалог.
-export default function ChatIndexRedirect() {
+// ?agent=<slug> сохраняется — так карточки директоров с дашборда открывают
+// диалог с конкретным директором и его командой.
+function ChatIndexRedirect() {
   const router = useRouter();
+  const sp = useSearchParams();
 
   useEffect(() => {
-    // общий ассистент — без профиля конкретного агента
-    try { localStorage.removeItem("apex-chat-agent"); } catch { /* ignore */ }
-    router.replace(`/dashboard/chat/local-${Date.now()}`);
-  }, [router]);
+    const agent = sp.get("agent");
+    if (!agent) {
+      // общий ассистент — чистим профиль конкретного агента
+      try { localStorage.removeItem("apex-chat-agent"); } catch { /* ignore */ }
+    }
+    router.replace(`/dashboard/chat/local-${Date.now()}${agent ? `?agent=${encodeURIComponent(agent)}` : ""}`);
+  }, [router, sp]);
 
   return (
     <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#05060A" }}>
@@ -21,5 +27,13 @@ export default function ChatIndexRedirect() {
       </div>
       <style jsx>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
+  );
+}
+
+export default function ChatIndexPage() {
+  return (
+    <Suspense fallback={null}>
+      <ChatIndexRedirect />
+    </Suspense>
   );
 }

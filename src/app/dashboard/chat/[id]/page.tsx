@@ -3,12 +3,24 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { TEAM_BY_SLUG, reportsOf } from "@/lib/team";
+
+// участник обсуждения (сотрудник команды директора или сам директор)
+interface Speaker {
+  slug?: string;
+  name: string;
+  role: string;
+  color: string;
+  ab: string;
+  verdict?: boolean;
+}
 
 interface Message {
   id: string;
   role: "user" | "assistant";
   content: string;
   created_at: string;
+  speaker?: Speaker;
   metadata?: { tools?: { tool: string; input: unknown; result: unknown }[] };
 }
 
@@ -110,11 +122,12 @@ const AGENT_NAMES: Record<string, string> = {
   general: "AI Assistant",
 };
 
-// Профиль агента, переданный со страницы «AI Агенты»
+// Профиль агента, переданный со страницы «AI Агенты» или собранный из TEAM (директора)
 interface AgentProfile {
-  id: string; name: string; role: string; emoji?: string; color?: string;
+  id: string; name: string; role: string; emoji?: string; color?: string; ab?: string;
   prompt?: string; model?: string; dept?: string; description?: string;
   speed?: string; rating?: number; tools?: string[];
+  team?: { slug: string; name: string; role: string; title: string; color: string; ab: string }[];
 }
 
 const SPEED_RU: Record<string, string> = { fast: "Быстрый", medium: "Средний", slow: "Медленный" };
@@ -127,10 +140,21 @@ export default function ChatPage() {
   const agentId = searchParams.get("agent") ?? undefined;
   const isLocal = conversationId.startsWith("local-");
 
-  // Загружаем профиль агента (имя, характеристики, промпт) из localStorage
+  // Профиль агента: директора собираем из TEAM (имя, титул, цвет + команда),
+  // остальных — из localStorage (передан со страницы «AI Агенты»)
   const [agent, setAgent] = useState<AgentProfile | null>(null);
   useEffect(() => {
     if (!agentId) return;
+    const tm = TEAM_BY_SLUG[agentId];
+    if (tm && tm.tier === "c-level") {
+      const team = reportsOf(tm.slug).slice(0, 4);
+      setAgent({
+        id: tm.slug, name: tm.name, role: `${tm.role} · ${tm.title}`, color: tm.c, ab: tm.ab,
+        description: `${tm.title}. Ваш вопрос обсудит команда из ${team.length} специалистов, после чего ${tm.name} вынесет финальный вердикт.`,
+        team: team.map(t => ({ slug: t.slug, name: t.name, role: t.role, title: t.title, color: t.c, ab: t.ab })),
+      });
+      return;
+    }
     try {
       const raw = localStorage.getItem("apex-chat-agent");
       if (raw) {
@@ -183,6 +207,59 @@ export default function ChatPage() {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, streamingContent]);
 
+  // стримим реплику одного участника в отдельное сообщение с его подписью
+  const streamSpeaker = useCallback(async (question: string, personaText: string, speaker: Speaker): Promise<string> => {
+    const id = `sp-${Date.now()}-${speaker.ab}`;
+    setMessages(prev => [...prev, { id, role: "assistant", content: "", created_at: new Date().toISOString(), speaker }]);
+    let acc = "";
+    const put = (text: string) => setMessages(prev => prev.map(m => m.id === id ? { ...m, content: text } : m));
+    try {
+      const res = await fetch("/api/chat/direct", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: question, agentId: speaker.slug ?? agentId, persona: personaText.slice(0, 4000), history: [] }),
+      });
+      if (!res.ok || !res.body) throw new Error("offline");
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "";
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            if (evt.type === "token") { acc += evt.token; put(acc); }
+          } catch { /* ignore */ }
+        }
+      }
+    } catch { /* fallthrough to fallback */ }
+    if (!acc.trim()) {
+      acc = `Со своей стороны (${speaker.role}): нужно больше вводных, но направление рабочее. Живое обсуждение включится после настройки ANTHROPIC_API_KEY.`;
+      put(acc);
+    }
+    return acc;
+  }, [agentId]);
+
+  // «совещание»: 4 сотрудника высказываются по очереди, директор выносит вердикт
+  const runBoard = useCallback(async (question: string) => {
+    if (!agent?.team?.length) return;
+    const opinions: { name: string; title: string; text: string }[] = [];
+    for (const m of agent.team) {
+      const prev = opinions.map(o => `${o.name} (${o.title}): ${o.text.slice(0, 400)}`).join("\n\n");
+      const persona = `Ты — ${m.name}, ${m.title} в Apex AI, в команде ${agent.name} (${agent.role}). Руководитель собрал команду обсудить вопрос основателя.${prev ? `\n\nКоллеги уже высказались:\n${prev}\n\nДополни новым углом или аргументированно поспорь.` : "\nТы говоришь первым."}\nВыскажи профессиональное мнение из своей зоны: 2–4 предложения, конкретика и цифры где уместно, по-русски, обычный текст без markdown.`;
+      const text = await streamSpeaker(question, persona, { slug: m.slug, name: m.name, role: m.title, color: m.color, ab: m.ab });
+      opinions.push({ name: m.name, title: m.title, text });
+      await new Promise(r => setTimeout(r, 250));
+    }
+    const verdictPersona = `Ты — ${agent.name}, ${agent.role} в Apex AI. Твоя команда обсудила вопрос основателя:\n\n${opinions.map(o => `${o.name} (${o.title}): ${o.text.slice(0, 400)}`).join("\n\n")}\n\nКак руководитель вынеси ФИНАЛЬНЫЙ ВЕРДИКТ: короткое решение (1–2 предложения), затем 3 конкретных шага (1., 2., 3.). Учти и примири мнения команды. По-русски, без markdown-звёздочек.`;
+    await streamSpeaker(question, verdictPersona, { slug: agent.id, name: agent.name, role: "Финальный вердикт", color: agentColor, ab: agent.ab ?? "AI", verdict: true });
+  }, [agent, agentColor, streamSpeaker]);
+
   const sendMessage = useCallback(async () => {
     if (!input.trim() || sending) return;
     const userMessage = input.trim();
@@ -196,6 +273,13 @@ export default function ChatPage() {
     const tempId = `temp-${Date.now()}`;
     const currentMessages = [...messages, { id: tempId, role: "user" as const, content: userMessage, created_at: new Date().toISOString() }];
     setMessages(currentMessages);
+
+    // Режим совещания: команда директора обсуждает и директор выносит вердикт
+    if (agent?.team?.length) {
+      try { await runBoard(userMessage); }
+      finally { setSending(false); inputRef.current?.focus(); }
+      return;
+    }
 
     try {
       abortRef.current = new AbortController();
@@ -315,7 +399,7 @@ export default function ChatPage() {
       setStreamingContent("");
       inputRef.current?.focus();
     }
-  }, [input, sending, conversationId, persona]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [input, sending, conversationId, persona, agent, runBoard]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleKeyDown(e: React.KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -339,9 +423,11 @@ export default function ChatPage() {
         </button>
         <div className="size-8 rounded-lg flex items-center justify-center text-base"
           style={{ background: `linear-gradient(135deg, ${agentColor}2e, ${agentColor}12)`, border: `1px solid ${agentColor}45` }}>
-          {agent?.emoji ?? (
+          {agent?.emoji ?? (agent?.ab ? (
+            <span className="text-[11px] font-bold" style={{ color: agentColor }}>{agent.ab}</span>
+          ) : (
             <svg className="size-3.5" style={{ color: agentColor }} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-          )}
+          ))}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 min-w-0">
@@ -360,6 +446,20 @@ export default function ChatPage() {
             )}
             {agent?.speed && <span className="text-[10px] text-white/35">{SPEED_RU[agent.speed] ?? agent.speed}</span>}
             {typeof agent?.rating === "number" && <span className="text-[10px] text-amber-400">★ {agent.rating}</span>}
+            {agent?.team && agent.team.length > 0 && (
+              <span className="flex items-center gap-1">
+                <span className="flex -space-x-1.5">
+                  {agent.team.map(t => (
+                    <span key={t.slug} title={`${t.name} — ${t.title}`}
+                      className="size-4 rounded-full flex items-center justify-center text-[7px] font-bold text-white border border-[#080808]"
+                      style={{ background: t.color }}>
+                      {t.ab}
+                    </span>
+                  ))}
+                </span>
+                <span className="text-[10px] text-white/35">команда {agent.team.length}</span>
+              </span>
+            )}
           </div>
         </div>
         <button className="size-7 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center justify-center text-white/30 hover:text-white/60">
@@ -377,17 +477,43 @@ export default function ChatPage() {
           >
             <div className="size-20 rounded-3xl flex items-center justify-center mb-5 text-4xl"
               style={{ background: `linear-gradient(135deg, ${agentColor}22, ${agentColor}0d)`, border: `1px solid ${agentColor}30`, boxShadow: `0 8px 32px ${agentColor}1a` }}>
-              {agent?.emoji ?? (
+              {agent?.emoji ?? (agent?.ab ? (
+                <span className="text-2xl font-black" style={{ color: agentColor }}>{agent.ab}</span>
+              ) : (
                 <svg className="size-9 text-violet-400/60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                 </svg>
-              )}
+              ))}
             </div>
             <div className="text-base font-semibold text-white mb-1">{agent ? agent.name : "Готов к работе"}</div>
             {agent?.role && <div className="text-xs font-medium mb-2" style={{ color: agentColor }}>{agent.role}</div>}
             <div className="text-sm text-white/35 max-w-sm leading-relaxed">
               {agent?.description ?? "Задайте любой вопрос о бизнесе, стратегии, финансах или попросите создать задачу"}
             </div>
+            {/* команда директора: кто будет обсуждать */}
+            {agent?.team && agent.team.length > 0 && (
+              <div className="mt-5 w-full max-w-md">
+                <div className="text-[10px] uppercase tracking-widest text-white/30 mb-2.5 font-semibold">Ваш вопрос обсудят</div>
+                <div className="grid grid-cols-2 gap-2">
+                  {agent.team.map(t => (
+                    <div key={t.slug} className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-white/[0.07] bg-white/[0.03] text-left">
+                      <span className="size-7 rounded-lg flex items-center justify-center text-[9px] font-bold text-white flex-shrink-0"
+                        style={{ background: `linear-gradient(135deg, ${t.color}e6, ${t.color}99)` }}>
+                        {t.ab}
+                      </span>
+                      <span className="min-w-0">
+                        <span className="block text-[11.5px] font-semibold text-white/85 truncate">{t.name}</span>
+                        <span className="block text-[10px] text-white/40 truncate">{t.title}</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-2.5 text-[11px] text-white/35 flex items-center justify-center gap-1.5">
+                  <span className="size-1 rounded-full" style={{ background: agentColor }} />
+                  затем {agent.name} вынесет финальный вердикт
+                </div>
+              </div>
+            )}
             {/* характеристики агента */}
             {agent && (
               <div className="mt-4 flex flex-wrap gap-1.5 justify-center max-w-md">
@@ -442,8 +568,22 @@ export default function ChatPage() {
               transition={{ duration: 0.3 }}
               className={`flex gap-3 ${msg.role === "user" ? "justify-end" : "justify-start"}`}
             >
-              {msg.role === "assistant" && assistantAvatar}
+              {msg.role === "assistant" && (msg.speaker ? (
+                <div className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 text-[10px] font-bold text-white"
+                  style={{ background: `linear-gradient(135deg, ${msg.speaker.color}e6, ${msg.speaker.color}99)`, boxShadow: `0 4px 12px ${msg.speaker.color}33` }}>
+                  {msg.speaker.ab}
+                </div>
+              ) : assistantAvatar)}
               <div className={`max-w-[75%] ${msg.role === "user" ? "items-end" : "items-start"} flex flex-col gap-1`}>
+                {msg.speaker && (
+                  <div className="flex items-center gap-1.5 px-1">
+                    <span className="text-[11px] font-semibold" style={{ color: msg.speaker.color }}>{msg.speaker.name}</span>
+                    <span className={`text-[10px] ${msg.speaker.verdict ? "font-bold uppercase tracking-wide" : "text-white/30"}`}
+                      style={msg.speaker.verdict ? { color: msg.speaker.color } : undefined}>
+                      {msg.speaker.verdict ? "★ Финальный вердикт" : `· ${msg.speaker.role}`}
+                    </span>
+                  </div>
+                )}
                 {/* Tool calls in message */}
                 {msg.metadata?.tools && msg.metadata.tools.length > 0 && (
                   <div className="space-y-1 mb-1">
@@ -462,6 +602,7 @@ export default function ChatPage() {
                       ? "bg-gradient-to-br from-violet-600 to-blue-600 text-white ml-auto"
                       : "bg-white/[0.05] border border-white/[0.08]"
                   }`}
+                  style={msg.speaker?.verdict ? { borderColor: `${msg.speaker.color}55`, background: `${msg.speaker.color}0f` } : undefined}
                 >
                   {msg.role === "user" ? (
                     <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
