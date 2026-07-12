@@ -2,12 +2,11 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Search, X, Pin, Trash2, Plus, Check } from "lucide-react";
+import { Database, Search, X, Pin, Trash2, Plus, Check } from "lucide-react";
 
-const EASE = [0.22, 1, 0.36, 1] as const;
 const STORAGE_KEY = "apex-memories-v1";
 
-// ─── Категории памяти ─────────────────────────────────────────────────────────
+// ─── Категории ────────────────────────────────────────────────────────────────
 type Category = "idea" | "fact" | "decision" | "task" | "note";
 const CATS: Record<Category, { label: string; color: string }> = {
   idea:     { label: "Идея",     color: "#8b5cf6" },
@@ -18,13 +17,34 @@ const CATS: Record<Category, { label: string; color: string }> = {
 };
 const CAT_KEYS = Object.keys(CATS) as Category[];
 
+// ─── Агенты (фиксированные узлы) ──────────────────────────────────────────────
+const AGENTS = [
+  { id: "ceo",        label: "CEO / Orchestrator", role: "COMMAND LAYER",  desc: "Маршрутизирует работу, держит контекст системы и координирует агентов." },
+  { id: "researcher", label: "Researcher",         role: "INTEL GATHERER", desc: "Собирает данные о рынке, конкурентах и клиентах." },
+  { id: "cmo",        label: "CMO",                role: "MARKET VOICE",   desc: "Формирует бренд-нарратив и контент-стратегию." },
+  { id: "sales",      label: "Sales Rep",          role: "REVENUE OPS",    desc: "Ведёт воронку и закрывает сделки." },
+  { id: "dev",        label: "Dev",                role: "BUILD SYSTEM",   desc: "Проектирует архитектуру и собирает продукт." },
+  { id: "data",       label: "Data Analyst",       role: "SIGNAL LAYER",   desc: "Строит метрики, прогнозы и следит за сигналами." },
+];
+const AGENT_COLOR = "#8b5cf6";
+
+// какие агенты «слушают» категорию
+const HUB_AGENTS: Record<Category, string[]> = {
+  idea:     ["ceo", "researcher"],
+  fact:     ["researcher", "data"],
+  decision: ["ceo", "dev"],
+  task:     ["sales", "dev"],
+  note:     ["cmo", "ceo"],
+};
+
 type Memory = { id: string; text: string; cat: Category; tags: string[]; createdAt: number; pinned: boolean };
 
 const SEED: Memory[] = [
-  { id: "s1", text: "AI-компания как сервис: фаундер нанимает не одного бота, а целую команду C-level.", cat: "idea", tags: ["видение"], createdAt: Date.now() - 86400000 * 4, pinned: true },
-  { id: "s2", text: "Дизайн-система: enterprise dark, индиго-акцент, hairline-рамки. Никакого неона.", cat: "decision", tags: ["design"], createdAt: Date.now() - 86400000 * 3, pinned: false },
-  { id: "s3", text: "Конкуренты (ChatGPT, Notion AI, Devin) дают ОДНОГО агента. Наш разрыв — продаём «команду».", cat: "fact", tags: ["рынок"], createdAt: Date.now() - 86400000 * 2, pinned: false },
-  { id: "s4", text: "Собрать Command Center: CEO планирует → отделы работают параллельно → синтез результата.", cat: "task", tags: ["mvp"], createdAt: Date.now() - 3600000 * 5, pinned: false },
+  { id: "s1", text: "AI-компания как сервис: нанимаешь не бота, а команду C-level.", cat: "idea", tags: ["видение"], createdAt: Date.now() - 86400000 * 4, pinned: true },
+  { id: "s2", text: "Дизайн-система: enterprise dark, индиго-акцент, hairline-рамки.", cat: "decision", tags: ["design"], createdAt: Date.now() - 86400000 * 3, pinned: false },
+  { id: "s3", text: "Конкуренты дают одного агента — наш разрыв в «команде».", cat: "fact", tags: ["рынок"], createdAt: Date.now() - 86400000 * 2, pinned: false },
+  { id: "s4", text: "Собрать Command Center с живой оркестрацией отделов.", cat: "task", tags: ["mvp"], createdAt: Date.now() - 3600000 * 5, pinned: false },
+  { id: "s5", text: "У каждого агента свой характер, мотто и цвет.", cat: "note", tags: ["агенты"], createdAt: Date.now() - 3600000 * 2, pinned: false },
 ];
 
 function timeAgo(ts: number): string {
@@ -35,160 +55,251 @@ function timeAgo(ts: number): string {
   if (s < 172800) return "вчера";
   return new Date(ts).toLocaleDateString("ru-RU", { day: "numeric", month: "short" });
 }
+const shortLabel = (t: string) => (t.length > 26 ? t.slice(0, 24).trimEnd() + "…" : t);
+
+// ─── Узлы графа ───────────────────────────────────────────────────────────────
+type Kind = "agent" | "hub" | "memory";
+type GNode = { id: string; kind: Kind; label: string; color: string; cat?: Category; mem?: Memory; role?: string; desc?: string };
+
+function buildGraph(mems: Memory[]): { nodes: GNode[]; edges: { s: string; t: string }[] } {
+  const nodes: GNode[] = [];
+  const edges: { s: string; t: string }[] = [];
+  AGENTS.forEach(a => nodes.push({ id: a.id, kind: "agent", label: a.label, color: AGENT_COLOR, role: a.role, desc: a.desc }));
+  AGENTS.forEach(a => { if (a.id !== "ceo") edges.push({ s: a.id, t: "ceo" }); });
+  CAT_KEYS.forEach(k => {
+    nodes.push({ id: `hub_${k}`, kind: "hub", label: CATS[k].label, color: CATS[k].color, cat: k });
+    HUB_AGENTS[k].forEach(ag => edges.push({ s: `hub_${k}`, t: ag }));
+  });
+  mems.forEach(m => {
+    nodes.push({ id: m.id, kind: "memory", label: shortLabel(m.text), color: CATS[m.cat].color, cat: m.cat, mem: m });
+    edges.push({ s: m.id, t: `hub_${m.cat}` });
+  });
+  return { nodes, edges };
+}
+
+type SimNode = GNode & { x: number; y: number; vx: number; vy: number; r: number; deg: number };
+function sizeFor(kind: Kind, deg: number) {
+  if (kind === "agent") return 15 + Math.min(deg, 10) * 0.9;
+  if (kind === "hub") return 11 + Math.min(deg, 8) * 0.7;
+  return 6 + Math.min(deg, 5);
+}
 
 export default function MemoriesPage() {
   const [memories, setMemories] = useState<Memory[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [draft, setDraft] = useState("");
   const [draftCat, setDraftCat] = useState<Category>("idea");
-  const [draftTags, setDraftTags] = useState("");
-  const [query, setQuery] = useState("");
-  const [filter, setFilter] = useState<Category | "all">("all");
+  const [selected, setSelected] = useState<string | null>("ceo");
   const [justSaved, setJustSaved] = useState(false);
-  const taRef = useRef<HTMLTextAreaElement>(null);
 
-  // load once
+  // load / persist
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      setMemories(raw ? JSON.parse(raw) : SEED);
-    } catch { setMemories(SEED); }
+    try { const raw = localStorage.getItem(STORAGE_KEY); setMemories(raw ? JSON.parse(raw) : SEED); }
+    catch { setMemories(SEED); }
     setLoaded(true);
   }, []);
+  useEffect(() => { if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(memories)); }, [memories, loaded]);
 
-  // persist
-  useEffect(() => {
-    if (loaded) localStorage.setItem(STORAGE_KEY, JSON.stringify(memories));
-  }, [memories, loaded]);
+  const graph = useMemo(() => buildGraph(memories), [memories]);
 
   const save = useCallback(() => {
-    const text = draft.trim();
-    if (!text) return;
-    const tags = draftTags.split(",").map(t => t.trim().replace(/^#/, "")).filter(Boolean);
-    const mem: Memory = { id: `m${Date.now()}`, text, cat: draftCat, tags, createdAt: Date.now(), pinned: false };
+    const text = draft.trim(); if (!text) return;
+    const mem: Memory = { id: `m${Date.now()}`, text, cat: draftCat, tags: [], createdAt: Date.now(), pinned: false };
     setMemories(prev => [mem, ...prev]);
-    setDraft(""); setDraftTags("");
-    setJustSaved(true); setTimeout(() => setJustSaved(false), 1400);
-    taRef.current?.focus();
-  }, [draft, draftCat, draftTags]);
+    setDraft(""); setSelected(mem.id);
+    setJustSaved(true); setTimeout(() => setJustSaved(false), 1300);
+  }, [draft, draftCat]);
 
-  const remove = (id: string) => setMemories(prev => prev.filter(m => m.id !== id));
+  const remove = (id: string) => { setMemories(prev => prev.filter(m => m.id !== id)); setSelected(null); };
   const togglePin = (id: string) => setMemories(prev => prev.map(m => m.id === id ? { ...m, pinned: !m.pinned } : m));
 
-  const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    return memories
-      .filter(m => (filter === "all" || m.cat === filter))
-      .filter(m => !q || m.text.toLowerCase().includes(q) || m.tags.some(t => t.toLowerCase().includes(q)))
-      .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.createdAt - a.createdAt);
-  }, [memories, query, filter]);
+  // ── sim data (positions preserved across memory changes) ──
+  const simRef = useRef<{ nodes: SimNode[]; edges: [number, number][]; index: Record<string, number> }>({ nodes: [], edges: [], index: {} });
+  const alphaRef = useRef(1);
+  const selRef = useRef(selected); useEffect(() => { selRef.current = selected; }, [selected]);
+  const neighborRef = useRef<Set<number>>(new Set());
 
-  const counts = useMemo(() => {
-    const c: Record<string, number> = {};
-    memories.forEach(m => { c[m.cat] = (c[m.cat] || 0) + 1; });
-    return c;
-  }, [memories]);
+  useEffect(() => {
+    const prev = new Map(simRef.current.nodes.map(n => [n.id, n]));
+    const deg: Record<string, number> = {};
+    graph.edges.forEach(e => { deg[e.s] = (deg[e.s] || 0) + 1; deg[e.t] = (deg[e.t] || 0) + 1; });
+    const nodes: SimNode[] = graph.nodes.map((n, i) => {
+      const p = prev.get(n.id);
+      let x: number, y: number;
+      if (p) { x = p.x; y = p.y; }
+      else if (n.kind === "memory" && n.cat) {
+        const hub = prev.get(`hub_${n.cat}`); const a = Math.random() * Math.PI * 2; const rr = 24 + Math.random() * 18;
+        x = (hub?.x ?? 0) + Math.cos(a) * rr; y = (hub?.y ?? 0) + Math.sin(a) * rr;
+      } else { const a = (i / graph.nodes.length) * Math.PI * 2; const rr = 70 + (i % 5) * 22; x = Math.cos(a) * rr; y = Math.sin(a) * rr; }
+      return { ...n, x, y, vx: p?.vx ?? 0, vy: p?.vy ?? 0, r: sizeFor(n.kind, deg[n.id] || 1), deg: deg[n.id] || 0 };
+    });
+    const index: Record<string, number> = {}; nodes.forEach((n, i) => index[n.id] = i);
+    const edges = graph.edges.map(e => [index[e.s], index[e.t]] as [number, number]).filter(e => e[0] != null && e[1] != null);
+    simRef.current = { nodes, edges, index };
+    alphaRef.current = Math.max(alphaRef.current, 0.9);
+  }, [graph]);
+
+  // neighbors of selected
+  const neighbors = useMemo(() => {
+    const s = new Set<number>(); const sim = simRef.current;
+    if (selected != null && sim.index[selected] != null) {
+      const si = sim.index[selected];
+      sim.edges.forEach(e => { if (e[0] === si) s.add(e[1]); if (e[1] === si) s.add(e[0]); });
+    }
+    return s;
+  }, [selected, graph]);
+  useEffect(() => { neighborRef.current = neighbors; }, [neighbors]);
+
+  const selNode = selected ? graph.nodes.find(n => n.id === selected) ?? null : null;
+
+  // ── Canvas loop ──
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const wrapRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const canvas = canvasRef.current, wrap = wrapRef.current; if (!canvas || !wrap) return;
+    const ctx = canvas.getContext("2d"); if (!ctx) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let W = 0, H = 0; const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    const resize = () => { const r = wrap.getBoundingClientRect(); W = r.width; H = r.height; canvas.width = W * DPR; canvas.height = H * DPR; canvas.style.width = W + "px"; canvas.style.height = H + "px"; ctx.setTransform(DPR, 0, 0, DPR, 0, 0); };
+    resize(); const ro = new ResizeObserver(resize); ro.observe(wrap);
+
+    let raf = 0, hoverIdx = -1, dragIdx = -1, downX = 0, downY = 0, moved = false, t = 0;
+    const cx = () => W / 2, cy = () => H / 2;
+    const pick = (px: number, py: number) => {
+      const { nodes } = simRef.current; const wx = px - cx(), wy = py - cy(); let best = -1, bd = 1e9;
+      for (let i = 0; i < nodes.length; i++) { const d = Math.hypot(nodes[i].x - wx, nodes[i].y - wy); if (d < nodes[i].r + 6 && d < bd) { bd = d; best = i; } }
+      return best;
+    };
+    const step = () => {
+      const { nodes, edges } = simRef.current; const alpha = alphaRef.current;
+      for (let i = 0; i < nodes.length; i++) { const a = nodes[i]; for (let j = i + 1; j < nodes.length; j++) { const b = nodes[j]; let dx = a.x - b.x, dy = a.y - b.y; let d2 = dx * dx + dy * dy; if (d2 < 0.01) { d2 = 0.01; dx = Math.random(); } const d = Math.sqrt(d2); const f = (820 * alpha) / d2; const fx = (dx / d) * f, fy = (dy / d) * f; a.vx += fx; a.vy += fy; b.vx -= fx; b.vy -= fy; } }
+      for (const e of edges) { const a = nodes[e[0]], b = nodes[e[1]]; if (!a || !b) continue; const dx = b.x - a.x, dy = b.y - a.y; const d = Math.hypot(dx, dy) || 1; const tgt = a.kind === "agent" || b.kind === "agent" ? 92 : 54; const f = ((d - tgt) / d) * 0.022 * alpha; a.vx += dx * f; a.vy += dy * f; b.vx -= dx * f; b.vy -= dy * f; }
+      for (let i = 0; i < nodes.length; i++) { const n = nodes[i]; if (i === dragIdx) { n.vx = 0; n.vy = 0; continue; } n.vx += -n.x * 0.0018 * alpha; n.vy += -n.y * 0.0018 * alpha; n.vx *= 0.85; n.vy *= 0.85; n.x += n.vx; n.y += n.vy; }
+      if (alpha > 0.05) alphaRef.current *= 0.99;
+    };
+    const draw = () => {
+      const { nodes, edges, index } = simRef.current; ctx.clearRect(0, 0, W, H); const ox = cx(), oy = cy();
+      const sel = selRef.current != null && index[selRef.current] != null ? index[selRef.current] : -1;
+      const hi = hoverIdx >= 0 ? hoverIdx : sel;
+      // edges
+      for (const e of edges) { const a = nodes[e[0]], b = nodes[e[1]]; if (!a || !b) continue; const inc = hi >= 0 && (e[0] === hi || e[1] === hi); ctx.strokeStyle = inc ? "rgba(129,140,248,0.5)" : "rgba(255,255,255,0.045)"; ctx.lineWidth = inc ? 1.3 : 0.6; ctx.beginPath(); ctx.moveTo(ox + a.x, oy + a.y); ctx.lineTo(ox + b.x, oy + b.y); ctx.stroke(); }
+      // nodes
+      for (let i = 0; i < nodes.length; i++) {
+        const n = nodes[i]; const isSel = i === sel; const near = i === hi || neighborRef.current.has(i);
+        const dim = hi >= 0 && !near && i !== hi;
+        const pulse = n.kind === "agent" ? 1 + Math.sin(t * 0.05 + i) * 0.06 : 1;
+        const x = ox + n.x, y = oy + n.y, r = n.r * pulse;
+        if (n.kind === "agent" || isSel) { const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3.2); g.addColorStop(0, n.color + (dim ? "14" : "40")); g.addColorStop(1, n.color + "00"); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, r * 3.2, 0, Math.PI * 2); ctx.fill(); }
+        ctx.globalAlpha = dim ? 0.26 : 1; ctx.fillStyle = n.color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = isSel ? "#fff" : "rgba(255,255,255,0.16)"; ctx.lineWidth = isSel ? 2 : 1; ctx.stroke(); ctx.globalAlpha = 1;
+        const showLabel = n.kind !== "memory" || isSel || (hi >= 0 && near);
+        if (showLabel && !dim) { ctx.font = `${n.kind === "agent" ? 600 : 500} ${n.kind === "agent" ? 12 : 10.5}px ui-sans-serif, system-ui`; ctx.fillStyle = n.kind === "agent" ? "rgba(255,255,255,0.92)" : "rgba(255,255,255,0.62)"; ctx.textAlign = "center"; ctx.fillText(n.label, x, y + r + 12); }
+      }
+    };
+    const loop = () => { t++; if (!reduce) step(); draw(); raf = requestAnimationFrame(loop); };
+    loop();
+    const onMove = (e: MouseEvent) => { const r = canvas.getBoundingClientRect(); const px = e.clientX - r.left, py = e.clientY - r.top; if (dragIdx >= 0) { simRef.current.nodes[dragIdx].x = px - cx(); simRef.current.nodes[dragIdx].y = py - cy(); alphaRef.current = Math.max(alphaRef.current, 0.5); moved = true; return; } hoverIdx = pick(px, py); canvas.style.cursor = hoverIdx >= 0 ? "pointer" : "grab"; };
+    const onDown = (e: MouseEvent) => { const r = canvas.getBoundingClientRect(); const px = e.clientX - r.left, py = e.clientY - r.top; downX = px; downY = py; moved = false; const hit = pick(px, py); if (hit >= 0) { dragIdx = hit; alphaRef.current = Math.max(alphaRef.current, 0.4); } };
+    const onUp = (e: MouseEvent) => { const r = canvas.getBoundingClientRect(); const px = e.clientX - r.left, py = e.clientY - r.top; if (!moved && Math.hypot(px - downX, py - downY) < 5) { const hit = pick(px, py); setSelected(hit >= 0 ? simRef.current.nodes[hit].id : null); } dragIdx = -1; };
+    canvas.addEventListener("mousemove", onMove); canvas.addEventListener("mousedown", onDown); window.addEventListener("mouseup", onUp);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); canvas.removeEventListener("mousemove", onMove); canvas.removeEventListener("mousedown", onDown); window.removeEventListener("mouseup", onUp); };
+  }, []);
+
+  const selMem = selNode?.mem;
 
   return (
     <div className="mem-root">
-      <div className="mem-wrap">
+      <div className="mem-main">
         {/* Header */}
-        <header className="mem-head">
-          <div className="mem-eyebrow"><Brain size={13} strokeWidth={2} /> ПАМЯТЬ AI-КОМПАНИИ</div>
-          <h1 className="mem-title">Мемрис</h1>
-          <p className="mem-sub">Долговременная память вашей команды. Всё, что вы запишете, сохраняется навсегда и доступно агентам в любой момент — они это помнят.</p>
-        </header>
+        <div className="mem-head">
+          <div>
+            <h1 className="mem-title">Топология памяти и базы данных</h1>
+            <p className="mem-sub">Агенты, воспоминания и топик-хабы. Всё, что вы запомните, появляется здесь узлом и сохраняется навсегда.</p>
+          </div>
+          <div className="mem-count">{graph.nodes.length} узлов · {graph.edges.length} связей</div>
+        </div>
 
         {/* Composer */}
         <div className="mem-composer">
-          <textarea
-            ref={taRef}
-            className="mem-ta"
-            value={draft}
-            onChange={e => setDraft(e.target.value)}
-            onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); save(); } }}
-            placeholder="Что запомнить? Идея, факт, решение, задача…"
-            rows={3}
-            spellCheck={false}
-          />
-          <div className="mem-composer-row">
-            <div className="mem-cat-pick">
-              {CAT_KEYS.map(k => (
-                <button key={k} className={`mem-cat-btn${draftCat === k ? " on" : ""}`} onClick={() => setDraftCat(k)}
-                  style={draftCat === k ? { background: `${CATS[k].color}22`, borderColor: `${CATS[k].color}66`, color: CATS[k].color } : undefined}>
-                  <span className="mem-dot" style={{ background: CATS[k].color }} />{CATS[k].label}
-                </button>
-              ))}
-            </div>
-            <input className="mem-tags-in" value={draftTags} onChange={e => setDraftTags(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") save(); }} placeholder="теги через запятую" spellCheck={false} />
-            <button className="mem-save" onClick={save} disabled={!draft.trim()}>
-              {justSaved ? <><Check size={15} /> Запомнил</> : <><Plus size={15} /> Запомнить</>}
-            </button>
-          </div>
-          <div className="mem-hint">
-            <kbd>⌘</kbd><kbd>↵</kbd> сохранить · хранится локально в вашем браузере
-          </div>
-        </div>
-
-        {/* Stats + filters */}
-        <div className="mem-bar">
-          <div className="mem-filters">
-            <button className={`mem-fil${filter === "all" ? " on" : ""}`} onClick={() => setFilter("all")}>
-              Все <span className="mem-fil-n">{memories.length}</span>
-            </button>
+          <div className="mem-cat-pick">
             {CAT_KEYS.map(k => (
-              <button key={k} className={`mem-fil${filter === k ? " on" : ""}`} onClick={() => setFilter(filter === k ? "all" : k)}
-                style={filter === k ? { borderColor: `${CATS[k].color}66`, color: CATS[k].color } : undefined}>
+              <button key={k} className={`mem-cat-btn${draftCat === k ? " on" : ""}`} onClick={() => setDraftCat(k)}
+                style={draftCat === k ? { background: `${CATS[k].color}22`, borderColor: `${CATS[k].color}66`, color: CATS[k].color } : undefined}>
                 <span className="mem-dot" style={{ background: CATS[k].color }} />{CATS[k].label}
-                <span className="mem-fil-n">{counts[k] || 0}</span>
               </button>
             ))}
           </div>
-          <div className="mem-search">
-            <Search size={14} />
-            <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Поиск в памяти…" spellCheck={false} />
-            {query && <button onClick={() => setQuery("")} aria-label="Очистить"><X size={13} /></button>}
-          </div>
+          <input className="mem-in" value={draft} onChange={e => setDraft(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") save(); }} placeholder="Что запомнить? Enter — сохранить" spellCheck={false} />
+          <button className="mem-save" onClick={save} disabled={!draft.trim()}>
+            {justSaved ? <><Check size={15} /> Готово</> : <><Plus size={15} /> Запомнить</>}
+          </button>
         </div>
 
-        {/* Memories */}
-        <div className="mem-grid">
-          <AnimatePresence mode="popLayout">
-            {filtered.map((m, i) => (
-              <motion.div key={m.id} layout className="mem-card"
-                initial={{ opacity: 0, y: 14, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.28, ease: EASE, delay: Math.min(i * 0.02, 0.2) }}
-                style={{ borderColor: `${CATS[m.cat].color}22` }}>
-                <span className="mem-card-spine" style={{ background: CATS[m.cat].color }} />
-                <div className="mem-card-top">
-                  <span className="mem-cat-chip" style={{ background: `${CATS[m.cat].color}1e`, color: CATS[m.cat].color }}>
-                    <span className="mem-dot" style={{ background: CATS[m.cat].color }} />{CATS[m.cat].label}
-                  </span>
-                  <div className="mem-card-actions">
-                    <button className={`mem-act${m.pinned ? " on" : ""}`} onClick={() => togglePin(m.id)} title={m.pinned ? "Открепить" : "Закрепить"}>
-                      <Pin size={13} fill={m.pinned ? "currentColor" : "none"} />
-                    </button>
-                    <button className="mem-act danger" onClick={() => remove(m.id)} title="Удалить"><Trash2 size={13} /></button>
-                  </div>
-                </div>
-                <p className="mem-card-text">{m.text}</p>
-                <div className="mem-card-foot">
-                  <div className="mem-card-tags">{m.tags.map(t => <span key={t} className="mem-tag">#{t}</span>)}</div>
-                  <span className="mem-card-time">{timeAgo(m.createdAt)}</span>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        {/* Graph */}
+        <div className="mem-canvas-wrap" ref={wrapRef}>
+          <canvas ref={canvasRef} />
+        </div>
 
-          {loaded && filtered.length === 0 && (
-            <div className="mem-empty">
-              <Brain size={26} />
-              <p>{memories.length === 0 ? "Память пуста. Запишите первую мысль выше — она сохранится навсегда." : "Ничего не найдено. Смени фильтр или запрос."}</p>
-            </div>
-          )}
+        {/* Legend */}
+        <div className="mem-legend">
+          <span className="mem-leg"><span className="mem-dot" style={{ background: AGENT_COLOR }} />Агенты</span>
+          {CAT_KEYS.map(k => <span key={k} className="mem-leg"><span className="mem-dot" style={{ background: CATS[k].color }} />{CATS[k].label}</span>)}
+          <span className="mem-leg-hint">клик — детали · тащи узлы мышью</span>
         </div>
       </div>
+
+      {/* Detail panel */}
+      <aside className="mem-panel">
+        <AnimatePresence mode="wait">
+          {selNode ? (
+            <motion.div key={selNode.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.22 }}>
+              <div className="mem-panel-tags">
+                <span className="mem-chip" style={{ color: selNode.color, borderColor: `${selNode.color}55` }}>
+                  <span className="mem-dot" style={{ background: selNode.color }} />
+                  {selNode.kind === "agent" ? "АГЕНТ" : selNode.kind === "hub" ? "ТОПИК-ХАБ" : "ПАМЯТЬ"}
+                </span>
+                {selNode.role && <span className="mem-chip ghost">{selNode.role}</span>}
+                {selMem && <span className="mem-chip ghost">{CATS[selMem.cat].label}</span>}
+              </div>
+
+              <h2 className="mem-panel-title">{selMem ? selMem.text : selNode.label}</h2>
+              {selNode.desc && <p className="mem-panel-desc">{selNode.desc}</p>}
+              {selNode.kind === "hub" && <p className="mem-panel-desc">Хаб категории «{selNode.label}». Собирает связанные воспоминания и передаёт их агентам.</p>}
+
+              <div className="mem-tiles">
+                <div className="mem-tile"><span className="mem-tile-l">Тип</span><span className="mem-tile-v">{selNode.kind === "agent" ? "Агент" : selNode.kind === "hub" ? "Хаб" : "Память"}</span></div>
+                <div className="mem-tile"><span className="mem-tile-l">Область</span><span className="mem-tile-v">{selNode.kind === "memory" ? "LOCAL" : "GLOBAL"}</span></div>
+                <div className="mem-tile"><span className="mem-tile-l">{selMem ? "Записано" : "Размер"}</span><span className="mem-tile-v">{selMem ? timeAgo(selMem.createdAt) : selNode.kind === "agent" ? "0 B" : `${(selNode.label.length * 1.4).toFixed(0)} KB`}</span></div>
+                <div className="mem-tile"><span className="mem-tile-l">Связей</span><span className="mem-tile-v">{neighbors.size}</span></div>
+              </div>
+
+              {selMem && (
+                <div className="mem-mem-actions">
+                  <button className={`mem-mbtn${selMem.pinned ? " on" : ""}`} onClick={() => togglePin(selMem.id)}><Pin size={13} fill={selMem.pinned ? "currentColor" : "none"} /> {selMem.pinned ? "Закреплено" : "Закрепить"}</button>
+                  <button className="mem-mbtn danger" onClick={() => remove(selMem.id)}><Trash2 size={13} /> Забыть</button>
+                </div>
+              )}
+
+              <div className="mem-rel-label">Связанные узлы</div>
+              <div className="mem-links">
+                {Array.from(neighbors).slice(0, 8).map(i => { const ln = simRef.current.nodes[i]; if (!ln) return null; return (
+                  <button key={ln.id} className="mem-link" onClick={() => setSelected(ln.id)}>
+                    <span className="mem-dot" style={{ background: ln.color }} /><span className="mem-link-t">{ln.label}</span>
+                  </button>
+                ); })}
+                {neighbors.size === 0 && <div className="mem-empty-links">Нет связей</div>}
+              </div>
+            </motion.div>
+          ) : (
+            <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mem-panel-empty">
+              <Database size={26} />
+              <p>Выберите узел на карте или запишите новое воспоминание.</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </aside>
+
       <MemStyles />
     </div>
   );
@@ -197,76 +308,66 @@ export default function MemoriesPage() {
 function MemStyles() {
   return (
     <style jsx global>{`
-      .mem-root { background: #05060A; min-height: 100%; }
-      .mem-wrap { max-width: 880px; margin: 0 auto; padding: 38px 24px 72px; }
+      .mem-root { background: #05060A; min-height: 100%; display: grid; grid-template-columns: 1fr 316px; }
+      .mem-main { min-width: 0; padding: 24px 24px 20px; display: flex; flex-direction: column; }
+      .mem-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+      .mem-title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; color: #E5E7EB; margin: 0 0 4px; }
+      .mem-sub { font-size: 12.5px; color: rgba(255,255,255,0.45); margin: 0; max-width: 62ch; line-height: 1.5; }
+      .mem-count { flex-shrink: 0; font-family: var(--font-geist-mono), monospace; font-size: 11px; color: rgba(129,140,248,0.9); background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); border-radius: 9px; padding: 6px 11px; white-space: nowrap; }
 
-      .mem-head { margin-bottom: 24px; }
-      .mem-eyebrow { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-geist-mono), monospace; font-size: 10.5px; letter-spacing: 0.14em; color: rgba(129,140,248,0.85); margin-bottom: 12px; }
-      .mem-title { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; color: #E5E7EB; margin: 0 0 10px; }
-      .mem-sub { font-size: 14.5px; line-height: 1.65; color: rgba(255,255,255,0.52); max-width: 66ch; margin: 0; }
-
-      /* Composer */
-      .mem-composer { border-radius: 18px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); padding: 16px; margin-bottom: 26px; box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 40px rgba(0,0,0,0.24), inset 0 1px 0 rgba(255,255,255,0.05); }
-      .mem-ta { width: 100%; resize: none; background: none; border: none; outline: none; color: #E5E7EB; font-size: 15px; line-height: 1.6; font-family: inherit; }
-      .mem-ta::placeholder { color: rgba(255,255,255,0.3); }
-      .mem-composer-row { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
-      .mem-cat-pick { display: flex; gap: 6px; flex-wrap: wrap; }
-      .mem-cat-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; padding: 6px 10px; cursor: pointer; transition: all .15s; }
+      .mem-composer { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+      .mem-cat-pick { display: flex; gap: 5px; flex-wrap: wrap; }
+      .mem-cat-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; padding: 6px 9px; cursor: pointer; transition: all .15s; }
       .mem-cat-btn:hover { background: rgba(255,255,255,0.07); }
       .mem-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-      .mem-tags-in { flex: 1; min-width: 120px; height: 34px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); border-radius: 9px; padding: 0 11px; color: #E5E7EB; font-size: 12.5px; outline: none; transition: border-color .15s; }
-      .mem-tags-in:focus { border-color: rgba(99,102,241,0.5); }
-      .mem-tags-in::placeholder { color: rgba(255,255,255,0.3); }
-      .mem-save { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 16px; border-radius: 10px; border: none; cursor: pointer; font-size: 12.5px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: inset 0 1px 0 rgba(255,255,255,0.18); transition: transform .15s, opacity .15s; }
+      .mem-in { flex: 1; min-width: 180px; height: 38px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.09); border-radius: 11px; padding: 0 13px; color: #E5E7EB; font-size: 13.5px; outline: none; transition: border-color .15s; }
+      .mem-in:focus { border-color: rgba(99,102,241,0.5); }
+      .mem-in::placeholder { color: rgba(255,255,255,0.3); }
+      .mem-save { display: inline-flex; align-items: center; gap: 6px; height: 38px; padding: 0 16px; border-radius: 11px; border: none; cursor: pointer; font-size: 12.5px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: inset 0 1px 0 rgba(255,255,255,0.18); transition: transform .15s, opacity .15s; }
       .mem-save:hover:not(:disabled) { transform: translateY(-1px); }
       .mem-save:disabled { opacity: 0.45; cursor: not-allowed; }
-      .mem-hint { display: flex; align-items: center; gap: 6px; margin-top: 12px; font-size: 11px; color: rgba(255,255,255,0.32); }
-      .mem-hint kbd { font-family: var(--font-geist-mono), monospace; font-size: 10px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.09); border-radius: 4px; padding: 1px 5px; color: rgba(255,255,255,0.5); }
 
-      /* Bar */
-      .mem-bar { display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 18px; flex-wrap: wrap; }
-      .mem-filters { display: flex; gap: 7px; flex-wrap: wrap; }
-      .mem-fil { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.55); background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); border-radius: 9px; padding: 6px 11px; cursor: pointer; transition: all .15s; }
-      .mem-fil:hover { background: rgba(255,255,255,0.06); }
-      .mem-fil.on { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.35); color: #a5b4fc; }
-      .mem-fil-n { font-family: var(--font-geist-mono), monospace; font-size: 10px; opacity: 0.6; }
-      .mem-search { display: flex; align-items: center; gap: 8px; height: 34px; padding: 0 11px; border-radius: 10px; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.08); }
-      .mem-search:focus-within { border-color: rgba(99,102,241,0.5); }
-      .mem-search svg { color: rgba(255,255,255,0.4); }
-      .mem-search input { width: 150px; background: none; border: none; outline: none; color: #E5E7EB; font-size: 12.5px; }
-      .mem-search input::placeholder { color: rgba(255,255,255,0.3); }
-      .mem-search button { background: none; border: none; color: rgba(255,255,255,0.4); cursor: pointer; display: flex; }
+      .mem-canvas-wrap { position: relative; flex: 1; min-height: 440px; border-radius: 20px; overflow: hidden; cursor: grab;
+        background: radial-gradient(120% 120% at 50% 45%, rgba(30,32,56,0.4), rgba(5,6,10,0) 62%), rgba(255,255,255,0.012);
+        border: 1px solid rgba(255,255,255,0.06); box-shadow: inset 0 1px 0 rgba(255,255,255,0.04); }
+      .mem-canvas-wrap canvas { display: block; }
 
-      /* Cards */
-      .mem-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; }
-      .mem-card { position: relative; overflow: hidden; display: flex; flex-direction: column; gap: 12px; padding: 15px 15px 13px 18px; border-radius: 15px; background: rgba(255,255,255,0.028); border: 1px solid rgba(255,255,255,0.07); box-shadow: 0 1px 2px rgba(0,0,0,0.3); transition: background .2s, box-shadow .2s; }
-      .mem-card:hover { background: rgba(255,255,255,0.05); box-shadow: 0 1px 2px rgba(0,0,0,0.4), 0 12px 34px rgba(0,0,0,0.28); }
-      .mem-card-spine { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; opacity: 0.85; }
-      .mem-card-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-      .mem-cat-chip { display: inline-flex; align-items: center; gap: 6px; font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 7px; }
-      .mem-card-actions { display: flex; gap: 3px; opacity: 0; transition: opacity .15s; }
-      .mem-card:hover .mem-card-actions { opacity: 1; }
-      .mem-act { width: 26px; height: 26px; border-radius: 7px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); color: rgba(255,255,255,0.5); cursor: pointer; transition: all .15s; }
-      .mem-act:hover { background: rgba(255,255,255,0.09); color: rgba(255,255,255,0.85); }
-      .mem-act.on { color: #818cf8; border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.12); opacity: 1; }
-      .mem-card:has(.mem-act.on) .mem-card-actions { opacity: 1; }
-      .mem-act.danger:hover { color: #f87171; border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.1); }
-      .mem-card-text { font-size: 13.5px; line-height: 1.6; color: rgba(255,255,255,0.82); margin: 0; }
-      .mem-card-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: auto; }
-      .mem-card-tags { display: flex; flex-wrap: wrap; gap: 5px; }
-      .mem-tag { font-family: var(--font-geist-mono), monospace; font-size: 10px; color: rgba(255,255,255,0.4); background: rgba(255,255,255,0.05); border-radius: 6px; padding: 2px 6px; }
-      .mem-card-time { font-size: 11px; color: rgba(255,255,255,0.3); white-space: nowrap; flex-shrink: 0; }
+      .mem-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 12px; }
+      .mem-leg { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; color: rgba(255,255,255,0.55); }
+      .mem-leg-hint { margin-left: auto; font-size: 11px; color: rgba(255,255,255,0.28); }
 
-      .mem-empty { grid-column: 1/-1; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding: 56px 0; color: rgba(255,255,255,0.35); }
-      .mem-empty p { font-size: 13.5px; line-height: 1.6; margin: 0; max-width: 40ch; }
+      .mem-panel { border-left: 1px solid rgba(255,255,255,0.06); background: rgba(255,255,255,0.015); padding: 26px 20px; overflow-y: auto; }
+      .mem-panel-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+      .mem-chip { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-geist-mono), monospace; font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; padding: 4px 9px; border-radius: 7px; border: 1px solid; }
+      .mem-chip.ghost { color: rgba(255,255,255,0.45); border-color: rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); }
+      .mem-panel-title { font-size: 18px; font-weight: 800; letter-spacing: -0.01em; color: #fff; margin: 0 0 10px; line-height: 1.3; }
+      .mem-panel-desc { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.58); margin: 0 0 18px; }
 
-      @media (max-width: 560px) {
-        .mem-title { font-size: 27px; }
-        .mem-grid { grid-template-columns: 1fr; }
-        .mem-composer-row { flex-direction: column; align-items: stretch; }
-        .mem-save { justify-content: center; }
+      .mem-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+      .mem-tile { display: flex; flex-direction: column; gap: 4px; padding: 10px 12px; border-radius: 11px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); }
+      .mem-tile-l { font-family: var(--font-geist-mono), monospace; font-size: 9px; letter-spacing: 0.1em; color: rgba(255,255,255,0.35); text-transform: uppercase; }
+      .mem-tile-v { font-size: 12.5px; font-weight: 700; color: rgba(255,255,255,0.85); }
+
+      .mem-mem-actions { display: flex; gap: 7px; margin-bottom: 18px; }
+      .mem-mbtn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 6px; height: 34px; border-radius: 10px; font-size: 12px; font-weight: 600; cursor: pointer; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08); color: rgba(255,255,255,0.65); transition: all .15s; }
+      .mem-mbtn:hover { background: rgba(255,255,255,0.08); }
+      .mem-mbtn.on { color: #818cf8; border-color: rgba(99,102,241,0.4); background: rgba(99,102,241,0.12); }
+      .mem-mbtn.danger:hover { color: #f87171; border-color: rgba(248,113,113,0.3); background: rgba(248,113,113,0.1); }
+
+      .mem-rel-label { font-family: var(--font-geist-mono), monospace; font-size: 9.5px; letter-spacing: 0.12em; color: rgba(255,255,255,0.35); text-transform: uppercase; margin-bottom: 10px; }
+      .mem-links { display: flex; flex-direction: column; gap: 6px; }
+      .mem-link { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 10px; background: rgba(255,255,255,0.025); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: all .15s; text-align: left; }
+      .mem-link:hover { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.12); }
+      .mem-link-t { font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.78); }
+      .mem-empty-links { font-size: 12px; color: rgba(255,255,255,0.3); }
+
+      .mem-panel-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 12px; padding-top: 56px; color: rgba(255,255,255,0.35); }
+      .mem-panel-empty p { font-size: 13px; line-height: 1.6; margin: 0; max-width: 24ch; }
+
+      @media (max-width: 900px) {
+        .mem-root { grid-template-columns: 1fr; }
+        .mem-panel { border-left: none; border-top: 1px solid rgba(255,255,255,0.06); }
       }
-      @media (prefers-reduced-motion: reduce) { .mem-card { transition: none; } }
     `}</style>
   );
 }
