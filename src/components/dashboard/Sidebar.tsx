@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
-  Bot, Settings, HelpCircle, Sparkles, MessageSquare, BookOpen,
+  Bot, Settings, HelpCircle, MessageSquare, BookOpen,
   X, PanelLeftClose, PanelLeft, ChevronRight,
 } from "lucide-react";
 
@@ -29,15 +29,14 @@ const SECTIONS: NavSection[] = [
     title: "AI система",
     items: [
       { key: "5", label: "Исполн. совет",    href: "/dashboard/executives", icon: Users },
-      { key: "6", label: "Apex Chat",        href: "/dashboard/chat",       icon: Sparkles, accent: true },
     ],
   },
   {
     title: "Инструменты",
     items: [
-      { key: "7", label: "AI Чат",           href: "/chat",                 icon: MessageSquare },
-      { key: "8", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
-      { key: "9", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
+      { key: "6", label: "AI Чат",           href: "/dashboard/chat",       icon: MessageSquare },
+      { key: "7", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
+      { key: "8", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
     ],
   },
 ];
