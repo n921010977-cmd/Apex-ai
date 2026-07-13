@@ -560,7 +560,7 @@ function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] })
             style={{ opacity: animated ? 1 : 0, transition: "opacity 0.8s ease-out 0.3s" }} />
           {pts.map((p, i) => (
             <g key={i} style={{ opacity: animated ? 1 : 0, transition: `opacity 0.3s ${0.5 + i * 0.07}s` }}>
-              <circle cx={p.x} cy={p.y} r="5" fill="#07090F" stroke={p.color} strokeWidth="1.5"
+              <circle cx={p.x} cy={p.y} r="5" fill="#05060A" stroke={p.color} strokeWidth="1.5"
                 style={{ filter: `drop-shadow(0 0 4px ${p.color}80)` }} />
               <circle cx={p.x} cy={p.y} r="2" fill={p.color} />
               <text x={p.lx} y={p.ly} textAnchor="middle" dominantBaseline="middle"

@@ -535,7 +535,7 @@ export default function AgentsPage() {
   });
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#07090F", color: "white", overflow: "hidden" }}>
+    <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#05060A", color: "white", overflow: "hidden" }}>
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
         <div style={{ position: "absolute", top: -160, right: -100, width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%)" }} />
         <div style={{ position: "absolute", bottom: -200, left: -100, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%)" }} />

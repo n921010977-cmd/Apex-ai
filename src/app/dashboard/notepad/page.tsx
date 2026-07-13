@@ -320,7 +320,7 @@ export default function NotepadPage() {
   const COLORS = ["#6366f1","#4f46e5","#10b981","#ef4444","#f59e0b","#8b5cf6"];
 
   return (
-    <div style={{ height: "100vh", display: "flex", background: "#07090F", overflow: "hidden" }}>
+    <div style={{ height: "100vh", display: "flex", background: "#05060A", overflow: "hidden" }}>
 
       {/* ── LEFT NAV ── */}
       <div style={{ width: 230, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", height: "100%" }}>

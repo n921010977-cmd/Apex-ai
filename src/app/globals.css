@@ -101,11 +101,20 @@ body { font-size: 14px; line-height: 1.6; }
 .term-blink { animation: term-blink 1.4s steps(1) infinite; }
 
 /* ── Scrollbars ────────────────────────────────────────── */
-::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.07); border-radius: 2px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.09); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.18); }
+* { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.12) transparent; }
 ::selection { background: rgba(99,102,241,0.35); color: #fff; }
+
+/* ── Приятные мелочи ──────────────────────────────────── */
+input, textarea { caret-color: #818cf8; }
+h1, h2, h3 { text-wrap: balance; }
+p { text-wrap: pretty; }
+button { font-family: inherit; }
+input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
+:disabled { cursor: not-allowed; }
 
 /* ── Typography gradients ─────────────────────────────── */
 .gradient-text {

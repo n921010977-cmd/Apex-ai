@@ -420,7 +420,7 @@ export default function ChatPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.06] bg-[#080808]/80 backdrop-blur-sm flex-shrink-0">
+      <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.06] bg-[#05060A]/80 backdrop-blur-sm flex-shrink-0">
         <button
           onClick={() => router.push("/dashboard/agents")}
           title="К агентам"
@@ -458,7 +458,7 @@ export default function ChatPage() {
                 <span className="flex -space-x-1.5">
                   {agent.team.map(t => (
                     <span key={t.slug} title={`${t.name} — ${t.title}`}
-                      className="size-4 rounded-full flex items-center justify-center text-[7px] font-bold text-white border border-[#080808]"
+                      className="size-4 rounded-full flex items-center justify-center text-[7px] font-bold text-white border border-[#05060A]"
                       style={{ background: t.color }}>
                       {t.ab}
                     </span>
@@ -671,7 +671,7 @@ export default function ChatPage() {
       </div>
 
       {/* Input */}
-      <div className="flex-shrink-0 p-4 border-t border-white/[0.06] bg-[#080808]/80 backdrop-blur-sm">
+      <div className="flex-shrink-0 p-4 border-t border-white/[0.06] bg-[#05060A]/80 backdrop-blur-sm">
         <div className="flex items-end gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/[0.08] focus-within:border-violet-500/30 transition-colors">
           <textarea
             ref={inputRef}

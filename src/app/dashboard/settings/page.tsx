@@ -254,7 +254,7 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
             <div style={{ width: 68, height: 68, borderRadius: 20, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 800, color: "#fff", boxShadow: "0 8px 24px rgba(99,102,241,0.4)" }}>
               {form.firstName[0] || "F"}
             </div>
-            <button style={{ position: "absolute", bottom: -4, right: -4, width: 22, height: 22, borderRadius: "50%", background: "#6366f1", border: "2px solid #07090F", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+            <button style={{ position: "absolute", bottom: -4, right: -4, width: 22, height: 22, borderRadius: "50%", background: "#6366f1", border: "2px solid #05060A", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
               <Camera size={9} color="#fff" />
             </button>
           </div>
@@ -467,7 +467,7 @@ function TeamPanel({ showToast }: { showToast: (m: string, t: "success"|"error")
             <div key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)", transition: "background 0.15s" }}>
               <div style={{ position: "relative", flexShrink: 0 }}>
                 <div style={{ width: 36, height: 36, borderRadius: 10, background: `linear-gradient(135deg, ${m.color}, ${m.color}88)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 14, fontWeight: 800, color: "#fff" }}>{m.avatar}</div>
-                {m.online && <div style={{ position: "absolute", bottom: 0, right: 0, width: 8, height: 8, borderRadius: "50%", background: "#10b981", border: "2px solid #07090F" }} />}
+                {m.online && <div style={{ position: "absolute", bottom: 0, right: 0, width: 8, height: 8, borderRadius: "50%", background: "#10b981", border: "2px solid #05060A" }} />}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>{m.name}</div>
@@ -1091,7 +1091,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div style={{ minHeight: "100vh", background: "#07090F", display: "flex", position: "relative" }}>
+    <div style={{ minHeight: "100vh", background: "#05060A", display: "flex", position: "relative" }}>
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
         input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.2); }
