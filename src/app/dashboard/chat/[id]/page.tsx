@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { TEAM_BY_SLUG, reportsOf } from "@/lib/team";
+import { TEAM, TEAM_BY_SLUG, reportsOf } from "@/lib/team";
 
 // участник обсуждения (сотрудник команды директора или сам директор)
 interface Speaker {
@@ -147,10 +147,15 @@ export default function ChatPage() {
     if (!agentId) return;
     const tm = TEAM_BY_SLUG[agentId];
     if (tm && tm.tier === "c-level") {
-      const team = reportsOf(tm.slug).slice(0, 4);
+      // CEO совещается со всеми агентами компании, директор — со всеми своими
+      const team = tm.slug === "ceo"
+        ? TEAM.filter(x => x.slug !== "ceo")
+        : reportsOf(tm.slug);
       setAgent({
         id: tm.slug, name: tm.name, role: `${tm.role} · ${tm.title}`, color: tm.c, ab: tm.ab,
-        description: `${tm.title}. Ваш вопрос обсудит команда из ${team.length} специалистов, после чего ${tm.name} вынесет финальный вердикт.`,
+        description: tm.slug === "ceo"
+          ? `Генеральный директор. Ваш вопрос обсудят все ${team.length} агентов компании, после чего ${tm.name} вынесет финальный вердикт.`
+          : `${tm.title}. Ваш вопрос обсудит команда из ${team.length} агентов, после чего ${tm.name} вынесет финальный вердикт.`,
         team: team.map(t => ({ slug: t.slug, name: t.name, role: t.role, title: t.title, color: t.c, ab: t.ab })),
       });
       return;
@@ -245,18 +250,20 @@ export default function ChatPage() {
     return acc;
   }, [agentId]);
 
-  // «совещание»: 4 сотрудника высказываются по очереди, директор выносит вердикт
+  // «совещание»: агенты высказываются по очереди, руководитель выносит вердикт.
+  // Для больших совещаний (CEO со всеми 20) — короткие реплики и сжатый контекст.
   const runBoard = useCallback(async (question: string) => {
     if (!agent?.team?.length) return;
+    const big = agent.team.length > 6;
     const opinions: { name: string; title: string; text: string }[] = [];
     for (const m of agent.team) {
-      const prev = opinions.map(o => `${o.name} (${o.title}): ${o.text.slice(0, 400)}`).join("\n\n");
-      const persona = `Ты — ${m.name}, ${m.title} в Apex AI, в команде ${agent.name} (${agent.role}). Руководитель собрал команду обсудить вопрос основателя.${prev ? `\n\nКоллеги уже высказались:\n${prev}\n\nДополни новым углом или аргументированно поспорь.` : "\nТы говоришь первым."}\nВыскажи профессиональное мнение из своей зоны: 2–4 предложения, конкретика и цифры где уместно, по-русски, обычный текст без markdown.`;
+      const prev = opinions.slice(-5).map(o => `${o.name} (${o.title}): ${o.text.slice(0, big ? 200 : 400)}`).join("\n\n");
+      const persona = `Ты — ${m.name}, ${m.title} в Apex AI, в команде ${agent.name} (${agent.role}). Руководитель собрал ${big ? "общее совещание всей компании" : "команду"} обсудить вопрос основателя.${prev ? `\n\nПоследние реплики коллег:\n${prev}\n\nДополни новым углом или аргументированно поспорь, не повторяйся.` : "\nТы говоришь первым."}\nВыскажи мнение строго из своей зоны: ${big ? "1–2 предложения, только самое важное" : "2–4 предложения, конкретика и цифры где уместно"}, по-русски, обычный текст без markdown.`;
       const text = await streamSpeaker(question, persona, { slug: m.slug, name: m.name, role: m.title, color: m.color, ab: m.ab });
       opinions.push({ name: m.name, title: m.title, text });
-      await new Promise(r => setTimeout(r, 250));
+      await new Promise(r => setTimeout(r, big ? 120 : 250));
     }
-    const verdictPersona = `Ты — ${agent.name}, ${agent.role} в Apex AI. Твоя команда обсудила вопрос основателя:\n\n${opinions.map(o => `${o.name} (${o.title}): ${o.text.slice(0, 400)}`).join("\n\n")}\n\nКак руководитель вынеси ФИНАЛЬНЫЙ ВЕРДИКТ: короткое решение (1–2 предложения), затем 3 конкретных шага (1., 2., 3.). Учти и примири мнения команды. По-русски, без markdown-звёздочек.`;
+    const verdictPersona = `Ты — ${agent.name}, ${agent.role} в Apex AI. ${big ? "Вся компания" : "Твоя команда"} обсудила вопрос основателя:\n\n${opinions.map(o => `${o.name} (${o.title}): ${o.text.slice(0, big ? 140 : 400)}`).join("\n\n")}\n\nКак руководитель вынеси ФИНАЛЬНЫЙ ВЕРДИКТ: короткое решение (1–2 предложения), затем 3 конкретных шага (1., 2., 3.). Учти и примири мнения команды. По-русски, без markdown-звёздочек.`;
     await streamSpeaker(question, verdictPersona, { slug: agent.id, name: agent.name, role: "Финальный вердикт", color: agentColor, ab: agent.ab ?? "AI", verdict: true });
   }, [agent, agentColor, streamSpeaker]);
 

@@ -1,8 +1,9 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
-import { CornerDownLeft, X, Crown, Trophy, TrendingUp, Flame, MessageSquare, Users } from "lucide-react";
+import { CornerDownLeft, X, Crown, Trophy, TrendingUp, Flame, MessageSquare, MessagesSquare, Users } from "lucide-react";
 import { streamChat } from "@/lib/stream-chat";
 import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/team";
 
@@ -94,9 +95,15 @@ const TOTALS = (() => {
 
 // ─── Страница ─────────────────────────────────────────────────────────────────
 export default function BoardPage() {
+  const router = useRouter();
   const [ask, setAsk] = useState<AgentFull | null>(null);
   const [tick, setTick] = useState(0);
   const reduce = useReducedMotion();
+
+  // совещание: директор со своими агентами, CEO — со всеми 20
+  const goMeeting = useCallback((slug: string) => {
+    router.push(`/dashboard/chat/local-${Date.now()}?agent=${slug}`);
+  }, [router]);
 
   // ротация «чем занят сейчас»
   useEffect(() => {
@@ -129,7 +136,7 @@ export default function BoardPage() {
 
         {/* ── ГЛАВНЫЙ ── */}
         <SectionLabel icon={<Crown size={12} />} text="ГЛАВНЫЙ · РУКОВОДИТ ВСЕМ СОВЕТОМ" />
-        <CeoCard a={ceo} tick={tick} onAsk={() => setAsk(ceo)} reduce={!!reduce} />
+        <CeoCard a={ceo} tick={tick} onAsk={() => setAsk(ceo)} onMeet={() => goMeeting("ceo")} reduce={!!reduce} />
 
         {/* ── ОТДЕЛЫ ── */}
         {dirs.map((d, di) => {
@@ -143,7 +150,7 @@ export default function BoardPage() {
                 color={director.c}
               />
               <div className="eb-dept-grid">
-                <DirectorCard a={director} teamCount={team.length} tick={tick} delay={di * 0.05} onAsk={() => setAsk(director)} reduce={!!reduce} />
+                <DirectorCard a={director} teamCount={team.length} tick={tick} delay={di * 0.05} onAsk={() => setAsk(director)} onMeet={() => goMeeting(director.slug)} reduce={!!reduce} />
                 {team.map((a, i) => (
                   <AgentCard key={a.slug} a={a} lead={director} tick={tick} delay={di * 0.05 + (i + 1) * 0.06} onAsk={() => setAsk(a)} reduce={!!reduce} />
                 ))}
@@ -211,10 +218,11 @@ function Activity({ slug, tick, working, color }: { slug: string; tick: number; 
 }
 
 // ─── Карточка главного ────────────────────────────────────────────────────────
-function CeoCard({ a, tick, onAsk, reduce }: { a: AgentFull; tick: number; onAsk: () => void; reduce: boolean }) {
+function CeoCard({ a, tick, onAsk, onMeet, reduce }: { a: AgentFull; tick: number; onAsk: () => void; onMeet: () => void; reduce: boolean }) {
   const mt = metrics(a.slug);
   return (
-    <motion.button className="eb-ceo" onClick={onAsk}
+    <motion.div className="eb-ceo" onClick={onAsk} role="button" tabIndex={0}
+      onKeyDown={e => { if (e.key === "Enter") onAsk(); }}
       initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: EASE }}
       whileHover={{ y: -4 }}>
       <div className="eb-ceo-glow" aria-hidden />
@@ -234,6 +242,9 @@ function CeoCard({ a, tick, onAsk, reduce }: { a: AgentFull; tick: number; onAsk
           <span className="eb-ach-chip"><TrendingUp size={10} /> {mt.success}% успешных</span>
           <span className="eb-ach-chip"><Flame size={10} /> серия {mt.streak} дней</span>
         </div>
+        <button className="eb-meet eb-meet-main" onClick={e => { e.stopPropagation(); onMeet(); }}>
+          <MessagesSquare size={12} /> Совещание со всеми {TEAM.length - 1} агентами
+        </button>
       </div>
       <div className="eb-ceo-right">
         <div className="eb-conf" style={{ color: a.c }}>{a.confidence}%</div>
@@ -241,15 +252,16 @@ function CeoCard({ a, tick, onAsk, reduce }: { a: AgentFull; tick: number; onAsk
         <Sparkline color={a.c} data={spark(a.slug)} />
         <span className="eb-ask-cta" style={{ color: a.c }}>Спросить <MessageSquare size={11} /></span>
       </div>
-    </motion.button>
+    </motion.div>
   );
 }
 
 // ─── Карточка директора ───────────────────────────────────────────────────────
-function DirectorCard({ a, teamCount, tick, delay, onAsk, reduce }: { a: AgentFull; teamCount: number; tick: number; delay: number; onAsk: () => void; reduce: boolean }) {
+function DirectorCard({ a, teamCount, tick, delay, onAsk, onMeet, reduce }: { a: AgentFull; teamCount: number; tick: number; delay: number; onAsk: () => void; onMeet: () => void; reduce: boolean }) {
   const mt = metrics(a.slug);
   return (
-    <motion.button className="eb-card eb-card-dir" onClick={onAsk}
+    <motion.div className="eb-card eb-card-dir" onClick={onAsk} role="button" tabIndex={0}
+      onKeyDown={e => { if (e.key === "Enter") onAsk(); }}
       initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.45, ease: EASE, delay }}
       whileHover={{ y: -5 }}
@@ -287,7 +299,12 @@ function DirectorCard({ a, teamCount, tick, delay, onAsk, reduce }: { a: AgentFu
         <Sparkline color={a.c} data={spark(a.slug)} />
         <span className="eb-ask-cta" style={{ color: a.c }}>Спросить <MessageSquare size={10} /></span>
       </div>
-    </motion.button>
+
+      <button className="eb-meet" onClick={e => { e.stopPropagation(); onMeet(); }}
+        style={{ color: a.c, borderColor: `${a.c}55`, background: `${a.c}14` }}>
+        <MessagesSquare size={12} /> Совещание с командой · {teamCount} агента
+      </button>
+    </motion.div>
   );
 }
 
@@ -490,6 +507,15 @@ function EbStyles() {
       .eb-track i { display: block; height: 100%; border-radius: 3px; }
 
       .eb-card-foot { display: flex; align-items: flex-end; justify-content: space-between; margin-top: 14px; }
+
+      /* кнопка совещания */
+      .eb-meet { display: inline-flex; align-items: center; justify-content: center; gap: 7px; margin-top: 14px; height: 38px; padding: 0 14px;
+        border-radius: 11px; border: 1px solid; cursor: pointer; font-size: 12px; font-weight: 700; width: 100%;
+        transition: transform .15s, filter .15s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.06); }
+      .eb-meet:hover { transform: translateY(-1px); filter: brightness(1.15); }
+      .eb-meet-main { width: auto; margin-top: 14px; color: #fff; border: none;
+        background: linear-gradient(135deg, #6366f1, #4f46e5);
+        box-shadow: 0 4px 16px rgba(99,102,241,0.32), inset 0 1px 0 rgba(255,255,255,0.18); }
 
       .eb-dots { display: inline-flex; gap: 4px; } .eb-dots i { width: 5px; height: 5px; border-radius: 50%; background: #fff; animation: eb-blink 1s infinite; }
       .eb-dots i:nth-child(2){animation-delay:.15s} .eb-dots i:nth-child(3){animation-delay:.3s}
