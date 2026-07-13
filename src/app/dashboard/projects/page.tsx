@@ -236,10 +236,30 @@ function scoreColor(s: number) {
   return "#f43f5e";
 }
 
+// живые действия совета — крутятся в карточке
+const EXEC_LIVE: { who: string; act: string; ago: string }[] = [
+  { who: "CFO", act: "пересчитал юнит-экономику",   ago: "3м назад" },
+  { who: "CMO", act: "обновила план каналов",        ago: "7м назад" },
+  { who: "CEO", act: "пересмотрела приоритеты",      ago: "12м назад" },
+  { who: "CTO", act: "оценил стоимость MVP",         ago: "18м назад" },
+  { who: "COO", act: "переработала процесс",         ago: "24м назад" },
+];
+
 function ProjectCard({ project, compact }: { project: Project; compact?: boolean }) {
   const [hovered, setHovered] = useState(false);
+  const [liveIdx, setLiveIdx] = useState(0);
   const stage = STAGE_COLORS[project.stage] ?? STAGE_COLORS.Growth;
   const sc = scoreColor(project.score);
+  const analyzing = project.status !== "complete";
+
+  // ротация последнего действия совета (у каждой карточки свой ритм)
+  useEffect(() => {
+    const hash = project.id.split("").reduce((n, c) => n + c.charCodeAt(0), 0);
+    const t = setInterval(() => setLiveIdx(i => (i + 1) % EXEC_LIVE.length), 4200 + (hash % 5) * 400);
+    return () => clearInterval(t);
+  }, [project.id]);
+
+  const live = EXEC_LIVE[(liveIdx + project.id.length) % EXEC_LIVE.length];
 
   if (compact) {
     return (
@@ -260,8 +280,14 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
             gap: 14,
           }}
         >
-          <div style={{ width: 38, height: 38, borderRadius: 10, background: `rgba(${project.rgb},0.12)`, border: `1px solid rgba(${project.rgb},0.22)`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Brain size={16} style={{ color: project.color }} />
+          <div style={{ position: "relative", flexShrink: 0 }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg, rgba(${project.rgb},0.22), rgba(${project.rgb},0.06))`, border: `1px solid rgba(${project.rgb},0.28)`, display: "flex", alignItems: "center", justifyContent: "center", color: project.color, fontFamily: "var(--font-geist-mono), monospace", fontSize: 11.5, fontWeight: 800, letterSpacing: "-0.02em", boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08)` }}>
+              {project.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase().slice(0, 2)}
+            </div>
+            <span style={{ position: "absolute", right: -1, bottom: -1, width: 8, height: 8, borderRadius: "50%",
+              background: analyzing ? "#f59e0b" : "#10b981", border: "2px solid #0a0b10",
+              boxShadow: `0 0 5px ${analyzing ? "#f59e0b" : "#10b981"}`,
+              animation: "pc-pulse 1.8s ease-in-out infinite" }} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{project.name}</div>
@@ -296,20 +322,39 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
     >
       {/* Top glow accent */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg, transparent, rgba(${project.rgb},0.6), transparent)`, opacity: hovered ? 1 : 0, transition: "opacity 0.3s" }} />
+      {/* Сканирующая полоса — только когда идёт анализ */}
+      {analyzing && (
+        <motion.div aria-hidden
+          initial={{ x: "-40%" }} animate={{ x: "140%" }} transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
+          style={{ position: "absolute", top: 0, bottom: 0, width: "35%", pointerEvents: "none",
+            background: `linear-gradient(90deg, transparent, rgba(${project.rgb},0.06) 45%, rgba(${project.rgb},0.11) 50%, rgba(${project.rgb},0.06) 55%, transparent)` }} />
+      )}
 
       {/* Header */}
-      <div style={{ padding: "20px 20px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <div style={{ padding: "20px 20px 14px", borderBottom: "1px solid rgba(255,255,255,0.05)", position: "relative" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 12 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 44, height: 44, borderRadius: 13, background: `linear-gradient(135deg, rgba(${project.rgb},0.2), rgba(${project.rgb},0.06))`, border: `1px solid rgba(${project.rgb},0.25)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px rgba(${project.rgb},0.2)` }}>
-              <Brain size={18} style={{ color: project.color }} />
+          <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
+            {/* Аватар проекта — уникальные инициалы вместо мозга у всех */}
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <div style={{ width: 44, height: 44, borderRadius: 13, background: `linear-gradient(135deg, rgba(${project.rgb},0.28), rgba(${project.rgb},0.08))`, border: `1px solid rgba(${project.rgb},0.32)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 18px rgba(${project.rgb},0.22), inset 0 1px 0 rgba(255,255,255,0.12)`, color: project.color, fontFamily: "var(--font-geist-mono), monospace", fontSize: 14, fontWeight: 800, letterSpacing: "-0.02em" }}>
+                {project.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase().slice(0, 2)}
+              </div>
+              {/* живой статус-точка */}
+              <span style={{ position: "absolute", right: -2, bottom: -2, width: 10, height: 10, borderRadius: "50%",
+                background: analyzing ? "#f59e0b" : "#10b981", border: "2px solid #0a0b10",
+                boxShadow: `0 0 8px ${analyzing ? "#f59e0b" : "#10b981"}`,
+                animation: "pc-pulse 1.8s ease-in-out infinite" }} />
             </div>
-            <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.9)", marginBottom: 3 }}>{project.name}</div>
-              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontSize: 14.5, fontWeight: 700, color: "rgba(255,255,255,0.94)", marginBottom: 4, letterSpacing: "-0.01em", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{project.name}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
                 <span style={{ padding: "2px 7px", borderRadius: 6, fontSize: 9, fontWeight: 700, background: stage.bg, color: stage.text, border: `1px solid ${stage.border}` }}>{project.stage}</span>
-                <span style={{ padding: "2px 7px", borderRadius: 6, fontSize: 9, fontWeight: 600, background: project.status === "complete" ? "rgba(16,185,129,0.08)" : "rgba(245,158,11,0.08)", color: project.status === "complete" ? "#10b981" : "#f59e0b", border: `1px solid ${project.status === "complete" ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}` }}>
-                  {project.status === "complete" ? "● Завершён" : "● Анализ"}
+                <span style={{ padding: "2px 7px", borderRadius: 6, fontSize: 9, fontWeight: 600, background: analyzing ? "rgba(245,158,11,0.08)" : "rgba(16,185,129,0.08)", color: analyzing ? "#f59e0b" : "#10b981", border: `1px solid ${analyzing ? "rgba(245,158,11,0.22)" : "rgba(16,185,129,0.22)"}`, display: "inline-flex", alignItems: "center", gap: 4 }}>
+                  <span style={{ width: 4, height: 4, borderRadius: "50%", background: analyzing ? "#f59e0b" : "#10b981", boxShadow: `0 0 5px ${analyzing ? "#f59e0b" : "#10b981"}` }} />
+                  {analyzing ? "Анализ" : "Завершён"}
+                </span>
+                <span style={{ fontSize: 9.5, fontFamily: "var(--font-geist-mono), monospace", color: "rgba(255,255,255,0.32)" }}>
+                  {project.date}
                 </span>
               </div>
             </div>
@@ -319,13 +364,32 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
           <div style={{ position: "relative", flexShrink: 0 }}>
             <ScoreRing score={project.score} color={sc} size={52} />
             <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ fontSize: 15, fontWeight: 800, color: sc, lineHeight: 1 }}>{project.score}</div>
-              <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>AI</div>
+              <div style={{ fontSize: 15, fontWeight: 800, color: sc, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>{project.score}</div>
+              <div style={{ fontSize: 7, color: "rgba(255,255,255,0.3)", marginTop: 1, letterSpacing: "0.1em" }}>AI</div>
             </div>
           </div>
         </div>
 
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.6, marginBottom: 0 }}>{project.description}</p>
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.42)", lineHeight: 1.6, margin: "0 0 12px" }}>{project.description}</p>
+
+        {/* Живая строка: последнее действие совета */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 10,
+          background: `linear-gradient(90deg, rgba(${project.rgb},0.06), rgba(${project.rgb},0.015))`,
+          border: `1px solid rgba(${project.rgb},0.14)` }}>
+          <span style={{ display: "inline-flex", gap: 2, flexShrink: 0 }}>
+            {[0, 1, 2].map(d => (
+              <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: project.color, animation: `pc-think 1.2s ease-in-out ${d * 0.18}s infinite` }} />
+            ))}
+          </span>
+          <AnimatePresence mode="wait">
+            <motion.span key={live.who + live.act}
+              initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.28 }}
+              style={{ flex: 1, minWidth: 0, fontSize: 11, color: "rgba(255,255,255,0.62)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              <b style={{ color: project.color, fontWeight: 800 }}>{live.who}</b> {live.act}
+            </motion.span>
+          </AnimatePresence>
+          <span style={{ fontSize: 9.5, fontFamily: "var(--font-geist-mono), monospace", color: "rgba(255,255,255,0.28)", flexShrink: 0 }}>{live.ago}</span>
+        </div>
       </div>
 
       {/* Metrics */}
@@ -355,16 +419,27 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
         </div>
       </div>
 
-      {/* Sparkline + confidence */}
-      <div style={{ padding: "12px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "center", gap: 12 }}>
-        <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.06em" }}>AI Score Dynamics</div>
-          <Sparkline data={project.sparkline} color={project.color} width={120} height={32} />
+      {/* Sparkline + confidence — единая AI-панель */}
+      <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "stretch", gap: 14 }}>
+        <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-geist-mono), monospace" }}>AI Score · динамика</span>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9.5, fontWeight: 700, color: project.color, fontVariantNumeric: "tabular-nums" }}>
+              <TrendingUp size={9} strokeWidth={2.5} />
+              +{Math.max(0, project.sparkline[project.sparkline.length - 1] - project.sparkline[0])}
+            </span>
+          </div>
+          <div style={{ padding: "2px 0" }}>
+            <Sparkline data={project.sparkline} color={project.color} width={160} height={36} />
+          </div>
         </div>
-        <div style={{ flexShrink: 0, textAlign: "right" }}>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", marginBottom: 4, textTransform: "uppercase", letterSpacing: "0.06em" }}>Confidence</div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: project.color, lineHeight: 1 }}>{project.confidence}%</div>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>AI уверенность</div>
+        <div style={{ width: 1, background: "rgba(255,255,255,0.05)", flexShrink: 0 }} />
+        <div style={{ flexShrink: 0, textAlign: "right", display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 82 }}>
+          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-geist-mono), monospace" }}>Confidence</span>
+          <div>
+            <div style={{ fontSize: 22, fontWeight: 800, color: project.color, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{project.confidence}%</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", marginTop: 3 }}>AI уверенность</div>
+          </div>
         </div>
       </div>
 
@@ -395,6 +470,11 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
           <Download size={10} /> PDF
         </button>
       </div>
+
+      <style>{`
+        @keyframes pc-pulse { 0%,100%{transform:scale(1);opacity:1} 50%{transform:scale(0.75);opacity:0.55} }
+        @keyframes pc-think { 0%,100%{opacity:0.25;transform:translateY(0)} 50%{opacity:1;transform:translateY(-2px)} }
+      `}</style>
     </motion.div>
   );
 }
@@ -437,6 +517,50 @@ function InsightCard({ insight, delay }: { insight: typeof PORTFOLIO_INSIGHTS[0]
 }
 
 // ─── Feed event ───────────────────────────────────────────────────────────────
+
+// Feed hook: новые события «прибывают» каждые ~8 секунд
+function useLiveFeed() {
+  const [items, setItems] = useState(FEED_EVENTS.map((e, i) => ({ ...e, key: `f-${i}` })));
+  useEffect(() => {
+    let n = 0;
+    const t = setInterval(() => {
+      const src = FEED_EVENTS[n % FEED_EVENTS.length]; n++;
+      setItems(prev => [{ ...src, time: "сейчас", key: `f-live-${Date.now()}` },
+        ...prev.slice(0, 5).map(p => p.time === "сейчас" ? { ...p, time: "1м" } : p)]);
+    }, 8000);
+    return () => clearInterval(t);
+  }, []);
+  return items;
+}
+
+function LiveFeedBlock() {
+  const items = useLiveFeed();
+  return (
+    <div style={{ padding: "18px", borderRadius: 18, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)", position: "relative", overflow: "hidden" }}>
+      {/* лёгкое свечение сверху */}
+      <div aria-hidden style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.4), transparent)" }} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Live Executive Feed</div>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 9, fontWeight: 700, color: "#10b981", fontFamily: "var(--font-geist-mono), monospace" }}>
+          <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px rgba(16,185,129,0.8)", animation: "pf-pulse 1.8s ease-in-out infinite" }} />
+          LIVE
+        </span>
+      </div>
+      <AnimatePresence initial={false}>
+        {items.map((ev, i) => (
+          <motion.div key={ev.key} layout
+            initial={{ opacity: 0, x: 14, height: 0 }}
+            animate={{ opacity: 1, x: 0, height: "auto" }}
+            exit={{ opacity: 0, x: -14, height: 0 }}
+            transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+            style={{ overflow: "hidden" }}>
+            <FeedEvent ev={ev} idx={i} />
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
 
 function FeedEvent({ ev, idx }: { ev: typeof FEED_EVENTS[0]; idx: number }) {
   const Icon = ev.icon;
@@ -762,15 +886,7 @@ export default function ProjectsPage() {
             </div>
 
             {/* Live Executive Feed */}
-            <div style={{ padding: "18px", borderRadius: 18, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.07)" }}>
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-                <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Live Executive Feed</div>
-                <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px rgba(16,185,129,0.8)", animation: "pf-pulse 2s ease-in-out infinite", display: "inline-block" }} />
-              </div>
-              {FEED_EVENTS.map((ev, i) => (
-                <FeedEvent key={i} ev={ev} idx={i} />
-              ))}
-            </div>
+            <LiveFeedBlock />
 
           </div>
         </div>
