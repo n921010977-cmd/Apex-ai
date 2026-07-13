@@ -665,7 +665,7 @@ export default function NewStrategyPage() {
     const existing = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
     localStorage.setItem("apex-user-projects", JSON.stringify([newProject, ...existing]));
     fetch("/api/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: form.name, description: form.description, industry: form.industry, stage: form.stage, goals: form.goals, targetRevenue: form.targetRevenue, timeframe: form.timeframe, score, aiResults: newProject.aiResults, metadata: { localId: id } }) }).catch(() => {});
-    router.push(`/dashboard/projects/${id}`);
+    router.push(`/dashboard/strategy/${id}`);
   };
 
   if (analyzing) return <AnalyzingScreen doneAgents={doneAgents} agentResults={agentResults} />;
