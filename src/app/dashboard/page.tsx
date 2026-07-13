@@ -58,6 +58,17 @@ const ACTIVITY = [
   { icon: Brain,       color: ACCENT,  label: "Симуляция рынка завершена",          sub: "Точность 91% · 10K сценариев",  time: "5ч назад" },
 ];
 
+// пул живых событий — лента пополняется сама
+const FEED_POOL = [
+  { icon: CheckCircle, color: SUCCESS, label: "CEO утвердила стратегию цен",      sub: "Совет · единогласно" },
+  { icon: Globe,       color: ACCENT,  label: "CMO нашла виральный тренд",        sub: "TikTok · +214% упоминаний" },
+  { icon: DollarSign,  color: WARNING, label: "CFO обнаружил риск cash flow",     sub: "Смягчён · runway 14 мес" },
+  { icon: Brain,       color: ACCENT,  label: "Research AI: 321 конкурент",       sub: "Карта рынка обновлена" },
+  { icon: FileText,    color: SUCCESS, label: "Investor Report готов",            sub: "PDF · 52 страницы" },
+  { icon: Globe,       color: ACCENT,  label: "Симуляция рынка завершена",        sub: "Точность 93% · 12K сценариев" },
+  { icon: CheckCircle, color: SUCCESS, label: "CTO развернул оптимизацию",        sub: "Latency −38%" },
+];
+
 // Four UNIQUE quick actions — each a distinct route (no duplicates)
 const QUICK_ACTIONS = [
   { label: "Новый анализ",  href: "/dashboard/new",        icon: Zap,      desc: "Запустить AI-команду" },
@@ -92,6 +103,16 @@ function NeuralViz() {
 
     let raf = 0;
     let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // сеть реагирует на курсор — узлы мягко тянутся к нему
+    const mouse = { x: -1000, y: -1000 };
+    const onMove = (e: MouseEvent) => {
+      const rect = canvas!.getBoundingClientRect();
+      mouse.x = ((e.clientX - rect.left) / rect.width) * BW;
+      mouse.y = ((e.clientY - rect.top) / rect.height) * BH;
+    };
+    const onLeave = () => { mouse.x = -1000; mouse.y = -1000; };
+    canvas.addEventListener("mousemove", onMove);
+    canvas.addEventListener("mouseleave", onLeave);
 
     function resize() {
       const rect = canvas!.getBoundingClientRect();
@@ -120,34 +141,49 @@ function NeuralViz() {
       ctx!.setTransform(dpr * sx, 0, 0, dpr * sy, 0, 0);
       ctx!.clearRect(0, 0, BW, BH);
 
+      // позиции с дрейфом + притяжением к курсору
+      const pos = nodes.map((n, i) => {
+        const dxm = mouse.x - n.x, dym = mouse.y - n.y;
+        const d = Math.hypot(dxm, dym);
+        const pull = d < 140 ? (1 - d / 140) * 14 : 0;
+        const drift = reduced ? 0 : 1;
+        return {
+          x: n.x + (d > 0 ? (dxm / (d || 1)) * pull : 0) + Math.sin(t / 1700 + i * 1.7) * 4 * drift,
+          y: n.y + (d > 0 ? (dym / (d || 1)) * pull : 0) + Math.cos(t / 2100 + i * 2.3) * 3.5 * drift,
+        };
+      });
+
       // edges
       ctx!.globalCompositeOperation = "source-over";
-      ctx!.strokeStyle = "rgba(99,102,241,0.22)";
       ctx!.lineWidth = 0.8;
       for (const [a, b] of edges) {
+        // связи ближе к курсору светятся ярче
+        const mx = (pos[a].x + pos[b].x) / 2, my = (pos[a].y + pos[b].y) / 2;
+        const dm = Math.hypot(mouse.x - mx, mouse.y - my);
+        ctx!.strokeStyle = dm < 120 ? `rgba(129,140,248,${0.22 + (1 - dm / 120) * 0.4})` : "rgba(99,102,241,0.22)";
         ctx!.beginPath();
-        ctx!.moveTo(nodes[a].x, nodes[a].y);
-        ctx!.lineTo(nodes[b].x, nodes[b].y);
+        ctx!.moveTo(pos[a].x, pos[a].y);
+        ctx!.lineTo(pos[b].x, pos[b].y);
         ctx!.stroke();
       }
 
       // moving particles
       ctx!.globalCompositeOperation = "lighter";
       if (!reduced) {
-        edges.slice(0, 7).forEach(([a, b], i) => {
-          const dur = 2200 + i * 400;
+        edges.forEach(([a, b], i) => {
+          const dur = 2200 + i * 320;
           const p = ((t + i * 350) % dur) / dur;
-          const px = nodes[a].x + (nodes[b].x - nodes[a].x) * p;
-          const py = nodes[a].y + (nodes[b].y - nodes[a].y) * p;
+          const px = pos[a].x + (pos[b].x - pos[a].x) * p;
+          const py = pos[a].y + (pos[b].y - pos[a].y) * p;
           ctx!.drawImage(sprite, px - 6, py - 6, 12, 12);
         });
       }
 
       // nodes
-      for (const n of nodes) {
+      nodes.forEach((n, i) => {
         const pulse = reduced ? n.r : n.r + Math.sin(t / 600 + n.x) * n.r * 0.25;
-        ctx!.drawImage(sprite, n.x - pulse * 2.4, n.y - pulse * 2.4, pulse * 4.8, pulse * 4.8);
-      }
+        ctx!.drawImage(sprite, pos[i].x - pulse * 2.4, pos[i].y - pulse * 2.4, pulse * 4.8, pulse * 4.8);
+      });
 
       if (!reduced) raf = requestAnimationFrame(draw);
     }
@@ -155,10 +191,140 @@ function NeuralViz() {
     if (reduced) draw(0);
     else raf = requestAnimationFrame(draw);
 
-    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); canvas.removeEventListener("mousemove", onMove); canvas.removeEventListener("mouseleave", onLeave); };
   }, []);
 
-  return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block" }} />;
+  return <canvas ref={canvasRef} style={{ width: "100%", height: "100%", display: "block", cursor: "crosshair" }} />;
+}
+
+// ─── Живые события сети (поверх нейровизуализации) ────────────────────────────
+const NET_EVENTS = [
+  { who: "CEO",  text: "утвердила стратегию цен",       color: "#818cf8" },
+  { who: "CMO",  text: "нашла виральный тренд",         color: "#10b981" },
+  { who: "CFO",  text: "риск cash flow: низкий",        color: "#3b82f6" },
+  { who: "CTO",  text: "оптимизация развёрнута",        color: "#a78bfa" },
+  { who: "AI",   text: "проанализирован 321 конкурент", color: "#f59e0b" },
+  { who: "SIM",  text: "симуляция рынка завершена",     color: "#22d3ee" },
+  { who: "CFO",  text: "прогноз выручки ↑ 4%",          color: "#34d399" },
+];
+
+function NetworkFeed() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setIdx(i => (i + 1) % NET_EVENTS.length), 2800);
+    return () => clearInterval(t);
+  }, []);
+  const ev = NET_EVENTS[idx];
+  return (
+    <div style={{ position: "absolute", left: 12, bottom: 12, right: 12, pointerEvents: "none" }}>
+      <AnimatePresence mode="wait">
+        <motion.div key={idx}
+          initial={{ opacity: 0, y: 10, filter: "blur(4px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          exit={{ opacity: 0, y: -8, filter: "blur(4px)" }}
+          transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+          style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 11px", borderRadius: 10,
+            background: "rgba(8,10,18,0.85)", border: `1px solid ${ev.color}44`, backdropFilter: "blur(8px)" }}>
+          <span style={{ width: 5, height: 5, borderRadius: "50%", background: ev.color, boxShadow: `0 0 8px ${ev.color}` }} />
+          <span style={{ fontSize: 10, fontWeight: 800, color: ev.color, fontFamily: "var(--font-geist-mono), monospace" }}>{ev.who}</span>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.72)" }}>{ev.text}</span>
+        </motion.div>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Печатающийся вывод AI ────────────────────────────────────────────────────
+const CONCLUSIONS = [
+  "Рынок недооценивает продукт — окно для повышения цены открыто до конца квартала.",
+  "Спрос в сегменте B2B растёт на 340% — приоритет смещён на корпоративный канал.",
+  "Юнит-экономика выдерживает масштабирование: LTV/CAC 15x при payback 2.1 мес.",
+];
+
+function AiConclusion() {
+  const [ci, setCi] = useState(0);
+  const [typed, setTyped] = useState("");
+  useEffect(() => {
+    const target = CONCLUSIONS[ci];
+    let i = 0; let alive = true;
+    const tick = () => {
+      if (!alive) return;
+      i = Math.min(i + 2, target.length);
+      setTyped(target.slice(0, i));
+      if (i < target.length) setTimeout(tick, 24);
+      else setTimeout(() => { if (alive) setCi(c => (c + 1) % CONCLUSIONS.length); }, 5200);
+    };
+    setTyped(""); const t = setTimeout(tick, 400);
+    return () => { alive = false; clearTimeout(t); };
+  }, [ci]);
+  return (
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 9, marginBottom: 26, minHeight: 38, maxWidth: 480 }}>
+      <span style={{ flexShrink: 0, marginTop: 2, display: "inline-flex", alignItems: "center", justifyContent: "center", width: 20, height: 20, borderRadius: 7, background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)" }}>
+        <Brain size={11} style={{ color: "#818cf8" }} />
+      </span>
+      <p style={{ fontSize: 12.5, lineHeight: 1.55, color: "rgba(255,255,255,0.55)", margin: 0, fontStyle: "normal" }}>
+        <span style={{ color: "rgba(129,140,248,0.9)", fontWeight: 700 }}>Вывод AI: </span>
+        {typed}<span style={{ display: "inline-block", width: 6, height: 12, marginLeft: 2, borderRadius: 1, background: "#818cf8", verticalAlign: "text-bottom", animation: "hero-pulse 1s step-end infinite" }} />
+      </p>
+    </div>
+  );
+}
+
+// ─── Пульс компании: живые метрики ────────────────────────────────────────────
+const PULSE_BASE = [
+  { label: "Уверенность рынка", v: 87, suffix: "%", color: "#818cf8" },
+  { label: "Здоровье бизнеса",  v: 91, suffix: "%", color: "#10b981" },
+  { label: "Прогноз выручки",   v: 2.4, suffix: "M", prefix: "$", color: "#34d399", float: true },
+  { label: "Runway",            v: 14, suffix: " мес", color: "#3b82f6" },
+  { label: "Индекс роста",      v: 78, suffix: "", color: "#f59e0b" },
+  { label: "Точность AI",       v: 94, suffix: "%", color: "#a78bfa" },
+  { label: "Возможности",       v: 6, suffix: "", color: "#22d3ee" },
+  { label: "Уровень угроз",     v: 18, suffix: "%", color: "#f43f5e" },
+];
+
+function PulseStrip() {
+  const [vals, setVals] = useState(PULSE_BASE.map(p => p.v));
+  const [deltas, setDeltas] = useState(PULSE_BASE.map(() => 0));
+  useEffect(() => {
+    const t = setInterval(() => {
+      setVals(prev => prev.map((v, i) => {
+        const base = PULSE_BASE[i].v;
+        const jitter = PULSE_BASE[i].float ? (Math.random() - 0.5) * 0.1 : Math.round((Math.random() - 0.5) * 2);
+        const next = Math.max(0, +(base + jitter).toFixed(PULSE_BASE[i].float ? 1 : 0));
+        setDeltas(d => d.map((x, j) => j === i ? next - v : x));
+        return next;
+      }));
+    }, 3400);
+    return () => clearInterval(t);
+  }, []);
+  return (
+    <div className="page-section" style={{ maxWidth: 1280, margin: "0 auto", padding: "26px 32px 0" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(136px, 1fr))", gap: 10 }}>
+        {PULSE_BASE.map((p, i) => (
+          <motion.div key={p.label}
+            initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-30px" }}
+            transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: i * 0.05 }}
+            style={{ padding: "13px 14px", borderRadius: 15, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)",
+              boxShadow: "inset 0 1px 0 rgba(255,255,255,0.04)" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: p.color, boxShadow: `0 0 7px ${p.color}`, animation: "hero-pulse 2.4s ease-in-out infinite", animationDelay: `${i * 0.3}s` }} />
+              {deltas[i] !== 0 && (
+                <motion.span key={`${vals[i]}`} initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }}
+                  style={{ fontSize: 9, fontWeight: 700, color: deltas[i] > 0 ? "#34d399" : "#f87171", fontVariantNumeric: "tabular-nums" }}>
+                  {deltas[i] > 0 ? "▲" : "▼"}
+                </motion.span>
+              )}
+            </div>
+            <motion.div key={vals[i]} initial={{ opacity: 0.4 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
+              style={{ fontSize: 19, fontWeight: 800, color: p.color, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
+              {p.prefix ?? ""}{vals[i]}{p.suffix}
+            </motion.div>
+            <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 5, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{p.label}</div>
+          </motion.div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ─── Animated counter ─────────────────────────────────────────────────────────
@@ -314,9 +480,25 @@ const EXEC_SPARKLINES: Record<string, number[]> = {
   CTO: [68, 74, 80, 84, 87, 90, 92],
 };
 
+// чем директор занят прямо сейчас (ротация в карточке)
+const EXEC_TASKS: Record<string, string[]> = {
+  CEO: ["Синтезирует отчёты отделов", "Готовит приоритеты недели", "Пересматривает роадмап"],
+  CFO: ["Пересчитывает юнит-экономику", "Обновляет прогноз Q3", "Проверяет burn rate"],
+  CMO: ["Анализирует конверсию каналов", "Готовит запуск кампании", "Изучает когорты недели"],
+  COO: ["Оптимизирует онбординг", "Пересматривает SLA", "Чинит узкое место"],
+  CTO: ["Ревьюит архитектуру", "Оценивает стоимость фичи", "Планирует спринт"],
+};
+
 function ExecCard({ exec }: { exec: typeof EXECUTIVES[number] }) {
   const [hovered, setHovered] = useState(false);
+  const [taskIdx, setTaskIdx] = useState(0);
   const Icon = exec.icon;
+  const tasks = EXEC_TASKS[exec.role] ?? ["Работает над задачей"];
+
+  useEffect(() => {
+    const t = setInterval(() => setTaskIdx(i => (i + 1) % tasks.length), 4200 + exec.role.length * 300);
+    return () => clearInterval(t);
+  }, [tasks.length, exec.role]);
 
   return (
     <Link href={`/dashboard/chat?agent=${exec.slug}`}>
@@ -358,7 +540,23 @@ function ExecCard({ exec }: { exec: typeof EXECUTIVES[number] }) {
 
         {/* Name */}
         <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{exec.name}</div>
-        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginBottom: 12 }}>{exec.specialty}</div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", marginBottom: 8 }}>{exec.specialty}</div>
+
+        {/* живая задача: думает прямо сейчас */}
+        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 12, minHeight: 15 }}>
+          <span className="exec-think" style={{ display: "inline-flex", gap: 2.5, flexShrink: 0 }}>
+            {[0, 1, 2].map(d => (
+              <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: exec.color, animation: `xc-think 1.2s ease-in-out ${d * 0.18}s infinite` }} />
+            ))}
+          </span>
+          <AnimatePresence mode="wait">
+            <motion.span key={taskIdx}
+              initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} transition={{ duration: 0.3 }}
+              style={{ fontSize: 10.5, color: "rgba(255,255,255,0.5)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+              {tasks[taskIdx]}
+            </motion.span>
+          </AnimatePresence>
+        </div>
 
         {/* Confidence + sparkline */}
         <div className="flex items-end justify-between mb-2">
@@ -389,7 +587,10 @@ function ExecCard({ exec }: { exec: typeof EXECUTIVES[number] }) {
           </div>
         </div>
 
-        <style>{`@keyframes xc-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
+        <style>{`
+          @keyframes xc-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+          @keyframes xc-think { 0%,100%{opacity:0.25;transform:translateY(0)} 50%{opacity:1;transform:translateY(-2px)} }
+        `}</style>
       </motion.div>
     </Link>
   );
@@ -424,6 +625,17 @@ export default function DashboardPage() {
   const [isDemo,   setIsDemo]   = useState(false);
   const [loading,  setLoading]  = useState(true);
   const [tab,      setTab]      = useState<"projects" | "insights">("projects");
+
+  // живая лента: новые события AI прилетают каждые ~7 секунд
+  const [feed, setFeed] = useState(ACTIVITY.map((a, i) => ({ ...a, key: `init-${i}` })));
+  useEffect(() => {
+    let n = 0;
+    const t = setInterval(() => {
+      const item = FEED_POOL[n % FEED_POOL.length]; n++;
+      setFeed(prev => [{ ...item, time: "сейчас", key: `live-${Date.now()}` }, ...prev.slice(0, 5).map(p => p.time === "сейчас" ? { ...p, time: "1м назад" } : p)]);
+    }, 7000);
+    return () => clearInterval(t);
+  }, []);
 
   useEffect(() => {
     fetch("/api/projects")
@@ -501,6 +713,9 @@ export default function DashboardPage() {
               ))}
             </div>
 
+            {/* живой вывод AI */}
+            <AiConclusion />
+
             {/* CTA buttons */}
             <div className="flex flex-wrap gap-3">
               <Link href="/dashboard/new"
@@ -518,15 +733,26 @@ export default function DashboardPage() {
             </div>
           </motion.div>
 
-          {/* Right: neural viz */}
+          {/* Right: живая нейросеть совета */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            style={{ height: 240, position: "relative" }}
+            style={{ height: 280, position: "relative", borderRadius: 22, overflow: "hidden",
+              background: `linear-gradient(160deg, rgba(${ACCENT_RGB},0.06), rgba(${ACCENT_RGB},0.015) 60%)`,
+              border: `1px solid rgba(${ACCENT_RGB},0.16)`,
+              boxShadow: `0 20px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)` }}
           >
-            <div style={{ position: "absolute", inset: 0, borderRadius: 22, background: `rgba(${ACCENT_RGB},0.03)`, border: `1px solid rgba(${ACCENT_RGB},0.1)` }} />
+            {/* шапка панели */}
+            <div style={{ position: "absolute", top: 10, left: 12, right: 12, zIndex: 2, display: "flex", alignItems: "center", justifyContent: "space-between", pointerEvents: "none" }}>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: 7, fontSize: 9, fontWeight: 700, letterSpacing: "0.16em", color: "rgba(129,140,248,0.85)", fontFamily: "var(--font-geist-mono), monospace" }}>
+                <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#818cf8", boxShadow: "0 0 8px #818cf8", animation: "hero-pulse 1.8s ease-in-out infinite" }} />
+                НЕЙРОСЕТЬ СОВЕТА · LIVE
+              </span>
+              <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", fontFamily: "var(--font-geist-mono), monospace" }}>20 узлов · синхронизированы</span>
+            </div>
             <NeuralViz />
+            <NetworkFeed />
           </motion.div>
         </div>
 
@@ -544,6 +770,9 @@ export default function DashboardPage() {
           }
         `}</style>
       </div>
+
+      {/* ═══════════ ПУЛЬС КОМПАНИИ ═══════════ */}
+      <PulseStrip />
 
       {/* ═══════════ EXECUTIVE BOARD ═══════════ */}
       <div className="page-section" style={{ maxWidth: 1280, margin: "0 auto", padding: "36px 32px 0" }}>
@@ -715,14 +944,17 @@ export default function DashboardPage() {
             </div>
 
             <div className="space-y-0">
-              {ACTIVITY.map((ev, i) => (
+              <AnimatePresence initial={false}>
+              {feed.map((ev, i) => (
                 <motion.div
-                  key={i}
-                  initial={{ opacity: 0, x: 12 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 0.4, delay: i * 0.06 }}
+                  key={ev.key}
+                  layout
+                  initial={{ opacity: 0, x: 12, height: 0 }}
+                  animate={{ opacity: 1, x: 0, height: "auto" }}
+                  exit={{ opacity: 0, x: -12, height: 0 }}
+                  transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
                   className="flex items-start gap-3 py-2.5 group cursor-pointer"
-                  style={{ borderBottom: i < ACTIVITY.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}
+                  style={{ borderBottom: i < feed.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none", overflow: "hidden" }}
                 >
                   <div className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5" style={{ background: `${ev.color}12`, border: `1px solid ${ev.color}20`, color: ev.color }}>
                     <ev.icon size={12} />
@@ -734,6 +966,7 @@ export default function DashboardPage() {
                   <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", flexShrink: 0, marginTop: 1 }}>{ev.time}</span>
                 </motion.div>
               ))}
+              </AnimatePresence>
             </div>
           </div>
 
