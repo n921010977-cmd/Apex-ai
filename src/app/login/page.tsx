@@ -133,7 +133,13 @@ function LoginForm() {
           </form>
         </div>
 
-        <div className="term-mono" style={{ textAlign: "center", marginTop: 14, fontSize: 10, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>
+        <div style={{ textAlign: "center", marginTop: 10 }}>
+          <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Нет аккаунта? </span>
+          <Link href="/register" style={{ fontSize: 12, color: "#818cf8", fontWeight: 600, textDecoration: "none" }}>
+            Зарегистрироваться →
+          </Link>
+        </div>
+        <div className="term-mono" style={{ textAlign: "center", marginTop: 10, fontSize: 10, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>
           APEX // COMMAND CENTER · SECURE SESSION
         </div>
       </motion.div>
