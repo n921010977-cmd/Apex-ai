@@ -520,131 +520,113 @@ export default function DashboardPage() {
         }
       `}</style>
 
-      {/* ═══ HERO ═══ */}
+      {/* ═══ HERO + EXEC BOARD (одна секция, всё видно без скролла) ═══ */}
       <div className="relative overflow-hidden" style={{ background: "linear-gradient(180deg, #080B14 0%, #05060A 100%)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        {/* Mesh */}
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(ellipse 55% 90% at 75% 50%, rgba(${ACCENT_RGB},0.08) 0%, transparent 65%)`, pointerEvents: "none" }} />
+        <div style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(ellipse 55% 70% at 75% 30%, rgba(${ACCENT_RGB},0.08) 0%, transparent 65%)`, pointerEvents: "none" }} />
 
-        <div className="hero-grid" style={{ maxWidth: 1280, margin: "0 auto", padding: "44px 32px 40px", display: "grid", gap: 40, alignItems: "center" }}>
+        <div style={{ maxWidth: 1280, margin: "0 auto", padding: "28px 32px 32px" }}>
 
-          {/* Left */}
-          <motion.div initial={{ opacity: 0, y: 22 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}>
+          {/* Top row: headline left + neural viz right */}
+          <div className="hero-grid" style={{ display: "grid", gap: 32, alignItems: "center", marginBottom: 28 }}>
 
-            {/* Badges */}
-            <div className="flex flex-wrap items-center gap-2 mb-6">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15, duration: 0.45 }}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full"
-                style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}
-              >
-                <span className="size-1.5 rounded-full" style={{ background: SUCCESS, animation: "hero-pulse 1.8s ease-in-out infinite" }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: SUCCESS, letterSpacing: "0.11em" }}>AI СИСТЕМА АКТИВНА</span>
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.25, duration: 0.45 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
-                style={{ background: `rgba(${ACCENT_RGB},0.07)`, border: `1px solid rgba(${ACCENT_RGB},0.18)` }}
-              >
-                <Star size={10} style={{ color: ACCENT }} />
-                <span style={{ fontSize: 10, fontWeight: 600, color: `rgba(${ACCENT_RGB},0.9)` }}>Confidence 91%</span>
-              </motion.div>
-            </div>
-
-            {/* Headline */}
-            <motion.h1
-              initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6 }}
-              style={{ fontSize: "clamp(28px,3.5vw,46px)", fontWeight: 800, color: "#fff", lineHeight: 1.08, letterSpacing: "-0.03em", marginBottom: 12 }}
-            >
-              {greeting}, {firstName}<br />
-              <span style={{ background: `linear-gradient(130deg, ${ACCENT} 0%, #8b5cf6 60%, #a78bfa 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                Apex Executive Board
-              </span>
-            </motion.h1>
-            <motion.p
-              initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3, duration: 0.5 }}
-              style={{ fontSize: 15, color: "rgba(255,255,255,0.42)", lineHeight: 1.65, marginBottom: 32, maxWidth: 460 }}
-            >
-              Ваша AI-команда директоров анализирует рынок, стратегию и финансы в реальном времени.
-            </motion.p>
-
-            {/* KPI chips */}
-            <div className="flex flex-wrap gap-3 mb-10">
-              {[
-                { icon: Target,     label: "Возможностей", value: 4,  suffix: "",   color: SUCCESS },
-                { icon: BarChart2,  label: "AI Analyses",  value: 12, suffix: "+",  color: ACCENT  },
-                { icon: Shield,     label: "Рисков",       value: 2,  suffix: "",   color: DANGER  },
-                { icon: TrendingUp, label: "Рост MoM",     value: 34, suffix: "%",  color: WARNING },
-              ].map((k, i) => (
-                <KpiChip key={k.label} {...k} delay={0.35 + i * 0.07} />
-              ))}
-            </div>
-
-            {/* CTA */}
-            <motion.div
-              initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.65, duration: 0.5 }}
-              className="flex flex-wrap gap-3"
-            >
-              <CtaButton href="/dashboard/new"  primary icon={Zap}   label="Новая стратегия" />
-              <CtaButton href="/dashboard/chat"         icon={Brain}  label="Спросить совет" />
-            </motion.div>
-          </motion.div>
-
-          {/* Right: neural viz panel */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.88, y: 10 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.85, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
-            style={{
-              height: 290, position: "relative", borderRadius: 22, overflow: "hidden",
-              background: `linear-gradient(155deg, rgba(${ACCENT_RGB},0.07), rgba(${ACCENT_RGB},0.018) 60%)`,
-              border: `1px solid rgba(${ACCENT_RGB},0.18)`,
-              boxShadow: `0 24px 70px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`,
-            }}
-          >
-            <NeuralViz />
-
-            {/* Corner labels */}
-            <div style={{ position: "absolute", top: 12, left: 14, pointerEvents: "none" }}>
-              <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 10px", borderRadius: 8, background: "rgba(5,6,10,0.6)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                <span style={{ width: 5, height: 5, borderRadius: "50%", background: ACCENT, boxShadow: `0 0 8px ${ACCENT}`, animation: "hero-pulse 2s ease-in-out infinite" }} />
-                <span style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.55)", letterSpacing: "0.1em" }}>NEURAL NET</span>
+            {/* Left */}
+            <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}>
+              {/* Badges */}
+              <div className="flex flex-wrap items-center gap-2 mb-4">
+                <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15, duration: 0.4 }}
+                  className="flex items-center gap-2 px-3 py-1.5 rounded-full"
+                  style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                  <span className="size-1.5 rounded-full" style={{ background: SUCCESS, animation: "hero-pulse 1.8s ease-in-out infinite" }} />
+                  <span style={{ fontSize: 10, fontWeight: 700, color: SUCCESS, letterSpacing: "0.11em" }}>AI СИСТЕМА АКТИВНА</span>
+                </motion.div>
+                <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.22, duration: 0.4 }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+                  style={{ background: `rgba(${ACCENT_RGB},0.07)`, border: `1px solid rgba(${ACCENT_RGB},0.18)` }}>
+                  <Star size={10} style={{ color: ACCENT }} />
+                  <span style={{ fontSize: 10, fontWeight: 600, color: `rgba(${ACCENT_RGB},0.9)` }}>Confidence 91%</span>
+                </motion.div>
               </div>
-            </div>
-            <div style={{ position: "absolute", bottom: 12, right: 14, pointerEvents: "none" }}>
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", letterSpacing: "0.08em" }}>20 узлов · sync</span>
-            </div>
-          </motion.div>
-        </div>
-      </div>
 
-      {/* ═══ EXECUTIVE BOARD ═══ */}
-      <div className="page-section" style={{ maxWidth: 1280, margin: "0 auto", padding: "40px 32px 0" }}>
-        <motion.div
-          initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }}
-          transition={{ duration: 0.5 }}
-          className="flex items-center justify-between mb-5"
-        >
-          <div>
-            <h2 style={{ fontSize: 17, fontWeight: 700, color: "#fff", letterSpacing: "-0.02em" }}>Executive AI Board</h2>
-            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>5 AI-директоров · Нажмите, чтобы задать вопрос</p>
-          </div>
-          <Link href="/dashboard/executives" className="flex items-center gap-1 transition-colors hover:text-indigo-400"
-            style={{ fontSize: 12, color: `rgba(${ACCENT_RGB},0.75)` }}>
-            Открыть совет <ChevronRight size={13} />
-          </Link>
-        </motion.div>
+              {/* Headline */}
+              <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.55 }}
+                style={{ fontSize: "clamp(24px,3vw,40px)", fontWeight: 800, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: 8 }}>
+                {greeting}, {firstName}<br />
+                <span style={{ background: `linear-gradient(130deg, ${ACCENT} 0%, #8b5cf6 60%, #a78bfa 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                  Apex Executive Board
+                </span>
+              </motion.h1>
+              <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25, duration: 0.5 }}
+                style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, marginBottom: 20, maxWidth: 440 }}>
+                AI-команда директоров анализирует рынок, стратегию и финансы в реальном времени.
+              </motion.p>
 
-        <motion.div
-          className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3"
-          initial="hidden" whileInView="show" viewport={{ once: true, margin: "-40px" }}
-          variants={{ show: { transition: { staggerChildren: 0.08 } } }}
-        >
-          {EXECUTIVES.map(exec => (
-            <motion.div key={exec.role} variants={{ hidden: { opacity: 0, y: 28 }, show: { opacity: 1, y: 0, transition: { duration: 0.55, ease: [0.22,1,0.36,1] } } }}>
-              <ExecCard exec={exec} />
+              {/* KPI chips */}
+              <div className="flex flex-wrap gap-2.5 mb-6">
+                {[
+                  { icon: Target,     label: "Возможностей", value: 4,  suffix: "",  color: SUCCESS },
+                  { icon: BarChart2,  label: "AI Analyses",  value: 12, suffix: "+", color: ACCENT  },
+                  { icon: Shield,     label: "Рисков",       value: 2,  suffix: "",  color: DANGER  },
+                  { icon: TrendingUp, label: "Рост MoM",     value: 34, suffix: "%", color: WARNING },
+                ].map((k, i) => (
+                  <KpiChip key={k.label} {...k} delay={0.3 + i * 0.06} />
+                ))}
+              </div>
+
+              {/* CTA */}
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.45 }}
+                className="flex flex-wrap gap-3">
+                <CtaButton href="/dashboard/new"  primary icon={Zap}   label="Новая стратегия" />
+                <CtaButton href="/dashboard/chat"         icon={Brain}  label="Спросить совет" />
+              </motion.div>
             </motion.div>
-          ))}
-        </motion.div>
+
+            {/* Right: neural viz */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.8, delay: 0.18, ease: [0.22, 1, 0.36, 1] }}
+              style={{ height: 240, position: "relative", borderRadius: 20, overflow: "hidden",
+                background: `linear-gradient(155deg, rgba(${ACCENT_RGB},0.07), rgba(${ACCENT_RGB},0.018) 60%)`,
+                border: `1px solid rgba(${ACCENT_RGB},0.18)`,
+                boxShadow: `0 20px 60px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)` }}
+            >
+              <NeuralViz />
+              <div style={{ position: "absolute", top: 10, left: 12, pointerEvents: "none" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "3px 9px", borderRadius: 7, background: "rgba(5,6,10,0.65)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.07)" }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: ACCENT, boxShadow: `0 0 7px ${ACCENT}`, animation: "hero-pulse 2s ease-in-out infinite" }} />
+                  <span style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em" }}>NEURAL NET</span>
+                </div>
+              </div>
+              <div style={{ position: "absolute", bottom: 10, right: 12, pointerEvents: "none", fontSize: 9.5, color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}>20 узлов · sync</div>
+            </motion.div>
+          </div>
+
+          {/* ── EXEC BOARD — прямо под hero, без скролла ── */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-3">
+                <h2 style={{ fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>Executive AI Board</h2>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", paddingTop: 1 }}>5 AI-директоров · нажмите чтобы задать вопрос</span>
+              </div>
+              <Link href="/dashboard/executives" className="flex items-center gap-1"
+                style={{ fontSize: 11, color: `rgba(${ACCENT_RGB},0.7)`, textDecoration: "none" }}>
+                Все директора <ChevronRight size={12} />
+              </Link>
+            </div>
+
+            <motion.div
+              className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3"
+              initial="hidden" animate="show"
+              variants={{ show: { transition: { staggerChildren: 0.07 } } }}
+            >
+              {EXECUTIVES.map(exec => (
+                <motion.div key={exec.role} variants={{ hidden: { opacity: 0, y: 22 }, show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.22,1,0.36,1] } } }}>
+                  <ExecCard exec={exec} />
+                </motion.div>
+              ))}
+            </motion.div>
+          </div>
+
+        </div>
       </div>
 
       {/* ═══ MAIN CONTENT ═══ */}
