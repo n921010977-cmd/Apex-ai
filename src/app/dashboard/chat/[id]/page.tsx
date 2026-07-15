@@ -194,9 +194,62 @@ export default function ChatPage() {
   const [streamingContent, setStreamingContent] = useState("");
   const [toolCalls, setToolCalls] = useState<ToolCall[]>([]);
   const [activeTools, setActiveTools] = useState<string[]>([]);
+  const [isRecording, setIsRecording] = useState(false);
+  const [voiceSupported, setVoiceSupported] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const recognitionRef = useRef<{ stop(): void } | null>(null);
+
+  type AnySpeechRecognition = {
+    lang: string; continuous: boolean; interimResults: boolean;
+    onresult: ((e: { resultIndex: number; results: { isFinal: boolean; 0: { transcript: string } }[] }) => void) | null;
+    onend: (() => void) | null;
+    onerror: (() => void) | null;
+    start(): void; stop(): void;
+  };
+
+  useEffect(() => {
+    const w = window as unknown as Record<string, unknown>;
+    setVoiceSupported(!!(w.SpeechRecognition || w.webkitSpeechRecognition));
+  }, []);
+
+  const toggleVoice = useCallback(() => {
+    const w = window as unknown as Record<string, { new(): AnySpeechRecognition }>;
+    const SR = w.SpeechRecognition ?? w.webkitSpeechRecognition;
+    if (!SR) return;
+
+    if (isRecording) {
+      recognitionRef.current?.stop();
+      setIsRecording(false);
+      return;
+    }
+
+    const rec = new SR();
+    rec.lang = "ru-RU";
+    rec.continuous = false;
+    rec.interimResults = true;
+
+    const baseText = input;
+
+    rec.onresult = (e) => {
+      let final = "";
+      let interim = "";
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) final += e.results[i][0].transcript;
+        else interim += e.results[i][0].transcript;
+      }
+      const spoken = final || interim;
+      setInput(baseText + (baseText && spoken ? " " : "") + spoken);
+    };
+
+    rec.onend = () => { setIsRecording(false); inputRef.current?.focus(); };
+    rec.onerror = () => { setIsRecording(false); };
+
+    recognitionRef.current = rec as unknown as { stop(): void };
+    rec.start();
+    setIsRecording(true);
+  }, [isRecording, input]);
 
   // Load messages from DB (only for real conversations)
   useEffect(() => {
@@ -691,6 +744,27 @@ export default function ChatPage() {
                 className="size-8 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center text-red-400 hover:bg-red-500/20 transition-colors"
               >
                 <svg className="size-4" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+              </button>
+            )}
+            {voiceSupported && !sending && (
+              <button
+                onClick={toggleVoice}
+                title={isRecording ? "Остановить запись" : "Голосовой ввод"}
+                className="size-8 rounded-xl flex items-center justify-center transition-all relative"
+                style={isRecording
+                  ? { background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.35)", color: "#ef4444" }
+                  : { background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.35)" }
+                }
+              >
+                {isRecording && (
+                  <span className="absolute inset-0 rounded-xl animate-ping" style={{ background: "rgba(239,68,68,0.2)" }} />
+                )}
+                <svg className="size-4 relative z-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <rect x="9" y="2" width="6" height="11" rx="3"/>
+                  <path d="M5 10a7 7 0 0 0 14 0"/>
+                  <line x1="12" y1="19" x2="12" y2="22"/>
+                  <line x1="8" y1="22" x2="16" y2="22"/>
+                </svg>
               </button>
             )}
             <button
