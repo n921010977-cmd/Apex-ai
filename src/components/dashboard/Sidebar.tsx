@@ -11,24 +11,50 @@ import {
   X, PanelLeftClose, PanelLeft, ChevronRight,
 } from "lucide-react";
 
+// Pulse dot for live items
+function PulseDot() {
+  return (
+    <span className="relative flex" style={{ width: 6, height: 6, flexShrink: 0 }}>
+      <span className="absolute inline-flex h-full w-full rounded-full animate-ping" style={{ background: "#10b981", opacity: 0.6 }} />
+      <span className="relative inline-flex rounded-full" style={{ width: 6, height: 6, background: "#10b981" }} />
+    </span>
+  );
+}
+
+// Badge (numeric count)
+function Badge({ n }: { n: number }) {
+  if (n <= 0) return null;
+  return (
+    <span style={{
+      minWidth: 18, height: 18, borderRadius: 9,
+      background: "rgba(99,102,241,0.85)",
+      border: "1px solid rgba(99,102,241,0.4)",
+      fontSize: 9.5, fontWeight: 800, color: "#fff",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      padding: "0 4px", letterSpacing: "0.02em",
+      flexShrink: 0,
+    }}>{n > 99 ? "99+" : n}</span>
+  );
+}
+
 // ─── Sectioned navigation (matches Command Center reference) ──────────────────
-type NavItem = { key: string; label: string; href: string; exact?: boolean; icon: any; accent?: boolean };
+type NavItem = { key: string; label: string; href: string; exact?: boolean; icon: any; accent?: boolean; badge?: number; live?: boolean };
 type NavSection = { title: string; items: NavItem[] };
 
 const SECTIONS: NavSection[] = [
   {
     title: "Командный центр",
     items: [
-      { key: "1", label: "Dashboard",        href: "/dashboard",            exact: true, icon: LayoutDashboard },
+      { key: "1", label: "Dashboard",        href: "/dashboard",            exact: true, icon: LayoutDashboard, live: true },
       { key: "2", label: "Новая стратегия",  href: "/dashboard/new",        icon: Zap, accent: true },
-      { key: "3", label: "Мои проекты",      href: "/dashboard/projects",   icon: FolderOpen },
-      { key: "4", label: "Отчёты",           href: "/dashboard/reports",    icon: FileText },
+      { key: "3", label: "Мои проекты",      href: "/dashboard/projects",   icon: FolderOpen, badge: 2 },
+      { key: "4", label: "Отчёты",           href: "/dashboard/reports",    icon: FileText, badge: 1 },
     ],
   },
   {
     title: "AI система",
     items: [
-      { key: "5", label: "Исполн. совет",    href: "/dashboard/executives", icon: Users },
+      { key: "5", label: "Исполн. совет",    href: "/dashboard/executives", icon: Users, live: true },
     ],
   },
   {
@@ -203,11 +229,34 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-4 rounded-full"
                       style={{ background: "linear-gradient(180deg, #6366f1, #4f46e5)", boxShadow: "0 0 8px rgba(99,102,241,0.6)" }} />
                   )}
-                  <Icon size={15} strokeWidth={active ? 2.2 : 1.8}
-                    style={{ flexShrink: 0, color: active ? "#818cf8" : item.accent ? "#818cf8" : undefined, transition: "color 0.15s" }} />
+                  <div style={{ position: "relative", flexShrink: 0 }}>
+                    <Icon size={15} strokeWidth={active ? 2.2 : 1.8}
+                      style={{ color: active ? "#818cf8" : item.accent ? "#818cf8" : undefined, transition: "color 0.15s", display: "block" }} />
+                    {/* collapsed badge dot */}
+                    {collapsed && item.badge && item.badge > 0 && (
+                      <span style={{
+                        position: "absolute", top: -4, right: -4,
+                        width: 12, height: 12, borderRadius: "50%",
+                        background: "#6366f1", border: "2px solid #090A0F",
+                        fontSize: 7, fontWeight: 800, color: "#fff",
+                        display: "flex", alignItems: "center", justifyContent: "center",
+                      }}>{item.badge}</span>
+                    )}
+                    {/* collapsed live dot */}
+                    {collapsed && item.live && !active && (
+                      <span style={{
+                        position: "absolute", top: -3, right: -3,
+                        width: 6, height: 6, borderRadius: "50%",
+                        background: "#10b981", border: "2px solid #090A0F",
+                      }} />
+                    )}
+                  </div>
                   {!collapsed && <span className="truncate flex-1">{item.label}</span>}
-                  {/* accent dot for special items */}
-                  {!collapsed && item.accent && !active && (
+                  {/* badges */}
+                  {!collapsed && !active && item.badge && <Badge n={item.badge} />}
+                  {!collapsed && !active && item.live && !item.badge && <PulseDot />}
+                  {/* accent dot for special items (no badge) */}
+                  {!collapsed && item.accent && !active && !item.badge && !item.live && (
                     <span className="size-1.5 rounded-full flex-shrink-0" style={{ background: "#6366f1", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }} />
                   )}
                   {/* active chevron */}
