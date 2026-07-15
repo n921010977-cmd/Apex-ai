@@ -4,15 +4,14 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
 import {
-  CornerDownLeft, X, Crown, Zap, Search, SlidersHorizontal,
+  CornerDownLeft, X, Crown, Zap, Search, ChevronDown,
   MessageSquare, MessagesSquare, LayoutGrid, List,
-  TrendingUp, Trophy, Flame, ChevronDown,
 } from "lucide-react";
 import { streamChat } from "@/lib/stream-chat";
 import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/team";
 import { markVisit } from "@/components/dashboard/EngagementPanel";
 
-// ── Design tokens (identical to dashboard) ────────────────────────────────────
+// ── Design tokens ─────────────────────────────────────────────────────────────
 const EASE   = [0.22, 1, 0.36, 1] as const;
 const BG     = "#05060A";
 const SURF   = "rgba(255,255,255,0.025)";
@@ -78,21 +77,6 @@ const FB: Record<string, string> = {
   coo: "По операциям: до запуска нужны владелец процесса, SLA и чек-лист.",
 };
 
-const DEPT_META: Record<string, { label: string; color: string }> = {
-  all:        { label: "Все",         color: ACCENT },
-  leadership: { label: "Leadership",  color: "#6366f1" },
-  finance:    { label: "Finance",     color: "#3b82f6" },
-  marketing:  { label: "Marketing",   color: "#10b981" },
-  operations: { label: "Operations",  color: "#f59e0b" },
-  tech:       { label: "Technology",  color: "#a855f7" },
-  product:    { label: "Product",     color: "#fb923c" },
-};
-
-type SortKey = "confidence" | "tasks" | "success" | "name";
-const SORT_LABELS: Record<SortKey, string> = {
-  confidence: "Уверенность", tasks: "Задачи", success: "Успех", name: "Имя",
-};
-
 function hashOf(s: string): number {
   let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h);
 }
@@ -103,14 +87,14 @@ function metrics(slug: string) {
 function sparkData(seed: string): number[] {
   let h = hashOf(seed) % 1000;
   const out: number[] = []; let v = 30 + (h % 20);
-  for (let i = 0; i < 10; i++) { v += ((h >> i) % 7) - 2 + i * 0.5; out.push(Math.max(8, Math.min(96, v))); h = (h * 1103515245 + 12345) & 0x7fffffff; }
+  for (let i = 0; i < 12; i++) { v += ((h >> i) % 7) - 2 + i * 0.5; out.push(Math.max(8, Math.min(96, v))); h = (h * 1103515245 + 12345) & 0x7fffffff; }
   return out;
 }
 
 type AgentFull = TeamMember & { specialty: string; confidence: number };
 const rich = (slug: string): AgentFull => ({
   ...TEAM_BY_SLUG[slug],
-  ...(CHAR[slug] ?? { specialty: TEAM_BY_SLUG[slug].title, confidence: 90 }),
+  ...(CHAR[slug] ?? { specialty: TEAM_BY_SLUG[slug]?.title ?? slug, confidence: 90 }),
 });
 
 const TOTALS = (() => {
@@ -120,23 +104,23 @@ const TOTALS = (() => {
 })();
 
 // ── Page ──────────────────────────────────────────────────────────────────────
-export default function AgentsPage() {
+export default function ExecutiveCouncilPage() {
   const router  = useRouter();
   const reduce  = useReducedMotion();
   const [ask,   setAsk]   = useState<AgentFull | null>(null);
   const [tick,  setTick]  = useState(0);
-  const [tab,   setTab]   = useState("all");
-  const [query, setQuery] = useState("");
-  const [sort,  setSort]  = useState<SortKey>("confidence");
   const [view,  setView]  = useState<"grid" | "list">("grid");
-  const [sortOpen, setSortOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [roleFilter,      setRoleFilter]      = useState("Все роли");
+  const [statusFilter,    setStatusFilter]    = useState("Все статусы");
+  const [expertiseFilter, setExpertiseFilter] = useState("Экспертиза");
+  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const goMeet = useCallback((slug: string) => {
     router.push(`/dashboard/chat/local-${Date.now()}?agent=${slug}`);
   }, [router]);
 
   useEffect(() => { markVisit("executives"); }, []);
-
   useEffect(() => {
     if (reduce) return;
     const t = setInterval(() => setTick(x => x + 1), 3600);
@@ -144,249 +128,206 @@ export default function AgentsPage() {
   }, [reduce]);
 
   const ceo  = rich("ceo");
-  const dirs = C_LEVEL.filter(m => m.slug !== "ceo").map(m => rich(m.slug));
-  const tabs = ["all", ...Array.from(new Set(dirs.map(d => d.dept)))];
+  const allAgents: AgentFull[] = useMemo(() => {
+    return C_LEVEL.filter(m => m.slug !== "ceo").map(m => rich(m.slug))
+      .concat(TEAM.filter(m => m.tier === "specialist").map(m => rich(m.slug)));
+  }, []);
 
-  // Filter + sort specialists for the active tab
-  const visibleDirs = useMemo(() => (
-    tab === "all" ? dirs : dirs.filter(d => d.dept === tab)
-  ), [tab, dirs]);
+  const visibleAgents = useMemo(() => {
+    return allAgents.filter(a => {
+      if (query) {
+        const q = query.toLowerCase();
+        if (!a.name.toLowerCase().includes(q) && !a.specialty.toLowerCase().includes(q) && !a.role.toLowerCase().includes(q)) return false;
+      }
+      if (statusFilter !== "Все статусы") {
+        const isActive = metrics(a.slug).working;
+        if (statusFilter === "Активные" && !isActive) return false;
+        if (statusFilter === "Ожидание" && isActive) return false;
+      }
+      return true;
+    });
+  }, [allAgents, query, statusFilter]);
 
-  const allSpecialists = useMemo((): AgentFull[] => {
-    const slugs = tab === "all"
-      ? TEAM.filter(m => m.tier === "specialist").map(m => m.slug)
-      : reportsOf(visibleDirs[0]?.slug ?? "").filter(m => m.tier === "specialist").map(m => m.slug);
-    const agents = slugs.map(rich).filter(a => {
-      if (!query) return true;
-      const q = query.toLowerCase();
-      return a.name.toLowerCase().includes(q) || a.specialty.toLowerCase().includes(q) || a.role.toLowerCase().includes(q);
-    });
-    return agents.sort((a, b) => {
-      if (sort === "name")       return a.name.localeCompare(b.name);
-      if (sort === "tasks")      return metrics(b.slug).done - metrics(a.slug).done;
-      if (sort === "success")    return metrics(b.slug).success - metrics(a.slug).success;
-      return b.confidence - a.confidence;
-    });
-  }, [tab, visibleDirs, query, sort]);
+  const ceoMt = metrics(ceo.slug);
 
   return (
     <div style={{ background: BG, minHeight: "100%", position: "relative" }}>
       {/* Ambient */}
       <div aria-hidden style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
-        width: 900, height: 400, pointerEvents: "none",
-        background: "radial-gradient(ellipse 55% 40% at 50% 0%, rgba(99,102,241,0.09), transparent 70%)" }} />
+        width: 1000, height: 340, pointerEvents: "none",
+        background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%)" }} />
 
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 28px 80px", position: "relative" }}>
+      <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 28px 80px", position: "relative" }}>
 
-        {/* ── Header ── */}
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: EASE }}
-          style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between",
-            gap: 20, marginBottom: 32, flexWrap: "wrap" }}>
-          <div>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "4px 11px",
-              borderRadius: 999, background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.18)",
-              marginBottom: 12 }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981",
-                animation: "ap-pulse 2s ease-in-out infinite" }} />
-              <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, color: "#10b981", letterSpacing: "0.14em" }}>
-                {TOTALS.working} АКТИВНЫХ · LIVE
-              </span>
+        {/* ── Page header ── */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, ease: EASE }}
+          style={{ display: "flex", alignItems: "center", justifyContent: "space-between",
+            gap: 16, marginBottom: 28, flexWrap: "wrap" }}>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <h1 style={{ fontSize: "clamp(20px,2.4vw,28px)", fontWeight: 800, color: TP,
+                  letterSpacing: "-0.025em", lineHeight: 1.1, margin: 0 }}>
+                  Executive Council
+                </h1>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 10px",
+                  borderRadius: 999, background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)" }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981",
+                    animation: "ec-pulse 2s ease-in-out infinite" }} />
+                  <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, color: "#10b981", letterSpacing: "0.12em" }}>
+                    {TOTALS.working} АГЕНТОВ · ONLINE
+                  </span>
+                </div>
+              </div>
+              <p style={{ fontSize: 13, color: TS, margin: 0 }}>
+                {TEAM.length} AI-директоров готовы к работе — прямой доступ, метрики, живые задачи
+              </p>
             </div>
-            <h1 style={{ fontSize: "clamp(24px,3vw,34px)", fontWeight: 800, color: TP,
-              letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 6 }}>
-              AI Агенты
-            </h1>
-            <p style={{ fontSize: 14, color: TS, lineHeight: 1.6, maxWidth: 480 }}>
-              {TEAM.length} агентов вашей команды — прямой доступ, метрики и живые задачи.
-            </p>
           </div>
-          <motion.button
-            whileHover={{ y: -1 }} whileTap={{ y: 0 }}
-            onClick={() => goMeet("ceo")}
-            style={{ height: 44, padding: "0 20px", borderRadius: 12, border: "none", cursor: "pointer",
-              background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff",
-              fontSize: 13, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, flexShrink: 0,
-              boxShadow: "0 6px 20px rgba(99,102,241,0.38), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
-            <MessagesSquare size={14} />
-            Совещание совета
-          </motion.button>
-        </motion.div>
 
-        {/* ── Stats strip ── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.45, ease: EASE }}
-          style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, marginBottom: 32,
-            borderRadius: 14, overflow: "hidden", border: `1px solid ${BORD}` }}>
-          {[
-            { label: "Всего агентов",     val: TEAM.length,          suffix: "",  note: "в совете" },
-            { label: "Работают сейчас",   val: TOTALS.working,       suffix: "",  note: `из ${TEAM.length}` },
-            { label: "Задач за месяц",    val: TOTALS.done,          suffix: "",  note: "выполнено" },
-            { label: "Средняя точность",  val: TOTALS.avgSuccess,    suffix: "%", note: "AI уверенность" },
-          ].map((s, i) => <StatCell key={s.label} {...s} delay={i * 0.06} />)}
-        </motion.div>
-
-        {/* ── CEO hero ── */}
-        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.55, ease: EASE }} style={{ marginBottom: 32 }}>
-          <CeoHero a={ceo} tick={tick} reduce={!!reduce}
-            onAsk={() => setAsk(ceo)} onMeet={() => goMeet("ceo")} />
-        </motion.div>
-
-        {/* ── Department tabs ── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.4, ease: EASE }}
-          style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: 24,
-            borderBottom: `1px solid ${BORD}` }}>
-          {tabs.map(t => {
-            const meta = DEPT_META[t] ?? { label: t, color: ACCENT };
-            const count = t === "all" ? TEAM.length - 1
-              : TEAM.filter(m => m.dept === t && m.slug !== "ceo").length;
-            const active = tab === t;
-            return (
-              <button key={t} onClick={() => { setTab(t); setQuery(""); }}
-                style={{ position: "relative", height: 40, padding: "0 16px", border: "none",
-                  background: "transparent", cursor: "pointer", display: "flex", alignItems: "center",
-                  gap: 6, fontSize: 13, fontWeight: active ? 600 : 400,
-                  color: active ? TP : TS, transition: "color 0.18s" }}>
-                {active && (
-                  <motion.div layoutId="tab-indicator"
-                    style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 2,
-                      background: meta.color, borderRadius: 2 }} />
-                )}
-                {meta.label}
-                <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
-                  padding: "1px 6px", borderRadius: 6,
-                  background: active ? `${meta.color}18` : "rgba(255,255,255,0.04)",
-                  color: active ? meta.color : TM, border: `1px solid ${active ? `${meta.color}30` : BORD}` }}>
-                  {count}
-                </span>
-              </button>
-            );
-          })}
-        </motion.div>
-
-        {/* ── Directors grid ── */}
-        <AnimatePresence mode="wait">
-          <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }} transition={{ duration: 0.22, ease: EASE }}>
-
-            {visibleDirs.length > 0 && (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
-                gap: 12, marginBottom: 32 }}>
-                {visibleDirs.map((d, i) => (
-                  <DirectorCard key={d.slug} a={d} tick={tick} reduce={!!reduce} delay={i * 0.07}
-                    onAsk={() => setAsk(d)} onMeet={() => goMeet(d.slug)} />
-                ))}
-              </div>
-            )}
-
-            {/* ── Specialists section ── */}
-            <div style={{ marginTop: 8 }}>
-              {/* Toolbar */}
-              <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
-                <div style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: TM }}>
-                  СПЕЦИАЛИСТЫ · {allSpecialists.length}
-                </div>
-                <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BORD}, transparent)` }} />
-
-                {/* Search */}
-                <div style={{ position: "relative" }}>
-                  <Search size={13} style={{ position: "absolute", left: 11, top: "50%",
-                    transform: "translateY(-50%)", color: TM, pointerEvents: "none" }} />
-                  <input value={query} onChange={e => setQuery(e.target.value)}
-                    placeholder="Поиск…"
-                    style={{ height: 34, width: 180, paddingLeft: 32, paddingRight: 12, borderRadius: 10,
-                      background: SURF, border: `1px solid ${BORD}`, color: TP, fontSize: 12,
-                      outline: "none", transition: "border-color 0.15s" }}
-                    onFocus={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)"; }}
-                    onBlur={e  => { e.currentTarget.style.borderColor = BORD; }} />
-                </div>
-
-                {/* Sort */}
-                <div style={{ position: "relative" }}>
-                  <button onClick={() => setSortOpen(o => !o)}
-                    style={{ height: 34, padding: "0 12px", borderRadius: 10, border: `1px solid ${BORD}`,
-                      background: SURF, color: TS, fontSize: 12, cursor: "pointer",
-                      display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s" }}
-                    onMouseOver={e => { e.currentTarget.style.borderColor = BORD_H; e.currentTarget.style.color = TP; }}
-                    onMouseOut={e  => { e.currentTarget.style.borderColor = BORD; e.currentTarget.style.color = TS; }}>
-                    <SlidersHorizontal size={12} />
-                    {SORT_LABELS[sort]}
-                    <ChevronDown size={11} style={{ opacity: 0.5 }} />
-                  </button>
-                  <AnimatePresence>
-                    {sortOpen && (
-                      <motion.div initial={{ opacity: 0, y: -4, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -4, scale: 0.97 }} transition={{ duration: 0.14 }}
-                        style={{ position: "absolute", top: 40, right: 0, zIndex: 20, minWidth: 160,
-                          background: "#0e101a", border: `1px solid ${BORD_H}`, borderRadius: 12,
-                          boxShadow: "0 16px 48px rgba(0,0,0,0.5)", overflow: "hidden" }}>
-                        {(Object.keys(SORT_LABELS) as SortKey[]).map(k => (
-                          <button key={k} onClick={() => { setSort(k); setSortOpen(false); }}
-                            style={{ width: "100%", padding: "10px 14px", border: "none", textAlign: "left",
-                              background: sort === k ? "rgba(99,102,241,0.12)" : "transparent",
-                              color: sort === k ? "#a5b4fc" : TS, fontSize: 13, cursor: "pointer",
-                              fontWeight: sort === k ? 600 : 400, transition: "background 0.12s",
-                              display: "flex", alignItems: "center", justifyContent: "space-between" }}
-                            onMouseOver={e => { if (sort !== k) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
-                            onMouseOut={e  => { if (sort !== k) e.currentTarget.style.background = "transparent"; }}>
-                            {SORT_LABELS[k]}
-                            {sort === k && <span style={{ width: 6, height: 6, borderRadius: "50%", background: ACCENT }} />}
-                          </button>
-                        ))}
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
-
-                {/* View toggle */}
-                <div style={{ display: "flex", border: `1px solid ${BORD}`, borderRadius: 10, overflow: "hidden" }}>
-                  {(["grid", "list"] as const).map(v => (
-                    <button key={v} onClick={() => setView(v)}
-                      style={{ width: 34, height: 34, display: "flex", alignItems: "center", justifyContent: "center",
-                        border: "none", cursor: "pointer", transition: "all 0.15s",
-                        background: view === v ? "rgba(99,102,241,0.18)" : "transparent",
-                        color: view === v ? "#a5b4fc" : TM }}>
-                      {v === "grid" ? <LayoutGrid size={13} /> : <List size={13} />}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Specialist grid / list */}
-              {allSpecialists.length === 0 ? (
-                <div style={{ padding: "48px 0", textAlign: "center", color: TM, fontSize: 13 }}>
-                  Ничего не найдено
-                </div>
-              ) : view === "grid" ? (
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 10 }}>
-                  {allSpecialists.map((a, i) => (
-                    <AgentGridCard key={a.slug} a={a} tick={tick} reduce={!!reduce} delay={i * 0.04}
-                      onAsk={() => setAsk(a)} />
-                  ))}
-                </div>
-              ) : (
-                <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                  {allSpecialists.map((a, i) => (
-                    <AgentListRow key={a.slug} a={a} tick={tick} delay={i * 0.03} onAsk={() => setAsk(a)} />
-                  ))}
-                </div>
-              )}
+          {/* Right: filters + view */}
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+            {/* Search */}
+            <div style={{ position: "relative" }}>
+              <Search size={12} style={{ position: "absolute", left: 10, top: "50%",
+                transform: "translateY(-50%)", color: TM, pointerEvents: "none" }} />
+              <input value={query} onChange={e => setQuery(e.target.value)}
+                placeholder="Поиск агента…"
+                style={{ height: 36, width: 180, paddingLeft: 30, paddingRight: 12, borderRadius: 10,
+                  background: SURF, border: `1px solid ${BORD}`, color: TP, fontSize: 12,
+                  outline: "none", transition: "border-color 0.15s" }}
+                onFocus={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.45)"; }}
+                onBlur={e  => { e.currentTarget.style.borderColor = BORD; }} />
             </div>
-          </motion.div>
-        </AnimatePresence>
+
+            {/* Filter dropdowns */}
+            {[
+              { key: "role",      label: roleFilter,      options: ["Все роли", "C-Level", "Специалист"] },
+              { key: "status",    label: statusFilter,    options: ["Все статусы", "Активные", "Ожидание"] },
+              { key: "expertise", label: expertiseFilter, options: ["Экспертиза", "Финансы", "Маркетинг", "Технологии", "Операции", "Продукт"] },
+            ].map(({ key, label, options }) => (
+              <div key={key} style={{ position: "relative" }}>
+                <button onClick={() => setOpenDropdown(openDropdown === key ? null : key)}
+                  style={{ height: 36, padding: "0 12px", borderRadius: 10, border: `1px solid ${BORD}`,
+                    background: SURF, color: TS, fontSize: 12, cursor: "pointer",
+                    display: "flex", alignItems: "center", gap: 6, transition: "all 0.15s",
+                    whiteSpace: "nowrap" }}
+                  onMouseOver={e => { e.currentTarget.style.borderColor = BORD_H; e.currentTarget.style.color = TP; }}
+                  onMouseOut={e  => { e.currentTarget.style.borderColor = BORD;   e.currentTarget.style.color = TS; }}>
+                  {label}
+                  <ChevronDown size={11} style={{ opacity: 0.5, transition: "transform 0.15s",
+                    transform: openDropdown === key ? "rotate(180deg)" : "none" }} />
+                </button>
+                <AnimatePresence>
+                  {openDropdown === key && (
+                    <motion.div initial={{ opacity: 0, y: -4, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.97 }}
+                      transition={{ duration: 0.13 }}
+                      style={{ position: "absolute", top: 42, left: 0, zIndex: 30, minWidth: 160,
+                        background: "#0d0f1a", border: `1px solid ${BORD_H}`, borderRadius: 12,
+                        boxShadow: "0 16px 48px rgba(0,0,0,0.55)", overflow: "hidden" }}>
+                      {options.map(opt => (
+                        <button key={opt} onClick={() => {
+                          if (key === "role")      setRoleFilter(opt);
+                          if (key === "status")    setStatusFilter(opt);
+                          if (key === "expertise") setExpertiseFilter(opt);
+                          setOpenDropdown(null);
+                        }}
+                          style={{ width: "100%", padding: "9px 14px", border: "none", textAlign: "left",
+                            background: label === opt ? "rgba(99,102,241,0.12)" : "transparent",
+                            color: label === opt ? "#a5b4fc" : TS, fontSize: 12.5,
+                            fontWeight: label === opt ? 600 : 400, cursor: "pointer", transition: "background 0.12s" }}
+                          onMouseOver={e => { if (label !== opt) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
+                          onMouseOut={e  => { if (label !== opt) e.currentTarget.style.background = "transparent"; }}>
+                          {opt}
+                        </button>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            ))}
+
+            {/* View toggle */}
+            <div style={{ display: "flex", border: `1px solid ${BORD}`, borderRadius: 10, overflow: "hidden" }}>
+              {(["grid", "list"] as const).map(v => (
+                <button key={v} onClick={() => setView(v)}
+                  style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center",
+                    border: "none", cursor: "pointer", transition: "all 0.15s",
+                    background: view === v ? "rgba(99,102,241,0.18)" : "transparent",
+                    color: view === v ? "#a5b4fc" : TM }}>
+                  {v === "grid" ? <LayoutGrid size={13} /> : <List size={13} />}
+                </button>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+
+        {/* ── CEO hero card ── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.08, duration: 0.55, ease: EASE }}
+          style={{ marginBottom: 20 }}>
+          <CeoHero a={ceo} mt={ceoMt} tick={tick} reduce={!!reduce}
+            onAsk={() => setAsk(ceo)} onMeet={() => goMeet("ceo")} totalAgents={TEAM.length - 1} />
+        </motion.div>
+
+        {/* ── Agents grid / list ── */}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          transition={{ delay: 0.16, duration: 0.4 }}>
+
+          {/* Section label */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+            <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: TM }}>
+              СОВЕТ ДИРЕКТОРОВ & СПЕЦИАЛИСТЫ · {visibleAgents.length}
+            </span>
+            <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BORD}, transparent)` }} />
+          </div>
+
+          <AnimatePresence mode="wait">
+            {view === "grid" ? (
+              <motion.div key="grid"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
+                {visibleAgents.map((a, i) => (
+                  <AgentCard key={a.slug} a={a} tick={tick} reduce={!!reduce} delay={i * 0.04}
+                    onAsk={() => setAsk(a)} onMeet={() => goMeet(a.slug)} />
+                ))}
+              </motion.div>
+            ) : (
+              <motion.div key="list"
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                {visibleAgents.map((a, i) => (
+                  <AgentListRow key={a.slug} a={a} tick={tick} delay={i * 0.025}
+                    onAsk={() => setAsk(a)} onMeet={() => goMeet(a.slug)} />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {visibleAgents.length === 0 && (
+            <div style={{ padding: "64px 0", textAlign: "center", color: TM, fontSize: 13 }}>
+              Ничего не найдено — попробуйте другой запрос
+            </div>
+          )}
+        </motion.div>
       </div>
 
       <AnimatePresence>{ask && <AskModal agent={ask} onClose={() => setAsk(null)} />}</AnimatePresence>
 
-      {/* Close sort dropdown on outside click */}
-      {sortOpen && <div onClick={() => setSortOpen(false)} style={{ position: "fixed", inset: 0, zIndex: 10 }} />}
+      {/* Close dropdowns */}
+      {openDropdown && (
+        <div onClick={() => setOpenDropdown(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 20 }} />
+      )}
 
       <style>{`
-        @keyframes ap-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.25;transform:scale(0.5)} }
-        @keyframes ap-think { 0%,100%{opacity:.2;transform:translateY(0)} 50%{opacity:1;transform:translateY(-2px)} }
-        @keyframes ap-caret { 50%{opacity:0} }
+        @keyframes ec-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.25;transform:scale(0.5)} }
+        @keyframes ec-think { 0%,100%{opacity:.2;transform:translateY(0)} 50%{opacity:1;transform:translateY(-2px)} }
         @media (prefers-reduced-motion:reduce) { * { animation-duration:0.01ms!important; transition-duration:0.01ms!important } }
         ::placeholder { color: ${TM}; }
         ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius:2px; }
@@ -395,43 +336,41 @@ export default function AgentsPage() {
   );
 }
 
-// ── Stat cell ─────────────────────────────────────────────────────────────────
-function StatCell({ label, val, suffix, note, delay }: {
-  label: string; val: number; suffix: string; note: string; delay: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const inView = useInView(ref, { once: true });
-  const [v, setV] = useState(0);
-
-  useEffect(() => {
-    if (!inView) return;
-    let raf = 0; const t0 = performance.now(); const dur = 1000;
-    const step = (ts: number) => {
-      const p = Math.min(1, (ts - t0) / dur);
-      setV(Math.round(val * (1 - Math.pow(1 - p, 3))));
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [inView, val]);
-
+// ── Sparkline ─────────────────────────────────────────────────────────────────
+function Spark({ color, data, w = 80, h = 32 }: { color: string; data: number[]; w?: number; h?: number }) {
+  const max = Math.max(...data), min = Math.min(...data);
+  const pts = data.map((d, i): [number, number] => [
+    (i / (data.length - 1)) * w,
+    h - ((d - min) / (max - min || 1)) * (h - 4) - 2,
+  ]);
+  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  const fill = `${line} L${w},${h} L0,${h} Z`;
+  const gid  = `sp-${color.replace(/[^a-z0-9]/gi, "")}${w}`;
   return (
-    <motion.div ref={ref} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-      transition={{ duration: 0.4, delay }}
-      style={{ padding: "20px 22px", background: SURF,
-        borderRight: `1px solid ${BORD}` }}>
-      <div style={{ fontSize: 28, fontWeight: 800, color: TP, letterSpacing: "-0.03em",
-        fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{v}{suffix}</div>
-      <div style={{ fontSize: 12, color: TS, marginTop: 5 }}>{label}</div>
-      <div style={{ fontFamily: MONO, fontSize: 10, color: TM, marginTop: 3 }}>{note}</div>
-    </motion.div>
+    <svg width={w} height={h} style={{ display: "block", overflow: "visible" }}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.28" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <motion.path d={fill} fill={`url(#${gid})`}
+        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
+        transition={{ duration: 0.6 }} />
+      <motion.path d={line} fill="none" stroke={color} strokeWidth={1.6}
+        strokeLinecap="round" strokeLinejoin="round"
+        initial={{ pathLength: 0, opacity: 0 }}
+        whileInView={{ pathLength: 1, opacity: 1 }} viewport={{ once: true }}
+        transition={{ duration: 1.1, ease: EASE }} />
+      <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r={2.5} fill={color} />
+    </svg>
   );
 }
 
 // ── Confidence arc ────────────────────────────────────────────────────────────
 function ConfArc({ value, color, size = 52 }: { value: number; color: string; size?: number }) {
-  const r   = (size - 7) / 2;
-  const c   = size / 2;
+  const r = (size - 8) / 2;
+  const c = size / 2;
   const circ = 2 * Math.PI * r;
   const target = circ * (1 - value / 100);
   return (
@@ -442,9 +381,9 @@ function ConfArc({ value, color, size = 52 }: { value: number; color: string; si
         initial={{ strokeDashoffset: circ }}
         whileInView={{ strokeDashoffset: target }}
         viewport={{ once: true }}
-        transition={{ duration: 1.2, ease: EASE }}
+        transition={{ duration: 1.3, ease: EASE }}
         transform={`rotate(-90 ${c} ${c})`} />
-      <text x={c} y={c + 4} textAnchor="middle" fontSize={11} fontWeight={700} fill={color}
+      <text x={c} y={c + 4} textAnchor="middle" fontSize={size > 50 ? 12 : 10} fontWeight={800} fill={color}
         style={{ fontVariantNumeric: "tabular-nums", fontFamily: "inherit" }}>
         {value}%
       </text>
@@ -452,58 +391,27 @@ function ConfArc({ value, color, size = 52 }: { value: number; color: string; si
   );
 }
 
-// ── Sparkline ─────────────────────────────────────────────────────────────────
-function Spark({ color, data, w = 80, h = 28 }: { color: string; data: number[]; w?: number; h?: number }) {
-  const max = Math.max(...data), min = Math.min(...data);
-  const pts = data.map((d, i): [number, number] => [
-    (i / (data.length - 1)) * w,
-    h - ((d - min) / (max - min || 1)) * (h - 4) - 2,
-  ]);
-  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
-  const fill = `${line} L${w},${h} L0,${h} Z`;
-  const gid  = `sp-${color.replace(/[^a-z0-9]/gi, "")}`;
-  return (
-    <svg width={w} height={h} style={{ display: "block", overflow: "visible" }}>
-      <defs>
-        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
-          <stop offset="100%" stopColor={color} stopOpacity="0" />
-        </linearGradient>
-      </defs>
-      <motion.path d={fill} fill={`url(#${gid})`}
-        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}
-        transition={{ duration: 0.7 }} />
-      <motion.path d={line} fill="none" stroke={color} strokeWidth={1.8}
-        strokeLinecap="round" strokeLinejoin="round"
-        initial={{ pathLength: 0, opacity: 0 }}
-        whileInView={{ pathLength: 1, opacity: 1 }} viewport={{ once: true }}
-        transition={{ duration: 1.1, ease: EASE }} />
-      <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r={2.5} fill={color} />
-    </svg>
-  );
-}
-
-// ── Live activity text ────────────────────────────────────────────────────────
+// ── Live activity ─────────────────────────────────────────────────────────────
 function LiveAct({ slug, tick, working, color }: { slug: string; tick: number; working: boolean; color: string }) {
   const list = ACT[slug] ?? ["Работает над задачей"];
   const text = working ? list[tick % list.length] : "В ожидании задачи";
   return (
-    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+    <div style={{ display: "flex", alignItems: "flex-start", gap: 7, minHeight: 18 }}>
       {working
-        ? <span style={{ display: "inline-flex", gap: 3, flexShrink: 0 }}>
+        ? <span style={{ display: "inline-flex", gap: 2.5, flexShrink: 0, marginTop: 4 }}>
             {[0,1,2].map(d => (
               <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: color,
-                animation: `ap-think 1.2s ease-in-out ${d * 0.18}s infinite` }} />
+                animation: `ec-think 1.2s ease-in-out ${d * 0.18}s infinite` }} />
             ))}
           </span>
-        : <span style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(255,255,255,0.2)", flexShrink: 0 }} />}
+        : <span style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(255,255,255,0.18)",
+            flexShrink: 0, marginTop: 4 }} />}
       <AnimatePresence mode="wait">
         <motion.span key={text}
-          initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
-          transition={{ duration: 0.22, ease: EASE }}
-          style={{ fontSize: 11.5, lineHeight: 1.4,
-            color: working ? TS : TM }}>
-          {working && <span style={{ color, fontWeight: 600, marginRight: 4 }}>сейчас:</span>}
+          initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -3 }}
+          transition={{ duration: 0.2, ease: EASE }}
+          style={{ fontSize: 11.5, lineHeight: 1.5, color: working ? TS : TM }}>
+          {working && <span style={{ color, fontWeight: 700, marginRight: 3 }}>сейчас:</span>}
           {text}
         </motion.span>
       </AnimatePresence>
@@ -511,108 +419,136 @@ function LiveAct({ slug, tick, working, color }: { slug: string; tick: number; w
   );
 }
 
-// ── CEO hero card ──────────────────────────────────────────────────────────────
-function CeoHero({ a, tick, onAsk, onMeet, reduce }: {
-  a: AgentFull; tick: number; onAsk: () => void; onMeet: () => void; reduce: boolean;
+// ── Status badge ──────────────────────────────────────────────────────────────
+function StatusBadge({ working }: { working: boolean }) {
+  return (
+    <div style={{ display: "inline-flex", alignItems: "center", gap: 5, padding: "3px 9px",
+      borderRadius: 8, fontSize: 9, fontWeight: 700, fontFamily: MONO, letterSpacing: "0.1em",
+      background: working ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)",
+      border: `1px solid ${working ? "rgba(16,185,129,0.28)" : BORD}`,
+      color: working ? "#10b981" : TM, flexShrink: 0 }}>
+      <span style={{ width: 4, height: 4, borderRadius: "50%", flexShrink: 0,
+        background: working ? "#10b981" : "rgba(255,255,255,0.2)",
+        animation: working ? "ec-pulse 2s ease-in-out infinite" : "none" }} />
+      {working ? "ACTIVE" : "IDLE"}
+    </div>
+  );
+}
+
+// ── CEO hero card ─────────────────────────────────────────────────────────────
+function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
+  a: AgentFull; mt: ReturnType<typeof metrics>; tick: number; reduce: boolean;
+  onAsk: () => void; onMeet: () => void; totalAgents: number;
 }) {
-  const mt  = metrics(a.slug);
   const [hov, setHov] = useState(false);
+  const sd = sparkData(a.slug);
 
   return (
     <motion.div onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
-      animate={{ y: hov ? -3 : 0 }} transition={{ duration: 0.28, ease: EASE }}
-      style={{ position: "relative", overflow: "hidden", borderRadius: 22, cursor: "pointer",
-        background: "linear-gradient(150deg, rgba(99,102,241,0.13), rgba(255,255,255,0.025) 60%)",
-        border: `1px solid ${hov ? "rgba(99,102,241,0.42)" : "rgba(99,102,241,0.22)"}`,
+      animate={{ y: hov ? -2 : 0 }} transition={{ duration: 0.28, ease: EASE }}
+      style={{ position: "relative", overflow: "hidden", borderRadius: 20, cursor: "pointer",
+        background: `linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(255,255,255,0.02) 60%, rgba(99,102,241,0.06) 100%)`,
+        border: `1px solid ${hov ? "rgba(99,102,241,0.4)" : "rgba(99,102,241,0.2)"}`,
         boxShadow: hov
-          ? "0 20px 60px rgba(99,102,241,0.16), inset 0 1px 0 rgba(255,255,255,0.08)"
-          : "0 8px 32px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
+          ? "0 24px 64px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.08)"
+          : "0 8px 32px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.05)",
         transition: "border-color 0.25s, box-shadow 0.25s" }}
       onClick={onAsk}>
 
-      {/* Top shimmer line */}
+      {/* Top shimmer */}
       <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1,
-        background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.5) 30%, rgba(99,102,241,0.55) 65%, transparent)" }} />
-      {/* Ambient orb */}
-      <div aria-hidden style={{ position: "absolute", top: -60, left: -40, width: 300, height: 300,
+        background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.4) 30%, rgba(99,102,241,0.5) 65%, transparent)" }} />
+      {/* Background orb */}
+      <div aria-hidden style={{ position: "absolute", top: -80, left: -60, width: 400, height: 400,
         borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(circle, rgba(99,102,241,0.16), transparent 70%)" }} />
+        background: "radial-gradient(circle, rgba(99,102,241,0.12), transparent 65%)" }} />
 
-      <div style={{ display: "flex", alignItems: "center", gap: 28, padding: "28px 32px", flexWrap: "wrap" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 0, alignItems: "stretch" }}>
 
-        {/* Avatar */}
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          <motion.div
-            animate={reduce ? undefined : { y: [0, -5, 0] }}
-            transition={reduce ? undefined : { duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
-            style={{ width: 88, height: 88, borderRadius: 26, display: "flex", alignItems: "center",
-              justifyContent: "center", background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
-              color: "#fff", fontSize: 24, fontWeight: 800, fontFamily: MONO,
-              boxShadow: "0 16px 44px rgba(99,102,241,0.42), inset 0 2px 0 rgba(255,255,255,0.25)" }}>
-            {a.ab}
-          </motion.div>
-          <div style={{ position: "absolute", top: -10, right: -10, width: 28, height: 28,
-            borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-            background: "linear-gradient(135deg,#fbbf24,#d97706)", border: "2px solid #05060A",
-            boxShadow: "0 4px 14px rgba(245,158,11,0.5)", color: "#0b0800" }}>
-            <Crown size={12} strokeWidth={2.5} />
+        {/* Left: avatar + identity */}
+        <div style={{ padding: "24px 28px", display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 280 }}>
+          <div style={{ display: "flex", alignItems: "flex-start", gap: 16, marginBottom: 16 }}>
+            <div style={{ position: "relative", flexShrink: 0 }}>
+              <motion.div
+                animate={reduce ? undefined : { y: [0, -5, 0] }}
+                transition={reduce ? undefined : { duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+                style={{ width: 76, height: 76, borderRadius: 22, display: "flex", alignItems: "center",
+                  justifyContent: "center", background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
+                  color: "#fff", fontSize: 22, fontWeight: 800, fontFamily: MONO,
+                  boxShadow: `0 16px 48px ${a.c}55, inset 0 2px 0 rgba(255,255,255,0.25)` }}>
+                {a.ab}
+              </motion.div>
+              {/* Crown */}
+              <div style={{ position: "absolute", top: -10, right: -10, width: 26, height: 26,
+                borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                background: "linear-gradient(135deg,#fbbf24,#d97706)", border: "2px solid #05060A",
+                boxShadow: "0 4px 12px rgba(245,158,11,0.55)", color: "#0b0800" }}>
+                <Crown size={11} strokeWidth={2.5} />
+              </div>
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span style={{ fontSize: 20, fontWeight: 800, color: TP, letterSpacing: "-0.02em" }}>{a.name}</span>
+                <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.12em",
+                  padding: "2px 8px", borderRadius: 6, color: "#fbbf24",
+                  border: "1px solid rgba(251,191,36,0.32)", background: "rgba(251,191,36,0.08)" }}>ГОЛЕР</span>
+              </div>
+              <div style={{ fontSize: 12, color: TS, marginBottom: 8 }}>{a.title} · {a.specialty}</div>
+              <StatusBadge working />
+            </div>
           </div>
-        </div>
 
-        {/* Info block */}
-        <div style={{ flex: 1, minWidth: 220 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-            <span style={{ fontSize: 22, fontWeight: 800, color: TP, letterSpacing: "-0.02em" }}>{a.name}</span>
-            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.14em",
-              padding: "3px 9px", borderRadius: 7, color: "#fbbf24",
-              border: "1px solid rgba(251,191,36,0.32)", background: "rgba(251,191,36,0.08)" }}>CHIEF</span>
-          </div>
-          <div style={{ fontSize: 13, color: TS, marginBottom: 14 }}>{a.title} · {a.specialty}</div>
+          {/* Live activity */}
           <LiveAct slug={a.slug} tick={tick} working color={a.c} />
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+
+          {/* Stats row */}
+          <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
             {[
-              { icon: Trophy,     label: `${mt.done} задач` },
-              { icon: TrendingUp, label: `${mt.success}% успех` },
-              { icon: Flame,      label: `${mt.streak} дней` },
-            ].map(({ icon: Icon, label }) => (
-              <span key={label} style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11,
-                fontWeight: 600, color: TS, background: "rgba(255,255,255,0.04)",
-                border: `1px solid ${BORD}`, borderRadius: 8, padding: "4px 10px" }}>
-                <Icon size={10} style={{ color: "#f59e0b" }} />{label}
-              </span>
+              { v: `${totalAgents}`, l: "агентов" },
+              { v: `${mt.success}%`, l: "успех" },
+              { v: `${mt.done}`,     l: "задач" },
+            ].map((s, i) => (
+              <div key={i}>
+                <div style={{ fontSize: 16, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{s.v}</div>
+                <div style={{ fontSize: 10, color: TM, marginTop: 2 }}>{s.l}</div>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* Right: confidence arc + sparkline + actions */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 12, flexShrink: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 10, color: TM, marginBottom: 4 }}>Производительность</div>
-              <Spark color={a.c} data={sparkData(a.slug)} />
-            </div>
-            <ConfArc value={a.confidence} color={a.c} size={60} />
+        {/* Center: sparkline */}
+        <div style={{ padding: "24px 16px", display: "flex", flexDirection: "column", justifyContent: "center",
+          borderLeft: `1px solid ${BORD}`, borderRight: `1px solid ${BORD}` }}>
+          <div style={{ fontSize: 10, color: TM, marginBottom: 10, fontFamily: MONO, letterSpacing: "0.1em" }}>
+            ПРОИЗВОДИТЕЛЬНОСТЬ · 30Д
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <Spark color={a.c} data={sd} w={280} h={64} />
+        </div>
+
+        {/* Right: conf arc + actions */}
+        <div style={{ padding: "24px 24px", display: "flex", flexDirection: "column",
+          alignItems: "center", justifyContent: "space-between", minWidth: 180 }}>
+
+          <ConfArc value={a.confidence} color={a.c} size={72} />
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
             <button onClick={e => { e.stopPropagation(); onAsk(); }}
-              style={{ height: 38, padding: "0 16px", borderRadius: 10, fontSize: 12, fontWeight: 700,
-                cursor: "pointer", color: a.c, background: `${a.c}14`,
-                border: `1px solid ${a.c}40`, display: "flex", alignItems: "center", gap: 6,
+              style={{ height: 38, borderRadius: 10, fontSize: 12, fontWeight: 700,
+                cursor: "pointer", color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
+                boxShadow: "0 4px 16px rgba(99,102,241,0.42), inset 0 1px 0 rgba(255,255,255,0.18)",
                 transition: "all 0.18s" }}
-              onMouseOver={e => { e.currentTarget.style.background = `${a.c}22`; }}
-              onMouseOut={e  => { e.currentTarget.style.background = `${a.c}14`; }}>
+              onMouseOver={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+              onMouseOut={e  => { e.currentTarget.style.filter = "brightness(1)";   e.currentTarget.style.transform = "translateY(0)"; }}>
               <MessageSquare size={12} /> Спросить
             </button>
             <button onClick={e => { e.stopPropagation(); onMeet(); }}
-              style={{ height: 38, padding: "0 16px", borderRadius: 10, fontSize: 12, fontWeight: 700,
-                cursor: "pointer", color: "#fff",
-                background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
-                display: "flex", alignItems: "center", gap: 6,
-                boxShadow: "0 4px 16px rgba(99,102,241,0.38), inset 0 1px 0 rgba(255,255,255,0.18)",
-                transition: "all 0.18s" }}
-              onMouseOver={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-              onMouseOut={e  => { e.currentTarget.style.filter = "brightness(1)"; e.currentTarget.style.transform = "translateY(0)"; }}>
-              <MessagesSquare size={12} /> Совещание · {TEAM.length - 1}
+              style={{ height: 38, borderRadius: 10, fontSize: 11, fontWeight: 700,
+                cursor: "pointer", color: a.c, background: `${a.c}12`, border: `1px solid ${a.c}35`,
+                display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.18s" }}
+              onMouseOver={e => { e.currentTarget.style.background = `${a.c}22`; }}
+              onMouseOut={e  => { e.currentTarget.style.background = `${a.c}12`; }}>
+              <MessagesSquare size={11} /> Совещание · {totalAgents}
             </button>
           </div>
         </div>
@@ -621,216 +557,147 @@ function CeoHero({ a, tick, onAsk, onMeet, reduce }: {
   );
 }
 
-// ── Director card ──────────────────────────────────────────────────────────────
-function DirectorCard({ a, tick, delay, reduce, onAsk, onMeet }: {
+// ── Agent card (grid) ─────────────────────────────────────────────────────────
+function AgentCard({ a, tick, delay, reduce, onAsk, onMeet }: {
   a: AgentFull; tick: number; delay: number; reduce: boolean;
   onAsk: () => void; onMeet: () => void;
 }) {
-  const mt  = metrics(a.slug);
+  const mt   = metrics(a.slug);
   const team = reportsOf(a.slug).filter(m => m.tier === "specialist");
+  const sd   = sparkData(a.slug);
   const [hov, setHov] = useState(false);
 
   return (
-    <motion.div onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
-      animate={{ y: hov ? -4 : 0 }} transition={{ duration: 0.26, ease: EASE }}
+    <motion.div
+      onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
+      initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-30px" }}
+      animate={{ y: hov ? -4 : 0 }}
+      transition={{ duration: 0.25, ease: EASE }}
       onClick={onAsk}
-      style={{ padding: "22px 22px", borderRadius: 18, cursor: "pointer", position: "relative", overflow: "hidden",
-        background: hov ? `linear-gradient(145deg, ${a.c}14, rgba(255,255,255,0.035) 65%)` : `linear-gradient(145deg, ${a.c}0c, rgba(255,255,255,0.025) 65%)`,
-        border: `1px solid ${hov ? `${a.c}48` : `${a.c}24`}`,
-        boxShadow: hov ? `0 16px 48px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)` : "0 4px 20px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.04)",
-        transition: "all 0.24s" }}>
+      style={{ padding: "18px 18px 14px", borderRadius: 16, cursor: "pointer",
+        position: "relative", overflow: "hidden",
+        background: hov
+          ? `linear-gradient(145deg, ${a.c}12, rgba(255,255,255,0.03) 70%)`
+          : `linear-gradient(145deg, ${a.c}0a, rgba(255,255,255,0.02) 70%)`,
+        border: `1px solid ${hov ? `${a.c}45` : `${a.c}22`}`,
+        boxShadow: hov
+          ? `0 16px 48px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.07)`
+          : `0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)`,
+        transition: "background 0.22s, border-color 0.22s, box-shadow 0.22s" }}>
 
-      {hov && <div aria-hidden style={{ position: "absolute", top: -40, right: -30, width: 160, height: 160,
+      {/* Hover ambient */}
+      {hov && <div aria-hidden style={{ position: "absolute", top: -50, right: -40, width: 180, height: 180,
         borderRadius: "50%", pointerEvents: "none",
-        background: `radial-gradient(circle, ${a.c}20, transparent 70%)` }} />}
+        background: `radial-gradient(circle, ${a.c}18, transparent 70%)` }} />}
 
-      {/* Top row: avatar + name + conf arc */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 14 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <motion.div
-            animate={reduce ? undefined : { y: [0, -3, 0] }}
-            transition={reduce ? undefined : { duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
-            style={{ width: 52, height: 52, borderRadius: 15, flexShrink: 0, display: "flex",
-              alignItems: "center", justifyContent: "center",
-              background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
-              color: "#fff", fontSize: 15, fontWeight: 800, fontFamily: MONO,
-              boxShadow: `0 8px 24px ${a.c}40, inset 0 1px 0 rgba(255,255,255,0.25)` }}>
-            {a.ab}
-          </motion.div>
-          <div>
-            <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 2 }}>
-              <span style={{ fontSize: 16, fontWeight: 700, color: TP }}>{a.name}</span>
-              <span style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: 700, letterSpacing: "0.12em",
-                padding: "2px 7px", borderRadius: 6, color: a.c,
-                border: `1px solid ${a.c}45`, background: `${a.c}10` }}>{a.role}</span>
-            </div>
-            <div style={{ fontSize: 12, color: TS }}>{a.specialty}</div>
+      {/* Row 1: avatar + name + sparkline + status */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
+        {/* Avatar */}
+        <motion.div
+          animate={reduce ? undefined : { y: [0, -3, 0] }}
+          transition={reduce ? undefined : { duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
+          style={{ width: 46, height: 46, borderRadius: 13, flexShrink: 0, display: "flex",
+            alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
+            color: "#fff", fontSize: 13, fontWeight: 800, fontFamily: MONO,
+            boxShadow: `0 6px 20px ${a.c}42, inset 0 1px 0 rgba(255,255,255,0.25)` }}>
+          {a.ab}
+        </motion.div>
+
+        {/* Name + specialty */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+            <span style={{ fontSize: 14, fontWeight: 700, color: TP, letterSpacing: "-0.01em",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
+              padding: "1px 6px", borderRadius: 5, color: a.c,
+              border: `1px solid ${a.c}40`, background: `${a.c}0e` }}>{a.role}</span>
           </div>
         </div>
-        <ConfArc value={a.confidence} color={a.c} size={50} />
+
+        {/* Sparkline top-right */}
+        <div style={{ flexShrink: 0 }}>
+          <Spark color={a.c} data={sd} w={64} h={28} />
+        </div>
+      </div>
+
+      {/* Status + specialty */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+        <span style={{ fontSize: 11, color: TS, flex: 1, minWidth: 0,
+          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.specialty}</span>
+        <StatusBadge working={mt.working} />
       </div>
 
       {/* Live activity */}
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 12 }}>
         <LiveAct slug={a.slug} tick={tick} working={mt.working} color={a.c} />
       </div>
 
-      {/* Metrics row */}
-      <div style={{ display: "flex", gap: 0, borderRadius: 10, overflow: "hidden",
-        border: `1px solid ${BORD}`, marginBottom: 12 }}>
+      {/* Stats row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1,
+        borderRadius: 10, overflow: "hidden", border: `1px solid ${BORD}`, marginBottom: 12 }}>
         {[
-          { v: mt.done,          l: "задач" },
-          { v: `${mt.success}%`, l: "успех" },
-          { v: `${team.length}`, l: "в команде" },
+          { v: mt.done,            l: "задачи" },
+          { v: `${mt.success}%`,   l: "успех" },
+          { v: `${a.confidence}%`, l: "конф" },
         ].map((m, i) => (
-          <div key={i} style={{ flex: 1, padding: "8px 0", textAlign: "center",
+          <div key={i} style={{ padding: "8px 4px", textAlign: "center",
             borderRight: i < 2 ? `1px solid ${BORD}` : "none",
-            background: "rgba(255,255,255,0.015)" }}>
-            <div style={{ fontSize: 14, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{m.v}</div>
-            <div style={{ fontSize: 9, color: TM, marginTop: 1 }}>{m.l}</div>
+            background: "rgba(255,255,255,0.012)" }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{m.v}</div>
+            <div style={{ fontSize: 9, color: TM, marginTop: 3 }}>{m.l}</div>
           </div>
         ))}
       </div>
 
       {/* Load bar */}
-      <div style={{ marginBottom: 14 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-          <span style={{ fontSize: 10, color: TM }}>Загрузка</span>
-          <span style={{ fontSize: 11, fontWeight: 700, color: a.c, fontVariantNumeric: "tabular-nums" }}>{mt.load}%</span>
-        </div>
-        <div style={{ height: 4, borderRadius: 3, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+      <div style={{ marginBottom: 12 }}>
+        <div style={{ height: 3, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
           <motion.div initial={{ width: 0 }} whileInView={{ width: `${mt.load}%` }} viewport={{ once: true }}
-            transition={{ duration: 1.1, ease: EASE, delay: delay + 0.2 }}
+            transition={{ duration: 1.1, ease: EASE, delay: delay + 0.15 }}
             style={{ height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${a.g[0]}, ${a.g[1]})` }} />
         </div>
       </div>
 
-      {/* Actions */}
+      {/* Action buttons */}
       <div style={{ display: "flex", gap: 7 }}>
         <button onClick={e => { e.stopPropagation(); onAsk(); }}
-          style={{ flex: 1, height: 34, borderRadius: 10, fontSize: 11, fontWeight: 700, cursor: "pointer",
-            color: a.c, background: `${a.c}12`, border: `1px solid ${a.c}3a`,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 5, transition: "all 0.16s" }}
-          onMouseOver={e => { e.currentTarget.style.background = `${a.c}22`; }}
-          onMouseOut={e  => { e.currentTarget.style.background = `${a.c}12`; }}>
+          style={{ flex: 1, height: 34, borderRadius: 9, fontSize: 11.5, fontWeight: 700, cursor: "pointer",
+            color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+            boxShadow: "0 3px 12px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
+            transition: "all 0.15s" }}
+          onMouseOver={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+          onMouseOut={e  => { e.currentTarget.style.filter = "brightness(1)";   e.currentTarget.style.transform = "translateY(0)"; }}>
           <MessageSquare size={11} /> Спросить
         </button>
         <button onClick={e => { e.stopPropagation(); onMeet(); }}
-          style={{ flex: 1, height: 34, borderRadius: 10, fontSize: 11, fontWeight: 700, cursor: "pointer",
-            color: "#fff", background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`, border: "none",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-            boxShadow: `0 3px 12px ${a.c}38, inset 0 1px 0 rgba(255,255,255,0.18)`, transition: "all 0.16s" }}
-          onMouseOver={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-          onMouseOut={e  => { e.currentTarget.style.filter = "brightness(1)"; e.currentTarget.style.transform = "translateY(0)"; }}>
-          <MessagesSquare size={11} /> Совещание · {team.length}
+          style={{ padding: "0 12px", height: 34, borderRadius: 9, fontSize: 11, fontWeight: 700, cursor: "pointer",
+            color: a.c, background: `${a.c}10`, border: `1px solid ${a.c}35`,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 5, transition: "all 0.15s", whiteSpace: "nowrap" }}
+          onMouseOver={e => { e.currentTarget.style.background = `${a.c}20`; }}
+          onMouseOut={e  => { e.currentTarget.style.background = `${a.c}10`; }}>
+          <MessagesSquare size={10} /> Совещание · {team.length || 3}
         </button>
       </div>
     </motion.div>
   );
 }
 
-// ── Specialist grid card ──────────────────────────────────────────────────────
-function AgentGridCard({ a, tick, delay, reduce, onAsk }: {
-  a: AgentFull; tick: number; delay: number; reduce: boolean; onAsk: () => void;
+// ── Agent list row ────────────────────────────────────────────────────────────
+function AgentListRow({ a, tick, delay, onAsk, onMeet }: {
+  a: AgentFull; tick: number; delay: number; onAsk: () => void; onMeet: () => void;
 }) {
-  const mt  = metrics(a.slug);
+  const mt = metrics(a.slug);
+  const sd = sparkData(a.slug);
   const [hov, setHov] = useState(false);
 
   return (
-    <motion.div onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
-      animate={{ y: hov ? -5 : 0 }} transition={{ duration: 0.22, ease: EASE }}
-      initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-20px" }}
-      onClick={onAsk}
-      style={{ padding: "16px", borderRadius: 16, cursor: "pointer", position: "relative", overflow: "hidden",
-        background: hov ? `${a.c}0e` : `${a.c}08`,
-        border: `1px solid ${hov ? `${a.c}45` : `${a.c}1e`}`,
-        boxShadow: hov ? `0 12px 36px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.06)` : "0 2px 12px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.03)",
-        transition: "all 0.2s" }}>
-
-      {/* Top: avatar + name + arc */}
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 10 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <motion.div
-            animate={reduce || !mt.working ? undefined : { y: [0, -2.5, 0] }}
-            transition={reduce ? undefined : { duration: 3.8, repeat: Infinity, ease: "easeInOut", delay }}
-            style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, display: "flex",
-              alignItems: "center", justifyContent: "center",
-              background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
-              color: "#fff", fontSize: 11, fontWeight: 800, fontFamily: MONO,
-              boxShadow: `0 5px 16px ${a.c}38, inset 0 1px 0 rgba(255,255,255,0.24)` }}>
-            {a.ab}
-          </motion.div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 700, color: TP, letterSpacing: "-0.01em" }}>{a.name}</div>
-            <div style={{ fontSize: 10, fontWeight: 600, color: a.c, letterSpacing: "0.05em" }}>{a.role}</div>
-          </div>
-        </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "2px 7px", borderRadius: 7,
-          background: mt.working ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.04)",
-          border: `1px solid ${mt.working ? "rgba(16,185,129,0.3)" : BORD}` }}>
-          <span style={{ width: 5, height: 5, borderRadius: "50%",
-            background: mt.working ? "#10b981" : "rgba(255,255,255,0.2)",
-            animation: mt.working ? "ap-pulse 2s ease-in-out infinite" : "none" }} />
-          <span style={{ fontSize: 9, fontWeight: 600, color: mt.working ? "#10b981" : TM,
-            fontFamily: MONO, letterSpacing: "0.08em" }}>
-            {mt.working ? "ACTIVE" : "IDLE"}
-          </span>
-        </div>
-      </div>
-
-      <div style={{ fontSize: 11, color: TS, marginBottom: 10, lineHeight: 1.4 }}>{a.specialty}</div>
-      <div style={{ marginBottom: 12 }}>
-        <LiveAct slug={a.slug} tick={tick} working={mt.working} color={a.c} />
-      </div>
-
-      {/* 3-metric row */}
-      <div style={{ display: "flex", gap: 0, borderRadius: 9, overflow: "hidden", border: `1px solid ${BORD}`, marginBottom: 10 }}>
-        {[
-          { v: mt.done,             l: "задач" },
-          { v: `${mt.success}%`,    l: "успех" },
-          { v: `${a.confidence}%`,  l: "conf" },
-        ].map((m, i) => (
-          <div key={i} style={{ flex: 1, padding: "7px 0", textAlign: "center",
-            borderRight: i < 2 ? `1px solid ${BORD}` : "none",
-            background: "rgba(255,255,255,0.012)" }}>
-            <div style={{ fontSize: 12, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{m.v}</div>
-            <div style={{ fontSize: 8.5, color: TM, marginTop: 1 }}>{m.l}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Thin progress bar */}
-      <div style={{ height: 2, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-        <motion.div initial={{ width: 0 }} whileInView={{ width: `${mt.load}%` }} viewport={{ once: true }}
-          transition={{ duration: 1, ease: EASE, delay: delay + 0.1 }}
-          style={{ height: "100%", borderRadius: 2, background: a.c }} />
-      </div>
-
-      {/* Hover CTA */}
-      <AnimatePresence>
-        {hov && (
-          <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0 }} transition={{ duration: 0.15 }}
-            style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center",
-              gap: 5, fontSize: 11, fontWeight: 700, color: a.c }}>
-            <MessageSquare size={11} /> Спросить {a.name.split(" ")[0]}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </motion.div>
-  );
-}
-
-// ── Specialist list row ───────────────────────────────────────────────────────
-function AgentListRow({ a, tick, delay, onAsk }: {
-  a: AgentFull; tick: number; delay: number; onAsk: () => void;
-}) {
-  const mt  = metrics(a.slug);
-  const [hov, setHov] = useState(false);
-
-  return (
-    <motion.div onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
+    <motion.div
+      onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
       initial={{ opacity: 0, x: -8 }} whileInView={{ opacity: 1, x: 0 }}
       viewport={{ once: true, margin: "-10px" }}
       transition={{ duration: 0.3, ease: EASE, delay }}
@@ -841,18 +708,18 @@ function AgentListRow({ a, tick, delay, onAsk }: {
         transition: "all 0.18s" }}>
 
       {/* Avatar */}
-      <div style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: "flex",
+      <div style={{ width: 40, height: 40, borderRadius: 11, flexShrink: 0, display: "flex",
         alignItems: "center", justifyContent: "center",
         background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
-        color: "#fff", fontSize: 11, fontWeight: 800, fontFamily: MONO,
+        color: "#fff", fontSize: 12, fontWeight: 800, fontFamily: MONO,
         boxShadow: `0 4px 12px ${a.c}30` }}>
         {a.ab}
       </div>
 
-      {/* Name */}
-      <div style={{ minWidth: 160 }}>
-        <div style={{ fontSize: 13.5, fontWeight: 600, color: hov ? TP : "rgba(229,231,235,0.85)" }}>{a.name}</div>
-        <div style={{ fontSize: 11, color: a.c, fontWeight: 600 }}>{a.role} · {a.specialty}</div>
+      {/* Name + specialty */}
+      <div style={{ minWidth: 180 }}>
+        <div style={{ fontSize: 13.5, fontWeight: 600, color: hov ? TP : "rgba(229,231,235,0.85)", letterSpacing: "-0.01em" }}>{a.name}</div>
+        <div style={{ fontSize: 11, color: a.c, fontWeight: 600 }}>{a.role}</div>
       </div>
 
       {/* Activity */}
@@ -860,40 +727,51 @@ function AgentListRow({ a, tick, delay, onAsk }: {
         <LiveAct slug={a.slug} tick={tick} working={mt.working} color={a.c} />
       </div>
 
-      {/* Metrics */}
+      {/* Sparkline */}
+      <div style={{ flexShrink: 0 }}>
+        <Spark color={a.c} data={sd} w={80} h={28} />
+      </div>
+
+      {/* Stats */}
       <div style={{ display: "flex", gap: 24, flexShrink: 0 }}>
         {[
-          { v: mt.done,             l: "задач" },
-          { v: `${mt.success}%`,    l: "успех" },
-          { v: `${a.confidence}%`,  l: "conf" },
+          { v: mt.done,            l: "задач" },
+          { v: `${mt.success}%`,   l: "успех" },
+          { v: `${a.confidence}%`, l: "конф" },
         ].map((m, i) => (
           <div key={i} style={{ textAlign: "right", minWidth: 40 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: a.c, fontVariantNumeric: "tabular-nums" }}>{m.v}</div>
+            <div style={{ fontSize: 13, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{m.v}</div>
             <div style={{ fontSize: 9, color: TM }}>{m.l}</div>
           </div>
         ))}
       </div>
 
-      {/* Status + ask */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, flexShrink: 0 }}>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 7,
-          fontSize: 9, fontWeight: 700, fontFamily: MONO, letterSpacing: "0.08em",
-          background: mt.working ? "rgba(16,185,129,0.1)" : SURF,
-          border: `1px solid ${mt.working ? "rgba(16,185,129,0.28)" : BORD}`,
-          color: mt.working ? "#10b981" : TM }}>
-          <span style={{ width: 4, height: 4, borderRadius: "50%", flexShrink: 0,
-            background: mt.working ? "#10b981" : "rgba(255,255,255,0.2)" }} />
-          {mt.working ? "ACTIVE" : "IDLE"}
-        </span>
+      {/* Status + actions */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+        <StatusBadge working={mt.working} />
         <AnimatePresence>
           {hov && (
             <motion.button initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.15 }}
+              exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.14 }}
               onClick={e => { e.stopPropagation(); onAsk(); }}
-              style={{ height: 30, padding: "0 12px", borderRadius: 8, fontSize: 11, fontWeight: 700,
-                cursor: "pointer", color: a.c, background: `${a.c}14`,
-                border: `1px solid ${a.c}40`, display: "flex", alignItems: "center", gap: 5 }}>
+              style={{ height: 32, padding: "0 14px", borderRadius: 8, fontSize: 11, fontWeight: 700,
+                cursor: "pointer", color: "#fff",
+                background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
+                display: "flex", alignItems: "center", gap: 5,
+                boxShadow: "0 3px 12px rgba(99,102,241,0.38)" }}>
               <MessageSquare size={10} /> Спросить
+            </motion.button>
+          )}
+        </AnimatePresence>
+        <AnimatePresence>
+          {hov && (
+            <motion.button initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }} transition={{ duration: 0.14, delay: 0.04 }}
+              onClick={e => { e.stopPropagation(); onMeet(); }}
+              style={{ height: 32, padding: "0 12px", borderRadius: 8, fontSize: 11, fontWeight: 600,
+                cursor: "pointer", color: a.c, background: `${a.c}12`, border: `1px solid ${a.c}35`,
+                display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
+              <MessagesSquare size={10} /> Совещание
             </motion.button>
           )}
         </AnimatePresence>
@@ -907,18 +785,16 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
   const [q,       setQ]       = useState("");
   const [answer,  setAnswer]  = useState("");
   const [busy,    setBusy]    = useState(false);
-  const [offline, setOffline] = useState(false);
   const mt = metrics(agent.slug);
 
   const submit = useCallback(async () => {
     const question = q.trim(); if (!question || busy) return;
-    setBusy(true); setAnswer(""); setOffline(false);
-    const persona = `Ты — ${agent.name}, ${agent.title} в совете директоров Apex AI, специализация: ${agent.specialty}. Ответь как топ-менеджер: по делу, с конкретикой, 4–6 предложений. Без markdown.`;
+    setBusy(true); setAnswer("");
+    const persona = `Ты — ${agent.name}, ${agent.title}, специализация: ${agent.specialty}. Ответь как топ-менеджер: конкретно, 4–6 предложений. Без markdown.`;
     try {
       await streamChat(question, persona, t => setAnswer(prev => prev + t));
     } catch {
-      setOffline(true);
-      const fb = (agent.slug in FB ? FB[agent.slug] : undefined)
+      const fb = (agent.slug in FB ? FB[agent.slug as keyof typeof FB] : undefined)
         ?? "Готов помочь — опишите задачу подробнее. Живой анализ доступен после настройки ANTHROPIC_API_KEY.";
       for (const ch of fb) { setAnswer(prev => prev + ch); await new Promise(r => setTimeout(r, 6)); }
     }
@@ -928,17 +804,17 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
   return (
     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(5,6,10,0.78)",
-        backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(5,6,10,0.8)",
+        backdropFilter: "blur(10px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <motion.div onClick={e => e.stopPropagation()}
-        initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-        exit={{ opacity: 0, y: 12, scale: 0.97 }} transition={{ duration: 0.24, ease: EASE }}
+        initial={{ opacity: 0, y: 24, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.97 }} transition={{ duration: 0.25, ease: EASE }}
         style={{ position: "relative", width: "min(620px,100%)", maxHeight: "86vh", overflowY: "auto",
           borderRadius: 22, padding: 28, background: "#0a0c15",
           border: `1px solid ${agent.c}2e`,
-          boxShadow: `0 32px 80px rgba(0,0,0,0.65), 0 0 0 1px ${agent.c}16` }}>
+          boxShadow: `0 32px 80px rgba(0,0,0,0.65), 0 0 0 1px ${agent.c}14` }}>
 
-        {/* Accent bar */}
+        {/* Accent top bar */}
         <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, borderRadius: "22px 22px 0 0",
           background: `linear-gradient(90deg, transparent, ${agent.c}80, transparent)` }} />
 
@@ -946,7 +822,7 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
         <button onClick={onClose}
           style={{ position: "absolute", top: 18, right: 18, width: 32, height: 32, borderRadius: 9,
             display: "flex", alignItems: "center", justifyContent: "center",
-            background: SURF, border: `1px solid ${BORD}`, color: TS, cursor: "pointer", transition: "all 0.16s" }}
+            background: SURF, border: `1px solid ${BORD}`, color: TS, cursor: "pointer", transition: "all 0.15s" }}
           onMouseOver={e => { e.currentTarget.style.color = TP; e.currentTarget.style.borderColor = BORD_H; }}
           onMouseOut={e  => { e.currentTarget.style.color = TS; e.currentTarget.style.borderColor = BORD; }}>
           <X size={15} strokeWidth={2.2} />
@@ -963,17 +839,17 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 20, fontWeight: 800, color: TP, letterSpacing: "-0.02em" }}>{agent.name}</div>
-            <div style={{ fontSize: 12.5, color: TS, marginTop: 2 }}>{agent.title} · {agent.specialty}</div>
+            <div style={{ fontSize: 12, color: TS, marginTop: 2 }}>{agent.title} · {agent.specialty}</div>
           </div>
           <ConfArc value={agent.confidence} color={agent.c} size={52} />
         </div>
 
         {/* Stats */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 22 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 20 }}>
           {[
-            { v: mt.done,              l: "Задач закрыто" },
-            { v: `${mt.success}%`,     l: "Успешность" },
-            { v: `${mt.streak} дней`,  l: "Серия" },
+            { v: mt.done,             l: "Задач" },
+            { v: `${mt.success}%`,    l: "Успех" },
+            { v: `${mt.streak} дней`, l: "Серия" },
           ].map((s, i) => (
             <div key={i} style={{ padding: "12px 14px", borderRadius: 12, background: SURF, border: `1px solid ${BORD}` }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: agent.c, fontVariantNumeric: "tabular-nums" }}>{s.v}</div>
@@ -1003,7 +879,7 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
             {busy
               ? <span style={{ display: "inline-flex", gap: 3 }}>
                   {[0,1,2].map(d => <span key={d} style={{ width: 4, height: 4, borderRadius: "50%", background: "#fff",
-                    animation: `ap-think 1s ease-in-out ${d*0.15}s infinite` }} />)}
+                    animation: `ec-think 1s ease-in-out ${d*0.15}s infinite` }} />)}
                 </span>
               : <CornerDownLeft size={16} strokeWidth={2.4} />}
           </button>
@@ -1023,19 +899,18 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
                 </div>
                 <span style={{ fontSize: 10, fontWeight: 700, color: agent.c,
                   letterSpacing: "0.1em", fontFamily: MONO }}>{agent.name.toUpperCase()}</span>
+                {busy && (
+                  <span style={{ display: "inline-flex", gap: 3, marginLeft: 4 }}>
+                    {[0,1,2].map(d => <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: agent.c,
+                      animation: `ec-think 1.1s ease-in-out ${d*0.16}s infinite` }} />)}
+                  </span>
+                )}
               </div>
-              <p style={{ fontSize: 13.5, lineHeight: 1.7, color: "rgba(229,231,235,0.85)",
+              <p style={{ fontSize: 13.5, lineHeight: 1.75, color: "rgba(229,231,235,0.85)",
                 margin: 0, whiteSpace: "pre-wrap" }}>
                 {answer}
-                {busy && <span style={{ display: "inline-block", width: 7, height: 14, marginLeft: 2,
-                  borderRadius: 1, background: agent.c, verticalAlign: "text-bottom",
-                  animation: "ap-caret 1s step-end infinite" }} />}
+                {busy && <span style={{ animation: "ec-caret 0.8s step-end infinite", borderRight: `2px solid ${agent.c}`, marginLeft: 2 }}>&nbsp;</span>}
               </p>
-              {offline && !busy && (
-                <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 10, color: "rgba(251,191,36,0.65)" }}>
-                  Демо-ответ · настройте ANTHROPIC_API_KEY для живого AI
-                </div>
-              )}
             </motion.div>
           )}
         </AnimatePresence>
