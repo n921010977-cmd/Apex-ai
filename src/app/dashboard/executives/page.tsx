@@ -3,14 +3,29 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
-import { CornerDownLeft, X, Crown, Zap, Search } from "lucide-react";
+import {
+  CornerDownLeft, X, Crown, Trophy, TrendingUp, Flame,
+  MessageSquare, MessagesSquare, Users, Search, Zap, Activity,
+  CheckCircle, Star,
+} from "lucide-react";
 import { streamChat } from "@/lib/stream-chat";
 import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/team";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-const MONO = "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace";
 
-// ─── Data ─────────────────────────────────────────────────────────────────────
+// ─── Design tokens (matches dashboard) ───────────────────────────────────────
+const BG      = "#05060A";
+const SURFACE = "rgba(255,255,255,0.025)";
+const BORDER  = "rgba(255,255,255,0.07)";
+const BORDER_H = "rgba(255,255,255,0.13)";
+const TEXT_P  = "#E5E7EB";
+const TEXT_S  = "rgba(255,255,255,0.5)";
+const TEXT_M  = "rgba(255,255,255,0.3)";
+const SHADOW  = "0 1px 2px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.045)";
+const SHADOW_H = "0 4px 20px rgba(0,0,0,0.5), 0 24px 60px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.07)";
+const MONO    = "var(--font-geist-mono), ui-monospace, monospace";
+
+// ─── Agent data ───────────────────────────────────────────────────────────────
 const CHAR: Record<string, { specialty: string; confidence: number }> = {
   ceo:      { specialty: "Стратегия & Видение",       confidence: 96 },
   cfo:      { specialty: "Финансы & Модели",          confidence: 93 },
@@ -65,12 +80,8 @@ const FB: Record<string, string> = {
 };
 
 const DEPT_LABELS: Record<string, string> = {
-  leadership: "LEADERSHIP",
-  finance:    "FINANCE",
-  marketing:  "MARKETING",
-  operations: "OPERATIONS",
-  tech:       "TECHNOLOGY",
-  product:    "PRODUCT",
+  leadership: "Leadership", finance: "Finance", marketing: "Marketing",
+  operations: "Operations", tech: "Technology", product: "Product",
 };
 
 function hashOf(s: string): number {
@@ -80,12 +91,11 @@ function metrics(slug: string) {
   const h = hashOf(slug);
   return { done: 24 + (h % 76), success: 88 + (h % 11), streak: 3 + (h % 12), working: h % 10 < 7, load: 35 + (h % 58) };
 }
-function pid(slug: string): string {
-  return "0x" + hashOf(slug).toString(16).toUpperCase().padStart(4, "0").slice(0, 4);
-}
-function loadBar(pct: number): string {
-  const filled = Math.round(pct / 10);
-  return "█".repeat(filled) + "░".repeat(10 - filled);
+function spark(seed: string): number[] {
+  let h = hashOf(seed) % 1000;
+  const out: number[] = []; let v = 30 + (h % 20);
+  for (let i = 0; i < 9; i++) { v += ((h >> i) % 7) - 2 + i; out.push(Math.max(8, Math.min(96, v))); h = (h * 1103515245 + 12345) & 0x7fffffff; }
+  return out;
 }
 
 type AgentFull = TeamMember & { specialty: string; confidence: number };
@@ -102,22 +112,16 @@ const TOTALS = (() => {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default function BoardPage() {
-  const router   = useRouter();
+  const router = useRouter();
   const [ask,    setAsk]    = useState<AgentFull | null>(null);
   const [tick,   setTick]   = useState(0);
   const [search, setSearch] = useState("");
-  const [dept,   setDept]   = useState<string>("all");
-  const [booted, setBooted] = useState(false);
+  const [dept,   setDept]   = useState("all");
   const reduce = useReducedMotion();
 
   const goMeeting = useCallback((slug: string) => {
     router.push(`/dashboard/chat/local-${Date.now()}?agent=${slug}`);
   }, [router]);
-
-  useEffect(() => {
-    const t = setTimeout(() => setBooted(true), 600);
-    return () => clearTimeout(t);
-  }, []);
 
   useEffect(() => {
     if (reduce) return;
@@ -126,7 +130,7 @@ export default function BoardPage() {
   }, [reduce]);
 
   const ceo  = byslug("ceo");
-  const dirs = C_LEVEL.filter(m => m.slug !== "ceo");
+  const dirs  = C_LEVEL.filter(m => m.slug !== "ceo");
   const depts = ["all", ...Array.from(new Set(dirs.map(d => d.dept)))];
 
   const filteredDirs = dirs.filter(d => {
@@ -140,113 +144,95 @@ export default function BoardPage() {
   });
 
   return (
-    <div style={{ background: "#020507", minHeight: "100%", fontFamily: MONO, position: "relative", overflow: "hidden" }}>
+    <div style={{ background: BG, minHeight: "100%", position: "relative", overflow: "hidden" }}>
+      {/* Ambient radial */}
+      <div aria-hidden style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
+        width: 1000, height: 500, pointerEvents: "none",
+        background: "radial-gradient(ellipse 60% 50% at 50% 0%, rgba(99,102,241,0.09), transparent 70%)" }} />
 
-      {/* Scanline overlay */}
-      <div aria-hidden style={{
-        position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0,
-        background: "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px)",
-      }} />
+      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "40px 28px 80px", position: "relative" }}>
 
-      {/* Subtle scanline sweep */}
-      <div aria-hidden style={{
-        position: "fixed", left: 0, right: 0, height: 3, zIndex: 1, pointerEvents: "none",
-        background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.15), transparent)",
-        animation: "term-scan 8s linear infinite",
-      }} />
-
-      <div style={{ maxWidth: 1200, margin: "0 auto", padding: "32px 24px 80px", position: "relative", zIndex: 2 }}>
-
-        {/* ── Terminal header ── */}
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}
-          style={{ marginBottom: 32 }}>
-          <div style={{ color: "rgba(16,185,129,0.5)", fontSize: 11, letterSpacing: "0.1em", marginBottom: 8 }}>
-            apex@board:~$ ps aux --filter=agents --all
+        {/* ── Header ── */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: EASE }} style={{ marginBottom: 36 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 7, padding: "4px 12px", borderRadius: 999,
+              background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.18)" }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981",
+                animation: "board-pulse 2s ease-in-out infinite" }} />
+              <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, color: "#10b981", letterSpacing: "0.14em" }}>
+                РАБОТАЕТ · LIVE
+              </span>
+            </div>
           </div>
-          <div style={{ display: "flex", alignItems: "baseline", gap: 16, flexWrap: "wrap" }}>
-            <h1 style={{ fontSize: "clamp(20px,3vw,28px)", fontWeight: 700, color: "#10b981", letterSpacing: "0.04em", margin: 0, lineHeight: 1 }}>
-              APEX EXECUTIVE BOARD
-            </h1>
-            <span style={{ fontSize: 12, color: "rgba(16,185,129,0.5)" }}>v2.0 · {TEAM.length} процессов</span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, color: "#10b981", padding: "3px 10px",
-              border: "1px solid rgba(16,185,129,0.3)", background: "rgba(16,185,129,0.06)", letterSpacing: "0.12em" }}>
-              <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981", animation: "term-blink 1.4s ease-in-out infinite" }} />
-              ALL SYSTEMS OPERATIONAL
-            </span>
-          </div>
-          <div style={{ marginTop: 8, fontSize: 11, color: "rgba(16,185,129,0.35)" }}>
-            {`USER=apex  UPTIME=99.97%  THREADS=${TEAM.length}  ACTIVE=${TOTALS.working}  IDLE=${TEAM.length - TOTALS.working}`}
-          </div>
+          <h1 style={{ fontSize: "clamp(26px,3.5vw,38px)", fontWeight: 800, color: TEXT_P,
+            letterSpacing: "-0.03em", lineHeight: 1.1, marginBottom: 8 }}>
+            Исполнительный совет
+          </h1>
+          <p style={{ fontSize: 14, color: TEXT_S, lineHeight: 1.65, maxWidth: 520 }}>
+            {TEAM.length} AI-агентов вашей компании — кто чем занят прямо сейчас, метрики и прямой доступ к каждому директору.
+          </p>
         </motion.div>
 
-        {/* ── KPI row ── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.4, ease: EASE }}
-          style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 1, marginBottom: 32,
-            border: "1px solid rgba(16,185,129,0.2)", background: "rgba(16,185,129,0.08)" }}>
+        {/* ── KPI chips ── */}
+        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1, duration: 0.5, ease: EASE }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 12, marginBottom: 36 }}>
           {[
-            { label: "TOTAL_AGENTS",   value: TEAM.length,               suffix: "" },
-            { label: "ACTIVE_NOW",     value: TOTALS.working,            suffix: "" },
-            { label: "TASKS_MONTH",    value: TOTALS.done,               suffix: "" },
-            { label: "AVG_SUCCESS",    value: Math.round(TOTALS.success),suffix: "%" },
-          ].map((k, i) => <KpiCell key={k.label} {...k} delay={i * 0.06} />)}
+            { icon: Users,      label: "Агентов в совете",  value: TEAM.length,               suffix: "",  color: "#818cf8" },
+            { icon: Activity,   label: "Работают сейчас",   value: TOTALS.working,            suffix: "",  color: "#10b981" },
+            { icon: CheckCircle,label: "Задач · месяц",     value: TOTALS.done,               suffix: "",  color: "#f59e0b" },
+            { icon: Star,       label: "Средняя успешность",value: Math.round(TOTALS.success),suffix: "%", color: "#0ea5e9" },
+          ].map((k, i) => <KpiChip key={k.label} {...k} delay={i * 0.06} />)}
         </motion.div>
 
-        {/* ── CEO panel ── */}
-        <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.5, ease: EASE }}
-          style={{ marginBottom: 28 }}>
-          <div style={{ fontSize: 10, color: "rgba(16,185,129,0.45)", letterSpacing: "0.12em", marginBottom: 8 }}>
-            {`// ── [ROOT] CHIEF EXECUTIVE OFFICER ─────────────────────────────`}
-          </div>
-          <CeoRow a={ceo} tick={tick} onAsk={() => setAsk(ceo)} onMeet={() => goMeeting("ceo")} reduce={!!reduce} booted={booted} />
+        {/* ── CEO ── */}
+        <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.18, duration: 0.55, ease: EASE }} style={{ marginBottom: 40 }}>
+          <SectionLabel icon={<Crown size={11} />} text="ГЛАВНЫЙ ДИРЕКТОР" />
+          <CeoCard a={ceo} tick={tick} onAsk={() => setAsk(ceo)} onMeet={() => goMeeting("ceo")} reduce={!!reduce} />
         </motion.div>
 
         {/* ── Search + Filter ── */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3, duration: 0.4, ease: EASE }}
-          style={{ marginBottom: 24 }}>
-          <div style={{ fontSize: 10, color: "rgba(16,185,129,0.45)", marginBottom: 8 }}>
-            apex@board:~$ grep -i <span style={{ color: "#10b981" }}>&quot;{search || "..."}&quot;</span> agents.db --dept=<span style={{ color: "#10b981" }}>{dept}</span>
+        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.26, duration: 0.45, ease: EASE }}
+          style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 28, flexWrap: "wrap" }}>
+          <div style={{ position: "relative", flex: "1 1 200px", minWidth: 200 }}>
+            <Search size={14} style={{ position: "absolute", left: 13, top: "50%", transform: "translateY(-50%)",
+              color: TEXT_M, pointerEvents: "none" }} />
+            <input value={search} onChange={e => setSearch(e.target.value)}
+              placeholder="Поиск агентов…"
+              style={{ width: "100%", height: 40, paddingLeft: 38, paddingRight: 14, borderRadius: 12,
+                background: "rgba(255,255,255,0.035)", border: `1px solid ${BORDER}`,
+                color: TEXT_P, fontSize: 13, outline: "none", boxSizing: "border-box",
+                transition: "border-color 0.15s, box-shadow 0.15s" }}
+              onFocus={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; }}
+              onBlur={e  => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }} />
           </div>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-            <div style={{ position: "relative", flex: "1 1 200px", minWidth: 180 }}>
-              <span style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "rgba(16,185,129,0.5)", fontSize: 12, pointerEvents: "none" }}>$</span>
-              <Search size={12} style={{ position: "absolute", left: 26, top: "50%", transform: "translateY(-50%)", color: "rgba(16,185,129,0.4)", pointerEvents: "none" }} />
-              <input
-                value={search} onChange={e => setSearch(e.target.value)}
-                placeholder="поиск агентов…"
-                style={{ width: "100%", height: 38, paddingLeft: 44, paddingRight: 14,
-                  background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.2)",
-                  color: "#a7f3d0", fontSize: 12, outline: "none", fontFamily: MONO, boxSizing: "border-box",
-                  transition: "border-color 0.15s" }}
-                onFocus={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.55)"; }}
-                onBlur={e  => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.2)"; }}
-              />
-            </div>
-            <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
-              {depts.map(d => (
-                <button key={d} onClick={() => setDept(d)}
-                  style={{ height: 34, padding: "0 12px", fontSize: 10, fontWeight: 700, cursor: "pointer", fontFamily: MONO, letterSpacing: "0.1em",
-                    transition: "all 0.15s",
-                    ...(dept === d
-                      ? { background: "rgba(16,185,129,0.18)", color: "#10b981", border: "1px solid rgba(16,185,129,0.45)" }
-                      : { background: "transparent", color: "rgba(16,185,129,0.4)", border: "1px solid rgba(16,185,129,0.15)" })
-                  }}>
-                  [{d === "all" ? "ALL" : (DEPT_LABELS[d] ?? d.toUpperCase())}]
-                </button>
-              ))}
-            </div>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+            {depts.map(d => (
+              <button key={d} onClick={() => setDept(d)}
+                style={{ height: 36, padding: "0 14px", borderRadius: 10, fontSize: 12, fontWeight: 600,
+                  cursor: "pointer", transition: "all 0.18s",
+                  ...(dept === d
+                    ? { background: "rgba(99,102,241,0.18)", color: "#a5b4fc", border: "1px solid rgba(99,102,241,0.35)" }
+                    : { background: "rgba(255,255,255,0.035)", color: TEXT_S, border: `1px solid ${BORDER}` }) }}>
+                {d === "all" ? "Все отделы" : DEPT_LABELS[d] ?? d}
+              </button>
+            ))}
           </div>
         </motion.div>
 
-        {/* ── Director + agent sections ── */}
+        {/* ── Departments ── */}
         <AnimatePresence mode="wait">
-          <motion.div key={dept + search} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.18 }}>
+          <motion.div key={dept + search} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
             {filteredDirs.length === 0 ? (
-              <div style={{ padding: "40px 0", color: "rgba(16,185,129,0.35)", fontSize: 12, letterSpacing: "0.08em" }}>
-                grep: no matches found
-              </div>
+              <div style={{ textAlign: "center", padding: "60px 0", color: TEXT_M, fontSize: 14 }}>Агенты не найдены</div>
             ) : filteredDirs.map((d, di) => {
               const director = byslug(d.slug);
-              const team = reportsOf(d.slug).filter(m => m.tier === "specialist").map(m => byslug(m.slug))
+              const team = reportsOf(d.slug)
+                .filter(m => m.tier === "specialist")
+                .map(m => byslug(m.slug))
                 .filter(a => !search
                   || a.name.toLowerCase().includes(search.toLowerCase())
                   || a.specialty.toLowerCase().includes(search.toLowerCase())
@@ -255,39 +241,24 @@ export default function BoardPage() {
               if (dept !== "all" && team.length === 0 && !director.name.toLowerCase().includes(search.toLowerCase())) return null;
 
               return (
-                <motion.div key={d.slug} style={{ marginBottom: 32 }}
-                  initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.4, ease: EASE, delay: di * 0.07 }}>
+                <motion.div key={d.slug} style={{ marginBottom: 40 }}
+                  initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.45, ease: EASE, delay: di * 0.07 }}>
 
-                  {/* Department header line */}
-                  <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10, fontSize: 10, color: "rgba(16,185,129,0.45)", letterSpacing: "0.12em" }}>
-                    <span>{`// ── [DEPT] ${DEPT_LABELS[director.dept] ?? director.dept.toUpperCase()} · ${team.length + 1} AGENTS`}</span>
-                    <div style={{ flex: 1, height: 1, background: "rgba(16,185,129,0.12)" }} />
-                  </div>
+                  <SectionLabel
+                    icon={<Users size={11} />}
+                    text={`ОТДЕЛ · ${director.role} · ${team.length + 1} УЧ.`}
+                    color={director.c}
+                  />
 
-                  {/* Director row */}
-                  <DirectorRow a={director} teamCount={team.length} tick={tick} delay={di * 0.05}
+                  <DirectorCard a={director} teamCount={team.length} tick={tick} delay={di * 0.04}
                     onAsk={() => setAsk(director)} onMeet={() => goMeeting(director.slug)} reduce={!!reduce} />
 
-                  {/* Agents table */}
                   {team.length > 0 && (
-                    <div style={{ marginTop: 4, border: "1px solid rgba(16,185,129,0.1)", borderTop: "none" }}>
-                      {/* Table header */}
-                      <div style={{ display: "grid", gridTemplateColumns: "80px 1fr 200px 60px 60px 60px 80px",
-                        padding: "6px 16px", background: "rgba(16,185,129,0.04)",
-                        borderBottom: "1px solid rgba(16,185,129,0.1)",
-                        fontSize: 9, color: "rgba(16,185,129,0.4)", letterSpacing: "0.12em" }}>
-                        <span>PID</span>
-                        <span>NAME / SPECIALTY</span>
-                        <span>STATUS</span>
-                        <span style={{ textAlign: "right" }}>TASKS</span>
-                        <span style={{ textAlign: "right" }}>SUCC%</span>
-                        <span style={{ textAlign: "right" }}>CONF%</span>
-                        <span style={{ textAlign: "right" }}>CMD</span>
-                      </div>
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(232px, 1fr))", gap: 10, marginTop: 10 }}>
                       {team.map((a, i) => (
-                        <AgentRow key={a.slug} a={a} tick={tick} delay={di * 0.05 + i * 0.04}
-                          onAsk={() => setAsk(a)} isLast={i === team.length - 1} />
+                        <AgentCard key={a.slug} a={a} lead={director} tick={tick}
+                          delay={di * 0.04 + (i + 1) * 0.05} onAsk={() => setAsk(a)} reduce={!!reduce} />
                       ))}
                     </div>
                   )}
@@ -296,30 +267,43 @@ export default function BoardPage() {
             })}
           </motion.div>
         </AnimatePresence>
-
-        {/* Footer */}
-        <div style={{ marginTop: 40, fontSize: 10, color: "rgba(16,185,129,0.25)", letterSpacing: "0.1em" }}>
-          apex@board:~$ █
-        </div>
       </div>
 
       <AnimatePresence>{ask && <AskModal agent={ask} onClose={() => setAsk(null)} />}</AnimatePresence>
 
       <style>{`
-        @keyframes term-scan { from { top: -4px; } to { top: 100vh; } }
-        @keyframes term-blink { 0%,100%{opacity:1} 50%{opacity:0.15} }
-        @keyframes term-think { 0%,100%{opacity:.2} 50%{opacity:1} }
-        @keyframes term-caret { 50%{opacity:0} }
-        @media (prefers-reduced-motion:reduce) { * { animation-duration: 0.01ms !important; } }
-        ::placeholder { color: rgba(16,185,129,0.25); font-family: ${MONO}; }
-        ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: rgba(16,185,129,0.2); }
+        @keyframes board-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.55)} }
+        @keyframes board-think { 0%,100%{opacity:.2;transform:translateY(0)} 50%{opacity:1;transform:translateY(-2.5px)} }
+        @keyframes board-caret { 50%{opacity:0} }
+        @keyframes board-spin  { to{transform:rotate(360deg)} }
+        @media (prefers-reduced-motion:reduce) { * { animation-duration:0.01ms!important } }
+        ::placeholder { color: ${TEXT_M}; }
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 2px; }
       `}</style>
     </div>
   );
 }
 
-// ─── KPI cell ─────────────────────────────────────────────────────────────────
-function KpiCell({ label, value, suffix, delay }: { label: string; value: number; suffix: string; delay: number }) {
+// ─── Section label ────────────────────────────────────────────────────────────
+function SectionLabel({ icon, text, color = "rgba(99,102,241,0.8)" }: { icon: React.ReactNode; text: string; color?: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+      <div style={{ width: 22, height: 22, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center",
+        flexShrink: 0, color, background: `${color}16`, border: `1px solid ${color}40` }}>
+        {icon}
+      </div>
+      <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.15em",
+        color: TEXT_M, whiteSpace: "nowrap" }}>{text}</span>
+      <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BORDER}, transparent)` }} />
+    </div>
+  );
+}
+
+// ─── KPI chip ─────────────────────────────────────────────────────────────────
+function KpiChip({ icon: Icon, label, value, suffix, color, delay }: {
+  icon: React.ElementType; label: string; value: number; suffix: string; color: string; delay: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true });
   const [v, setV] = useState(0);
@@ -327,7 +311,7 @@ function KpiCell({ label, value, suffix, delay }: { label: string; value: number
 
   useEffect(() => {
     if (!inView) return;
-    let raf = 0; const t0 = performance.now(); const dur = 1000;
+    let raf = 0; const t0 = performance.now(); const dur = 1200;
     const step = (ts: number) => {
       const p = Math.min(1, (ts - t0) / dur);
       setV(Math.round(value * (1 - Math.pow(1 - p, 3))));
@@ -340,319 +324,373 @@ function KpiCell({ label, value, suffix, delay }: { label: string; value: number
   return (
     <motion.div ref={ref}
       onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.4, delay }}
-      style={{ padding: "16px 20px", cursor: "default", transition: "background 0.18s",
-        background: hov ? "rgba(16,185,129,0.1)" : "transparent",
-        borderRight: "1px solid rgba(16,185,129,0.15)" }}>
-      <div style={{ fontSize: 9, color: "rgba(16,185,129,0.45)", letterSpacing: "0.14em", marginBottom: 8 }}>{label}</div>
-      <div style={{ fontSize: 26, fontWeight: 700, color: "#10b981", letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>
-        {v}{suffix}
+      initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: EASE, delay }}
+      style={{ padding: "18px 20px", borderRadius: 16, cursor: "default",
+        background: hov ? `${color}0f` : SURFACE,
+        border: `1px solid ${hov ? `${color}40` : BORDER}`,
+        boxShadow: hov ? `0 8px 32px rgba(0,0,0,0.3), 0 0 0 1px ${color}18` : SHADOW,
+        transform: hov ? "translateY(-3px)" : "translateY(0)", transition: "all 0.22s" }}>
+      <div style={{ width: 32, height: 32, borderRadius: 10, display: "flex", alignItems: "center", justifyContent: "center",
+        background: `${color}18`, border: `1px solid ${color}28`, marginBottom: 10,
+        transition: "transform 0.22s", transform: hov ? "scale(1.1)" : "scale(1)" }}>
+        <Icon size={14} style={{ color }} />
       </div>
+      <div style={{ fontSize: 26, fontWeight: 800, color, letterSpacing: "-0.02em",
+        fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{v}{suffix}</div>
+      <div style={{ fontSize: 11, color: TEXT_M, marginTop: 5 }}>{label}</div>
     </motion.div>
   );
 }
 
-// ─── CEO row ──────────────────────────────────────────────────────────────────
-function CeoRow({ a, tick, onAsk, onMeet, reduce, booted }: {
-  a: AgentFull; tick: number; onAsk: () => void; onMeet: () => void; reduce: boolean; booted: boolean;
+// ─── CEO card ─────────────────────────────────────────────────────────────────
+function CeoCard({ a, tick, onAsk, onMeet, reduce }: {
+  a: AgentFull; tick: number; onAsk: () => void; onMeet: () => void; reduce: boolean;
 }) {
   const mt = metrics(a.slug);
   const [hov, setHov] = useState(false);
   const act = (ACT[a.slug] ?? ["Работает над задачей"])[tick % 3];
 
   return (
-    <motion.div
-      onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
+    <motion.div onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
+      animate={{ y: hov ? -4 : 0 }} transition={{ duration: 0.28, ease: EASE }}
       onClick={onAsk}
-      style={{ position: "relative", cursor: "pointer", overflow: "hidden",
-        border: "1px solid rgba(16,185,129,0.3)",
-        background: hov ? "rgba(16,185,129,0.07)" : "rgba(16,185,129,0.03)",
-        transition: "background 0.18s, border-color 0.18s",
-        ...(hov ? { borderColor: "rgba(16,185,129,0.55)" } : {}) }}>
+      style={{ position: "relative", overflow: "hidden", borderRadius: 22, cursor: "pointer",
+        background: "linear-gradient(145deg, rgba(99,102,241,0.12), rgba(255,255,255,0.025) 65%)",
+        border: `1px solid ${hov ? "rgba(99,102,241,0.45)" : "rgba(99,102,241,0.25)"}`,
+        boxShadow: hov
+          ? "0 24px 64px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.09)"
+          : "0 12px 40px rgba(99,102,241,0.09), inset 0 1px 0 rgba(255,255,255,0.06)",
+        transition: "border-color 0.25s, box-shadow 0.25s" }}>
 
-      {/* Top accent bar */}
-      <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.6) 40%, rgba(251,191,36,0.4) 70%, transparent)" }} />
+      {/* Shimmer top border */}
+      <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1,
+        background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.55) 30%, rgba(99,102,241,0.6) 65%, transparent)" }} />
+      {/* Ambient orb */}
+      <div aria-hidden style={{ position: "absolute", top: -50, left: -30, width: 260, height: 260,
+        borderRadius: "50%", pointerEvents: "none",
+        background: "radial-gradient(circle, rgba(99,102,241,0.18), transparent 70%)" }} />
 
-      {/* Title bar */}
-      <div style={{ display: "flex", alignItems: "center", gap: 16, padding: "8px 16px",
-        borderBottom: "1px solid rgba(16,185,129,0.1)", background: "rgba(16,185,129,0.04)" }}>
-        <span style={{ fontSize: 9, color: "rgba(16,185,129,0.5)", letterSpacing: "0.14em" }}>PID:{pid(a.slug)}</span>
-        <span style={{ fontSize: 9, color: "#fbbf24", letterSpacing: "0.12em" }}>USER:ROOT</span>
-        <span style={{ fontSize: 9, color: "rgba(16,185,129,0.5)" }}>DEPT:LEADERSHIP</span>
-        <div style={{ flex: 1 }} />
-        <Crown size={10} style={{ color: "#fbbf24" }} />
-        <span style={{ fontSize: 9, color: "#fbbf24", letterSpacing: "0.1em" }}>CHIEF EXECUTIVE</span>
-      </div>
-
-      {/* Main row */}
-      <div style={{ display: "flex", alignItems: "center", gap: 24, padding: "20px 16px", flexWrap: "wrap" }}>
-
+      <div style={{ display: "flex", alignItems: "center", gap: 28, padding: "28px 32px", flexWrap: "wrap" }}>
         {/* Avatar */}
         <div style={{ position: "relative", flexShrink: 0 }}>
           <motion.div
-            animate={reduce ? undefined : { y: [0, -4, 0] }}
-            transition={reduce ? undefined : { duration: 5, repeat: Infinity, ease: "easeInOut" }}
-            style={{ width: 64, height: 64, display: "flex", alignItems: "center", justifyContent: "center",
-              border: "2px solid rgba(251,191,36,0.5)", background: "rgba(16,185,129,0.08)",
-              fontSize: 18, fontWeight: 800, color: "#10b981", letterSpacing: "0.04em",
-              boxShadow: "0 0 24px rgba(16,185,129,0.15), inset 0 0 12px rgba(16,185,129,0.05)" }}>
+            animate={reduce ? undefined : { y: [0, -5, 0] }}
+            transition={reduce ? undefined : { duration: 4.5, repeat: Infinity, ease: "easeInOut" }}
+            style={{ width: 84, height: 84, borderRadius: 24, display: "flex", alignItems: "center",
+              justifyContent: "center", background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
+              color: "#fff", fontSize: 24, fontWeight: 800, fontFamily: MONO,
+              boxShadow: "0 16px 44px rgba(99,102,241,0.4), inset 0 2px 0 rgba(255,255,255,0.25)" }}>
             {a.ab}
           </motion.div>
-          {/* Status dot */}
-          <span style={{ position: "absolute", bottom: 2, right: 2, width: 8, height: 8, borderRadius: "50%",
-            background: "#10b981", border: "2px solid #020507", animation: "term-blink 2s ease-in-out infinite" }} />
+          <div style={{ position: "absolute", top: -10, right: -10, width: 28, height: 28, borderRadius: "50%",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "linear-gradient(135deg,#fbbf24,#d97706)", border: "2px solid #05060A",
+            boxShadow: "0 4px 14px rgba(245,158,11,0.5)", color: "#0b0800" }}>
+            <Crown size={12} strokeWidth={2.5} />
+          </div>
         </div>
 
-        {/* Core info */}
+        {/* Info */}
         <div style={{ flex: 1, minWidth: 220 }}>
-          <div style={{ fontSize: 18, fontWeight: 700, color: "#a7f3d0", letterSpacing: "0.02em", marginBottom: 3 }}>{a.name}</div>
-          <div style={{ fontSize: 11, color: "rgba(16,185,129,0.55)", marginBottom: 10 }}>{a.specialty}</div>
-
-          {/* Live status */}
-          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
-            <span style={{ display: "inline-flex", gap: 3 }}>
-              {[0,1,2].map(d => (
-                <span key={d} style={{ width: 3.5, height: 3.5, borderRadius: "50%", background: "#10b981",
-                  animation: `term-think 1.1s ease-in-out ${d * 0.2}s infinite` }} />
-              ))}
-            </span>
-            <AnimatePresence mode="wait">
-              <motion.span key={act}
-                initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 6 }}
-                transition={{ duration: 0.22 }}
-                style={{ fontSize: 11, color: "rgba(16,185,129,0.75)" }}>
-                {`> ${act}`}
-              </motion.span>
-            </AnimatePresence>
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 5 }}>
+            <span style={{ fontSize: 22, fontWeight: 800, color: TEXT_P, letterSpacing: "-0.02em" }}>{a.name}</span>
+            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.14em",
+              padding: "3px 9px", borderRadius: 7, color: "#fbbf24",
+              border: "1px solid rgba(251,191,36,0.35)", background: "rgba(251,191,36,0.08)" }}>CHIEF</span>
           </div>
+          <div style={{ fontSize: 13, color: TEXT_S, marginBottom: 14 }}>{a.title} · {a.specialty}</div>
 
-          {/* Metrics row */}
-          <div style={{ display: "flex", gap: 20, fontSize: 11, color: "rgba(16,185,129,0.5)", fontVariantNumeric: "tabular-nums" }}>
-            <span>TASKS:<b style={{ color: "#10b981" }}>{mt.done}</b></span>
-            <span>SUCCESS:<b style={{ color: "#10b981" }}>{mt.success}%</b></span>
-            <span>STREAK:<b style={{ color: "#10b981" }}>{mt.streak}d</b></span>
-            <span>CONF:<b style={{ color: "#fbbf24" }}>{a.confidence}%</b></span>
+          {/* Live activity */}
+          <LiveActivity act={act} working color={a.c} />
+
+          {/* Badge row */}
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 14 }}>
+            {[
+              { icon: Trophy,     label: `${mt.done} задач` },
+              { icon: TrendingUp, label: `${mt.success}% успех` },
+              { icon: Flame,      label: `Серия ${mt.streak} дней` },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 11,
+                fontWeight: 600, color: TEXT_S, background: "rgba(255,255,255,0.04)",
+                border: `1px solid ${BORDER}`, borderRadius: 9, padding: "5px 10px" }}>
+                <Icon size={10} style={{ color: "#f59e0b" }} />{label}
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Load + actions */}
-        <div style={{ flexShrink: 0, minWidth: 220 }}>
-          <div style={{ marginBottom: 12 }}>
-            <div style={{ fontSize: 9, color: "rgba(16,185,129,0.4)", letterSpacing: "0.1em", marginBottom: 4 }}>
-              CPU_LOAD  {mt.load}%
+        {/* Right: confidence + sparkline + actions */}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 10, flexShrink: 0 }}>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ fontSize: 34, fontWeight: 800, color: a.c, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}>
+              {a.confidence}%
             </div>
-            <div style={{ fontSize: 11, color: "#10b981", letterSpacing: "0.05em", fontVariantNumeric: "tabular-nums" }}>
-              [{loadBar(mt.load)}] {mt.load}%
-            </div>
+            <div style={{ fontSize: 10, color: TEXT_M, marginTop: 3 }}>Уверенность AI</div>
           </div>
-
-          {/* Boot sequence text */}
-          {booted && (
-            <div style={{ fontSize: 9, color: "rgba(16,185,129,0.3)", marginBottom: 14, lineHeight: 1.7 }}>
-              <div>STATUS: [<span style={{ color: "#10b981" }}>ACTIVE</span>]</div>
-              <div>UPTIME: 99.97% · SLA: GUARANTEED</div>
-            </div>
-          )}
-
-          <div style={{ display: "flex", gap: 8 }}>
-            <button onClick={e => { e.stopPropagation(); onAsk(); }}
-              style={{ height: 34, padding: "0 14px", fontSize: 10, fontWeight: 700, cursor: "pointer",
-                fontFamily: MONO, letterSpacing: "0.1em",
-                color: "#10b981", background: "transparent", border: "1px solid rgba(16,185,129,0.4)",
-                transition: "all 0.15s" }}
-              onMouseOver={e => { e.currentTarget.style.background = "rgba(16,185,129,0.12)"; e.currentTarget.style.borderColor = "rgba(16,185,129,0.7)"; }}
-              onMouseOut={e  => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(16,185,129,0.4)"; }}>
-              [ASK]
-            </button>
-            <button onClick={e => { e.stopPropagation(); onMeet(); }}
-              style={{ height: 34, padding: "0 14px", fontSize: 10, fontWeight: 700, cursor: "pointer",
-                fontFamily: MONO, letterSpacing: "0.1em",
-                color: "#020507", background: "#10b981", border: "1px solid #10b981",
-                transition: "all 0.15s" }}
-              onMouseOver={e => { e.currentTarget.style.background = "#34d399"; e.currentTarget.style.borderColor = "#34d399"; }}
-              onMouseOut={e  => { e.currentTarget.style.background = "#10b981"; e.currentTarget.style.borderColor = "#10b981"; }}>
-              [MEETING · ALL {TEAM.length - 1}]
-            </button>
+          <Sparkline color={a.c} data={spark(a.slug)} />
+          <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+            <ActionBtn label="Спросить" icon={MessageSquare} color={a.c} onClick={e => { e.stopPropagation(); onAsk(); }} />
+            <PrimaryBtn label={`Совещание · ${TEAM.length - 1}`} icon={MessagesSquare}
+              onClick={e => { e.stopPropagation(); onMeet(); }} />
           </div>
         </div>
       </div>
-
-      {/* Bottom border accent */}
-      <div style={{ height: 1, background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.3), transparent)" }} />
     </motion.div>
   );
 }
 
-// ─── Director row ─────────────────────────────────────────────────────────────
-function DirectorRow({ a, teamCount, tick, delay, onAsk, onMeet, reduce }: {
-  a: AgentFull; teamCount: number; tick: number; delay: number; onAsk: () => void; onMeet: () => void; reduce: boolean;
+// ─── Director card ────────────────────────────────────────────────────────────
+function DirectorCard({ a, teamCount, tick, delay, onAsk, onMeet, reduce }: {
+  a: AgentFull; teamCount: number; tick: number; delay: number;
+  onAsk: () => void; onMeet: () => void; reduce: boolean;
 }) {
   const mt = metrics(a.slug);
   const [hov, setHov] = useState(false);
-  const act = (ACT[a.slug] ?? ["Работает над задачей"])[tick % 3];
+  const act = (ACT[a.slug] ?? ["Работает"])[tick % 3];
 
   return (
-    <motion.div
-      onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
+    <motion.div onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
+      animate={{ y: hov ? -3 : 0 }} transition={{ duration: 0.26, ease: EASE }}
       onClick={onAsk}
-      initial={{ opacity: 0, x: -8 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-20px" }}
-      transition={{ duration: 0.4, ease: EASE, delay }}
-      style={{ display: "flex", alignItems: "center", gap: 0, cursor: "pointer",
-        border: "1px solid rgba(16,185,129,0.18)",
-        background: hov ? "rgba(16,185,129,0.07)" : "rgba(16,185,129,0.025)",
-        transition: "background 0.18s, border-color 0.18s",
-        ...(hov ? { borderColor: "rgba(16,185,129,0.4)" } : {}),
-        flexWrap: "wrap" }}>
+      style={{ display: "flex", alignItems: "center", gap: 20, padding: "20px 24px",
+        borderRadius: 18, cursor: "pointer", position: "relative", overflow: "hidden", flexWrap: "wrap",
+        background: hov ? `linear-gradient(145deg, ${a.c}16, rgba(255,255,255,0.04) 65%)` : `linear-gradient(145deg, ${a.c}0d, rgba(255,255,255,0.025) 65%)`,
+        border: `1px solid ${hov ? `${a.c}50` : `${a.c}28`}`,
+        boxShadow: hov ? `0 16px 44px rgba(0,0,0,0.3), 0 0 0 1px ${a.c}16, inset 0 1px 0 rgba(255,255,255,0.07)` : SHADOW,
+        transition: "all 0.24s" }}>
 
-      {/* Left accent bar with color */}
-      <div style={{ width: 3, alignSelf: "stretch", background: a.c, flexShrink: 0, minHeight: 72 }} />
+      {hov && <div aria-hidden style={{ position: "absolute", top: -40, right: -24, width: 140, height: 140,
+        borderRadius: "50%", pointerEvents: "none",
+        background: `radial-gradient(circle, ${a.c}20, transparent 70%)` }} />}
 
-      {/* Avatar cell */}
-      <div style={{ padding: "14px 16px", borderRight: "1px solid rgba(16,185,129,0.1)", flexShrink: 0 }}>
-        <motion.div
-          animate={reduce ? undefined : { y: [0, -2, 0] }}
-          transition={reduce ? undefined : { duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
-          style={{ width: 44, height: 44, display: "flex", alignItems: "center", justifyContent: "center",
-            border: `1px solid ${a.c}60`, background: `${a.c}12`,
-            fontSize: 13, fontWeight: 700, color: a.c, letterSpacing: "0.04em" }}>
-          {a.ab}
-        </motion.div>
-      </div>
+      {/* Avatar */}
+      <motion.div
+        animate={reduce ? undefined : { y: [0, -3, 0] }}
+        transition={reduce ? undefined : { duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
+        style={{ width: 56, height: 56, borderRadius: 16, flexShrink: 0, display: "flex",
+          alignItems: "center", justifyContent: "center",
+          background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
+          color: "#fff", fontSize: 16, fontWeight: 800, fontFamily: MONO,
+          boxShadow: `0 8px 24px ${a.c}40, inset 0 1px 0 rgba(255,255,255,0.25)` }}>
+        {a.ab}
+      </motion.div>
 
-      {/* Name + activity */}
-      <div style={{ flex: 1, padding: "14px 16px", minWidth: 200, borderRight: "1px solid rgba(16,185,129,0.08)" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 3 }}>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#e5e7eb", letterSpacing: "0.02em" }}>{a.name}</span>
-          <span style={{ fontSize: 8, color: a.c, border: `1px solid ${a.c}44`, padding: "1px 6px", letterSpacing: "0.1em" }}>DIR</span>
+      {/* Info */}
+      <div style={{ flex: 1, minWidth: 160 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 3 }}>
+          <span style={{ fontSize: 16, fontWeight: 700, color: TEXT_P, letterSpacing: "-0.01em" }}>{a.name}</span>
+          <span style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: 700, letterSpacing: "0.12em",
+            padding: "2px 8px", borderRadius: 6, color: a.c, border: `1px solid ${a.c}50`, background: `${a.c}12` }}>DIR</span>
         </div>
-        <div style={{ fontSize: 10, color: "rgba(16,185,129,0.5)", marginBottom: 8 }}>{a.specialty}</div>
-        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-          <span style={{ display: "inline-flex", gap: 3 }}>
-            {mt.working ? [0,1,2].map(d => (
-              <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: "#10b981",
-                animation: `term-think 1.1s ease-in-out ${d * 0.18}s infinite` }} />
-            )) : <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>○</span>}
-          </span>
-          <AnimatePresence mode="wait">
-            <motion.span key={act}
-              initial={{ opacity: 0, x: -4 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 4 }}
-              transition={{ duration: 0.2 }}
-              style={{ fontSize: 10, color: "rgba(16,185,129,0.6)" }}>
-              {`> ${act}`}
-            </motion.span>
-          </AnimatePresence>
+        <div style={{ fontSize: 12, color: TEXT_S, marginBottom: 10 }}>{a.title} · {a.specialty}</div>
+        <LiveActivity act={act} working={mt.working} color={a.c} />
+        <div style={{ display: "flex", gap: 12, marginTop: 10, fontSize: 11, color: TEXT_M }}>
+          <span><b style={{ color: a.c, fontVariantNumeric: "tabular-nums" }}>{mt.done}</b> задач</span>
+          <span><b style={{ color: a.c }}>{mt.success}%</b> успех</span>
+          <span><b style={{ color: a.c }}>{teamCount}</b> в команде</span>
         </div>
       </div>
 
-      {/* Metrics cells */}
-      {[
-        { k: "PID",    v: pid(a.slug) },
-        { k: "TASKS",  v: String(mt.done) },
-        { k: "SUCC",   v: `${mt.success}%` },
-        { k: "TEAM",   v: String(teamCount) },
-      ].map(({ k, v }) => (
-        <div key={k} style={{ padding: "14px 16px", borderRight: "1px solid rgba(16,185,129,0.08)", textAlign: "center", flexShrink: 0 }}>
-          <div style={{ fontSize: 9, color: "rgba(16,185,129,0.4)", letterSpacing: "0.12em", marginBottom: 4 }}>{k}</div>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#10b981", fontVariantNumeric: "tabular-nums" }}>{v}</div>
+      {/* Load + actions */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "flex-end", flexShrink: 0, minWidth: 180 }}>
+        <div style={{ width: "100%" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+            <span style={{ fontSize: 10, color: TEXT_M }}>Загрузка</span>
+            <span style={{ fontSize: 12, fontWeight: 700, color: a.c, fontVariantNumeric: "tabular-nums" }}>{mt.load}%</span>
+          </div>
+          <div style={{ height: 4, borderRadius: 3, background: "rgba(255,255,255,0.07)", overflow: "hidden" }}>
+            <motion.div initial={{ width: 0 }} whileInView={{ width: `${mt.load}%` }} viewport={{ once: true }}
+              transition={{ duration: 1.1, ease: EASE, delay: delay + 0.2 }}
+              style={{ height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${a.g[0]}, ${a.g[1]})` }} />
+          </div>
         </div>
-      ))}
-
-      {/* Load */}
-      <div style={{ padding: "14px 16px", flexShrink: 0, minWidth: 140, borderRight: "1px solid rgba(16,185,129,0.08)" }}>
-        <div style={{ fontSize: 9, color: "rgba(16,185,129,0.4)", letterSpacing: "0.12em", marginBottom: 6 }}>CPU_LOAD</div>
-        <div style={{ fontSize: 9, color: "#10b981", fontVariantNumeric: "tabular-nums", whiteSpace: "nowrap" }}>
-          [{loadBar(mt.load).slice(0, 8)}] {mt.load}%
+        <div style={{ display: "flex", gap: 7 }}>
+          <ActionBtn label="Спросить" icon={MessageSquare} color={a.c} size="sm"
+            onClick={e => { e.stopPropagation(); onAsk(); }} />
+          <PrimaryBtn label={`Совещание · ${teamCount}`} icon={MessagesSquare} size="sm" gradient={[a.g[0], a.g[1]]} accent={a.c}
+            onClick={e => { e.stopPropagation(); onMeet(); }} />
         </div>
-      </div>
-
-      {/* Actions */}
-      <div style={{ padding: "14px 16px", display: "flex", gap: 6, flexShrink: 0 }}>
-        <button onClick={e => { e.stopPropagation(); onAsk(); }}
-          style={{ height: 30, padding: "0 10px", fontSize: 9, fontWeight: 700, cursor: "pointer",
-            fontFamily: MONO, letterSpacing: "0.1em",
-            color: "#10b981", background: "transparent", border: "1px solid rgba(16,185,129,0.35)",
-            transition: "all 0.14s" }}
-          onMouseOver={e => { e.currentTarget.style.background = "rgba(16,185,129,0.1)"; }}
-          onMouseOut={e  => { e.currentTarget.style.background = "transparent"; }}>
-          [ASK]
-        </button>
-        <button onClick={e => { e.stopPropagation(); onMeet(); }}
-          style={{ height: 30, padding: "0 10px", fontSize: 9, fontWeight: 700, cursor: "pointer",
-            fontFamily: MONO, letterSpacing: "0.1em",
-            color: "#020507", background: a.c, border: `1px solid ${a.c}`,
-            transition: "all 0.14s" }}
-          onMouseOver={e => { e.currentTarget.style.opacity = "0.8"; }}
-          onMouseOut={e  => { e.currentTarget.style.opacity = "1"; }}>
-          [MTG·{teamCount}]
-        </button>
       </div>
     </motion.div>
   );
 }
 
-// ─── Agent table row ──────────────────────────────────────────────────────────
-function AgentRow({ a, tick, delay, onAsk, isLast }: {
-  a: AgentFull; tick: number; delay: number; onAsk: () => void; isLast: boolean;
+// ─── Specialist card ──────────────────────────────────────────────────────────
+function AgentCard({ a, lead, tick, delay, onAsk, reduce }: {
+  a: AgentFull; lead: AgentFull; tick: number; delay: number; onAsk: () => void; reduce: boolean;
 }) {
   const mt = metrics(a.slug);
   const [hov, setHov] = useState(false);
   const act = (ACT[a.slug] ?? ["Обрабатывает задачу"])[tick % 3];
 
   return (
-    <motion.div
-      onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
+    <motion.div onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
+      animate={{ y: hov ? -5 : 0 }} transition={{ duration: 0.24, ease: EASE }}
       onClick={onAsk}
-      initial={{ opacity: 0, x: -4 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true, margin: "-10px" }}
-      transition={{ duration: 0.3, ease: EASE, delay }}
-      style={{ display: "grid", gridTemplateColumns: "80px 1fr 200px 60px 60px 60px 80px",
-        alignItems: "center", padding: "9px 16px", cursor: "pointer",
-        borderBottom: isLast ? "none" : "1px solid rgba(16,185,129,0.07)",
-        background: hov ? "rgba(16,185,129,0.05)" : "transparent",
-        transition: "background 0.14s" }}>
+      initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-24px" }}
+      style={{ padding: 16, borderRadius: 16, cursor: "pointer", position: "relative", overflow: "hidden",
+        background: hov ? `${a.c}0d` : `${a.c}08`,
+        border: `1px solid ${hov ? `${a.c}44` : `${a.c}1e`}`,
+        boxShadow: hov ? `0 12px 36px rgba(0,0,0,0.28), 0 0 0 1px ${a.c}14, inset 0 1px 0 rgba(255,255,255,0.06)` : SHADOW,
+        transition: "all 0.22s" }}>
 
-      {/* PID */}
-      <span style={{ fontSize: 9, color: "rgba(16,185,129,0.35)", fontVariantNumeric: "tabular-nums" }}>{pid(a.slug)}</span>
-
-      {/* Name */}
-      <div>
-        <div style={{ fontSize: 12, fontWeight: 600, color: hov ? "#a7f3d0" : "#e5e7eb", marginBottom: 1, transition: "color 0.14s" }}>{a.name}</div>
-        <div style={{ fontSize: 9, color: "rgba(16,185,129,0.4)", letterSpacing: "0.06em" }}>{a.role}</div>
+      {/* Top row */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 10 }}>
+        <motion.div
+          animate={reduce || !mt.working ? undefined : { y: [0, -2.5, 0] }}
+          transition={reduce ? undefined : { duration: 3.8, repeat: Infinity, ease: "easeInOut", delay }}
+          style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: "flex",
+            alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
+            color: "#fff", fontSize: 12, fontWeight: 800, fontFamily: MONO,
+            boxShadow: `0 6px 18px ${a.c}38, inset 0 1px 0 rgba(255,255,255,0.24)` }}>
+          {a.ab}
+        </motion.div>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13.5, fontWeight: 700, color: TEXT_P, letterSpacing: "-0.01em", marginBottom: 1 }}>{a.name}</div>
+          <div style={{ fontSize: 10.5, fontWeight: 600, color: a.c, letterSpacing: "0.06em" }}>{a.role}</div>
+        </div>
+        <div style={{ flexShrink: 0, padding: "2px 7px", borderRadius: 6, fontSize: 9, fontWeight: 700,
+          color: lead.c, border: `1px solid ${lead.c}40`, background: `${lead.c}10`, fontFamily: MONO }}>
+          → {lead.role}
+        </div>
       </div>
 
-      {/* Status */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        {mt.working
-          ? <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981", flexShrink: 0, animation: "term-blink 2s ease-in-out infinite" }} />
-          : <span style={{ width: 5, height: 5, borderRadius: "50%", background: "rgba(255,255,255,0.15)", flexShrink: 0 }} />}
-        <AnimatePresence mode="wait">
-          <motion.span key={act}
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-            style={{ fontSize: 9, color: mt.working ? "rgba(16,185,129,0.6)" : "rgba(255,255,255,0.25)",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {mt.working ? act : "idle"}
-          </motion.span>
-        </AnimatePresence>
-      </div>
+      <div style={{ fontSize: 11, color: TEXT_S, marginBottom: 10 }}>{a.specialty}</div>
+      <LiveActivity act={act} working={mt.working} color={a.c} />
 
       {/* Metrics */}
-      <span style={{ fontSize: 11, color: "#10b981", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{mt.done}</span>
-      <span style={{ fontSize: 11, color: "#10b981", textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{mt.success}</span>
-      <span style={{ fontSize: 11, color: a.c, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{a.confidence}</span>
-
-      {/* CMD */}
-      <div style={{ textAlign: "right" }}>
-        <button onClick={e => { e.stopPropagation(); onAsk(); }}
-          style={{ height: 24, padding: "0 8px", fontSize: 9, fontWeight: 700, cursor: "pointer",
-            fontFamily: MONO, letterSpacing: "0.08em",
-            color: "#10b981", background: "transparent", border: "1px solid rgba(16,185,129,0.3)",
-            transition: "all 0.12s" }}
-          onMouseOver={e => { e.currentTarget.style.background = "rgba(16,185,129,0.1)"; e.currentTarget.style.borderColor = "rgba(16,185,129,0.6)"; }}
-          onMouseOut={e  => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.borderColor = "rgba(16,185,129,0.3)"; }}>
-          [ASK]
-        </button>
+      <div style={{ display: "flex", gap: 0, marginTop: 12, borderRadius: 10, overflow: "hidden",
+        border: `1px solid ${BORDER}` }}>
+        {[
+          { v: mt.done,          l: "задач" },
+          { v: `${mt.success}%`, l: "успех" },
+          { v: `${a.confidence}%`, l: "AI" },
+        ].map((m, i) => (
+          <div key={i} style={{ flex: 1, padding: "8px 0", textAlign: "center",
+            borderRight: i < 2 ? `1px solid ${BORDER}` : "none",
+            background: "rgba(255,255,255,0.015)" }}>
+            <div style={{ fontSize: 13, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{m.v}</div>
+            <div style={{ fontSize: 9, color: TEXT_M, marginTop: 1 }}>{m.l}</div>
+          </div>
+        ))}
       </div>
+
+      {/* Load bar */}
+      <div style={{ marginTop: 10 }}>
+        <div style={{ height: 3, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+          <motion.div initial={{ width: 0 }} whileInView={{ width: `${mt.load}%` }} viewport={{ once: true }}
+            transition={{ duration: 1, ease: EASE, delay: delay + 0.1 }}
+            style={{ height: "100%", borderRadius: 2, background: a.c }} />
+        </div>
+      </div>
+
+      {/* Hover CTA */}
+      <AnimatePresence>
+        {hov && (
+          <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
+            transition={{ duration: 0.16 }}
+            style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center",
+              gap: 6, fontSize: 11, fontWeight: 700, color: a.c }}>
+            <MessageSquare size={11} /> Спросить {a.name.split(" ")[0]}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
+  );
+}
+
+// ─── Live activity ────────────────────────────────────────────────────────────
+function LiveActivity({ act, working, color }: { act: string; working: boolean; color: string }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 7 }}>
+      {working ? (
+        <span style={{ display: "inline-flex", gap: 3, flexShrink: 0 }}>
+          {[0,1,2].map(d => (
+            <span key={d} style={{ width: 3, height: 3, borderRadius: "50%", background: color,
+              animation: `board-think 1.2s ease-in-out ${d * 0.18}s infinite` }} />
+          ))}
+        </span>
+      ) : (
+        <span style={{ width: 6, height: 6, borderRadius: "50%", background: "rgba(255,255,255,0.18)", flexShrink: 0 }} />
+      )}
+      <AnimatePresence mode="wait">
+        <motion.span key={act}
+          initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}
+          transition={{ duration: 0.25, ease: EASE }}
+          style={{ fontSize: 11.5, color: working ? TEXT_S : TEXT_M, lineHeight: 1.4 }}>
+          {working && <span style={{ color, fontWeight: 700, marginRight: 4 }}>сейчас:</span>}
+          {act}
+        </motion.span>
+      </AnimatePresence>
+    </div>
+  );
+}
+
+// ─── Sparkline ────────────────────────────────────────────────────────────────
+function Sparkline({ color, data }: { color: string; data: number[] }) {
+  const W = 72, H = 26;
+  const max = Math.max(...data), min = Math.min(...data);
+  const pts = data.map((d, i) => [(i / (data.length - 1)) * W, H - ((d - min) / (max - min || 1)) * (H - 4) - 2] as [number, number]);
+  const line = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(" ");
+  const fill = `${line} L${W},${H} L0,${H} Z`;
+  const gid  = `sg-${color.replace("#", "")}`;
+  return (
+    <svg width={W} height={H} style={{ display: "block", overflow: "visible" }}>
+      <defs>
+        <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.22" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      <motion.path d={fill} fill={`url(#${gid})`}
+        initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8 }} />
+      <motion.path d={line} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round"
+        initial={{ pathLength: 0, opacity: 0 }} whileInView={{ pathLength: 1, opacity: 1 }} viewport={{ once: true }}
+        transition={{ duration: 1.1, ease: EASE }} />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r={2.5} fill={color} />
+    </svg>
+  );
+}
+
+// ─── Buttons ──────────────────────────────────────────────────────────────────
+function ActionBtn({ label, icon: Icon, color, size = "md", onClick }: {
+  label: string; icon: React.ElementType; color: string; size?: "md"|"sm";
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  const h = size === "sm" ? 32 : 36;
+  const fs = size === "sm" ? 11 : 12;
+  return (
+    <button onClick={onClick}
+      style={{ height: h, padding: `0 ${size === "sm" ? 12 : 14}px`, borderRadius: size === "sm" ? 9 : 10,
+        fontSize: fs, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
+        color, background: `${color}12`, border: `1px solid ${color}40`, transition: "all 0.18s" }}
+      onMouseOver={e => { e.currentTarget.style.background = `${color}22`; }}
+      onMouseOut={e  => { e.currentTarget.style.background = `${color}12`; }}>
+      <Icon size={size === "sm" ? 10 : 11} /> {label}
+    </button>
+  );
+}
+
+function PrimaryBtn({ label, icon: Icon, size = "md", gradient, accent, onClick }: {
+  label: string; icon: React.ElementType; size?: "md"|"sm";
+  gradient?: [string, string]; accent?: string;
+  onClick: (e: React.MouseEvent) => void;
+}) {
+  const h = size === "sm" ? 32 : 36;
+  const fs = size === "sm" ? 11 : 12;
+  const bg = gradient ? `linear-gradient(135deg, ${gradient[0]}, ${gradient[1]})` : "linear-gradient(135deg,#6366f1,#4f46e5)";
+  const shadow = `0 4px 16px ${accent ?? "rgba(99,102,241"}0.38), inset 0 1px 0 rgba(255,255,255,0.18)`;
+  return (
+    <button onClick={onClick}
+      style={{ height: h, padding: `0 ${size === "sm" ? 12 : 14}px`, borderRadius: size === "sm" ? 9 : 10,
+        fontSize: fs, fontWeight: 700, cursor: "pointer", display: "flex", alignItems: "center", gap: 5,
+        color: "#fff", background: bg, border: "none", boxShadow: shadow, transition: "all 0.18s" }}
+      onMouseOver={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+      onMouseOut={e  => { e.currentTarget.style.filter = "brightness(1)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+      <Icon size={size === "sm" ? 10 : 11} /> {label}
+    </button>
   );
 }
 
@@ -672,133 +710,127 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
       await streamChat(question, persona, t => setAnswer(prev => prev + t));
     } catch {
       setOffline(true);
-      const fb = FB[agent.slug] ?? "Готов помочь — опишите задачу подробнее. Живой анализ доступен после настройки ANTHROPIC_API_KEY.";
+      const fb = (agent.slug in FB ? FB[agent.slug] : undefined)
+        ?? "Готов помочь — опишите задачу подробнее. Живой анализ доступен после настройки ANTHROPIC_API_KEY.";
       for (const ch of fb) { setAnswer(prev => prev + ch); await new Promise(r => setTimeout(r, 6)); }
     }
     setBusy(false);
   }, [q, busy, agent]);
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
       onClick={onClose}
-      style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(2,5,7,0.88)", backdropFilter: "blur(6px)",
-        display: "flex", alignItems: "center", justifyContent: "center", padding: 20, fontFamily: MONO }}>
-      <motion.div
-        onClick={e => e.stopPropagation()}
-        initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.98 }}
-        transition={{ duration: 0.22, ease: EASE }}
-        style={{ position: "relative", width: "min(580px, 100%)", maxHeight: "86vh", overflowY: "auto",
-          background: "#030609", border: "1px solid rgba(16,185,129,0.35)",
-          boxShadow: "0 0 0 1px rgba(16,185,129,0.08), 0 32px 80px rgba(0,0,0,0.7)" }}>
+      style={{ position: "fixed", inset: 0, zIndex: 60, background: "rgba(5,6,10,0.78)",
+        backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+      <motion.div onClick={e => e.stopPropagation()}
+        initial={{ opacity: 0, y: 20, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.97 }} transition={{ duration: 0.25, ease: EASE }}
+        style={{ position: "relative", width: "min(600px, 100%)", maxHeight: "84vh", overflowY: "auto",
+          borderRadius: 22, padding: 28, background: "#0a0c15",
+          border: `1px solid ${agent.c}30`,
+          boxShadow: `0 32px 80px rgba(0,0,0,0.65), 0 0 0 1px ${agent.c}18` }}>
 
-        {/* Title bar */}
-        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 16px",
-          borderBottom: "1px solid rgba(16,185,129,0.15)", background: "rgba(16,185,129,0.04)" }}>
-          <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#10b981", animation: "term-blink 2s ease-in-out infinite" }} />
-          <span style={{ fontSize: 10, color: "rgba(16,185,129,0.6)", letterSpacing: "0.12em", flex: 1 }}>
-            apex@board:~$ exec --agent={agent.slug} --mode=interactive
-          </span>
-          <button onClick={onClose}
-            style={{ width: 24, height: 24, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "transparent", border: "1px solid rgba(16,185,129,0.2)", color: "rgba(16,185,129,0.5)", cursor: "pointer",
-              transition: "all 0.14s" }}
-            onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.6)"; e.currentTarget.style.color = "#10b981"; }}
-            onMouseOut={e  => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.2)"; e.currentTarget.style.color = "rgba(16,185,129,0.5)"; }}>
-            <X size={12} />
+        {/* Accent top bar */}
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, borderRadius: "22px 22px 0 0",
+          background: `linear-gradient(90deg, transparent, ${agent.c}80, transparent)` }} />
+
+        {/* Close */}
+        <button onClick={onClose}
+          style={{ position: "absolute", top: 18, right: 18, width: 32, height: 32, borderRadius: 9,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            background: "rgba(255,255,255,0.04)", border: `1px solid ${BORDER}`,
+            color: TEXT_S, cursor: "pointer", transition: "all 0.16s" }}
+          onMouseOver={e => { e.currentTarget.style.color = TEXT_P; e.currentTarget.style.borderColor = BORDER_H; }}
+          onMouseOut={e  => { e.currentTarget.style.color = TEXT_S; e.currentTarget.style.borderColor = BORDER; }}>
+          <X size={15} strokeWidth={2.2} />
+        </button>
+
+        {/* Agent header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20 }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, flexShrink: 0, display: "flex",
+            alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(135deg, ${agent.g[0]}, ${agent.g[1]})`,
+            color: "#fff", fontSize: 17, fontWeight: 800, fontFamily: MONO,
+            boxShadow: `0 8px 24px ${agent.c}44, inset 0 1px 0 rgba(255,255,255,0.25)` }}>
+            {agent.ab}
+          </div>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 800, color: TEXT_P, letterSpacing: "-0.02em" }}>{agent.name}</div>
+            <div style={{ fontSize: 12.5, color: TEXT_S, marginTop: 2 }}>{agent.title} · {agent.specialty}</div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 20 }}>
+          {[
+            { v: mt.done,            l: "Задач закрыто" },
+            { v: `${mt.success}%`,   l: "Успешность" },
+            { v: `${agent.confidence}%`, l: "Уверенность AI" },
+          ].map((s, i) => (
+            <div key={i} style={{ padding: "12px 14px", borderRadius: 12, background: SURFACE, border: `1px solid ${BORDER}` }}>
+              <div style={{ fontSize: 20, fontWeight: 800, color: agent.c, fontVariantNumeric: "tabular-nums" }}>{s.v}</div>
+              <div style={{ fontSize: 10, color: TEXT_M, marginTop: 3 }}>{s.l}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Input */}
+        <div style={{ display: "flex", gap: 8 }}>
+          <input autoFocus value={q} onChange={e => setQ(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") void submit(); }}
+            disabled={busy}
+            placeholder={`Спросить ${agent.name.split(" ")[0]}…`}
+            style={{ flex: 1, minWidth: 0, height: 48, padding: "0 16px", borderRadius: 13, fontSize: 14,
+              color: TEXT_P, background: "rgba(255,255,255,0.035)", border: `1px solid ${BORDER}`,
+              outline: "none", transition: "border-color 0.18s, box-shadow 0.18s" }}
+            onFocus={e => { e.currentTarget.style.borderColor = `${agent.c}66`; e.currentTarget.style.boxShadow = `0 0 0 3px ${agent.c}18`; }}
+            onBlur={e  => { e.currentTarget.style.borderColor = BORDER; e.currentTarget.style.boxShadow = "none"; }} />
+          <button onClick={() => void submit()} disabled={busy || !q.trim()}
+            style={{ flexShrink: 0, width: 48, height: 48, borderRadius: 13, border: "none",
+              cursor: busy || !q.trim() ? "not-allowed" : "pointer",
+              background: `linear-gradient(135deg, ${agent.g[0]}, ${agent.g[1]})`, color: "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: `0 4px 16px ${agent.c}44, inset 0 1px 0 rgba(255,255,255,0.2)`,
+              opacity: busy || !q.trim() ? 0.5 : 1, transition: "opacity 0.16s" }}>
+            {busy
+              ? <span style={{ display: "inline-flex", gap: 3 }}>
+                  {[0,1,2].map(d => <span key={d} style={{ width: 4, height: 4, borderRadius: "50%", background: "#fff",
+                    animation: `board-think 1s ease-in-out ${d * 0.15}s infinite` }} />)}
+                </span>
+              : <CornerDownLeft size={16} strokeWidth={2.4} />}
           </button>
         </div>
 
-        <div style={{ padding: "20px 20px 24px" }}>
-
-          {/* Agent header */}
-          <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 20,
-            padding: "14px 16px", border: `1px solid ${agent.c}30`, background: `${agent.c}08` }}>
-            <div style={{ width: 48, height: 48, display: "flex", alignItems: "center", justifyContent: "center",
-              border: `1px solid ${agent.c}55`, background: `${agent.c}12`,
-              fontSize: 14, fontWeight: 700, color: agent.c, flexShrink: 0 }}>
-              {agent.ab}
-            </div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 16, fontWeight: 700, color: "#a7f3d0", letterSpacing: "0.04em", marginBottom: 2 }}>{agent.name}</div>
-              <div style={{ fontSize: 10, color: "rgba(16,185,129,0.5)" }}>{agent.specialty}</div>
-            </div>
-            <div style={{ textAlign: "right" }}>
-              <div style={{ fontSize: 10, color: "rgba(16,185,129,0.4)", marginBottom: 2 }}>CONF</div>
-              <div style={{ fontSize: 20, fontWeight: 700, color: agent.c, fontVariantNumeric: "tabular-nums" }}>{agent.confidence}%</div>
-            </div>
-          </div>
-
-          {/* Stats row */}
-          <div style={{ display: "flex", gap: 0, marginBottom: 20, border: "1px solid rgba(16,185,129,0.15)" }}>
-            {[
-              { k: "TASKS_DONE", v: String(mt.done) },
-              { k: "SUCCESS_RT", v: `${mt.success}%` },
-              { k: "AI_CONF",    v: `${agent.confidence}%` },
-            ].map(({ k, v }, i) => (
-              <div key={k} style={{ flex: 1, padding: "10px 14px", textAlign: "center",
-                borderRight: i < 2 ? "1px solid rgba(16,185,129,0.1)" : "none" }}>
-                <div style={{ fontSize: 8, color: "rgba(16,185,129,0.4)", letterSpacing: "0.14em", marginBottom: 4 }}>{k}</div>
-                <div style={{ fontSize: 18, fontWeight: 700, color: "#10b981", fontVariantNumeric: "tabular-nums" }}>{v}</div>
-              </div>
-            ))}
-          </div>
-
-          {/* Input */}
-          <div style={{ marginBottom: 4, fontSize: 10, color: "rgba(16,185,129,0.4)" }}>
-            {`> input.query`}
-          </div>
-          <div style={{ display: "flex", gap: 8, marginBottom: 0 }}>
-            <input
-              autoFocus value={q} onChange={e => setQ(e.target.value)}
-              onKeyDown={e => { if (e.key === "Enter") void submit(); }}
-              disabled={busy}
-              placeholder={`Спросить ${agent.name.split(" ")[0]}…`}
-              style={{ flex: 1, minWidth: 0, height: 44, padding: "0 14px",
-                background: "rgba(16,185,129,0.04)", border: "1px solid rgba(16,185,129,0.25)",
-                color: "#a7f3d0", fontSize: 13, outline: "none", fontFamily: MONO,
-                transition: "border-color 0.15s" }}
-              onFocus={e => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.6)"; }}
-              onBlur={e  => { e.currentTarget.style.borderColor = "rgba(16,185,129,0.25)"; }}
-            />
-            <button onClick={() => void submit()} disabled={busy || !q.trim()}
-              style={{ flexShrink: 0, width: 44, height: 44, border: "none", cursor: busy || !q.trim() ? "not-allowed" : "pointer",
-                background: busy || !q.trim() ? "rgba(16,185,129,0.2)" : "#10b981", color: "#020507",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                fontFamily: MONO, fontWeight: 700, fontSize: 12, transition: "all 0.15s" }}>
-              {busy
-                ? <span style={{ display: "inline-flex", gap: 3 }}>
-                    {[0,1,2].map(d => <span key={d} style={{ width: 3.5, height: 3.5, borderRadius: "50%", background: "#10b981", animation: `term-think 1s ease-in-out ${d*0.15}s infinite` }} />)}
-                  </span>
-                : <CornerDownLeft size={15} strokeWidth={2.5} />}
-            </button>
-          </div>
-
-          {/* Answer */}
-          <AnimatePresence>
-            {(answer || busy) && (
-              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-                style={{ marginTop: 16, padding: "16px", border: `1px solid ${agent.c}25`,
-                  background: "rgba(16,185,129,0.02)" }}>
-                <div style={{ fontSize: 9, color: "rgba(16,185,129,0.45)", letterSpacing: "0.12em", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
-                  <Zap size={9} style={{ color: "#10b981" }} />
-                  {agent.name.toUpperCase()} · OUTPUT STREAM
+        {/* Answer */}
+        <AnimatePresence>
+          {(answer || busy) && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+              transition={{ duration: 0.22 }}
+              style={{ marginTop: 14, borderRadius: 14, background: "rgba(255,255,255,0.02)",
+                border: `1px solid ${agent.c}20`, padding: "18px 20px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 10 }}>
+                <div style={{ width: 20, height: 20, borderRadius: 6, background: `${agent.c}18`,
+                  border: `1px solid ${agent.c}35`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <Zap size={10} style={{ color: agent.c }} />
                 </div>
-                <p style={{ fontSize: 12.5, lineHeight: 1.75, color: "rgba(167,243,208,0.85)", margin: 0, whiteSpace: "pre-wrap" }}>
-                  {answer}
-                  {busy && <span style={{ display: "inline-block", width: 6, height: 13, marginLeft: 2,
-                    background: "#10b981", verticalAlign: "text-bottom", animation: "term-caret 1s step-end infinite" }} />}
-                </p>
-                {offline && !busy && (
-                  <div style={{ marginTop: 10, fontSize: 9, color: "rgba(251,191,36,0.6)", letterSpacing: "0.1em" }}>
-                    [DEMO] · set ANTHROPIC_API_KEY для живого AI
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
+                <span style={{ fontSize: 10, fontWeight: 700, color: agent.c, letterSpacing: "0.1em",
+                  fontFamily: MONO }}>{agent.name.toUpperCase()}</span>
+              </div>
+              <p style={{ fontSize: 13.5, lineHeight: 1.7, color: "rgba(255,255,255,0.82)", margin: 0, whiteSpace: "pre-wrap" }}>
+                {answer}
+                {busy && <span style={{ display: "inline-block", width: 7, height: 14, marginLeft: 2, borderRadius: 1,
+                  background: agent.c, verticalAlign: "text-bottom", animation: "board-caret 1s step-end infinite" }} />}
+              </p>
+              {offline && !busy && (
+                <div style={{ marginTop: 10, fontFamily: MONO, fontSize: 10, color: "rgba(251,191,36,0.7)" }}>
+                  Демо-ответ · настройте ANTHROPIC_API_KEY для живого AI
+                </div>
+              )}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </motion.div>
   );
 }
+
