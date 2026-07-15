@@ -9,6 +9,7 @@ import {
   Lightbulb, ArrowRight, Sparkles, Shield, Users, BarChart2,
   PieChart, Briefcase, Search, Layers, Rocket, Star,
 } from "lucide-react";
+import { markVisit } from "@/components/dashboard/EngagementPanel";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -590,6 +591,8 @@ export default function NewStrategyPage() {
   const [doneAgents,   setDoneAgents]   = useState<Set<string>>(new Set());
   const [agentResults, setAgentResults] = useState<AgentResult[]>([]);
   const [btnHovered,   setBtnHovered]   = useState(false);
+
+  useEffect(() => { markVisit("new"); }, []);
 
   const entities  = useMemo(() => detectEntities(form.description), [form.description]);
   const quality   = useMemo(() => qualityScore(form.name, form.description), [form.name, form.description]);

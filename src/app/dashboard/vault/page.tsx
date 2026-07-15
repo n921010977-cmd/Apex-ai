@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Command, Bot, ListChecks, CalendarClock, Wrench,
   Filter, BarChart3, PlusSquare, Database, MousePointerClick,
 } from "lucide-react";
+import { markVisit } from "@/components/dashboard/EngagementPanel";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -143,6 +144,8 @@ export default function KnowledgeVaultPage() {
   const [selectedNode, setSelectedNode] = useState<string>("ceo");
   const [hovered, setHovered] = useState<string | null>(null);
   const reduce = useReducedMotion();
+
+  useEffect(() => { markVisit("vault"); }, []);
 
   const node = NODE_BY_ID[selectedNode] ?? NODE_BY_ID.ceo;
   const style = TYPE_STYLE[node.type];

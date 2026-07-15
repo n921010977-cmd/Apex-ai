@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { markVisit } from "@/components/dashboard/EngagementPanel";
 
 // Экран выбора агентов удалён: «AI Чат» сразу открывает новый диалог.
 // ?agent=<slug> сохраняется — так карточки директоров с дашборда открывают
@@ -9,6 +10,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 function ChatIndexRedirect() {
   const router = useRouter();
   const sp = useSearchParams();
+
+  useEffect(() => { markVisit("chat"); }, []);
 
   useEffect(() => {
     const agent = sp.get("agent");

@@ -10,6 +10,7 @@ import {
   BarChart2, FileText, Rocket, Star, AlertTriangle,
   CheckCircle, ExternalLink, MessageSquare,
 } from "lucide-react";
+import { EngagementPanel, markVisit } from "@/components/dashboard/EngagementPanel";
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
 const ACCENT     = "#6366f1";
@@ -488,6 +489,7 @@ export default function DashboardPage() {
   const [tab,      setTab]      = useState<"projects" | "insights">("projects");
 
   useEffect(() => {
+    markVisit("dashboard");
     fetch("/api/projects")
       .then(r => r.json())
       .then(d => {
@@ -816,6 +818,9 @@ export default function DashboardPage() {
               <Zap size={12} /> Применить стратегию
             </Link>
           </motion.div>
+
+          {/* Engagement / Streak / Daily Insight */}
+          <EngagementPanel />
 
           {/* Market pulse */}
           <motion.div

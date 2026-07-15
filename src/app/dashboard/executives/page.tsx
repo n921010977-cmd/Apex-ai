@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { streamChat } from "@/lib/stream-chat";
 import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/team";
+import { markVisit } from "@/components/dashboard/EngagementPanel";
 
 // ── Design tokens (identical to dashboard) ────────────────────────────────────
 const EASE   = [0.22, 1, 0.36, 1] as const;
@@ -133,6 +134,8 @@ export default function AgentsPage() {
   const goMeet = useCallback((slug: string) => {
     router.push(`/dashboard/chat/local-${Date.now()}?agent=${slug}`);
   }, [router]);
+
+  useEffect(() => { markVisit("executives"); }, []);
 
   useEffect(() => {
     if (reduce) return;

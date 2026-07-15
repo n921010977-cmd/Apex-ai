@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
+import { markVisit } from "@/components/dashboard/EngagementPanel";
 import {
   FileText, Search, Download, Plus, CheckCircle, Loader2,
   Sparkles, Brain, TrendingUp, Shield, BarChart2, ChevronRight,
@@ -472,6 +473,7 @@ export default function ReportsPage() {
     }
   }, []);
 
+  useEffect(() => { markVisit("reports"); }, []);
   useEffect(() => { fetchReports(); }, [fetchReports]);
 
   const filtered = reports.filter(r => {
