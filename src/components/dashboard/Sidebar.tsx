@@ -9,6 +9,7 @@ import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
   Bot, Settings, HelpCircle, BookOpen, Database,
   X, PanelLeftClose, PanelLeft, ChevronRight,
+  Filter, Film,
 } from "lucide-react";
 
 // Pulse dot for live items
@@ -52,17 +53,24 @@ const SECTIONS: NavSection[] = [
     ],
   },
   {
+    title: "Growth Ops",
+    items: [
+      { key: "5", label: "Lead Pipeline",     href: "/dashboard/pipeline",   icon: Filter, live: true },
+      { key: "6", label: "Content Analytics", href: "/dashboard/content",    icon: Film },
+    ],
+  },
+  {
     title: "AI система",
     items: [
-      { key: "5", label: "Исполн. совет",    href: "/dashboard/executives", icon: Users, live: true },
+      { key: "7", label: "Исполн. совет",    href: "/dashboard/executives", icon: Users, live: true },
     ],
   },
   {
     title: "Инструменты",
     items: [
-      { key: "6", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
-      { key: "7", label: "Knowledge Vault",  href: "/dashboard/vault",      icon: Database, accent: true },
-      { key: "8", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
+      { key: "8", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
+      { key: "9", label: "Knowledge Vault",  href: "/dashboard/vault",      icon: Database, accent: true },
+      { key: "0", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
     ],
   },
 ];
