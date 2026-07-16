@@ -42,7 +42,7 @@ function createDemoClient() {
       // A stable demo user so routes that gate on Supabase auth return empty
       // data (200) in demo mode instead of 401. No real data is exposed —
       // every query resolves to an empty result.
-      getUser: async () => ({ data: { user: { id: "demo-user", email: "demo@apex.ai" } }, error: null }),
+      getUser: async () => ({ data: { user: { id: "demo-user", email: "demo@vertlix.ai" } }, error: null }),
       getSession: async () => ({ data: { session: null }, error: null }),
     },
   };

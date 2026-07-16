@@ -7,7 +7,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 
 const BOOT_LINES = [
-  "> initializing apex kernel…",
+  "> initializing vertlix kernel…",
   "> loading executive board · 20 agents",
   "> secure channel established ✓",
   "> awaiting operator credentials_",
@@ -79,7 +79,7 @@ function LoginForm() {
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", opacity: 0.7 }} />
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", opacity: 0.7 }} />
             </span>
-            <span style={{ marginLeft: 6, fontSize: 11, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>apex — access console</span>
+            <span style={{ marginLeft: 6, fontSize: 11, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — access console</span>
             <Link href="/" style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.3)", textDecoration: "none", letterSpacing: "0.1em" }}>[esc] на главную</Link>
           </div>
 
@@ -140,7 +140,7 @@ function LoginForm() {
           </Link>
         </div>
         <div className="term-mono" style={{ textAlign: "center", marginTop: 10, fontSize: 10, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>
-          APEX // COMMAND CENTER · SECURE SESSION
+          VERTLIX // COMMAND CENTER · SECURE SESSION
         </div>
       </motion.div>
     </div>

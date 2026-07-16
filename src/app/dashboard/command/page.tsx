@@ -76,7 +76,7 @@ export default function CommandCenterPage() {
 
     // 1) CEO plan
     let off = false;
-    const planPersona = `Ты — Sophia Rivers, AI CEO цифровой корпорации Apex. Основатель поставил цель: «${g}». Дай короткий план на русском: что делаем и какие отделы задействуем, 4–5 пунктов, обычный текст без markdown-звёздочек.`;
+    const planPersona = `Ты — Sophia Rivers, AI CEO цифровой корпорации Vertlix. Основатель поставил цель: «${g}». Дай короткий план на русском: что делаем и какие отделы задействуем, 4–5 пунктов, обычный текст без markdown-звёздочек.`;
     try { await streamChat(g, planPersona, t => setPlan(p => p + t)); }
     catch { off = true; for (const ch of FB_PLAN) { setPlan(p => p + ch); await new Promise(r => setTimeout(r, 5)); } }
 
@@ -88,7 +88,7 @@ export default function CommandCenterPage() {
     // 3) CEO synthesis
     setPhase("synthesizing");
     const delivered = ids.map(id => `${byId[id].name}: ${byId[id].deliverable}`).join("; ");
-    const resPersona = `Ты — Sophia Rivers, AI CEO Apex. Цель: «${g}». Отделы отчитались: ${delivered}. Сведи в единый итог для основателя на русском: короткий вывод и 3 конкретных следующих шага по пунктам (1., 2., 3.). Максимум 7 предложений, без markdown-звёздочек.`;
+    const resPersona = `Ты — Sophia Rivers, AI CEO Vertlix. Цель: «${g}». Отделы отчитались: ${delivered}. Сведи в единый итог для основателя на русском: короткий вывод и 3 конкретных следующих шага по пунктам (1., 2., 3.). Максимум 7 предложений, без markdown-звёздочек.`;
     try { await streamChat(g, resPersona, t => setResult(p => p + t)); }
     catch { off = true; for (const ch of FB_RESULT) { setResult(p => p + ch); await new Promise(r => setTimeout(r, 5)); } }
     setOffline(off);

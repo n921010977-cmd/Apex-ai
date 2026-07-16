@@ -24,32 +24,32 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   title: {
-    default: "Apex AI — Your AI Executive Board",
-    template: "%s | Apex AI",
+    default: "Vertlix AI — Your AI Executive Board",
+    template: "%s | Vertlix AI",
   },
   description:
     "Замените консалтинговую команду AI-советом директоров. CEO, CFO, CMO, COO и ещё 16 агентов — работают вместе над вашей бизнес-стратегией.",
   keywords: ["business strategy", "AI executive", "startup", "entrepreneur", "бизнес план", "AI советник"],
-  authors: [{ name: "Apex AI" }],
-  creator: "Apex AI",
+  authors: [{ name: "Vertlix AI" }],
+  creator: "Vertlix AI",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Apex AI",
+    title: "Vertlix AI",
   },
   formatDetection: {
     telephone: false,
   },
   openGraph: {
-    title: "Apex AI — Your AI Executive Board",
+    title: "Vertlix AI — Your AI Executive Board",
     description: "Замените консалтинг AI-советом директоров. McKinsey meets AI.",
     type: "website",
     locale: "ru_RU",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Apex AI — AI Executive Board",
+    title: "Vertlix AI — AI Executive Board",
     description: "Замените консалтинг AI-советом директоров.",
   },
   robots: {

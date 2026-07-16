@@ -11,7 +11,7 @@ interface SkeletonProps {
 }
 
 /**
- * Shimmer placeholder that matches the Apex dark surface.
+ * Shimmer placeholder that matches the Vertlix dark surface.
  * Use while data is loading instead of a centered spinner to avoid layout jumps.
  */
 export function Skeleton({ width = "100%", height = 16, radius = 8, style, className }: SkeletonProps) {

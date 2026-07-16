@@ -86,7 +86,7 @@ export function PricingSection() {
         >
           {/* Terminal title bar */}
           <div className="term-mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", background: "rgba(255,255,255,0.02)" }}>
-            <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>apex — pricing configurator</span>
+            <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — pricing configurator</span>
             {/* Billing toggle */}
             <div style={{ display: "inline-flex", padding: 3, borderRadius: 9, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
               {([{ k: false, l: "МЕС" }, { k: true, l: "ГОД −20%" }] as const).map(o => (
@@ -135,7 +135,7 @@ export function PricingSection() {
               }}>
                 <span>
                   <span style={{ display: "block", fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.85)", marginBottom: 2 }}>White-label отчёты</span>
-                  <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ваш бренд вместо Apex AI</span>
+                  <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.35)" }}>Ваш бренд вместо Vertlix AI</span>
                 </span>
                 <span style={{
                   width: 40, height: 22, borderRadius: 999, position: "relative", flexShrink: 0,

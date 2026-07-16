@@ -5,10 +5,10 @@ import Anthropic from "@anthropic-ai/sdk";
 
 export const maxDuration = 60;
 
-const SUPPORT_SYSTEM_PROMPT = `You are a helpful and empathetic support agent for Apex AI, an executive AI platform.
+const SUPPORT_SYSTEM_PROMPT = `You are a helpful and empathetic support agent for Vertlix AI, an executive AI platform.
 Your role is to assist users with their questions and issues about the platform.
 
-Apex AI features:
+Vertlix AI features:
 - AI Agents: customizable AI agents for various business tasks
 - Executive Board: AI-powered C-suite simulation (CEO, CFO, COO, CMO, CTO)
 - Strategy Builder: AI-generated business strategies

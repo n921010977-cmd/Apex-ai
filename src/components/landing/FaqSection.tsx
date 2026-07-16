@@ -112,7 +112,7 @@ export function FaqSection() {
             </div>
             <div className="term-mono" style={{ padding: "18px 20px", fontSize: 13, lineHeight: 1.9, flex: 1 }}>
               <div style={{ color: "#818cf8", marginBottom: 10 }}>
-                $ apex query --{FAQ[sel].cmd}
+                $ vertlix query --{FAQ[sel].cmd}
               </div>
               <div style={{ color: "rgba(230,232,240,0.8)", whiteSpace: "pre-wrap", fontFamily: "var(--font-geist-sans), system-ui", fontSize: 14 }}>
                 {typed}
@@ -120,7 +120,7 @@ export function FaqSection() {
               </div>
             </div>
             <div className="term-mono" style={{ padding: "10px 18px", borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 10, letterSpacing: "0.08em", color: "rgba(255,255,255,0.25)" }}>
-              не нашли ответ? → <a href="mailto:n921010977@gmail.com" style={{ color: "#818cf8", textDecoration: "none" }}>support</a> · или спросите в <a href="/chat" style={{ color: "#818cf8", textDecoration: "none" }}>apex chat</a>
+              не нашли ответ? → <a href="mailto:n921010977@gmail.com" style={{ color: "#818cf8", textDecoration: "none" }}>support</a> · или спросите в <a href="/chat" style={{ color: "#818cf8", textDecoration: "none" }}>vertlix chat</a>
             </div>
           </div>
         </motion.div>

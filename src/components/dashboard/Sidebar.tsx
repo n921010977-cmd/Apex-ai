@@ -140,7 +140,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       {/* ── Header: brand + collapse ── */}
       <div className="flex items-center justify-between flex-shrink-0"
         style={{ height: 58, padding: collapsed ? "0 14px" : "0 14px 0 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <Link href="/" className="flex items-center gap-2.5 min-w-0" onClick={onClose} title="Apex — Command Center">
+        <Link href="/" className="flex items-center gap-2.5 min-w-0" onClick={onClose} title="Vertlix — Command Center">
           <div className="size-8 rounded-[10px] flex items-center justify-center flex-shrink-0 relative"
             style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)", boxShadow: "0 4px 14px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.2)" }}>
             <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
@@ -150,7 +150,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           {!collapsed && (
             <div className="min-w-0 leading-none">
               <div className="term-mono truncate" style={{ fontSize: 12.5, fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>
-                APEX <span style={{ color: "rgba(255,255,255,0.22)" }}>//</span> CMD
+                VERTLIX <span style={{ color: "rgba(255,255,255,0.22)" }}>//</span> CMD
               </div>
               <div className="term-mono truncate" style={{ fontSize: 8.5, fontWeight: 600, color: "rgba(255,255,255,0.3)", letterSpacing: "0.14em", marginTop: 3 }}>
                 COMMAND CENTER

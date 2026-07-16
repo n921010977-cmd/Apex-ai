@@ -7,7 +7,7 @@ import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const BOOT_LINES = [
-  "> apex kernel v2.0 · initializing…",
+  "> vertlix kernel v2.0 · initializing…",
   "> executive board · 20 AI agents ready",
   "> secure registration channel · open",
   "> создайте аккаунт оператора_",
@@ -143,7 +143,7 @@ export default function RegisterPage() {
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", opacity: 0.7 }} />
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", opacity: 0.7 }} />
             </span>
-            <span style={{ marginLeft: 6, fontSize: 11, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>apex — new operator</span>
+            <span style={{ marginLeft: 6, fontSize: 11, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — new operator</span>
             <Link href="/" style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.3)", textDecoration: "none", letterSpacing: "0.1em" }}>[esc] на главную</Link>
           </div>
 
@@ -335,7 +335,7 @@ export default function RegisterPage() {
         </div>
 
         <div style={{ textAlign: "center", marginTop: 14, fontSize: 10, color: "rgba(255,255,255,0.18)", letterSpacing: "0.1em", fontFamily: "var(--font-geist-mono), ui-monospace, monospace" }}>
-          APEX // COMMAND CENTER · SECURE REGISTRATION
+          VERTLIX // COMMAND CENTER · SECURE REGISTRATION
         </div>
       </motion.div>
     </div>

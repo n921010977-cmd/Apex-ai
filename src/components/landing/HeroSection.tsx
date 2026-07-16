@@ -267,7 +267,7 @@ function OrbCore() {
               WebkitTextFillColor: "transparent",
             }}
           >
-            APEX AI
+            VERTLIX AI
           </span>
         </div>
       </motion.div>

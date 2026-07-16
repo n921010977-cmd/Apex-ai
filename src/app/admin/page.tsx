@@ -229,7 +229,7 @@ export default function AdminPage() {
               <Shield size={19} color={ACCENT} />
             </div>
             <div>
-              <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>Admin · Apex AI</div>
+              <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>Admin · Vertlix AI</div>
               <div style={{ fontSize: 11, color: TM, marginTop: 1 }}>
                 {stats.demo ? "⚠ Demo-режим · без Supabase" : "Live · Supabase"}
                 {lastUpdate && ` · обновлено ${lastUpdate.toLocaleTimeString("ru")}`}

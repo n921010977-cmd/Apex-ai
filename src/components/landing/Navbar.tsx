@@ -46,7 +46,7 @@ export function Navbar() {
     >
       <nav aria-label="Главная навигация" className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         {/* Brand — terminal wordmark */}
-        <Link href="/" className="flex items-center gap-2.5 group rounded-lg" aria-label="Apex Command Center — на главную">
+        <Link href="/" className="flex items-center gap-2.5 group rounded-lg" aria-label="Vertlix Command Center — на главную">
           <div
             className="size-9 flex items-center justify-center flex-shrink-0 transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(99,102,241,0.35)]"
             style={{
@@ -60,7 +60,7 @@ export function Navbar() {
             </svg>
           </div>
           <div className="hidden sm:flex items-baseline gap-2 term-mono">
-            <span className="text-sm font-bold text-white tracking-tight">APEX</span>
+            <span className="text-sm font-bold text-white tracking-tight">VERTLIX</span>
             <span className="text-white/20">//</span>
             <span className="text-[11px] text-white/40 tracking-[0.18em] uppercase">Command&nbsp;Center</span>
           </div>

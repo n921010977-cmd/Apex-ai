@@ -380,7 +380,7 @@ function NotificationsPanel({ settings, onUpdate, showToast }: { settings: Setti
       <Section title="Push и мессенджеры" accent="#8b5cf6">
         {([
           { key: "push" as const,    label: "Push-уведомления", desc: "В браузере и мобильном", Icon: Bell },
-          { key: "tg" as const,      label: "Telegram",          desc: "@ApexAI_bot",             Icon: MessageSquare },
+          { key: "tg" as const,      label: "Telegram",          desc: "@VertlixAI_bot",             Icon: MessageSquare },
           { key: "slack" as const,   label: "Slack",             desc: "Подключить workspace",    Icon: MessageSquare },
           { key: "discord" as const, label: "Discord",           desc: "Подключить сервер",       Icon: MessageSquare },
           { key: "sms" as const,     label: "SMS",               desc: "Критичные алерты",        Icon: Phone },
@@ -614,7 +614,7 @@ export default function SettingsPage() {
       <aside style={{ width: 216, flexShrink: 0, padding: "28px 10px", borderRight: "1px solid rgba(255,255,255,0.05)", position: "sticky", top: 0, height: "100vh", overflowY: "auto", zIndex: 10 }}>
         <div style={{ marginBottom: 24, paddingLeft: 10 }}>
           <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>Настройки</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>Apex AI Workspace</div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>Vertlix AI Workspace</div>
         </div>
 
         {groups.map(group => (

@@ -48,7 +48,7 @@ async function buildHtml(report: {
 <body>
   <div class="header">
     <div>
-      <div class="meta">Apex AI · Бизнес-отчёт</div>
+      <div class="meta">Vertlix AI · Бизнес-отчёт</div>
       <h1>${report.title}</h1>
       <div class="meta" style="margin-top:8px">${report.total_pages} страниц · ${new Date(report.created_at).toLocaleDateString("ru")}</div>
     </div>
@@ -56,7 +56,7 @@ async function buildHtml(report: {
   </div>
   ${report.summary ? `<div class="summary">${report.summary}</div>` : ""}
   ${sections}
-  <div class="footer"><span>Apex AI · Автоматически сгенерировано</span><span>${new Date().toLocaleDateString("ru")}</span></div>
+  <div class="footer"><span>Vertlix AI · Автоматически сгенерировано</span><span>${new Date().toLocaleDateString("ru")}</span></div>
 </body>
 </html>`;
 }

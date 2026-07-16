@@ -5,7 +5,7 @@ import Link from "next/link";
 
 // ─── Models (all routed to Claude backend for now; real keys added later) ─────
 const MODELS = [
-  { id: "apex",   name: "Apex AI",  sub: "Основная",   color: "#6366f1", rgb: "99,102,241" },
+  { id: "vertlix",   name: "Vertlix AI",  sub: "Основная",   color: "#6366f1", rgb: "99,102,241" },
   { id: "claude", name: "Claude",   sub: "Anthropic",  color: "#d97757", rgb: "217,119,87" },
   { id: "gpt",    name: "GPT",      sub: "OpenAI",     color: "#10a37f", rgb: "16,163,127" },
   { id: "gemini", name: "Gemini",   sub: "Google",     color: "#4285f4", rgb: "66,133,244" },
@@ -38,7 +38,7 @@ export default function ChatPage() {
   useEffect(() => {
     inputRef.current?.focus();
     const agent = new URLSearchParams(window.location.search).get("agent");
-    if (agent) setMessages([{ role: "assistant", content: `Здравствуйте! Я ваш ${agent} из совета Apex AI. Расскажите о задаче или идее — помогу разобраться.` }]);
+    if (agent) setMessages([{ role: "assistant", content: `Здравствуйте! Я ваш ${agent} из совета Vertlix AI. Расскажите о задаче или идее — помогу разобраться.` }]);
   }, []);
 
   const pickImage = () => fileRef.current?.click();
@@ -67,8 +67,8 @@ export default function ChatPage() {
     setBusy(true);
 
     const persona = research
-      ? `Ты — Apex AI в режиме «Глубокое исследование». Дай развёрнутый, структурированный ответ с разделами, фактами, цифрами, плюсами/минусами и конкретными рекомендациями. Пиши по-русски.`
-      : `Ты — Apex AI, дружелюбный русскоязычный бизнес-ассистент${model.id !== "apex" ? ` (стиль ${model.name})` : ""}. Отвечай ясно, структурно и по делу.`;
+      ? `Ты — Vertlix AI в режиме «Глубокое исследование». Дай развёрнутый, структурированный ответ с разделами, фактами, цифрами, плюсами/минусами и конкретными рекомендациями. Пиши по-русски.`
+      : `Ты — Vertlix AI, дружелюбный русскоязычный бизнес-ассистент${model.id !== "vertlix" ? ` (стиль ${model.name})` : ""}. Отвечай ясно, структурно и по делу.`;
 
     try {
       const res = await fetch("/api/chat/direct", {
@@ -142,7 +142,7 @@ export default function ChatPage() {
           <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(99,102,241,0.4)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
-          <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>Apex AI</span>
+          <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>Vertlix AI</span>
         </Link>
 
         <div style={{ position: "relative", marginLeft: 4 }}>
@@ -187,7 +187,7 @@ export default function ChatPage() {
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" width="28" height="28"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               </div>
               <h1 style={{ fontSize: 27, fontWeight: 800, margin: "0 0 8px", letterSpacing: "-0.02em" }}>Чем помочь?</h1>
-              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: "0 0 28px" }}>Apex AI — ваш бизнес-ассистент. Спросите о стратегии, финансах или прикрепите изображение.</p>
+              <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: "0 0 28px" }}>Vertlix AI — ваш бизнес-ассистент. Спросите о стратегии, финансах или прикрепите изображение.</p>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(230px,1fr))", gap: 10, maxWidth: 540, margin: "0 auto" }}>
                 {SUGGESTIONS.map((s, i) => (
                   <button key={s.t} onClick={() => send(s.t + ". " + s.s)} style={{
@@ -261,7 +261,7 @@ export default function ChatPage() {
               Исследование
             </button>
 
-            <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} placeholder="Спросите Apex AI…" rows={1}
+            <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} placeholder="Спросите Vertlix AI…" rows={1}
               style={{ flex: 1, resize: "none", maxHeight: 160, minHeight: 40, padding: "10px 12px", background: "transparent", border: "none", color: "#fff", fontSize: 14, outline: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
 
             <button onClick={() => send()} disabled={busy || (!input.trim() && !attach)} style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, border: "none", cursor: busy || (!input.trim() && !attach) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center",
@@ -271,7 +271,7 @@ export default function ChatPage() {
             </button>
           </div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.25)", textAlign: "center", marginTop: 8 }}>
-            {research ? "Режим исследования включён · " : ""}Apex AI может ошибаться · на базе Claude
+            {research ? "Режим исследования включён · " : ""}Vertlix AI может ошибаться · на базе Claude
           </div>
         </div>
       </div>

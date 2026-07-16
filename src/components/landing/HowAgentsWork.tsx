@@ -133,7 +133,7 @@ export function HowAgentsWork() {
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", opacity: 0.7 }} />
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", opacity: 0.7 }} />
               </span>
-              <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>apex — boardroom session</span>
+              <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — boardroom session</span>
             </div>
             <span style={{ fontSize: 10, letterSpacing: "0.1em", color: verdict ? "#34d399" : "rgba(255,255,255,0.35)" }}>
               {verdict ? "РЕШЕНИЕ ПРИНЯТО" : `${shown}/${SCRIPT.length} ВЫСТУПИЛИ`}
@@ -230,7 +230,7 @@ export function HowAgentsWork() {
           {/* Footer bar */}
           <div className="term-mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <span style={{ fontSize: 9.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.25)" }}>
-              симуляция на основе реального пайплайна apex
+              симуляция на основе реального пайплайна vertlix
             </span>
             {verdict && (
               <button onClick={replay} style={{ fontSize: 10, letterSpacing: "0.1em", color: "#a5b4fc", background: `rgba(${RGB},0.1)`, border: `1px solid rgba(${RGB},0.3)`, borderRadius: 7, padding: "4px 12px", cursor: "pointer" }}>

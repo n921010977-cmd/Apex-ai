@@ -42,10 +42,10 @@ const ACCENT     = "#6366f1";
 const ACCENT_RGB = "99,102,241";
 
 const TESTIMONIALS = [
-  { quote: "Потратили $30K на консалтинг, прежде чем нашли Apex AI. За один вечер получили стратегию лучшего качества.", name: "Dmitri Volkov",  role: "CEO, TechFlow SaaS",     avatar: "D" },
+  { quote: "Потратили $30K на консалтинг, прежде чем нашли Vertlix AI. За один вечер получили стратегию лучшего качества.", name: "Dmitri Volkov",  role: "CEO, TechFlow SaaS",     avatar: "D" },
   { quote: "Business Analyst нашёл нишу, которую мы пропустили. Изменили позиционирование — выросли в 3 раза за квартал.", name: "Sarah Kim",     role: "Founder, MarketNest",    avatar: "S" },
   { quote: "CFO просчитал точку безубыточности точнее, чем наш финансовый советник за $500/час. Впечатляюще.", name: "Marco Rossi",  role: "Co-founder, InvoiceAI",  avatar: "M" },
-  { quote: "Запустил ресторанный бизнес по стратегии от Apex AI. Вышел в плюс на 4 месяца раньше прогноза.", name: "Anna Petrova", role: "Owner, Bistro Verde",     avatar: "A" },
+  { quote: "Запустил ресторанный бизнес по стратегии от Vertlix AI. Вышел в плюс на 4 месяца раньше прогноза.", name: "Anna Petrova", role: "Owner, Bistro Verde",     avatar: "A" },
   { quote: "COO прописал операционный план так детально, что я просто следовал инструкциям. Теперь у меня команда 12 человек.", name: "Liam Carter",  role: "Founder, OpsTech",       avatar: "L" },
   { quote: "Legal Advisor предупредил о рисках корпоративной структуры. Сэкономил тысячи на юридических ошибках.", name: "Yuna Park",    role: "CEO, LegalFlow",          avatar: "Y" },
 ];

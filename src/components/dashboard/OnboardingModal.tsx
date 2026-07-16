@@ -84,7 +84,7 @@ export function OnboardingModal() {
       </div>
 
       <h2 style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", margin: "0 0 10px", textWrap: "balance" } as React.CSSProperties}>
-        Добро пожаловать в Apex AI
+        Добро пожаловать в Vertlix AI
       </h2>
       <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", lineHeight: 1.7, margin: "0 0 32px", maxWidth: 380, marginLeft: "auto", marginRight: "auto" }}>
         У вас есть совет из 20 AI-директоров — CEO, CFO, CMO и другие. Они готовы помочь с любым бизнес-решением прямо сейчас.

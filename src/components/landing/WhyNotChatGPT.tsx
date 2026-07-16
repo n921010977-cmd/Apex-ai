@@ -6,35 +6,35 @@ const RGB = "99,102,241";
 
 // ─── Comparison model ─────────────────────────────────────────────────────────
 type Cell = { v: "yes" | "no" | "part"; note?: string };
-const ROWS: { label: string; chatgpt: Cell; consult: Cell; apex: Cell }[] = [
+const ROWS: { label: string; chatgpt: Cell; consult: Cell; vertlix: Cell }[] = [
   { label: "Несколько экспертных позиций",
     chatgpt: { v: "no", note: "один собеседник" },
     consult: { v: "yes", note: "команда" },
-    apex:    { v: "yes", note: "20 ролей" } },
+    vertlix:    { v: "yes", note: "20 ролей" } },
   { label: "Эксперты спорят и проверяют друг друга",
     chatgpt: { v: "no" },
     consult: { v: "part", note: "если повезёт" },
-    apex:    { v: "yes", note: "конфликт → синтез" } },
+    vertlix:    { v: "yes", note: "конфликт → синтез" } },
   { label: "Финмодель с цифрами (LTV, CAC, окупаемость)",
     chatgpt: { v: "part", note: "если попросить" },
     consult: { v: "yes" },
-    apex:    { v: "yes", note: "в каждом отчёте" } },
+    vertlix:    { v: "yes", note: "в каждом отчёте" } },
   { label: "Готовый отчёт для инвестора",
     chatgpt: { v: "no", note: "текст в чате" },
     consult: { v: "yes", note: "через недели" },
-    apex:    { v: "yes", note: "PDF, 15+ разделов" } },
+    vertlix:    { v: "yes", note: "PDF, 15+ разделов" } },
   { label: "Итоговое решение, а не «зависит от…»",
     chatgpt: { v: "no" },
     consult: { v: "part" },
-    apex:    { v: "yes", note: "вердикт с баллом" } },
+    vertlix:    { v: "yes", note: "вердикт с баллом" } },
   { label: "Скорость",
     chatgpt: { v: "part", note: "мгновенно, но сыро" },
     consult: { v: "no", note: "2–6 недель" },
-    apex:    { v: "yes", note: "≈ 5 минут" } },
+    vertlix:    { v: "yes", note: "≈ 5 минут" } },
   { label: "Цена",
     chatgpt: { v: "yes", note: "$20/мес" },
     consult: { v: "no", note: "$5 000+" },
-    apex:    { v: "yes", note: "от $0" } },
+    vertlix:    { v: "yes", note: "от $0" } },
 ];
 
 const MARK: Record<Cell["v"], { icon: string; color: string }> = {
@@ -56,7 +56,7 @@ function CellView({ c, strong }: { c: Cell; strong?: boolean }) {
 // ─── Section ──────────────────────────────────────────────────────────────────
 export function WhyNotChatGPT() {
   return (
-    <section id="why-apex" style={{ position: "relative", padding: "96px 24px 100px", overflow: "hidden" }}>
+    <section id="why-vertlix" style={{ position: "relative", padding: "96px 24px 100px", overflow: "hidden" }}>
       <div aria-hidden style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(ellipse 60% 50% at 50% 40%, rgba(${RGB},0.04), transparent 65%)`, pointerEvents: "none" }} />
 
       <div style={{ maxWidth: 860, margin: "0 auto", position: "relative" }}>
@@ -70,7 +70,7 @@ export function WhyNotChatGPT() {
             <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${RGB},0.85)` }}>// честное сравнение</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12, margin: "0 0 14px", color: "#fff" }}>
-            ChatGPT отвечает.<br /><span style={{ color: "#818cf8" }}>Apex — решает.</span>
+            ChatGPT отвечает.<br /><span style={{ color: "#818cf8" }}>Vertlix — решает.</span>
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,0.4)", maxWidth: 560, margin: "0 auto", lineHeight: 1.65 }}>
             Один AI даст вам мнение. Команда, которая спорит и проверяет друг друга, даст решение, которому можно доверять.
@@ -94,7 +94,7 @@ export function WhyNotChatGPT() {
                   <div key={h} style={{ padding: "14px 8px", textAlign: "center", fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.5)", borderLeft: "1px solid rgba(255,255,255,0.05)" }}>{h}</div>
                 ))}
                 <div style={{ padding: "14px 8px", textAlign: "center", borderLeft: `1px solid rgba(${RGB},0.3)`, background: `rgba(${RGB},0.08)` }}>
-                  <span className="term-mono" style={{ fontSize: 12.5, fontWeight: 800, color: "#a5b4fc", letterSpacing: "0.06em" }}>APEX AI</span>
+                  <span className="term-mono" style={{ fontSize: 12.5, fontWeight: 800, color: "#a5b4fc", letterSpacing: "0.06em" }}>VERTLIX AI</span>
                 </div>
               </div>
 
@@ -109,7 +109,7 @@ export function WhyNotChatGPT() {
                   <div style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}><CellView c={r.chatgpt} /></div>
                   <div style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}><CellView c={r.consult} /></div>
                   <div style={{ borderLeft: `1px solid rgba(${RGB},0.3)`, background: `rgba(${RGB},0.06)`, alignSelf: "stretch", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                    <CellView c={r.apex} strong />
+                    <CellView c={r.vertlix} strong />
                   </div>
                 </motion.div>
               ))}
@@ -118,7 +118,7 @@ export function WhyNotChatGPT() {
 
           {/* Bottom line */}
           <div className="term-mono" style={{ padding: "12px 18px", borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: 10.5, letterSpacing: "0.06em", color: "rgba(255,255,255,0.35)", textAlign: "center" }}>
-            &gt; вывод: используйте ChatGPT для вопросов. используйте apex — для решений.
+            &gt; вывод: используйте ChatGPT для вопросов. используйте vertlix — для решений.
           </div>
         </motion.div>
       </div>

@@ -554,7 +554,7 @@ export default function DashboardPage() {
                 style={{ fontSize: "clamp(24px,3vw,40px)", fontWeight: 800, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: 8 }}>
                 {greeting}, {firstName}<br />
                 <span style={{ background: `linear-gradient(130deg, ${ACCENT} 0%, #8b5cf6 60%, #a78bfa 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
-                  Apex Executive Board
+                  Vertlix Executive Board
                 </span>
               </motion.h1>
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25, duration: 0.5 }}

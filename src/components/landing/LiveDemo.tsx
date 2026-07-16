@@ -21,7 +21,7 @@ const FALLBACK = `ОЦЕНКА: 78/100
 РИСК: unit-экономика чувствительна к стоимости привлечения
 ПЕРВЫЙ ШАГ: 10 интервью с целевыми клиентами до написания кода`;
 
-const PERSONA = `Ты — экспресс-совет Apex из 20 AI-директоров. Дай краткий вердикт по бизнес-идее СТРОГО в формате (6 строк, без вступлений и пояснений):
+const PERSONA = `Ты — экспресс-совет Vertlix из 20 AI-директоров. Дай краткий вердикт по бизнес-идее СТРОГО в формате (6 строк, без вступлений и пояснений):
 ОЦЕНКА: N/100
 СИЛЬНОЕ: …
 СИЛЬНОЕ: …
@@ -111,7 +111,7 @@ export function LiveDemo() {
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", opacity: 0.7 }} />
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", opacity: 0.7 }} />
               </span>
-              <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>apex — экспресс-проверка · без регистрации</span>
+              <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — экспресс-проверка · без регистрации</span>
             </div>
             <span style={{ fontSize: 10, letterSpacing: "0.1em", color: exhausted ? "#fbbf24" : "rgba(255,255,255,0.3)" }}>
               {exhausted ? "ЛИМИТ ДЕМО" : `${FREE_RUNS - runs} ИЗ ${FREE_RUNS} БЕСПЛАТНО`}

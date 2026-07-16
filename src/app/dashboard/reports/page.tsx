@@ -179,7 +179,7 @@ function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = fa
 
   return `<!DOCTYPE html><html lang="ru"><head><meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>${esc(r.title)} — Apex AI</title>
+<title>${esc(r.title)} — Vertlix AI</title>
 <style>
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#05060A;color:#E5E7EB;padding:52px 44px;line-height:1.65;max-width:960px;margin:0 auto}
@@ -237,7 +237,7 @@ function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = fa
 <body>
   <div class="head fade">
     <div>
-      <div class="eyebrow mono">// apex ai · отчёт совета директоров</div>
+      <div class="eyebrow mono">// vertlix ai · отчёт совета директоров</div>
       <h1>${esc(r.title)}</h1>
       <div class="chips">
         <span class="chip">${esc(r.type)}</span>
@@ -292,7 +292,7 @@ function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = fa
 
   ${dbSections ? `<h2 class="block mono">06 · Разделы отчёта</h2>${dbSections}` : ""}
 
-  <div class="foot mono"><span>apex ai · сгенерировано советом из 20 агентов</span><span>${new Date().toLocaleDateString("ru")}</span></div>
+  <div class="foot mono"><span>vertlix ai · сгенерировано советом из 20 агентов</span><span>${new Date().toLocaleDateString("ru")}</span></div>
   ${autoPrint ? "<script>window.onload=function(){setTimeout(function(){window.print()},900)}</script>" : ""}
 </body></html>`;
 }

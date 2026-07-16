@@ -181,7 +181,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
       {/* Breadcrumb — terminal path */}
       <div className="hidden sm:flex items-center gap-2 flex-shrink-0 term-mono" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.28)", letterSpacing: "0.04em" }}>
         <Cpu size={13} style={{ color: "rgba(99,102,241,0.7)" }} />
-        <span style={{ color: "rgba(255,255,255,0.4)" }}>apex</span>
+        <span style={{ color: "rgba(255,255,255,0.4)" }}>vertlix</span>
         <span style={{ color: "rgba(99,102,241,0.5)" }}>/</span>
         <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{pageLabel}</span>
         <span className="term-blink" style={{ color: "rgba(99,102,241,0.8)" }}>▋</span>

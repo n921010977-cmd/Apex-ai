@@ -1,4 +1,4 @@
-// ─── Canonical Apex AI executive team ────────────────────────────────────────
+// ─── Canonical Vertlix AI executive team ────────────────────────────────────────
 // Single source of truth for the 20 named AI directors shown across the app
 // (dashboard, new-strategy, projects, agents, executive board). Keeping every
 // screen on this one roster is what makes the product read as a coherent team

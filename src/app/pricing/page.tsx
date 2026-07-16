@@ -3,8 +3,8 @@ import Link from "next/link";
 import { PricingSection } from "@/components/landing/PricingSection";
 
 export const metadata: Metadata = {
-  title: "Тарифы — Apex AI",
-  description: "Выберите план Apex AI: Starter бесплатно, Pro и Agency для растущих команд.",
+  title: "Тарифы — Vertlix AI",
+  description: "Выберите план Vertlix AI: Starter бесплатно, Pro и Agency для растущих команд.",
 };
 
 export default async function PricingPage({ searchParams }: { searchParams: Promise<{ limit?: string }> }) {
@@ -22,7 +22,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           <div style={{ width: 30, height: 30, borderRadius: 9, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
-          <span style={{ fontFamily: "var(--font-geist-mono), monospace", fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>APEX AI</span>
+          <span style={{ fontFamily: "var(--font-geist-mono), monospace", fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "0.02em" }}>VERTLIX AI</span>
         </Link>
         <Link href="/dashboard" style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.6)", textDecoration: "none" }}>
           ← В дашборд

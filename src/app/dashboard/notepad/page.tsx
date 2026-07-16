@@ -270,7 +270,7 @@ export default function NotepadPage() {
       "Предложить идеи": "Предложи 4–5 дополнительных идей, развивающих заметку.",
       "Создать резюме":  "Составь executive summary для руководства: контекст, выводы, следующие шаги.",
     };
-    const persona = "Ты — AI-редактор заметок в Apex. Отвечай по-русски, кратко и структурно, используй markdown.";
+    const persona = "Ты — AI-редактор заметок в Vertlix. Отвечай по-русски, кратко и структурно, используй markdown.";
     const message = `${tasks[action] ?? action}\n\nЗаметка «${active.title}»:\n\n${active.content.slice(0, 6000)}`;
     try {
       const res = await fetch("/api/chat/direct", {
