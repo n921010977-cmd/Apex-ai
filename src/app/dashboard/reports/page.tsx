@@ -324,10 +324,13 @@ async function openReportView(report: Report) {
 async function downloadReportPdf(report: Report) {
   const w = window.open("", "_blank");
   if (!w) return false;
-  w.document.write("<!DOCTYPE html><title>Подготовка PDF…</title><body style='background:#05060A'></body>");
+  w.document.write("<!DOCTYPE html><title>Подготовка PDF…</title><body style='background:#05060A;color:#fff;font-family:system-ui;display:flex;align-items:center;justify-content:center;height:100vh;font-size:18px'>Генерация PDF…</body>");
   const full = await loadFull(report);
   w.document.open();
-  w.document.write(buildReportHtml(full, true));
+  const html = buildReportHtml(full, true);
+  // Inject auto-print trigger before closing </body>
+  const printHtml = html.replace("</body>", "<script>window.onload=function(){window.print();}</script></body>");
+  w.document.write(printHtml);
   w.document.close();
   return true;
 }

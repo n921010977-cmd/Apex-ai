@@ -165,11 +165,24 @@ export default function StrategyReportPage() {
   const [missing, setMissing] = useState(false);
 
   useEffect(() => {
+    // Try localStorage first (fast path), then API fallback (deep-link support)
     try {
       const all: Project[] = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
       const p = all.find(x => x.id === id);
-      if (p) setProject(p); else setMissing(true);
-    } catch { setMissing(true); }
+      if (p) { setProject(p); return; }
+    } catch { /* fall through */ }
+
+    fetch(`/api/projects/${id}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (data?.project) {
+          const p = data.project as Project & { ai_results?: AgentResult[]; overall_score?: number };
+          setProject({ ...p, score: p.score ?? p.overall_score ?? 0, aiResults: p.aiResults ?? p.ai_results ?? [] });
+        } else {
+          setMissing(true);
+        }
+      })
+      .catch(() => setMissing(true));
   }, [id]);
 
   useEffect(() => { if (missing) router.replace("/dashboard/projects"); }, [missing, router]);

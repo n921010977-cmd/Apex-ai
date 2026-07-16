@@ -178,9 +178,10 @@ function calculateMetrics(metric: string, params: Record<string, number>) {
       return { metric: "LTV/CAC", value: (params.ltv ?? 0) / (params.cac ?? 1), unit: "x", benchmark: "Good: >3x, Excellent: >5x" };
     case "burn_rate":
       return { metric: "Burn Rate", value: (params.monthly_expenses ?? 0) - (params.monthly_revenue ?? 0), unit: "$/month", formula: "Expenses - Revenue" };
-    case "runway":
+    case "runway": {
       const burn = (params.monthly_expenses ?? 0) - (params.monthly_revenue ?? 0);
       return { metric: "Runway", value: burn > 0 ? Math.round((params.cash ?? 0) / burn) : Infinity, unit: "months", warning: burn <= 0 ? "Profitable — no runway concern" : undefined };
+    }
     case "mrr":
       return { metric: "MRR", value: (params.subscribers ?? 0) * (params.avg_price ?? 0), unit: "$/month" };
     case "arr":
