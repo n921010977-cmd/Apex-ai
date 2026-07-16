@@ -9,8 +9,66 @@ import {
   ChevronRight, X, Check, Brain, Database, Globe, Cpu,
   Activity, Clock, DollarSign, GitBranch, Package, Layers, Filter,
   ArrowUpRight, Sparkles, CheckCircle2, PauseCircle, Circle,
-  AlertCircle,
+  AlertCircle, Crown, Target, Briefcase, Megaphone, Rocket, PenLine,
+  Palette, Share2, Mail, Handshake, Phone, Gem, Map, Microscope,
+  Server, ShieldCheck, TestTube2, Smartphone, Eye, Atom, FileBarChart,
+  BookOpen, UserSearch, GraduationCap, Telescope, Landmark, PieChart,
+  type LucideIcon,
 } from "lucide-react";
+
+const AGENT_ICON_MAP: Record<string, LucideIcon> = {
+  a1:  Crown,        // CEO
+  a2:  Target,       // CSO
+  a3:  Settings2,    // COO
+  a4:  Briefcase,    // CFO
+  a5:  Megaphone,    // CMO
+  a6:  Cpu,          // CTO
+  a7:  BarChart2,    // Financial Analyst
+  a8:  TrendingUp,   // Investment Analyst
+  a9:  Scale,        // Tax & Compliance
+  a10: PieChart,     // Budget Controller
+  a11: Landmark,     // Treasury Manager
+  a12: Rocket,       // Growth Hacker
+  a13: PenLine,      // Content Strategist
+  a14: BarChart2,    // Performance Marketer
+  a15: Palette,      // Brand Designer
+  a16: Search,       // SEO Specialist
+  a17: Share2,       // Social Media Manager
+  a18: Mail,         // Email Marketing
+  a19: Handshake,    // Account Executive
+  a20: Phone,        // Sales Development Rep
+  a21: Gem,          // Customer Success Manager
+  a22: Zap,          // Revenue Operations
+  a23: Map,          // Product Manager
+  a24: Microscope,   // UX Researcher
+  a25: Palette,      // UX/UI Designer
+  a26: FileBarChart, // Product Analyst
+  a27: Code2,        // Full-Stack Developer
+  a28: Server,       // DevOps Engineer
+  a29: ShieldCheck,  // Security Engineer
+  a30: Brain,        // ML Engineer
+  a31: Database,     // Backend Engineer
+  a32: TestTube2,    // QA Engineer
+  a33: Smartphone,   // Mobile Developer
+  a34: BarChart2,    // Data Analyst
+  a35: Eye,          // Business Intelligence
+  a36: Atom,         // Data Scientist
+  a37: Globe,        // Market Research Analyst
+  a38: FileBarChart, // Reporting Specialist
+  a39: Scale,        // Corporate Lawyer
+  a40: BookOpen,     // IP & Patent Attorney
+  a41: Shield,       // Contract Specialist
+  a42: Users,        // HR Director
+  a43: UserSearch,   // Recruiter
+  a44: GraduationCap,// L&D Specialist
+  a45: Microscope,   // Market Research Lead
+  a46: Telescope,    // Competitive Intelligence
+};
+
+function AgentIcon({ agent, size = 20 }: { agent: { id: string; color: string }; size?: number }) {
+  const Icon = AGENT_ICON_MAP[agent.id] ?? Bot;
+  return <Icon size={size} color={agent.color} strokeWidth={1.8} />;
+}
 
 const DEPARTMENTS = [
   { id: "all",       label: "Все агенты",    icon: Layers },
@@ -170,10 +228,10 @@ function AgentCard({ agent, selected, fav, onFav, onClick, onRun, onChat, onConf
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
         {/* аватар со статус-кольцом */}
         <div style={{ position: "relative", flexShrink: 0 }}>
-          <div style={{ width: 46, height: 46, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 21,
+          <div style={{ width: 46, height: 46, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center",
             background: `linear-gradient(135deg, ${agent.color}2e, ${agent.color}12)`, border: `1px solid ${agent.color}45`,
             boxShadow: `0 4px 14px ${agent.color}22, inset 0 1px 0 rgba(255,255,255,0.08)` }}>
-            {agent.emoji}
+            <AgentIcon agent={agent} size={20} />
           </div>
           <span style={{ position: "absolute", bottom: -2, right: -2, width: 11, height: 11, borderRadius: "50%", background: statusColor, border: "2px solid #0B0C12", boxShadow: `0 0 7px ${statusColor}` }} />
         </div>
@@ -273,8 +331,8 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
 
       <div style={{ padding: "20px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-          <div style={{ width: 56, height: 56, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, background: `linear-gradient(135deg, ${agent.color}25, ${agent.color}10)`, border: `1px solid ${agent.color}40`, flexShrink: 0 }}>
-            {agent.emoji}
+          <div style={{ width: 56, height: 56, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg, ${agent.color}25, ${agent.color}10)`, border: `1px solid ${agent.color}40`, flexShrink: 0 }}>
+            <AgentIcon agent={agent} size={24} />
           </div>
           <div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.92)", marginBottom: 3 }}>{agent.name}</div>
