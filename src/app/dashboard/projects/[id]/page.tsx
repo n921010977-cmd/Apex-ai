@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 
 // ─── TYPES ────────────────────────────────────────────────────────────────────
@@ -603,10 +603,65 @@ function ScoreGauge({ score }: { score: number }) {
 
 // ─── AGENT PANEL ──────────────────────────────────────────────────────────────
 
-function AgentPanel({ letter, name, subtitle, color, score, opinion, delay = 0 }:
-  { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string; delay?: number }) {
+function AgentPanel({ letter, name, subtitle, color, score, opinion, delay = 0, agentId, projectContext }:
+  { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string; delay?: number; agentId?: string; projectContext?: string }) {
   const animated = useAnimated(delay);
   const scoreColor = score >= 85 ? "#10b981" : score >= 70 ? "#f59e0b" : "#f43f5e";
+
+  const [streamedText, setStreamedText] = useState("");
+  const [streaming, setStreaming] = useState(false);
+  const [done, setDone] = useState(false);
+  const started = useRef(false);
+
+  const streamOpinion = useCallback(async () => {
+    if (!projectContext || started.current) return;
+    started.current = true;
+    setStreaming(true);
+
+    const persona = `Ты — ${name}, ${subtitle}. Отвечай строго от лица этого специалиста, по-русски, без markdown-символов, конкретно и профессионально.`;
+    const message = `${projectContext}\n\nДай экспертную оценку этого проекта со своей профессиональной точки зрения (${subtitle}). 6–8 конкретных предложений: что сильно, что слабо, какие риски и рекомендации. По-русски, обычный текст.`;
+
+    try {
+      const res = await fetch("/api/chat/direct", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message, agentId: agentId ?? "general", persona, history: [] }),
+      });
+      if (!res.ok || !res.body) throw new Error("offline");
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let buf = "", acc = "";
+      while (true) {
+        const { done: d, value } = await reader.read();
+        if (d) break;
+        buf += dec.decode(value, { stream: true });
+        const lines = buf.split("\n");
+        buf = lines.pop() ?? "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const evt = JSON.parse(line.slice(6));
+            if (evt.type === "token") { acc += evt.token; setStreamedText(acc); }
+          } catch { /* ignore */ }
+        }
+      }
+      if (acc.trim()) { setDone(true); } else { setStreamedText(opinion); setDone(true); }
+    } catch {
+      setStreamedText(opinion);
+      setDone(true);
+    } finally {
+      setStreaming(false);
+    }
+  }, [projectContext, name, subtitle, agentId, opinion]);
+
+  useEffect(() => {
+    if (!projectContext) return;
+    const t = setTimeout(streamOpinion, delay + 200);
+    return () => clearTimeout(t);
+  }, [streamOpinion, delay, projectContext]);
+
+  const displayText = projectContext ? streamedText : opinion;
+
   return (
     <div style={{
       background: "rgba(255,255,255,0.025)",
@@ -627,16 +682,33 @@ function AgentPanel({ letter, name, subtitle, color, score, opinion, delay = 0 }
           <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.9)", lineHeight: 1.2 }}>{name}</div>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.32)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{subtitle}</div>
         </div>
-        <div style={{
-          display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2,
-        }}>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
           <div style={{ fontSize: 20, fontWeight: 900, color: scoreColor, fontFamily: "ui-monospace,monospace", lineHeight: 1 }}>{score}</div>
           <div style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em" }}>БАЛЛ</div>
         </div>
       </div>
       <div style={{ paddingLeft: 4 }}>
-        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, margin: 0 }}>{opinion}</p>
+        {streaming && !displayText && (
+          <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "4px 0" }}>
+            {[0, 1, 2].map(i => (
+              <span key={i} style={{
+                width: 5, height: 5, borderRadius: "50%", background: color,
+                animation: `ap-dot 1.2s ease-in-out ${i * 0.18}s infinite`,
+              }} />
+            ))}
+          </div>
+        )}
+        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.75, margin: 0, whiteSpace: "pre-wrap" }}>
+          {displayText}
+          {streaming && displayText && (
+            <span style={{ display: "inline-block", width: 2, height: 13, background: color, marginLeft: 2, verticalAlign: "text-bottom", animation: "ap-cursor 0.8s ease-in-out infinite" }} />
+          )}
+        </p>
       </div>
+      <style>{`
+        @keyframes ap-dot { 0%,80%,100%{transform:scale(0.6);opacity:0.3} 40%{transform:scale(1);opacity:1} }
+        @keyframes ap-cursor { 0%,100%{opacity:1} 50%{opacity:0} }
+      `}</style>
     </div>
   );
 }
@@ -1042,6 +1114,8 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
       }))
     : DEMO_AGENTS;
 
+  const projectContext = `Проект: "${project.name}". ${project.subtitle}. Описание: ${project.summary}. Ключевые финансовые показатели: ${project.financials.map(f => `${f.label} — ${f.value}`).join(", ")}.`;
+
   const avgScore = Math.round(agents.reduce((s, a) => s + a.score, 0) / agents.length);
 
   const diagBrief = `Итог совета: проект набрал ${project.score} из 100 — ${project.score >= 85 ? "сильная идея, можно запускать" : project.score >= 70 ? "жизнеспособно, но есть что доработать" : "требует серьёзной проработки"}. Сильнее всего — рыночный потенциал, слабее — конкурентное преимущество. Ниже каждый директор даёт свою оценку.`;
@@ -1082,8 +1156,10 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
             subtitle={agent.title}
             color={agent.color}
             score={agent.score}
-            opinion={agent.opinion || "Анализ проекта завершён. Рекомендации доступны после запуска полного AI-анализа."}
+            opinion={agent.opinion || "Анализ проекта завершён."}
             delay={80 + i * 50}
+            agentId={agent.id}
+            projectContext={projectContext}
           />
         ))}
       </div>
