@@ -286,6 +286,11 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
 @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
 .animate-float { animation: float 4s ease-in-out infinite; }
 
+/* Dashboard page-enter fade (replaces the old blocking AnimatePresence) */
+@keyframes dashPageEnter { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.dash-page-enter { animation: dashPageEnter 0.28s cubic-bezier(0.22,1,0.36,1) both; }
+@media (prefers-reduced-motion: reduce) { .dash-page-enter { animation: none; } }
+
 @keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
 

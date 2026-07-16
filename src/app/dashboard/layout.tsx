@@ -2,7 +2,6 @@
 
 import { useState, useCallback } from "react";
 import { usePathname } from "next/navigation";
-import { motion, AnimatePresence } from "framer-motion";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { ToastProvider } from "@/components/ui/Toast";
@@ -33,18 +32,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden", minWidth: 0 }}>
           <TopNav onMenuClick={openSidebar} />
           <main style={{ flex: 1, overflowY: "auto", overflowX: "hidden", position: "relative" }}>
-            <AnimatePresence mode="wait" initial={false}>
-              <motion.div
-                key={pathname}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -6 }}
-                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-                style={{ minHeight: "100%" }}
-              >
-                {children}
-              </motion.div>
-            </AnimatePresence>
+            {/* Keyed by pathname so a CSS fade replays on each navigation.
+                No AnimatePresence/mode="wait" — the incoming page must never be
+                blocked by an outgoing page's exit animation (that left tabs blank). */}
+            <div key={pathname} className="dash-page-enter" style={{ minHeight: "100%" }}>
+              {children}
+            </div>
           </main>
         </div>
 
