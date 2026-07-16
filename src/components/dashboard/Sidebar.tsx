@@ -290,7 +290,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 transition: "width 0.8s cubic-bezier(0.22,1,0.36,1)",
               }} />
             </div>
-            <Link href="/dashboard/settings" onClick={onClose}
+            <Link href="/pricing" onClick={onClose}
               className="flex items-center justify-between transition-colors group mb-2.5"
               style={{ fontSize: 10.5, color: "rgba(129,140,248,0.85)", textDecoration: "none" }}>
               <span>Upgrade to Pro</span>

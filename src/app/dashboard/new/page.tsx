@@ -665,9 +665,18 @@ export default function NewStrategyPage() {
       market: `$${(score * 50).toFixed(0)}M`, growth: `+${Math.floor(10 + score / 5)}%/год`,
       aiResults: collectedResults,
     };
+    // Persist to the server first so plan limits are enforced. On the free
+    // plan the API returns 402 once the cap is hit → send the user to pricing.
+    try {
+      const res = await fetch("/api/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: form.name, description: form.description, industry: form.industry, stage: form.stage, goals: form.goals, targetRevenue: form.targetRevenue, timeframe: form.timeframe, score, aiResults: newProject.aiResults, metadata: { localId: id } }) });
+      if (res.status === 402) {
+        router.push("/pricing?limit=1");
+        return;
+      }
+    } catch { /* offline — fall back to local-only below */ }
+
     const existing = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
     localStorage.setItem("apex-user-projects", JSON.stringify([newProject, ...existing]));
-    fetch("/api/projects", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: form.name, description: form.description, industry: form.industry, stage: form.stage, goals: form.goals, targetRevenue: form.targetRevenue, timeframe: form.timeframe, score, aiResults: newProject.aiResults, metadata: { localId: id } }) }).catch(() => {});
     router.push(`/dashboard/strategy/${id}`);
   };
 

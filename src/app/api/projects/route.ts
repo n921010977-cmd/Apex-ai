@@ -31,15 +31,17 @@ export async function POST(req: NextRequest) {
 
   // Get or create personal organization for user
   let orgId: string;
+  let plan = "free";
   const { data: membership } = await db
     .from("members")
-    .select("organization_id")
+    .select("organization_id, organizations ( plan )")
     .eq("user_id", user.id)
     .eq("role", "owner")
     .maybeSingle();
 
   if (membership) {
     orgId = membership.organization_id;
+    plan = membership.organizations?.plan ?? "free";
   } else {
     const { data: org } = await db
       .from("organizations")
@@ -48,6 +50,30 @@ export async function POST(req: NextRequest) {
       .single();
     orgId = org.id;
     await db.from("members").insert({ user_id: user.id, organization_id: orgId, role: "owner" });
+  }
+
+  // ── Plan-limit enforcement (server-side) ──────────────────────────────────
+  // Free plan is capped; paid plans are unlimited. This is what makes the
+  // upgrade meaningful — never trust the client to enforce it.
+  const PLAN_PROJECT_LIMIT: Record<string, number> = { free: 3, starter: 3 };
+  const limit = PLAN_PROJECT_LIMIT[plan];
+  if (limit != null) {
+    const { count } = await db
+      .from("projects")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", user.id);
+    if ((count ?? 0) >= limit) {
+      return NextResponse.json(
+        {
+          error: "plan_limit_reached",
+          message: `Достигнут лимит бесплатного плана (${limit} проекта). Перейдите на Pro для безлимитных стратегий.`,
+          limit,
+          plan,
+          upgradeUrl: "/pricing",
+        },
+        { status: 402 },
+      );
+    }
   }
 
   const { data, error } = await db

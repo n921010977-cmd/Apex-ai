@@ -3,6 +3,7 @@
 import { useState, useMemo } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { checkoutUrl, type PaidPlanId } from "@/lib/billing";
 
 const ACCENT     = "#6366f1";
 const ACCENT_RGB = "99,102,241";
@@ -179,14 +180,14 @@ export function PricingSection() {
                     ))}
                   </ul>
 
-                  <Link href="/register" className="term-mono" style={{
+                  <Link href={plan.id === "starter" ? "/register" : checkoutUrl(plan.id as PaidPlanId)} className="term-mono" style={{
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     height: 48, borderRadius: 12, textDecoration: "none",
                     fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff",
                     background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`,
                     boxShadow: `0 6px 20px rgba(${ACCENT_RGB},0.3), inset 0 1px 0 rgba(255,255,255,0.16)`,
                   }}>
-                    ▸ Начать с {plan.name}{price === 0 ? " — бесплатно" : ""}
+                    {price === 0 ? `▸ Начать с ${plan.name} — бесплатно` : `▸ Оформить ${plan.name}`}
                   </Link>
                 </motion.div>
               </AnimatePresence>
