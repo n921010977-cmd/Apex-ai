@@ -40,12 +40,17 @@ function makeEvent(): TickEvent {
 const STORAGE_KEY = "apex-ticker-dismissed";
 
 export function AgentTicker() {
-  const [events, setEvents] = useState<TickEvent[]>(() => [makeEvent(), makeEvent(), makeEvent()]);
+  // Start empty so server and client render identically (no Math.random / Date
+  // during SSR → no hydration mismatch). Events are generated after mount.
+  const [events, setEvents] = useState<TickEvent[]>([]);
   const [expanded, setExpanded] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    if (sessionStorage.getItem(STORAGE_KEY)) setDismissed(true);
+    if (sessionStorage.getItem(STORAGE_KEY)) { setDismissed(true); return; }
+    setEvents([makeEvent(), makeEvent(), makeEvent()]);
+    setMounted(true);
   }, []);
 
   const dismiss = useCallback(() => {
@@ -68,7 +73,8 @@ export function AgentTicker() {
     return () => clearTimeout(timeout);
   }, [dismissed]);
 
-  if (dismissed) return null;
+  // Render nothing until events exist on the client — avoids SSR/client drift.
+  if (dismissed || !mounted || events.length === 0) return null;
 
   const latest = events[0];
 

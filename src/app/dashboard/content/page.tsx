@@ -124,39 +124,68 @@ function StatCard({ label, value, sub, color, icon: Icon, delay }: {
 
 // ─── Winner row ───────────────────────────────────────────────────────────────
 function WinnerRow({ reel, index, maxViews }: { reel: Reel; index: number; maxViews: number }) {
+  const [open, setOpen] = useState(false);
   return (
     <motion.div
+      layout
       initial={{ opacity: 0, x: -14 }} animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.45, ease: EASE, delay: 0.3 + index * 0.06 }}
+      onClick={() => setOpen(o => !o)}
+      style={{ borderRadius: 12, cursor: "pointer" }}
       whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
-      style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px", borderRadius: 12, cursor: "pointer" }}
     >
-      <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: index < 3 ? ACCENT : TM, width: 20, textAlign: "center", flexShrink: 0 }}>
-        {index + 1}
-      </span>
-      <ReelThumb reel={reel} />
-      <div style={{ flex: 1, minWidth: 0 }}>
-        <div style={{ fontSize: 13, fontWeight: 600, color: TP, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 5 }}>
-          {reel.title}
+      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "12px 14px" }}>
+        <span style={{ fontFamily: MONO, fontSize: 12, fontWeight: 700, color: index < 3 ? ACCENT : TM, width: 20, textAlign: "center", flexShrink: 0 }}>
+          {index + 1}
+        </span>
+        <ReelThumb reel={reel} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: TP, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", marginBottom: 5 }}>
+            {reel.title}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: TS }}><Heart size={10} style={{ color: "#f43f5e" }} /> {fmt(reel.likes)}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: TS }}><MessageCircle size={10} style={{ color: ACCENT }} /> {fmt(reel.comments)}</span>
+            <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, background: `${SUCCESS}15`, color: SUCCESS, border: `1px solid ${SUCCESS}25` }}>ER {reel.er.toFixed(2)}%</span>
+          </div>
+          {/* views bar */}
+          <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+            <motion.div
+              initial={{ width: 0 }} animate={{ width: `${(reel.views / maxViews) * 100}%` }}
+              transition={{ duration: 1.1, ease: EASE, delay: 0.5 + index * 0.06 }}
+              style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${ACCENT}, ${VIOLET})` }}
+            />
+          </div>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
-          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: TS }}><Heart size={10} style={{ color: "#f43f5e" }} /> {fmt(reel.likes)}</span>
-          <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 11, color: TS }}><MessageCircle size={10} style={{ color: ACCENT }} /> {fmt(reel.comments)}</span>
-          <span style={{ fontSize: 10, fontWeight: 700, padding: "1px 6px", borderRadius: 5, background: `${SUCCESS}15`, color: SUCCESS, border: `1px solid ${SUCCESS}25` }}>ER {reel.er.toFixed(2)}%</span>
+        <div style={{ textAlign: "right", flexShrink: 0, minWidth: 68 }}>
+          <div style={{ fontSize: 15, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{fmt(reel.views)}</div>
+          <div style={{ fontFamily: MONO, fontSize: 9, color: TM, letterSpacing: "0.08em", marginTop: 3 }}>ПРОСМОТРОВ</div>
         </div>
-        {/* views bar */}
-        <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
+      </div>
+      <AnimatePresence>
+        {open && (
           <motion.div
-            initial={{ width: 0 }} animate={{ width: `${(reel.views / maxViews) * 100}%` }}
-            transition={{ duration: 1.1, ease: EASE, delay: 0.5 + index * 0.06 }}
-            style={{ height: "100%", borderRadius: 2, background: `linear-gradient(90deg, ${ACCENT}, ${VIOLET})` }}
-          />
-        </div>
-      </div>
-      <div style={{ textAlign: "right", flexShrink: 0, minWidth: 68 }}>
-        <div style={{ fontSize: 15, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{fmt(reel.views)}</div>
-        <div style={{ fontFamily: MONO, fontSize: 9, color: TM, letterSpacing: "0.08em", marginTop: 3 }}>ПРОСМОТРОВ</div>
-      </div>
+            initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.26, ease: EASE }}
+            style={{ overflow: "hidden" }}
+          >
+            <div style={{ margin: "0 14px 12px 48px", padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.06)", border: `1px solid ${ACCENT}22`, display: "flex", flexWrap: "wrap", gap: 14 }}>
+              <div style={{ minWidth: 140 }}>
+                <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: "0.1em", color: TM, marginBottom: 3 }}>ХУК</div>
+                <div style={{ fontSize: 12, color: TS }}>{reel.hook}</div>
+              </div>
+              <div>
+                <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: "0.1em", color: TM, marginBottom: 3 }}>КОД</div>
+                <div style={{ fontFamily: MONO, fontSize: 12, color: "#818cf8" }}>{reel.code}</div>
+              </div>
+              <div>
+                <div style={{ fontFamily: MONO, fontSize: 9, letterSpacing: "0.1em", color: TM, marginBottom: 3 }}>ТРАНСКРИПТ</div>
+                <div style={{ fontSize: 12, color: reel.hasTranscript ? SUCCESS : TM }}>{reel.hasTranscript ? "есть" : "нет"}</div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -197,26 +226,41 @@ function OutlierCard({ label, reel, metric, color, icon: Icon, delay }: {
 // ═══════════════════════════════════════════════════════════════════════════════
 export default function ContentAnalyticsPage() {
   const [refreshing, setRefreshing] = useState(false);
+  const [reels, setReels] = useState<Reel[]>(REELS);
+  const [lastSync, setLastSync] = useState<string | null>(null);
 
   const totals = useMemo(() => ({
-    reels: REELS.length,
-    transcripts: REELS.filter(r => r.hasTranscript).length,
-    views: REELS.reduce((s, r) => s + r.views, 0),
-    comments: REELS.reduce((s, r) => s + r.comments, 0),
-    likes: REELS.reduce((s, r) => s + r.likes, 0),
-  }), []);
+    reels: reels.length,
+    transcripts: reels.filter(r => r.hasTranscript).length,
+    views: reels.reduce((s, r) => s + r.views, 0),
+    comments: reels.reduce((s, r) => s + r.comments, 0),
+    likes: reels.reduce((s, r) => s + r.likes, 0),
+  }), [reels]);
 
-  const winners = useMemo(() => [...REELS].sort((a, b) => b.views - a.views), []);
+  const winners = useMemo(() => [...reels].sort((a, b) => b.views - a.views), [reels]);
   const maxViews = winners[0]?.views ?? 1;
 
-  const viewsLeader   = useMemo(() => [...REELS].sort((a, b) => b.views - a.views)[0] ?? null, []);
-  const commentLeader = useMemo(() => [...REELS].sort((a, b) => b.comments - a.comments)[0] ?? null, []);
-  const erLeader      = useMemo(() => [...REELS].sort((a, b) => b.er - a.er)[0] ?? null, []);
-  const likesLeader   = useMemo(() => [...REELS].sort((a, b) => b.likes - a.likes)[0] ?? null, []);
+  const viewsLeader   = useMemo(() => [...reels].sort((a, b) => b.views - a.views)[0] ?? null, [reels]);
+  const commentLeader = useMemo(() => [...reels].sort((a, b) => b.comments - a.comments)[0] ?? null, [reels]);
+  const erLeader      = useMemo(() => [...reels].sort((a, b) => b.er - a.er)[0] ?? null, [reels]);
+  const likesLeader   = useMemo(() => [...reels].sort((a, b) => b.likes - a.likes)[0] ?? null, [reels]);
 
+  // Simulate a live sync: new views/likes/comments trickle in, ER recomputed.
   const refresh = () => {
+    if (refreshing) return;
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1100);
+    setTimeout(() => {
+      setReels(prev => prev.map(r => {
+        const dv = Math.round(r.views * (0.005 + Math.random() * 0.03));
+        const dl = Math.round(r.likes * (0.004 + Math.random() * 0.025));
+        const dc = Math.round(r.comments * (0.003 + Math.random() * 0.02));
+        const views = r.views + dv, likes = r.likes + dl, comments = r.comments + dc;
+        const er = +(((likes + comments) / views) * 100).toFixed(2);
+        return { ...r, views, likes, comments, er };
+      }));
+      setLastSync(new Date().toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit", second: "2-digit" }));
+      setRefreshing(false);
+    }, 900);
   };
 
   return (
@@ -237,13 +281,18 @@ export default function ContentAnalyticsPage() {
             Приоритетный аналитический слой для рилсов: победители, выбросы, хуки, темы и граф связей.
           </p>
         </div>
-        <button
-          onClick={refresh} disabled={refreshing}
-          style={{ display: "flex", alignItems: "center", gap: 8, height: 42, padding: "0 18px", borderRadius: 12, border: `1px solid ${ACCENT}40`, background: "rgba(99,102,241,0.08)", color: "#818cf8", fontSize: 13, fontWeight: 700, cursor: refreshing ? "default" : "pointer", opacity: refreshing ? 0.6 : 1 }}
-        >
-          <RefreshCw size={14} style={{ animation: refreshing ? "spin 0.9s linear infinite" : "none" }} />
-          Обновить аналитику
-        </button>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
+          <button
+            onClick={refresh} disabled={refreshing}
+            style={{ display: "flex", alignItems: "center", gap: 8, height: 42, padding: "0 18px", borderRadius: 12, border: `1px solid ${ACCENT}40`, background: "rgba(99,102,241,0.08)", color: "#818cf8", fontSize: 13, fontWeight: 700, cursor: refreshing ? "default" : "pointer", opacity: refreshing ? 0.6 : 1 }}
+          >
+            <RefreshCw size={14} style={{ animation: refreshing ? "spin 0.9s linear infinite" : "none" }} />
+            {refreshing ? "Синхронизация…" : "Обновить аналитику"}
+          </button>
+          {lastSync && (
+            <span style={{ fontFamily: MONO, fontSize: 10, color: TM }}>обновлено в {lastSync}</span>
+          )}
+        </div>
       </motion.div>
 
       {/* Stat cards */}
