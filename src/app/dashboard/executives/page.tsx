@@ -1007,13 +1007,17 @@ function AgentListRow({ a, tick, delay, onAsk, onMeet }: {
         border: `1px solid ${hov ? `${a.c}38` : "transparent"}`,
         transition: "all 0.18s" }}>
 
-      {/* Avatar */}
-      <div style={{ width: 40, height: 40, borderRadius: 11, flexShrink: 0, display: "flex",
-        alignItems: "center", justifyContent: "center",
-        background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
-        color: "#fff", fontSize: 12, fontWeight: 800, fontFamily: MONO,
-        boxShadow: `0 4px 12px ${a.c}30` }}>
-        {a.ab}
+      {/* Avatar — role icon + status ring */}
+      <div style={{ position: "relative", width: 40, height: 40, flexShrink: 0 }}>
+        {mt.working && (
+          <motion.span aria-hidden animate={{ opacity: [0.5, 0.15, 0.5], scale: [1, 1.14, 1] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut", delay }}
+            style={{ position: "absolute", inset: -2.5, borderRadius: 13, border: `1.5px solid ${a.c}`, pointerEvents: "none" }} />
+        )}
+        <motion.div animate={{ scale: hov ? 1.06 : 1 }} transition={{ type: "spring", stiffness: 300, damping: 20 }}
+          style={{ width: 40, height: 40, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff", boxShadow: `0 4px 12px ${a.c}30` }}>
+          {(() => { const I = EXEC_ICON[a.slug] ?? Crown; return <I size={17} strokeWidth={1.9} />; })()}
+        </motion.div>
       </div>
 
       {/* Name + specialty */}

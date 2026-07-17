@@ -314,15 +314,20 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
   onRun: () => void; onChat: () => void; onConfigure: () => void; onClone: () => void;
 }) {
   const [tab, setTab] = useState<"overview"|"prompt"|"tools"|"stats">("overview");
-  const { label: statusLabel, color: statusColor, Icon: StatusIcon } = STATUS_CONFIG[agent.status];
+  const { label: statusLabel, color: statusColor } = STATUS_CONFIG[agent.status];
+  const isActive = agent.status === "active";
 
   return (
     <motion.div
-      initial={{ opacity: 0, x: 24 }}
+      initial={{ opacity: 0, x: 30 }}
       animate={{ opacity: 1, x: 0 }}
-      exit={{ opacity: 0, x: 24 }}
-      style={{ width: 340, flexShrink: 0, display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.018)", borderLeft: "1px solid rgba(255,255,255,0.06)", overflow: "hidden" }}
+      exit={{ opacity: 0, x: 30 }}
+      transition={{ type: "spring", stiffness: 260, damping: 28 }}
+      style={{ width: 340, flexShrink: 0, display: "flex", flexDirection: "column", background: "rgba(255,255,255,0.018)", borderLeft: "1px solid rgba(255,255,255,0.06)", overflow: "hidden", position: "relative" }}
     >
+      {/* top accent in agent color */}
+      <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${agent.color}, transparent)` }} />
+
       <div style={{ padding: "16px 20px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.8)" }}>Детали агента</span>
         <button onClick={onClose} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 4 }}><X size={14} /></button>
@@ -330,24 +335,35 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
 
       <div style={{ padding: "20px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-          <div style={{ width: 56, height: 56, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg, ${agent.color}25, ${agent.color}10)`, border: `1px solid ${agent.color}40`, flexShrink: 0 }}>
-            <AgentIcon agent={agent} size={24} />
+          {/* animated icon tile with status ring */}
+          <div style={{ position: "relative", width: 60, height: 60, flexShrink: 0 }}>
+            {isActive && (
+              <motion.span aria-hidden animate={{ opacity: [0.5, 0.15, 0.5], scale: [1, 1.12, 1] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                style={{ position: "absolute", inset: -3, borderRadius: 18, border: `1.5px solid ${agent.color}` }} />
+            )}
+            <motion.div initial={{ scale: 0.7, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 300, damping: 18 }}
+              style={{ width: 60, height: 60, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center",
+                background: `linear-gradient(140deg, ${agent.color}30, ${agent.color}0d)`, border: `1px solid ${agent.color}45`, boxShadow: `0 8px 22px ${agent.color}2e, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+              <AgentIcon agent={agent} size={26} />
+            </motion.div>
+            <span style={{ position: "absolute", bottom: -2, right: -2, width: 13, height: 13, borderRadius: "50%", background: statusColor, border: "2.5px solid #0B0C12", boxShadow: `0 0 8px ${statusColor}` }} />
           </div>
           <div>
-            <div style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.92)", marginBottom: 3 }}>{agent.name}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em", marginBottom: 3 }}>{agent.name}</div>
             <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>{agent.role}</div>
-            <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <StatusIcon size={11} style={{ color: statusColor }} />
-              <span style={{ fontSize: 11, color: statusColor, fontWeight: 500 }}>{statusLabel}</span>
-            </div>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10.5, fontWeight: 700, padding: "2px 8px", borderRadius: 6, color: statusColor, background: `${statusColor}14`, border: `1px solid ${statusColor}2e` }}>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: statusColor }} /> {statusLabel}
+            </span>
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{ display: "flex", borderBottom: "1px solid rgba(255,255,255,0.06)", position: "relative" }}>
         {(["overview","prompt","tools","stats"] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "10px 0", fontSize: 11, fontWeight: 500, cursor: "pointer", background: "none", border: "none", color: tab === t ? "#8b5cf6" : "rgba(255,255,255,0.3)", borderBottom: tab === t ? "2px solid #8b5cf6" : "2px solid transparent", transition: "all 0.15s" }}>
+          <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "11px 0", fontSize: 11, fontWeight: tab === t ? 700 : 500, cursor: "pointer", background: "none", border: "none", position: "relative", color: tab === t ? agent.color : "rgba(255,255,255,0.35)", transition: "color 0.15s" }}>
             {t === "overview" ? "Обзор" : t === "prompt" ? "Промпт" : t === "tools" ? "Инструменты" : "Статистика"}
+            {tab === t && <motion.span layoutId="agent-tab-underline" transition={{ type: "spring", stiffness: 400, damping: 32 }}
+              style={{ position: "absolute", left: 12, right: 12, bottom: -1, height: 2, borderRadius: 2, background: agent.color }} />}
           </button>
         ))}
       </div>
@@ -400,17 +416,24 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
             </motion.div>
           )}
           {tab === "stats" && (
-            <motion.div key="st" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+            <motion.div key="st" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.07 } } }}>
               {[
-                { label: "Всего запусков",    value: agent.runs.toLocaleString(), color: "#8b5cf6" },
-                { label: "Рейтинг",           value: `${agent.rating} / 5.0`,     color: "#f59e0b" },
-                { label: "Успешность",         value: "98.7%",                      color: "#10b981" },
-                { label: "Ср. время ответа",   value: agent.speed === "fast" ? "1.2с" : agent.speed === "medium" ? "3.5с" : "8.1с", color: "#3b82f6" },
+                { label: "Всего запусков",    value: agent.runs.toLocaleString(), color: "#8b5cf6", pct: Math.min(100, agent.runs / 100) },
+                { label: "Рейтинг",           value: `${agent.rating} / 5.0`,     color: "#f59e0b", pct: (agent.rating / 5) * 100 },
+                { label: "Успешность",         value: "98.7%",                      color: "#10b981", pct: 98.7 },
+                { label: "Ср. время ответа",   value: agent.speed === "fast" ? "1.2с" : agent.speed === "medium" ? "3.5с" : "8.1с", color: "#3b82f6", pct: agent.speed === "fast" ? 88 : agent.speed === "medium" ? 62 : 34 },
               ].map((s) => (
-                <div key={s.label} style={{ marginBottom: 12, padding: 14, borderRadius: 10, background: `${s.color}0d`, border: `1px solid ${s.color}22` }}>
-                  <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginBottom: 4 }}>{s.label}</div>
-                  <div style={{ fontSize: 20, fontWeight: 700, color: s.color }}>{s.value}</div>
-                </div>
+                <motion.div key={s.label} variants={{ hidden: { opacity: 0, y: 12 }, show: { opacity: 1, y: 0 } }} transition={{ ease: [0.22, 1, 0.36, 1] }}
+                  style={{ marginBottom: 12, padding: 14, borderRadius: 12, background: `${s.color}0d`, border: `1px solid ${s.color}22` }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 8 }}>
+                    <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{s.label}</span>
+                    <span style={{ fontSize: 19, fontWeight: 800, color: s.color, fontVariantNumeric: "tabular-nums" }}>{s.value}</span>
+                  </div>
+                  <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${s.pct}%` }} transition={{ duration: 1, ease: [0.22, 1, 0.36, 1], delay: 0.15 }}
+                      style={{ height: "100%", borderRadius: 2, background: s.color }} />
+                  </div>
+                </motion.div>
               ))}
             </motion.div>
           )}
@@ -418,8 +441,8 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
       </div>
 
       <div style={{ padding: "16px 20px", borderTop: "1px solid rgba(255,255,255,0.06)", display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
-        <button onClick={onRun} style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #8b5cf6, #3b82f6)", border: "none", color: "white", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-          <Play size={12} /> Запустить
+        <button onClick={onRun} style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: "pointer", background: `linear-gradient(135deg, ${agent.color}, ${agent.color}bb)`, border: "none", color: "white", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, boxShadow: `inset 0 1px 0 rgba(255,255,255,0.2), 0 3px 12px ${agent.color}33` }}>
+          <Play size={12} fill="currentColor" /> Запустить
         </button>
         <button onClick={onChat} style={{ padding: "9px 0", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
           <MessageSquare size={12} /> Чат
