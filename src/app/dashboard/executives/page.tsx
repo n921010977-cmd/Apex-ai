@@ -463,6 +463,7 @@ type Phase = "idle" | "deliberating" | "verdict" | "done";
 type Stat = "thinking" | "answering" | "done";
 
 function CouncilSession() {
+  const reduce = useReducedMotion();
   const [q, setQ]                 = useState("");
   const [phase, setPhase]         = useState<Phase>("idle");
   const [asked, setAsked]         = useState("");
@@ -547,6 +548,31 @@ function CouncilSession() {
       {/* Input (idle only) */}
       {phase === "idle" && (
         <div style={{ padding: "0 24px 22px" }}>
+          {/* Board line-up — the council waiting */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+            <div style={{ display: "flex" }}>
+              {BOARD_SLUGS.map((slug, i) => {
+                const a = rich(slug);
+                const Icon = EXEC_ICON[slug] ?? Crown;
+                return (
+                  <motion.div key={slug} title={`${a.name} · ${a.role}`}
+                    initial={{ opacity: 0, scale: 0.5, x: -8 }} animate={{ opacity: 1, scale: 1, x: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 18, delay: 0.1 + i * 0.07 }}
+                    whileHover={{ y: -4, zIndex: 10 }}
+                    style={{ width: 38, height: 38, borderRadius: 12, marginLeft: i ? -8 : 0, display: "flex", alignItems: "center", justifyContent: "center",
+                      background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff",
+                      border: "2px solid #0a0c15", boxShadow: `0 4px 14px ${a.c}44`, position: "relative", zIndex: 5 - i, cursor: "default" }}>
+                    <Icon size={16} strokeWidth={1.9} />
+                  </motion.div>
+                );
+              })}
+            </div>
+            <div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: TP }}>Совет в сборе · 5 директоров</div>
+              <div style={{ fontSize: 11, color: TM }}>Готовы совещаться над вашим вопросом</div>
+            </div>
+          </div>
+
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
             <textarea value={q} onChange={e => setQ(e.target.value)}
               onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) convene(); }}
@@ -582,69 +608,138 @@ function CouncilSession() {
       {/* Deliberation */}
       {phase !== "idle" && (
         <div style={{ padding: "0 24px 22px" }}>
-          {/* asked question + progress */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", marginBottom: 14, borderRadius: 12,
+          {/* asked question + animated progress ring */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", marginBottom: 16, borderRadius: 12,
             background: "rgba(255,255,255,0.03)", border: `1px solid ${BORD}` }}>
             <MessageSquare size={14} style={{ color: ACCENT, flexShrink: 0 }} />
             <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: TP }}>{asked}</span>
-            <span style={{ fontFamily: MONO, fontSize: 11, color: TM, flexShrink: 0 }}>{answered}/5 ответили</span>
+            {/* progress ring */}
+            <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
+              <svg width={26} height={26} viewBox="0 0 26 26" style={{ transform: "rotate(-90deg)" }}>
+                <circle cx={13} cy={13} r={10} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={3} />
+                <motion.circle cx={13} cy={13} r={10} fill="none" stroke={ACCENT} strokeWidth={3} strokeLinecap="round"
+                  animate={{ strokeDasharray: `${(answered / 5) * 62.8} 62.8` }} transition={{ duration: 0.5, ease: EASE }} />
+              </svg>
+              <span style={{ fontFamily: MONO, fontSize: 11, color: TM }}>{answered}/5</span>
+            </div>
           </div>
 
-          {/* director responses */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
+          {/* director responses — staggered spring entrance */}
+          <motion.div
+            initial="hidden" animate="show"
+            variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.09 } } }}
+            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
             {BOARD_SLUGS.map(slug => {
               const a = rich(slug);
               const Icon = EXEC_ICON[slug] ?? Crown;
               const st = status[slug];
               const text = responses[slug] || "";
+              const answering = st === "answering";
               return (
-                <div key={slug} style={{ borderRadius: 14, padding: 14, background: "rgba(255,255,255,0.022)",
-                  border: `1px solid ${st === "answering" ? a.c + "45" : BORD}`, transition: "border-color 0.3s" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                      background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff", boxShadow: `0 4px 12px ${a.c}33` }}>
-                      <Icon size={16} strokeWidth={1.9} />
+                <motion.div key={slug}
+                  variants={{ hidden: { opacity: 0, y: 18, scale: 0.96 }, show: { opacity: 1, y: 0, scale: 1 } }}
+                  transition={{ type: "spring", stiffness: 240, damping: 22 }}
+                  style={{ borderRadius: 14, padding: 14, position: "relative", overflow: "hidden",
+                    background: answering ? `linear-gradient(150deg, ${a.c}0e, rgba(255,255,255,0.02) 70%)` : "rgba(255,255,255,0.022)",
+                    border: `1px solid ${answering ? a.c + "55" : st === "done" ? a.c + "26" : BORD}`,
+                    boxShadow: answering ? `0 10px 30px ${a.c}1f` : "none",
+                    transition: "border-color 0.35s, background 0.35s, box-shadow 0.35s" }}>
+                  {/* ambient glow while answering */}
+                  {answering && !reduce && (
+                    <motion.div aria-hidden animate={{ opacity: [0.35, 0.12, 0.35] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                      style={{ position: "absolute", top: -40, right: -30, width: 140, height: 140, borderRadius: "50%", pointerEvents: "none",
+                        background: `radial-gradient(circle, ${a.c}22, transparent 70%)` }} />
+                  )}
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, position: "relative" }}>
+                    {/* avatar with rotating ring while answering */}
+                    <div style={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
+                      {answering && !reduce && (
+                        <motion.span aria-hidden animate={{ rotate: 360 }} transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
+                          style={{ position: "absolute", inset: -3, borderRadius: 12,
+                            background: `conic-gradient(from 0deg, transparent, ${a.c}, transparent 60%)`,
+                            WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))",
+                            mask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))" }} />
+                      )}
+                      <motion.div
+                        animate={answering && !reduce ? { scale: [1, 1.06, 1] } : { scale: 1 }}
+                        transition={answering && !reduce ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+                        style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center",
+                          background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff", boxShadow: `0 4px 14px ${a.c}44` }}>
+                        <Icon size={16} strokeWidth={1.9} />
+                      </motion.div>
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</div>
                       <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: a.c }}>{a.role}</div>
                     </div>
-                    {st === "answering" && !text && (
+                    {answering && !text && (
                       <span style={{ display: "flex", gap: 3 }}>
                         {[0, 1, 2].map(i => <span key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: a.c, animation: `ec-think 1s ease-in-out ${i * 0.15}s infinite` }} />)}
                       </span>
                     )}
-                    {st === "done" && <Check size={13} style={{ color: "#10b981", flexShrink: 0 }} />}
+                    <AnimatePresence>
+                      {st === "done" && (
+                        <motion.span initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                          style={{ display: "flex", flexShrink: 0, width: 18, height: 18, borderRadius: "50%", alignItems: "center", justifyContent: "center", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)" }}>
+                          <Check size={11} style={{ color: "#10b981" }} strokeWidth={3} />
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                     {st === "thinking" && <span style={{ fontFamily: MONO, fontSize: 9, color: TM }}>в очереди</span>}
                   </div>
-                  <p style={{ fontSize: 12.5, lineHeight: 1.6, color: text ? "rgba(255,255,255,0.72)" : TM, margin: 0, minHeight: 20 }}>
+                  <p style={{ fontSize: 12.5, lineHeight: 1.6, color: text ? "rgba(255,255,255,0.75)" : TM, margin: 0, minHeight: 20, position: "relative" }}>
                     {text}
-                    {st === "answering" && <span style={{ display: "inline-block", width: 2, height: 13, background: a.c, marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
+                    {answering && <span style={{ display: "inline-block", width: 2, height: 13, background: a.c, marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
                   </p>
-                </div>
+                </motion.div>
               );
             })}
-          </div>
+          </motion.div>
 
-          {/* Verdict */}
-          {(phase === "verdict" || phase === "done") && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: EASE }}
-              style={{ marginTop: 14, borderRadius: 14, padding: 16, position: "relative", overflow: "hidden",
-                background: "linear-gradient(150deg, rgba(99,102,241,0.1), rgba(139,92,246,0.05))",
-                border: "1px solid rgba(99,102,241,0.3)" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
-                <Crown size={14} style={{ color: "#fbbf24" }} />
-                <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#a5b4fc", textTransform: "uppercase" }}>
-                  Итоговый вердикт совета
-                </span>
-                {phase === "verdict" && <span style={{ fontSize: 10, color: TM }}>· синтезирую…</span>}
-              </div>
-              <p style={{ fontSize: 13.5, lineHeight: 1.65, color: "rgba(255,255,255,0.82)", margin: 0 }}>
-                {verdict}
-                {phase === "verdict" && <span style={{ display: "inline-block", width: 2, height: 14, background: "#a5b4fc", marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
-              </p>
-            </motion.div>
-          )}
+          {/* Verdict — dramatic reveal */}
+          <AnimatePresence>
+            {(phase === "verdict" || phase === "done") && (
+              <motion.div
+                initial={{ opacity: 0, y: 18, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 22 }}
+                style={{ marginTop: 16, borderRadius: 16, padding: 18, position: "relative", overflow: "hidden",
+                  background: "linear-gradient(150deg, rgba(99,102,241,0.13), rgba(139,92,246,0.06) 70%)",
+                  border: "1px solid rgba(99,102,241,0.35)",
+                  boxShadow: "0 16px 44px rgba(99,102,241,0.16), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
+                {/* pulsing ambient */}
+                {!reduce && (
+                  <motion.div aria-hidden animate={{ opacity: [0.5, 0.2, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                    style={{ position: "absolute", top: -60, left: "30%", width: 240, height: 160, borderRadius: "50%", pointerEvents: "none",
+                      background: "radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%)" }} />
+                )}
+                {/* shimmer top bar */}
+                <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2,
+                  background: "linear-gradient(90deg, transparent, rgba(129,140,248,0.9), transparent)" }} />
+                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10, position: "relative" }}>
+                  <motion.span
+                    initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.1 }}
+                    style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                      background: "linear-gradient(135deg,#fbbf24,#d97706)", boxShadow: "0 4px 12px rgba(245,158,11,0.5)" }}>
+                    <Crown size={13} color="#3a2a00" strokeWidth={2.4} />
+                  </motion.span>
+                  <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", color: "#a5b4fc", textTransform: "uppercase" }}>
+                    Итоговый вердикт совета
+                  </span>
+                  {phase === "verdict" && (
+                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: TM }}>
+                      <span style={{ display: "flex", gap: 2 }}>{[0, 1, 2].map(i => <span key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "#a5b4fc", animation: `ec-think 1s ease-in-out ${i * 0.15}s infinite` }} />)}</span>
+                      синтезирую
+                    </span>
+                  )}
+                </div>
+                <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.86)", margin: 0, position: "relative" }}>
+                  {verdict}
+                  {phase === "verdict" && <span style={{ display: "inline-block", width: 2, height: 15, background: "#a5b4fc", marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
+                </p>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       )}
     </motion.div>
