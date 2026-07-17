@@ -6,7 +6,20 @@ import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-mot
 import {
   CornerDownLeft, X, Crown, Zap, Search, ChevronDown,
   MessageSquare, MessagesSquare, LayoutGrid, List,
+  Briefcase, Megaphone, Settings2, Cpu, BarChart2, TrendingUp,
+  ShieldAlert, Palette, Rocket, Globe, Radio, Phone, Users,
+  Scale, Truck, Database, Package, MousePointer2, GitBranch,
+  type LucideIcon,
 } from "lucide-react";
+
+// Role icon per director slug (the redesigned agent iconography)
+const EXEC_ICON: Record<string, LucideIcon> = {
+  ceo: Crown, cfo: Briefcase, cmo: Megaphone, coo: Settings2, cto: Cpu,
+  analyst: BarChart2, invest: TrendingUp, risk: ShieldAlert, brand: Palette,
+  growth: Rocket, market: Globe, pr: Radio, sales: Phone, hr: Users,
+  legal: Scale, supply: Truck, data: Database, product: Package,
+  ux: MousePointer2, strategy: GitBranch,
+};
 import { streamChat } from "@/lib/stream-chat";
 import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/team";
 import { markVisit } from "@/components/dashboard/EngagementPanel";
@@ -491,7 +504,7 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
                 <span style={{ fontSize: 20, fontWeight: 800, color: TP, letterSpacing: "-0.02em" }}>{a.name}</span>
                 <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.12em",
                   padding: "2px 8px", borderRadius: 6, color: "#fbbf24",
-                  border: "1px solid rgba(251,191,36,0.32)", background: "rgba(251,191,36,0.08)" }}>ГОЛЕР</span>
+                  border: "1px solid rgba(251,191,36,0.32)", background: "rgba(251,191,36,0.08)" }}>ЛИДЕР</span>
               </div>
               <div style={{ fontSize: 12, color: TS, marginBottom: 8 }}>{a.title} · {a.specialty}</div>
               <StatusBadge working />
@@ -567,122 +580,111 @@ function AgentCard({ a, tick, delay, reduce, onAsk, onMeet }: {
   const sd   = sparkData(a.slug);
   const [hov, setHov] = useState(false);
 
+  const Icon = EXEC_ICON[a.slug] ?? Crown;
+
   return (
     <motion.div
       onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
-      initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-30px" }}
       animate={{ y: hov ? -4 : 0 }}
       transition={{ duration: 0.25, ease: EASE }}
       onClick={onAsk}
-      style={{ padding: "18px 18px 14px", borderRadius: 16, cursor: "pointer",
+      style={{ padding: "15px 16px 15px 18px", borderRadius: 16, cursor: "pointer",
         position: "relative", overflow: "hidden",
-        background: hov
-          ? `linear-gradient(145deg, ${a.c}12, rgba(255,255,255,0.03) 70%)`
-          : `linear-gradient(145deg, ${a.c}0a, rgba(255,255,255,0.02) 70%)`,
-        border: `1px solid ${hov ? `${a.c}45` : `${a.c}22`}`,
+        background: hov ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.022)",
+        border: `1px solid ${hov ? `${a.c}3e` : "rgba(255,255,255,0.06)"}`,
         boxShadow: hov
-          ? `0 16px 48px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.07)`
-          : `0 2px 12px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.04)`,
+          ? `0 18px 44px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
+          : `0 1px 2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)`,
         transition: "background 0.22s, border-color 0.22s, box-shadow 0.22s" }}>
 
-      {/* Hover ambient */}
-      {hov && <div aria-hidden style={{ position: "absolute", top: -50, right: -40, width: 180, height: 180,
-        borderRadius: "50%", pointerEvents: "none",
-        background: `radial-gradient(circle, ${a.c}18, transparent 70%)` }} />}
+      {/* left status rail */}
+      <span aria-hidden style={{ position: "absolute", left: 0, top: 14, bottom: 14, width: 3, borderRadius: 3,
+        background: `linear-gradient(180deg, ${a.g[0]}, ${a.g[1]})`, opacity: hov ? 1 : 0.55, transition: "opacity 0.22s" }} />
 
-      {/* Row 1: avatar + name + sparkline + status */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 12 }}>
-        {/* Avatar */}
-        <motion.div
-          animate={reduce ? undefined : { y: [0, -3, 0] }}
-          transition={reduce ? undefined : { duration: 4, repeat: Infinity, ease: "easeInOut", delay }}
-          style={{ width: 46, height: 46, borderRadius: 13, flexShrink: 0, display: "flex",
-            alignItems: "center", justifyContent: "center",
-            background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`,
-            color: "#fff", fontSize: 13, fontWeight: 800, fontFamily: MONO,
-            boxShadow: `0 6px 20px ${a.c}42, inset 0 1px 0 rgba(255,255,255,0.25)` }}>
-          {a.ab}
-        </motion.div>
-
-        {/* Name + specialty */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
-            <span style={{ fontSize: 14, fontWeight: 700, color: TP, letterSpacing: "-0.01em",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</span>
+      {/* Row 1: icon tile + name + status pill */}
+      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+        {/* Icon tile with status ring */}
+        <div style={{ position: "relative", flexShrink: 0, width: 48, height: 48 }}>
+          {mt.working && (
+            <motion.span aria-hidden
+              animate={reduce ? undefined : { opacity: [0.5, 0.15, 0.5], scale: [1, 1.12, 1] }}
+              transition={reduce ? undefined : { duration: 2.4, repeat: Infinity, ease: "easeInOut", delay }}
+              style={{ position: "absolute", inset: -3, borderRadius: 16, border: `1.5px solid ${a.c}`, pointerEvents: "none" }} />
+          )}
+          <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff",
+            boxShadow: `0 6px 18px ${a.c}3a, inset 0 1px 0 rgba(255,255,255,0.22)` }}>
+            <Icon size={22} strokeWidth={1.9} />
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
+          <span style={{ position: "absolute", bottom: -2, right: -2, width: 12, height: 12, borderRadius: "50%",
+            background: mt.working ? "#10b981" : "#f59e0b", border: "2.5px solid #0B0C12", boxShadow: `0 0 8px ${mt.working ? "#10b981" : "#f59e0b"}` }} />
+        </div>
+
+        {/* Name + role + status */}
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, color: TP, letterSpacing: "-0.01em",
+              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</span>
+            <StatusBadge working={mt.working} />
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
             <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
               padding: "1px 6px", borderRadius: 5, color: a.c,
               border: `1px solid ${a.c}40`, background: `${a.c}0e` }}>{a.role}</span>
+            <span style={{ fontSize: 11, color: TS, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.specialty}</span>
           </div>
         </div>
+      </div>
 
-        {/* Sparkline top-right */}
+      {/* Live activity + sparkline */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <LiveAct slug={a.slug} tick={tick} working={mt.working} color={a.c} />
+        </div>
         <div style={{ flexShrink: 0 }}>
-          <Spark color={a.c} data={sd} w={64} h={28} />
+          <Spark color={a.c} data={sd} w={60} h={24} />
         </div>
       </div>
 
-      {/* Status + specialty */}
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <span style={{ fontSize: 11, color: TS, flex: 1, minWidth: 0,
-          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.specialty}</span>
-        <StatusBadge working={mt.working} />
-      </div>
-
-      {/* Live activity */}
-      <div style={{ marginBottom: 12 }}>
-        <LiveAct slug={a.slug} tick={tick} working={mt.working} color={a.c} />
-      </div>
-
-      {/* Stats row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1,
-        borderRadius: 10, overflow: "hidden", border: `1px solid ${BORD}`, marginBottom: 12 }}>
+      {/* Stats strip */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
         {[
           { v: mt.done,            l: "задачи" },
           { v: `${mt.success}%`,   l: "успех" },
           { v: `${a.confidence}%`, l: "конф" },
         ].map((m, i) => (
-          <div key={i} style={{ padding: "8px 4px", textAlign: "center",
-            borderRight: i < 2 ? `1px solid ${BORD}` : "none",
-            background: "rgba(255,255,255,0.012)" }}>
-            <div style={{ fontSize: 13, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{m.v}</div>
-            <div style={{ fontSize: 9, color: TM, marginTop: 3 }}>{m.l}</div>
+          <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+            <span style={{ fontSize: 12.5, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{m.v}</span>
+            <span style={{ fontSize: 9, color: TM }}>{m.l}</span>
+            {i < 2 && <span style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,0.2)", marginLeft: 4 }} />}
           </div>
         ))}
       </div>
 
-      {/* Load bar */}
-      <div style={{ marginBottom: 12 }}>
-        <div style={{ height: 3, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-          <motion.div initial={{ width: 0 }} whileInView={{ width: `${mt.load}%` }} viewport={{ once: true }}
-            transition={{ duration: 1.1, ease: EASE, delay: delay + 0.15 }}
-            style={{ height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${a.g[0]}, ${a.g[1]})` }} />
+      {/* Actions — revealed on hover */}
+      <motion.div
+        initial={false}
+        animate={{ height: hov ? 41 : 0, opacity: hov ? 1 : 0, marginTop: hov ? 11 : 0 }}
+        transition={{ duration: 0.24, ease: EASE }}
+        style={{ overflow: "hidden" }}>
+        <div style={{ display: "flex", gap: 7 }}>
+          <button onClick={e => { e.stopPropagation(); onAsk(); }}
+            style={{ flex: 1, height: 34, borderRadius: 9, fontSize: 11.5, fontWeight: 700, cursor: "pointer",
+              color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
+              boxShadow: "0 3px 12px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
+            <MessageSquare size={11} /> Спросить
+          </button>
+          <button onClick={e => { e.stopPropagation(); onMeet(); }}
+            style={{ padding: "0 12px", height: 34, borderRadius: 9, fontSize: 11, fontWeight: 700, cursor: "pointer",
+              color: a.c, background: `${a.c}12`, border: `1px solid ${a.c}35`,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 5, whiteSpace: "nowrap" }}>
+            <MessagesSquare size={10} /> Совещание · {team.length || 3}
+          </button>
         </div>
-      </div>
-
-      {/* Action buttons */}
-      <div style={{ display: "flex", gap: 7 }}>
-        <button onClick={e => { e.stopPropagation(); onAsk(); }}
-          style={{ flex: 1, height: 34, borderRadius: 9, fontSize: 11.5, fontWeight: 700, cursor: "pointer",
-            color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-            boxShadow: "0 3px 12px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)",
-            transition: "all 0.15s" }}
-          onMouseOver={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-          onMouseOut={e  => { e.currentTarget.style.filter = "brightness(1)";   e.currentTarget.style.transform = "translateY(0)"; }}>
-          <MessageSquare size={11} /> Спросить
-        </button>
-        <button onClick={e => { e.stopPropagation(); onMeet(); }}
-          style={{ padding: "0 12px", height: 34, borderRadius: 9, fontSize: 11, fontWeight: 700, cursor: "pointer",
-            color: a.c, background: `${a.c}10`, border: `1px solid ${a.c}35`,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 5, transition: "all 0.15s", whiteSpace: "nowrap" }}
-          onMouseOver={e => { e.currentTarget.style.background = `${a.c}20`; }}
-          onMouseOut={e  => { e.currentTarget.style.background = `${a.c}10`; }}>
-          <MessagesSquare size={10} /> Совещание · {team.length || 3}
-        </button>
-      </div>
+      </motion.div>
     </motion.div>
   );
 }

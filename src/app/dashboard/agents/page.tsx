@@ -160,7 +160,6 @@ const TOOL_LABELS: Record<string, string> = {
 };
 
 const SPEED_LABEL: Record<string, string> = { fast: "Быстрый", medium: "Средний", slow: "Медленный" };
-const SPEED_COLOR: Record<string, string>  = { fast: "#10b981", medium: "#f59e0b", slow: "#f43f5e" };
 
 const KPI = [
   { label: "Всего агентов",   value: "46",    color: "#8b5cf6", icon: Bot         },
@@ -177,135 +176,135 @@ function StatusDot({ status }: { status: AgentStatus }) {
   );
 }
 
-// детерминированная «нагрузка» агента (не мигает при ререндере)
-function loadOf(agent: Agent): number {
-  let h = 0;
-  for (const ch of agent.id) h = (h * 31 + ch.charCodeAt(0)) | 0;
-  if (agent.status === "paused" || agent.status === "error") return 0;
-  if (agent.status === "idle") return 4 + Math.abs(h % 10);
-  return 35 + Math.abs(h % 58);
-}
-
 function AgentCard({ agent, selected, fav, onFav, onClick, onRun, onChat, onConfigure }: {
   agent: Agent; selected: boolean; fav: boolean; onFav: () => void; onClick: () => void;
   onRun: () => void; onChat: () => void; onConfigure: () => void;
 }) {
   const { color: statusColor, label: statusLabel } = STATUS_CONFIG[agent.status];
-  const load = loadOf(agent);
   const deptLabel = DEPARTMENTS.find(d => d.id === agent.dept)?.label ?? agent.dept;
+  const isActive = agent.status === "active";
+  const [hov, setHov] = useState(false);
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, scale: 0.96 }}
-      animate={{ opacity: 1, scale: 1 }}
-      exit={{ opacity: 0, scale: 0.92 }}
-      whileHover={{ y: -3 }}
-      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.94 }}
+      onHoverStart={() => setHov(true)}
+      onHoverEnd={() => setHov(false)}
+      transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
       onClick={onClick}
       className="agent-card"
       style={{
-        background: selected ? `linear-gradient(140deg, ${agent.color}14, rgba(255,255,255,0.02) 60%)` : "rgba(255,255,255,0.025)",
-        border: selected ? `1px solid ${agent.color}55` : "1px solid rgba(255,255,255,0.06)",
-        borderRadius: 16, padding: 16, cursor: "pointer", position: "relative", overflow: "hidden",
-        transition: "border-color 0.2s, background 0.2s",
-        boxShadow: "0 1px 2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)",
+        background: selected
+          ? `linear-gradient(150deg, ${agent.color}12, rgba(255,255,255,0.02) 55%)`
+          : hov ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.022)",
+        border: `1px solid ${selected ? agent.color + "55" : hov ? agent.color + "38" : "rgba(255,255,255,0.06)"}`,
+        borderRadius: 16, padding: "15px 16px 15px 18px", cursor: "pointer", position: "relative", overflow: "hidden",
+        transition: "border-color 0.22s, background 0.22s, transform 0.22s",
+        transform: hov ? "translateY(-4px)" : "translateY(0)",
+        boxShadow: hov
+          ? `0 18px 44px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
+          : "0 1px 2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)",
       }}
     >
-      {/* избранное */}
-      <button
-        onClick={(e) => { e.stopPropagation(); onFav(); }}
-        title={fav ? "Убрать из избранного" : "В избранное"}
-        style={{ position: "absolute", top: 10, right: 10, width: 28, height: 28, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-          background: fav ? "rgba(245,158,11,0.14)" : "transparent", border: `1px solid ${fav ? "rgba(245,158,11,0.35)" : "transparent"}`,
-          color: fav ? "#f59e0b" : "rgba(255,255,255,0.22)", cursor: "pointer", transition: "all .15s", zIndex: 2 }}
-        onMouseEnter={(e) => { if (!fav) e.currentTarget.style.color = "rgba(255,255,255,0.6)"; }}
-        onMouseLeave={(e) => { if (!fav) e.currentTarget.style.color = "rgba(255,255,255,0.22)"; }}
-      >
-        <Star size={13} fill={fav ? "#f59e0b" : "none"} />
-      </button>
+      {/* left status rail */}
+      <span aria-hidden style={{ position: "absolute", left: 0, top: 14, bottom: 14, width: 3, borderRadius: 3,
+        background: `linear-gradient(180deg, ${agent.color}, ${statusColor})`, opacity: selected || hov ? 1 : 0.55, transition: "opacity 0.22s" }} />
 
+      {/* header: icon tile + name + status pill */}
       <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-        {/* аватар со статус-кольцом */}
-        <div style={{ position: "relative", flexShrink: 0 }}>
-          <div style={{ width: 46, height: 46, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center",
-            background: `linear-gradient(135deg, ${agent.color}2e, ${agent.color}12)`, border: `1px solid ${agent.color}45`,
-            boxShadow: `0 4px 14px ${agent.color}22, inset 0 1px 0 rgba(255,255,255,0.08)` }}>
-            <AgentIcon agent={agent} size={20} />
+        {/* icon tile with status ring */}
+        <div style={{ position: "relative", flexShrink: 0, width: 48, height: 48 }}>
+          {isActive && (
+            <motion.span aria-hidden
+              animate={{ opacity: [0.5, 0.15, 0.5], scale: [1, 1.12, 1] }}
+              transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+              style={{ position: "absolute", inset: -3, borderRadius: 16, border: `1.5px solid ${agent.color}`, pointerEvents: "none" }} />
+          )}
+          <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center",
+            background: `linear-gradient(140deg, ${agent.color}30, ${agent.color}0d)`, border: `1px solid ${agent.color}45`,
+            boxShadow: `0 6px 18px ${agent.color}26, inset 0 1px 0 rgba(255,255,255,0.1)` }}>
+            <AgentIcon agent={agent} size={22} />
           </div>
-          <span style={{ position: "absolute", bottom: -2, right: -2, width: 11, height: 11, borderRadius: "50%", background: statusColor, border: "2px solid #0B0C12", boxShadow: `0 0 7px ${statusColor}` }} />
+          <span style={{ position: "absolute", bottom: -2, right: -2, width: 12, height: 12, borderRadius: "50%",
+            background: statusColor, border: "2.5px solid #0B0C12", boxShadow: `0 0 8px ${statusColor}` }} />
         </div>
 
-        <div style={{ flex: 1, minWidth: 0, paddingRight: 24 }}>
-          <div style={{ fontSize: 13.5, fontWeight: 700, color: "rgba(255,255,255,0.92)", letterSpacing: "-0.01em", marginBottom: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{agent.name}</div>
-          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{agent.role}</div>
-          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.45)", lineHeight: 1.55, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", margin: 0 }}>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{agent.name}</span>
+            {/* status pill */}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexShrink: 0, fontSize: 9.5, fontWeight: 700, padding: "2px 7px", borderRadius: 6,
+              color: statusColor, background: `${statusColor}14`, border: `1px solid ${statusColor}2e`, letterSpacing: "0.02em" }}>
+              <span style={{ width: 5, height: 5, borderRadius: "50%", background: statusColor }} />
+              {statusLabel}
+            </span>
+          </div>
+          <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{agent.role}</div>
+          <p style={{ fontSize: 11, color: "rgba(255,255,255,0.42)", lineHeight: 1.5, marginTop: 7, marginBottom: 0, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
             {agent.description}
           </p>
         </div>
       </div>
 
-      {/* нагрузка */}
-      <div style={{ marginTop: 12 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
-          <span style={{ fontSize: 9.5, letterSpacing: "0.08em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase", fontFamily: "var(--font-geist-mono), monospace" }}>{statusLabel} · загрузка</span>
-          <span style={{ fontSize: 10, fontWeight: 700, color: load > 0 ? statusColor : "rgba(255,255,255,0.3)", fontVariantNumeric: "tabular-nums" }}>{load}%</span>
-        </div>
-        <div style={{ height: 4, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-          <motion.div initial={{ width: 0 }} animate={{ width: `${load}%` }} transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-            style={{ height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${agent.color}, ${statusColor})` }} />
-        </div>
-      </div>
-
-      {/* мета-чипы */}
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 11, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 6, padding: "2px 7px", fontFamily: "var(--font-geist-mono), monospace" }}>
+      {/* meta strip: model · dept · runs · rating */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+        <span style={{ fontFamily: "var(--font-geist-mono), monospace", fontSize: 9.5, color: "rgba(255,255,255,0.4)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: 110 }}>
           {agent.model.split("-").slice(0, 2).join("-")}
         </span>
-        <span style={{ fontSize: 9.5, color: SPEED_COLOR[agent.speed], background: `${SPEED_COLOR[agent.speed]}16`, border: `1px solid ${SPEED_COLOR[agent.speed]}30`, borderRadius: 6, padding: "2px 7px", fontWeight: 600 }}>
-          {SPEED_LABEL[agent.speed]}
-        </span>
-        <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.04)", borderRadius: 6, padding: "2px 7px" }}>{deptLabel}</span>
-        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.32)", fontVariantNumeric: "tabular-nums" }}>{agent.runs.toLocaleString()} зап.</span>
+        <span style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,0.2)", flexShrink: 0 }} />
+        <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", whiteSpace: "nowrap" }}>{deptLabel}</span>
+        <span style={{ marginLeft: "auto", display: "inline-flex", alignItems: "center", gap: 9, flexShrink: 0 }}>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", fontVariantNumeric: "tabular-nums" }}>{agent.runs.toLocaleString()}</span>
           <span style={{ fontSize: 10, color: "#f59e0b", display: "inline-flex", alignItems: "center", gap: 3, fontVariantNumeric: "tabular-nums" }}>
             <Star size={9} fill="#f59e0b" /> {agent.rating}
           </span>
         </span>
       </div>
 
-      {/* действия */}
-      <div style={{ display: "flex", gap: 6, marginTop: 11 }}>
-        <button
-          onClick={(e) => { e.stopPropagation(); onRun(); }}
-          style={{ flex: 1.2, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 0", borderRadius: 9, fontSize: 11.5, fontWeight: 700, cursor: "pointer",
-            background: `linear-gradient(135deg, ${agent.color}e6, ${agent.color}99)`, border: "none", color: "#fff",
-            boxShadow: `inset 0 1px 0 rgba(255,255,255,0.2), 0 3px 12px ${agent.color}33`, transition: "transform .15s, filter .15s" }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-1px)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; }}
-        >
-          <Play size={11} fill="currentColor" /> Запуск
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onChat(); }}
-          style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, padding: "8px 0", borderRadius: 9, fontSize: 11.5, fontWeight: 600, cursor: "pointer",
-            background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.65)", transition: "background .15s" }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.045)"; }}
-        >
-          <MessageSquare size={11} /> Чат
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onConfigure(); }}
-          title="Настроить"
-          style={{ width: 36, display: "inline-flex", alignItems: "center", justifyContent: "center", padding: "8px 0", borderRadius: 9, cursor: "pointer",
-            background: "rgba(255,255,255,0.045)", border: "1px solid rgba(255,255,255,0.09)", color: "rgba(255,255,255,0.5)", transition: "background .15s" }}
-          onMouseEnter={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.09)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.background = "rgba(255,255,255,0.045)"; }}
-        >
-          <Settings2 size={12} />
-        </button>
-      </div>
+      {/* actions — revealed on hover */}
+      <motion.div
+        initial={false}
+        animate={{ height: hov ? 44 : 0, opacity: hov ? 1 : 0, marginTop: hov ? 11 : 0 }}
+        transition={{ duration: 0.24, ease: [0.22, 1, 0.36, 1] }}
+        style={{ overflow: "hidden" }}
+      >
+        <div style={{ display: "flex", gap: 6 }}>
+          <button
+            onClick={(e) => { e.stopPropagation(); onRun(); }}
+            style={{ flex: 1.3, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, height: 34, borderRadius: 9, fontSize: 11.5, fontWeight: 700, cursor: "pointer",
+              background: `linear-gradient(135deg, ${agent.color}e6, ${agent.color}99)`, border: "none", color: "#fff",
+              boxShadow: `inset 0 1px 0 rgba(255,255,255,0.2), 0 3px 12px ${agent.color}33` }}
+          >
+            <Play size={11} fill="currentColor" /> Запуск
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onChat(); }}
+            style={{ flex: 1, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6, height: 34, borderRadius: 9, fontSize: 11.5, fontWeight: 600, cursor: "pointer",
+              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)" }}
+          >
+            <MessageSquare size={11} /> Чат
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onFav(); }}
+            title={fav ? "Убрать из избранного" : "В избранное"}
+            style={{ width: 34, display: "inline-flex", alignItems: "center", justifyContent: "center", height: 34, borderRadius: 9, cursor: "pointer",
+              background: fav ? "rgba(245,158,11,0.14)" : "rgba(255,255,255,0.05)", border: `1px solid ${fav ? "rgba(245,158,11,0.35)" : "rgba(255,255,255,0.1)"}`, color: fav ? "#f59e0b" : "rgba(255,255,255,0.5)" }}
+          >
+            <Star size={12} fill={fav ? "#f59e0b" : "none"} />
+          </button>
+          <button
+            onClick={(e) => { e.stopPropagation(); onConfigure(); }}
+            title="Настроить"
+            style={{ width: 34, display: "inline-flex", alignItems: "center", justifyContent: "center", height: 34, borderRadius: 9, cursor: "pointer",
+              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}
+          >
+            <Settings2 size={12} />
+          </button>
+        </div>
+      </motion.div>
     </motion.div>
   );
 }
