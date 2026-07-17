@@ -142,9 +142,12 @@ export default function ExecutiveCouncilPage() {
   }, [reduce]);
 
   const ceo  = rich("ceo");
+  // The board = only director-titled members (excl. the CEO chairman shown above);
+  // analysts/specialists live in AI Agents, not the boardroom.
   const allAgents: AgentFull[] = useMemo(() => {
-    return C_LEVEL.filter(m => m.slug !== "ceo").map(m => rich(m.slug))
-      .concat(TEAM.filter(m => m.tier === "specialist").map(m => rich(m.slug)));
+    return TEAM
+      .filter(m => m.slug !== "ceo" && /директор/i.test(TEAM_BY_SLUG[m.slug]?.title ?? ""))
+      .map(m => rich(m.slug));
   }, []);
 
   const visibleAgents = useMemo(() => {
@@ -297,7 +300,7 @@ export default function ExecutiveCouncilPage() {
           {/* Section label */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
             <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: TM }}>
-              ВСЕ ДИРЕКТОРА & СПЕЦИАЛИСТЫ · {visibleAgents.length}
+              СОВЕТ ДИРЕКТОРОВ · {visibleAgents.length + 1}
             </span>
             <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BORD}, transparent)` }} />
           </div>
@@ -305,11 +308,11 @@ export default function ExecutiveCouncilPage() {
           <AnimatePresence mode="wait">
             {view === "grid" ? (
               <motion.div key="grid"
-                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                transition={{ duration: 0.18 }}
-                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
-                {visibleAgents.map((a, i) => (
-                  <AgentCard key={a.slug} a={a} tick={tick} reduce={!!reduce} delay={i * 0.04}
+                initial="hidden" animate="show" exit={{ opacity: 0 }}
+                variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.06 } } }}
+                style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 14 }}>
+                {visibleAgents.map((a) => (
+                  <BoardMemberCard key={a.slug} a={a} tick={tick} reduce={!!reduce}
                     onAsk={() => setAsk(a)} onMeet={() => goMeet(a.slug)} />
                 ))}
               </motion.div>
@@ -873,121 +876,100 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
   );
 }
 
-// ── Agent card (grid) ─────────────────────────────────────────────────────────
-function AgentCard({ a, tick, delay, reduce, onAsk, onMeet }: {
-  a: AgentFull; tick: number; delay: number; reduce: boolean;
-  onAsk: () => void; onMeet: () => void;
+// ── Board member card (boardroom aesthetic) ──────────────────────────────────
+function BoardMemberCard({ a, tick, reduce, onAsk, onMeet }: {
+  a: AgentFull; tick: number; reduce: boolean; onAsk: () => void; onMeet: () => void;
 }) {
-  const mt   = metrics(a.slug);
-  const team = reportsOf(a.slug).filter(m => m.tier === "specialist");
-  const sd   = sparkData(a.slug);
+  const mt = metrics(a.slug);
   const [hov, setHov] = useState(false);
-
   const Icon = EXEC_ICON[a.slug] ?? Crown;
+  const R = 25, CIRC = 2 * Math.PI * R;
 
   return (
     <motion.div
+      variants={{ hidden: { opacity: 0, y: 20, scale: 0.96 }, show: { opacity: 1, y: 0, scale: 1 } }}
+      transition={{ type: "spring", stiffness: 230, damping: 22 }}
       onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
-      initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-30px" }}
-      animate={{ y: hov ? -4 : 0 }}
-      transition={{ duration: 0.25, ease: EASE }}
-      onClick={onAsk}
-      style={{ padding: "15px 16px 15px 18px", borderRadius: 16, cursor: "pointer",
-        position: "relative", overflow: "hidden",
-        background: hov ? "rgba(255,255,255,0.035)" : "rgba(255,255,255,0.022)",
-        border: `1px solid ${hov ? `${a.c}3e` : "rgba(255,255,255,0.06)"}`,
-        boxShadow: hov
-          ? `0 18px 44px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)`
-          : `0 1px 2px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.04)`,
-        transition: "background 0.22s, border-color 0.22s, box-shadow 0.22s" }}>
+      animate={{ y: hov ? -5 : 0 }}
+      style={{ borderRadius: 18, overflow: "hidden", position: "relative", cursor: "pointer",
+        background: hov ? `linear-gradient(160deg, ${a.c}12, rgba(255,255,255,0.02) 65%)` : "rgba(255,255,255,0.022)",
+        border: `1px solid ${hov ? a.c + "50" : "rgba(255,255,255,0.07)"}`,
+        boxShadow: hov ? `0 22px 54px rgba(0,0,0,0.4), 0 0 0 1px ${a.c}18, inset 0 1px 0 rgba(255,255,255,0.05)` : "0 2px 10px rgba(0,0,0,0.28)",
+        transition: "background 0.25s, border-color 0.25s, box-shadow 0.25s" }}
+      onClick={onAsk}>
 
-      {/* left status rail */}
-      <span aria-hidden style={{ position: "absolute", left: 0, top: 14, bottom: 14, width: 3, borderRadius: 3,
-        background: `linear-gradient(180deg, ${a.g[0]}, ${a.g[1]})`, opacity: hov ? 1 : 0.55, transition: "opacity 0.22s" }} />
+      {/* boardroom nameplate strip */}
+      <div aria-hidden style={{ height: 3, background: `linear-gradient(90deg, ${a.g[0]}, ${a.g[1]})` }} />
+      {hov && !reduce && (
+        <motion.div aria-hidden initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+          style={{ position: "absolute", top: -30, right: -20, width: 150, height: 150, borderRadius: "50%", pointerEvents: "none",
+            background: `radial-gradient(circle, ${a.c}18, transparent 70%)` }} />
+      )}
 
-      {/* Row 1: icon tile + name + status pill */}
-      <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-        {/* Icon tile with status ring */}
-        <div style={{ position: "relative", flexShrink: 0, width: 48, height: 48 }}>
-          {mt.working && (
-            <motion.span aria-hidden
-              animate={reduce ? undefined : { opacity: [0.5, 0.15, 0.5], scale: [1, 1.12, 1] }}
-              transition={reduce ? undefined : { duration: 2.4, repeat: Infinity, ease: "easeInOut", delay }}
-              style={{ position: "absolute", inset: -3, borderRadius: 16, border: `1.5px solid ${a.c}`, pointerEvents: "none" }} />
-          )}
-          <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center",
-            background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff",
-            boxShadow: `0 6px 18px ${a.c}3a, inset 0 1px 0 rgba(255,255,255,0.22)` }}>
-            <Icon size={22} strokeWidth={1.9} />
+      <div style={{ padding: "16px 16px 14px" }}>
+        {/* header: avatar w/ workload ring + identity */}
+        <div style={{ display: "flex", alignItems: "center", gap: 13, marginBottom: 12 }}>
+          <div style={{ position: "relative", width: 56, height: 56, flexShrink: 0 }}>
+            <svg width={56} height={56} viewBox="0 0 56 56" style={{ position: "absolute", inset: 0, transform: "rotate(-90deg)" }}>
+              <circle cx={28} cy={28} r={R} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={2.5} />
+              <motion.circle cx={28} cy={28} r={R} fill="none" stroke={a.c} strokeWidth={2.5} strokeLinecap="round"
+                initial={{ strokeDasharray: `0 ${CIRC}` }} whileInView={{ strokeDasharray: `${(mt.load / 100) * CIRC} ${CIRC}` }} viewport={{ once: true }}
+                transition={{ duration: 1.2, ease: EASE, delay: 0.2 }} style={{ filter: `drop-shadow(0 0 4px ${a.c}80)` }} />
+            </svg>
+            <motion.div animate={mt.working && !reduce ? { scale: [1, 1.05, 1] } : { scale: 1 }} transition={mt.working && !reduce ? { duration: 2, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+              style={{ position: "absolute", inset: 8, borderRadius: 12, display: "flex", alignItems: "center", justifyContent: "center",
+                background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff", boxShadow: `0 4px 14px ${a.c}44` }}>
+              <Icon size={18} strokeWidth={1.9} />
+            </motion.div>
           </div>
-          <span style={{ position: "absolute", bottom: -2, right: -2, width: 12, height: 12, borderRadius: "50%",
-            background: mt.working ? "#10b981" : "#f59e0b", border: "2.5px solid #0B0C12", boxShadow: `0 0 8px ${mt.working ? "#10b981" : "#f59e0b"}` }} />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 14.5, fontWeight: 800, color: TP, letterSpacing: "-0.01em", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</div>
+            <div style={{ fontSize: 11.5, color: a.c, fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.title}</div>
+          </div>
+          <StatusBadge working={mt.working} />
         </div>
 
-        {/* Name + role + status */}
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 700, color: TP, letterSpacing: "-0.01em",
-              overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</span>
-            <StatusBadge working={mt.working} />
-          </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 3 }}>
-            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em",
-              padding: "1px 6px", borderRadius: 5, color: a.c,
-              border: `1px solid ${a.c}40`, background: `${a.c}0e` }}>{a.role}</span>
-            <span style={{ fontSize: 11, color: TS, minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.specialty}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Live activity + sparkline */}
-      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
-        <div style={{ flex: 1, minWidth: 0 }}>
+        {/* live activity */}
+        <div style={{ marginBottom: 12 }}>
           <LiveAct slug={a.slug} tick={tick} working={mt.working} color={a.c} />
         </div>
-        <div style={{ flexShrink: 0 }}>
-          <Spark color={a.c} data={sd} w={60} h={24} />
-        </div>
-      </div>
 
-      {/* Stats strip */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 13, paddingTop: 12, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
-        {[
-          { v: mt.done,            l: "задачи" },
-          { v: `${mt.success}%`,   l: "успех" },
-          { v: `${a.confidence}%`, l: "конф" },
-        ].map((m, i) => (
-          <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-            <span style={{ fontSize: 12.5, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{m.v}</span>
-            <span style={{ fontSize: 9, color: TM }}>{m.l}</span>
-            {i < 2 && <span style={{ width: 3, height: 3, borderRadius: "50%", background: "rgba(255,255,255,0.2)", marginLeft: 4 }} />}
+        {/* workload — how much they work */}
+        <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 11, background: "rgba(255,255,255,0.02)", border: `1px solid ${BORD}` }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 7 }}>
+            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", color: TM, textTransform: "uppercase" }}>Загрузка</span>
+            <span style={{ fontSize: 15, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{mt.load}%</span>
           </div>
-        ))}
-      </div>
+          <div style={{ height: 5, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+            <motion.div initial={{ width: 0 }} whileInView={{ width: `${mt.load}%` }} viewport={{ once: true }} transition={{ duration: 1.1, ease: EASE, delay: 0.25 }}
+              style={{ height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${a.g[0]}, ${a.g[1]})` }} />
+          </div>
+          <div style={{ display: "flex", gap: 16, marginTop: 9 }}>
+            {[{ v: mt.done, l: "задач" }, { v: `${mt.success}%`, l: "успех" }, { v: `${mt.streak}д`, l: "серия" }].map((m, i) => (
+              <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                <span style={{ fontSize: 12.5, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums" }}>{m.v}</span>
+                <span style={{ fontSize: 9, color: TM }}>{m.l}</span>
+              </div>
+            ))}
+          </div>
+        </div>
 
-      {/* Actions — revealed on hover */}
-      <motion.div
-        initial={false}
-        animate={{ height: hov ? 41 : 0, opacity: hov ? 1 : 0, marginTop: hov ? 11 : 0 }}
-        transition={{ duration: 0.24, ease: EASE }}
-        style={{ overflow: "hidden" }}>
+        {/* actions — write to this director */}
         <div style={{ display: "flex", gap: 7 }}>
           <button onClick={e => { e.stopPropagation(); onAsk(); }}
-            style={{ flex: 1, height: 34, borderRadius: 9, fontSize: 11.5, fontWeight: 700, cursor: "pointer",
-              color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 5,
-              boxShadow: "0 3px 12px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
-            <MessageSquare size={11} /> Спросить
+            style={{ flex: 1, height: 36, borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: "pointer", color: "#fff",
+              background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`, border: "none",
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
+              boxShadow: `0 4px 14px ${a.c}3a, inset 0 1px 0 rgba(255,255,255,0.2)` }}>
+            <MessageSquare size={12} /> Написать
           </button>
           <button onClick={e => { e.stopPropagation(); onMeet(); }}
-            style={{ padding: "0 12px", height: 34, borderRadius: 9, fontSize: 11, fontWeight: 700, cursor: "pointer",
-              color: a.c, background: `${a.c}12`, border: `1px solid ${a.c}35`,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 5, whiteSpace: "nowrap" }}>
-            <MessagesSquare size={10} /> Совещание · {team.length || 3}
+            style={{ padding: "0 13px", height: 36, borderRadius: 10, fontSize: 11.5, fontWeight: 700, cursor: "pointer", color: a.c,
+              background: `${a.c}12`, border: `1px solid ${a.c}35`, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, whiteSpace: "nowrap" }}>
+            <MessagesSquare size={11} /> Совет
           </button>
         </div>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
