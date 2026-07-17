@@ -1,799 +1,418 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { motion, AnimatePresence, useInView } from "framer-motion";
+import { useRef } from "react";
 import { markVisit } from "@/components/dashboard/EngagementPanel";
-import { X, ZoomIn, ZoomOut, RotateCcw, Info } from "lucide-react";
+import {
+  Database, Search, Plus, FileText, FolderOpen, Brain, FileBarChart,
+  StickyNote, X, Copy, Check, Clock, Filter, Sparkles, Trash2, HardDrive,
+} from "lucide-react";
 
 // ── Design tokens ──────────────────────────────────────────────────────────────
-const BG    = "#05060A";
-const BORD  = "rgba(255,255,255,0.07)";
-const BORD_H= "rgba(255,255,255,0.13)";
-const SURF  = "rgba(255,255,255,0.025)";
-const TP    = "#E5E7EB";
-const TS    = "rgba(255,255,255,0.5)";
-const TM    = "rgba(255,255,255,0.28)";
-const MONO  = "var(--font-geist-mono), ui-monospace, monospace";
-const EASE  = [0.22, 1, 0.36, 1] as const;
+const BG     = "#05060A";
+const SURF   = "rgba(255,255,255,0.03)";
+const BORD   = "rgba(255,255,255,0.07)";
+const BORD_H = "rgba(255,255,255,0.13)";
+const TP     = "#E5E7EB";
+const TS     = "rgba(255,255,255,0.5)";
+const TM     = "rgba(255,255,255,0.3)";
+const ACCENT = "#6366f1";
+const MONO   = "var(--font-geist-mono), ui-monospace, monospace";
+const EASE   = [0.22, 1, 0.36, 1] as const;
 
-// ── Node types ─────────────────────────────────────────────────────────────────
-type NodeType = "agent" | "topic" | "memory" | "doc" | "artifact" | "config";
+// ── Model ────────────────────────────────────────────────────────────────────
+type KType = "project" | "report" | "note" | "memory" | "doc";
 
-const TYPE_COLOR: Record<NodeType, string> = {
-  agent:    "#a78bfa",
-  topic:    "#22d3ee",
-  memory:   "#fbbf24",
-  doc:      "#60a5fa",
-  artifact: "#34d399",
-  config:   "#94a3b8",
-};
-const TYPE_LABEL: Record<NodeType, string> = {
-  agent: "Агент", topic: "Топик-хаб", memory: "Память",
-  doc: "Документ", artifact: "Артефакт", config: "Конфиг",
-};
-const TYPE_DESC: Record<NodeType, string> = {
-  agent:    "Специализированный AI-агент системы",
-  topic:    "Тематический хаб, объединяет узлы",
-  memory:   "Персистентная память агента",
-  doc:      "Документ из базы знаний",
-  artifact: "Сгенерированный артефакт",
-  config:   "Системная конфигурация",
-};
-
-// ── Vault nodes ────────────────────────────────────────────────────────────────
-interface VaultNode {
-  id: string; label: string; title: string; type: NodeType;
-  px: number; py: number;  // percent positions → seeded layout
-  size: number; desc: string; scope: "ЛОКАЛЬНЫЙ" | "ОБЩИЙ"; bytes: string; rels: string[];
+interface KItem {
+  id: string;
+  type: KType;
+  title: string;
+  content: string;
+  source: string;
+  tags: string[];
+  date: number;
+  custom?: boolean;   // added by the user → deletable
 }
 
-const RAW_NODES: VaultNode[] = [
-  { id:"ceo",        label:"CEO / Оркестратор",  title:"CEO / Оркестратор",       type:"agent",    px:48, py:42, size:30, scope:"ОБЩИЙ",    bytes:"0 Б",    desc:"Распределяет работу, держит контекст всей системы и координирует агентов-специалистов.", rels:["АГЕНТ-СПЕЦИАЛИСТ","ОРКЕСТРИРУЕТ","ВЛАДЕЕТ КОНТЕКСТОМ"] },
-  { id:"researcher", label:"Researcher",          title:"Researcher · Разведка",   type:"agent",    px:64, py:28, size:24, scope:"ОБЩИЙ",    bytes:"0 Б",    desc:"Собирает данные о рынке, конкурентах и клиентах.", rels:["СБОР ДАННЫХ","ПИШЕТ В ПАМЯТЬ","ВЛАДЕЕТ КОНТЕКСТОМ"] },
-  { id:"cmo",        label:"CMO",                 title:"CMO · Голос рынка",       type:"agent",    px:34, py:56, size:24, scope:"ОБЩИЙ",    bytes:"0 Б",    desc:"Формирует бренд-нарратив, позиционирование и контент-систему.", rels:["ИНСАЙТЫ РЫНКА","ПУБЛИКУЕТ","ВЛАДЕЕТ КОНТЕКСТОМ"] },
-  { id:"sales",      label:"Sales Rep",           title:"Sales Rep · Выручка",     type:"agent",    px:58, py:64, size:24, scope:"ОБЩИЙ",    bytes:"0 Б",    desc:"Ведёт воронку лидов, квалификацию и закрытие сделок.", rels:["ОПЕРАЦИИ ВЫРУЧКИ","ЧИТАЕТ ВОРОНКУ","ВЛАДЕЕТ КОНТЕКСТОМ"] },
-  { id:"dev",        label:"Dev",                 title:"Dev · Сборка продукта",   type:"agent",    px:27, py:32, size:22, scope:"ОБЩИЙ",    bytes:"0 Б",    desc:"Проектирует архитектуру и собирает продукт.", rels:["СИСТЕМА СБОРКИ","ЧИТАЕТ КОНФИГ","ВЛАДЕЕТ КОНТЕКСТОМ"] },
-  { id:"data",       label:"Data Analyst",        title:"Data Analyst · Сигналы", type:"agent",    px:71, py:50, size:22, scope:"ОБЩИЙ",    bytes:"0 Б",    desc:"Строит метрики и прогнозы, следит за сигналами.", rels:["СЛОЙ СИГНАЛОВ","АГРЕГИРУЕТ","ВЛАДЕЕТ КОНТЕКСТОМ"] },
-  { id:"t_pipeline", label:"Воронка лидов",       title:"Хаб «Воронка лидов»",    type:"topic",    px:19, py:47, size:18, scope:"ОБЩИЙ",    bytes:"12 КБ",  desc:"Объединяет память, документы и артефакты по воронке продаж.", rels:["ТОПИК-ХАБ","ГРУППИРУЕТ","ОБЩИЙ КОНТЕКСТ"] },
-  { id:"t_content",  label:"Контент-движок",      title:"Хаб «Контент-движок»",   type:"topic",    px:78, py:34, size:18, scope:"ОБЩИЙ",    bytes:"9 КБ",   desc:"Хаб контент-системы: промпты, черновики и аналитика.", rels:["ТОПИК-ХАБ","ГРУППИРУЕТ","ОБЩИЙ КОНТЕКСТ"] },
-  { id:"t_research", label:"База исследований",   title:"Хаб «База исследований»",type:"topic",    px:41, py:19, size:18, scope:"ОБЩИЙ",    bytes:"15 КБ",  desc:"Агрегирует память исследований и рыночные документы.", rels:["ТОПИК-ХАБ","ГРУППИРУЕТ","ОБЩИЙ КОНТЕКСТ"] },
-  { id:"t_ops",      label:"Опер. конфиг",        title:"Хаб «Операционный конфиг»",type:"topic",  px:66, py:76, size:16, scope:"ОБЩИЙ",    bytes:"6 КБ",   desc:"Хаб операционной конфигурации и системных узлов.", rels:["ТОПИК-ХАБ","ГРУППИРУЕТ","СИСТЕМА"] },
-  { id:"m1",         label:"Последний прогон",    title:"Последний прогон",        type:"memory",   px:30, py:70, size:13, scope:"ЛОКАЛЬНЫЙ",bytes:"3.2 КБ", desc:"Рабочая память последнего прогона воронки.", rels:["ЗАПИСЬ ПАМЯТИ","ВСПОМИНАЕТСЯ","ЛОКАЛЬНЫЙ"] },
-  { id:"m2",         label:"Промпт этапа 4",      title:"Промпт этапа 4",          type:"memory",   px:52, py:16, size:13, scope:"ЛОКАЛЬНЫЙ",bytes:"2.1 КБ", desc:"Сохранённое состояние промпта для исследовательского цикла.", rels:["ЗАПИСЬ ПАМЯТИ","ВСПОМИНАЕТСЯ","ЛОКАЛЬНЫЙ"] },
-  { id:"m3",         label:"Квалиф. лиды",        title:"Квалифицированные лиды",  type:"memory",   px:74, py:61, size:13, scope:"ОБЩИЙ",    bytes:"5.4 КБ", desc:"Общая память о квалифицированных лидах.", rels:["ЗАПИСЬ ПАМЯТИ","ОБЩАЯ","СКОРИНГ"] },
-  { id:"m4",         label:"Мета-память",         title:"Мета-память",             type:"memory",   px:15, py:28, size:13, scope:"ОБЩИЙ",    bytes:"1.8 КБ", desc:"Память системного уровня: что компания уже знает.", rels:["ЗАПИСЬ ПАМЯТИ","МЕТА","ОБЩАЯ"] },
-  { id:"m5",         label:"Дневной синк",        title:"Дневной синк",            type:"memory",   px:45, py:79, size:13, scope:"ЛОКАЛЬНЫЙ",bytes:"2.7 КБ", desc:"Снимок последней ежедневной синхронизации.", rels:["ЗАПИСЬ ПАМЯТИ","СНИМОК","ЛОКАЛЬНЫЙ"] },
-  { id:"m6",         label:"Состояние сессии",    title:"Состояние сессии",        type:"memory",   px:86, py:46, size:13, scope:"ЛОКАЛЬНЫЙ",bytes:"0.9 КБ", desc:"Волатильное состояние сессии.", rels:["ЗАПИСЬ ПАМЯТИ","ВСПОМИНАЕТСЯ","ЛОКАЛЬНЫЙ"] },
-  { id:"d1",         label:"Недельный бриф",      title:"Недельный бриф воронки",  type:"doc",      px:21, py:60, size:13, scope:"ОБЩИЙ",    bytes:"18 КБ",  desc:"Документ хранилища: недельный бриф воронки.", rels:["ДОКУМЕНТ","ССЫЛАЮТСЯ","ИНДЕКСИРОВАН"] },
-  { id:"d2",         label:"База контента",       title:"База интеллекта контента",type:"doc",      px:56, py:34, size:13, scope:"ОБЩИЙ",    bytes:"42 КБ",  desc:"Индексированная база эффективности контента.", rels:["ДОКУМЕНТ","ИНДЕКСИРОВАН","ЗАПРАШИВАЮТ"] },
-  { id:"d3",         label:"Карта рынка",         title:"Карта рынка",             type:"doc",      px:69, py:18, size:13, scope:"ОБЩИЙ",    bytes:"11 КБ",  desc:"Исследовательский документ: сегменты и конкуренты.", rels:["ДОКУМЕНТ","ССЫЛАЮТСЯ","ИССЛЕДОВАНИЕ"] },
-  { id:"d4",         label:"Портрет клиента",     title:"Портрет клиента (ICP)",   type:"doc",      px:38, py:45, size:13, scope:"ОБЩИЙ",    bytes:"6 КБ",   desc:"Каноническое описание идеального клиента.", rels:["ДОКУМЕНТ","КАНОНИЧЕСКИЙ","ССЫЛАЮТСЯ"] },
-  { id:"d5",         label:"Плейбук",             title:"Спецификация плейбука",   type:"doc",      px:81, py:68, size:13, scope:"ОБЩИЙ",    bytes:"24 КБ",  desc:"Операционный плейбук для Ops и Sales.", rels:["ДОКУМЕНТ","СПЕЦИФИКАЦИЯ","ССЫЛАЮТСЯ"] },
-  { id:"a1",         label:"Прогноз v3",          title:"Прогноз выручки v3",      type:"artifact", px:14, py:71, size:12, scope:"ЛОКАЛЬНЫЙ",bytes:"7.5 КБ", desc:"Артефакт данных: прогноз выручки от Data Analyst.", rels:["АРТЕФАКТ","СОЗДАН АГЕНТОМ","ВЕРСИОНИРУЕТСЯ"] },
-  { id:"a2",         label:"Срез воронки",        title:"Срез воронки",            type:"artifact", px:61, py:47, size:12, scope:"ЛОКАЛЬНЫЙ",bytes:"4.1 КБ", desc:"Снимок текущей конверсии по этапам воронки.", rels:["АРТЕФАКТ","СНИМОК","ВЕРСИОНИРУЕТСЯ"] },
-  { id:"a3",         label:"Модель скоринга",     title:"Модель скоринга лидов",   type:"artifact", px:47, py:58, size:12, scope:"ОБЩИЙ",    bytes:"9.8 КБ", desc:"Модель, по которой квалифицируются лиды.", rels:["АРТЕФАКТ","МОДЕЛЬ","СОЗДАН АГЕНТОМ"] },
-  { id:"a4",         label:"Выгрузка когорт",     title:"Выгрузка когорт",         type:"artifact", px:73, py:27, size:12, scope:"ЛОКАЛЬНЫЙ",bytes:"13 КБ",  desc:"Экспорт когортного анализа для контент-движка.", rels:["АРТЕФАКТ","ЭКСПОРТ","ПОТРЕБЛЯЕТСЯ"] },
-  { id:"c1",         label:"Правила роутинга",    title:"Правила роутинга",        type:"config",   px:36, py:80, size:11, scope:"ОБЩИЙ",    bytes:"1.2 КБ", desc:"Конфиг: правила распределения задач.", rels:["КОНФИГ","ЧИТАЕТСЯ","СИСТЕМА"] },
-  { id:"c2",         label:"Ключи хранилища",     title:"Ключи хранилища",         type:"config",   px:88, py:57, size:11, scope:"ОБЩИЙ",    bytes:"0.4 КБ", desc:"Ключи доступа и области видимости хранилища.", rels:["КОНФИГ","ЗАЩИЩЁН","СИСТЕМА"] },
-  { id:"c3",         label:"Планировщик",         title:"Задачи планировщика",     type:"config",   px:24, py:17, size:11, scope:"ОБЩИЙ",    bytes:"0.8 КБ", desc:"Конфигурация фоновых задач и синхронизаций.", rels:["КОНФИГ","ПО РАСПИСАНИЮ","СИСТЕМА"] },
+const TYPE_META: Record<KType, { label: string; color: string; icon: React.ElementType }> = {
+  project: { label: "Проекты",  color: "#6366f1", icon: FolderOpen   },
+  report:  { label: "Отчёты",   color: "#8b5cf6", icon: FileBarChart },
+  note:    { label: "Заметки",  color: "#10b981", icon: StickyNote   },
+  memory:  { label: "Память",   color: "#f59e0b", icon: Brain        },
+  doc:     { label: "Документы",color: "#3b82f6", icon: FileText     },
+};
+
+const VAULT_KEY = "vertlix-vault-items";
+
+// Seeded institutional knowledge (canonical company docs + agent memory)
+const SEED: KItem[] = [
+  { id: "s-icp",   type: "doc",    title: "Портрет клиента (ICP)",       source: "База знаний",  tags: ["стратегия", "канон"], date: Date.now() - 86400000 * 6,
+    content: "Идеальный клиент — основатель SaaS/сервисного бизнеса на стадии от идеи до $1M ARR. Боль: нет команды экспертов уровня C-level и денег на консультантов. Ценит скорость, конкретику и данные. Принимает решения быстро, не любит воду." },
+  { id: "s-market",type: "doc",    title: "Карта рынка · сегменты",       source: "Research-агент", tags: ["рынок", "конкуренты"], date: Date.now() - 86400000 * 4,
+    content: "TAM AI-инструментов для основателей ~$4.2B, растёт +24%/год. Основные сегменты: solo-founders, ранние стартапы, агентства. Конкуренты закрывают отдельные функции; ниша «совет директоров под ключ» слабо занята." },
+  { id: "s-play",  type: "doc",    title: "Операционный плейбук",         source: "База знаний",  tags: ["ops", "процессы"], date: Date.now() - 86400000 * 9,
+    content: "Стандарт запуска стратегии: 1) собрать контекст проекта, 2) прогнать через совет из 20 директоров, 3) синтез вердикта, 4) отчёт + следующий шаг. SLA ответа < 5 минут. Каждый вердикт содержит решение, риски и метрику." },
+  { id: "s-mem1",  type: "memory", title: "Что компания уже знает",       source: "Мета-память", tags: ["память", "мета"], date: Date.now() - 86400000 * 2,
+    content: "Накопленный контекст: сильнее всего заходят кейсы «до/после» и конкретные цифры. Контент-хуки с прямым CTA дают ER выше. Клиенты чаще всего спрашивают про ценообразование и выход на новые рынки." },
+  { id: "s-mem2",  type: "memory", title: "Квалифицированные лиды · скоринг", source: "Sales-агент", tags: ["продажи", "скоринг"], date: Date.now() - 86400000 * 1,
+    content: "Модель скоринга: выручка сегмента (40%), намерение (30%), соответствие ICP (30%). High-value ≥ $100K/мес и booked-call — приоритет. Триггеры оттока выявляются в первые 3 недели." },
 ];
 
-const EDGES: [string,string][] = [
-  ["researcher","ceo"],["cmo","ceo"],["sales","ceo"],["dev","ceo"],["data","ceo"],
-  ["t_pipeline","sales"],["t_pipeline","cmo"],["t_content","cmo"],["t_content","researcher"],
-  ["t_research","researcher"],["t_research","data"],["t_ops","dev"],["t_ops","ceo"],
-  ["m1","t_pipeline"],["m1","sales"],["m2","t_research"],["m2","researcher"],
-  ["m3","sales"],["m3","data"],["m4","ceo"],["m4","t_research"],
-  ["m5","ceo"],["m5","t_ops"],["m6","ceo"],["m6","data"],
-  ["d1","t_pipeline"],["d1","ceo"],["d2","t_content"],["d2","data"],
-  ["d3","t_research"],["d3","researcher"],["d4","cmo"],["d4","t_pipeline"],
-  ["d5","t_ops"],["d5","sales"],
-  ["a1","data"],["a1","t_pipeline"],["a2","data"],["a2","sales"],
-  ["a3","sales"],["a3","t_pipeline"],["a4","t_content"],["a4","data"],
-  ["c1","ceo"],["c1","t_ops"],["c2","t_ops"],["c3","dev"],["c3","t_ops"],
-  ["d2","cmo"],["m3","d1"],["a3","m3"],["d4","researcher"],["m2","d3"],
-];
+// ── localStorage readers (real user data) ──────────────────────────────────────
+function loadUserItems(): KItem[] {
+  if (typeof window === "undefined") return [];
+  const out: KItem[] = [];
 
-const NODE_BY_ID = Object.fromEntries(RAW_NODES.map(n => [n.id, n]));
+  // Projects → knowledge
+  try {
+    const projects = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
+    for (const p of projects) {
+      const verdicts = Array.isArray(p.aiResults)
+        ? p.aiResults.slice(0, 3).map((r: { role?: string; opinion?: string; verdict?: string }) => `${r.role ?? ""}: ${r.opinion ?? r.verdict ?? ""}`).join("\n")
+        : "";
+      out.push({
+        id: `proj-${p.id}`, type: "project", title: p.name ?? "Проект",
+        source: "Мои проекты", tags: [p.industry, p.stage].filter(Boolean),
+        date: typeof p.createdAt === "number" ? p.createdAt : Date.now(),
+        content: `${p.description ?? ""}\n\nБалл: ${p.score ?? "—"} · Прогноз: ${p.revenue ?? "—"} · Рынок: ${p.market ?? "—"}\n\n${verdicts}`.trim(),
+      });
+    }
+  } catch { /* ignore */ }
 
-// nodes connected to a given id
-function connectedIds(id: string): Set<string> {
-  const s = new Set<string>();
-  EDGES.forEach(([a,b]) => { if (a === id) s.add(b); if (b === id) s.add(a); });
-  return s;
+  // Notes → knowledge
+  try {
+    const notes = JSON.parse(localStorage.getItem("apex-notepad-v3") || "[]");
+    for (const n of notes) {
+      out.push({
+        id: `note-${n.id}`, type: "note", title: n.title ?? "Заметка",
+        source: "Блокнот", tags: Array.isArray(n.tags) ? n.tags : [],
+        date: typeof n.updatedAt === "number" ? n.updatedAt : Date.now(),
+        content: (n.content ?? "").replace(/[#*`]/g, ""),
+      });
+    }
+  } catch { /* ignore */ }
+
+  // User-added vault items
+  try {
+    const custom = JSON.parse(localStorage.getItem(VAULT_KEY) || "[]");
+    for (const c of custom) out.push({ ...c, custom: true });
+  } catch { /* ignore */ }
+
+  return out;
 }
 
-// left panel agent stats (deterministic)
-function hashOf(s: string) { let h = 0; for (const c of s) h = (h*31 + c.charCodeAt(0))|0; return Math.abs(h); }
-function agentStats(id: string) {
-  const h = hashOf(id);
-  return { done: 24 + (h%76), success: 88 + (h%11), conf: 91 + (h%8), load: 35 + (h%58) };
-}
-
-type AgentStatus = "working" | "waiting" | "idle";
-const AGENT_LIST: { id: string; name: string; layer: string; status: AgentStatus }[] = [
-  { id:"ceo",        name:"CEO",          layer:"КОМАНДНЫЙ УРОВЕНЬ", status:"working" },
-  { id:"researcher", name:"Researcher",   layer:"СБОР ДАННЫХ",       status:"waiting" },
-  { id:"cmo",        name:"CMO",          layer:"РЫНОК & РОСТ",      status:"waiting" },
-  { id:"sales",      name:"Sales Rep",    layer:"ВОРОНКА ВЫРУЧКИ",   status:"working" },
-  { id:"dev",        name:"Dev",          layer:"СБОРКА ПРОДУКТА",   status:"idle" },
-  { id:"data",       name:"Data Analyst", layer:"СЛОЙ СИГНАЛОВ",     status:"idle" },
-];
-const STATUS_STYLE: Record<AgentStatus, { color: string; label: string }> = {
-  working: { color:"#10b981", label:"в работе" },
-  waiting: { color:"#f59e0b", label:"ожидает"  },
-  idle:    { color:"#475569", label:"свободен" },
+const bytesOf = (s: string) => {
+  const b = new Blob([s]).size;
+  return b < 1024 ? `${b} Б` : `${(b / 1024).toFixed(1)} КБ`;
 };
+const fmtDate = (ts: number) => new Date(ts).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", year: "numeric" });
 
-// type counts for legend
-const TYPE_COUNTS = Object.fromEntries(
-  (Object.keys(TYPE_COLOR) as NodeType[]).map(t => [t, RAW_NODES.filter(n => n.type === t).length])
-);
-
-// ── Physics node (mutable) ─────────────────────────────────────────────────────
-interface PhysNode {
-  id: string; type: NodeType; label: string;
-  x: number; y: number; vx: number; vy: number;
-  r: number;  // radius
-  phase: number;  // for float oscillation
-  color: string;
+// ── Count-up ───────────────────────────────────────────────────────────────
+function CountUp({ to }: { to: number }) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const inView = useInView(ref, { once: true });
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    if (!inView) return;
+    let raf = 0; const t0 = performance.now();
+    const step = (ts: number) => { const p = Math.min(1, (ts - t0) / 900); setV(Math.round(to * (1 - Math.pow(1 - p, 3)))); if (p < 1) raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [inView, to]);
+  return <span ref={ref}>{v}</span>;
 }
 
-// ── Canvas graph engine ────────────────────────────────────────────────────────
-interface Ripple { x: number; y: number; t: number; }
-interface Particle { edgeIdx: number; t: number; speed: number; }
-
-function buildPhysNodes(W: number, H: number): PhysNode[] {
-  return RAW_NODES.map((n, i) => ({
-    id: n.id, type: n.type, label: n.label,
-    x: (n.px / 100) * W,
-    y: (n.py / 100) * H,
-    vx: 0, vy: 0,
-    r: n.size * (W / 900),
-    phase: i * 0.61803,
-    color: TYPE_COLOR[n.type],
-  }));
-}
-
-// ── Page ──────────────────────────────────────────────────────────────────────
+// ═══════════════════════════════════════════════════════════════════════════════
 export default function KnowledgeVaultPage() {
-  const canvasRef   = useRef<HTMLCanvasElement>(null);
-  const containerRef= useRef<HTMLDivElement>(null);
-  const rafRef      = useRef<number>(0);
-  const nodesRef    = useRef<PhysNode[]>([]);
-  const ripplesRef  = useRef<Ripple[]>([]);
-  const particlesRef= useRef<Particle[]>([]);
-  const spriteCache = useRef<Map<string, HTMLCanvasElement>>(new Map());
-  const timeRef     = useRef(0);
-  const zoomRef     = useRef(1);
-  const panRef      = useRef({ x: 0, y: 0 });
-  const dragRef     = useRef<{ start: {x:number;y:number}; pan:{x:number;y:number} } | null>(null);
-
-  const [selected, setSelected] = useState<string>("ceo");
-  const [hovered,  setHovered]  = useState<string | null>(null);
-  const [zoom, setZoom] = useState(1);
-  const [showLegend, setShowLegend] = useState(true);
+  const [items, setItems]   = useState<KItem[]>(SEED);
+  const [query, setQuery]   = useState("");
+  const [filter, setFilter] = useState<KType | "all">("all");
+  const [selected, setSelected] = useState<KItem | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [draft, setDraft]   = useState({ title: "", content: "" });
 
   useEffect(() => { markVisit("vault"); }, []);
 
-  const focus = hovered ?? selected;
-  const connected = useMemo(() => connectedIds(focus), [focus]);
-  const selectedNode = NODE_BY_ID[selected];
-
-  // ── Sprite factory ─────────────────────────────────────────────────────────
-  const getSprite = useCallback((color: string, r: number, glow: boolean): HTMLCanvasElement => {
-    const key = `${color}-${Math.round(r)}-${glow}`;
-    if (spriteCache.current.has(key)) return spriteCache.current.get(key)!;
-    const pad = glow ? 20 : 6;
-    const sz = (r + pad) * 2;
-    const c = document.createElement("canvas");
-    c.width = c.height = sz;
-    const ctx = c.getContext("2d")!;
-    const cx = sz / 2;
-    if (glow) {
-      const g = ctx.createRadialGradient(cx, cx, 0, cx, cx, r + pad);
-      g.addColorStop(0, color + "55"); g.addColorStop(1, "transparent");
-      ctx.fillStyle = g; ctx.fillRect(0, 0, sz, sz);
-    }
-    ctx.beginPath(); ctx.arc(cx, cx, r, 0, Math.PI * 2);
-    const radGrad = ctx.createRadialGradient(cx - r*0.3, cx - r*0.3, 0, cx, cx, r);
-    radGrad.addColorStop(0, color + "ff"); radGrad.addColorStop(1, color + "cc");
-    ctx.fillStyle = radGrad; ctx.fill();
-    spriteCache.current.set(key, c);
-    return c;
-  }, []);
-
-  // ── Canvas draw loop ───────────────────────────────────────────────────────
-  const draw = useCallback(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext("2d")!;
-    const W = canvas.width, H = canvas.height;
-    const nodes = nodesRef.current;
-    const t = timeRef.current;
-
-    ctx.clearRect(0, 0, W, H);
-    ctx.save();
-    ctx.translate(panRef.current.x, panRef.current.y);
-    ctx.scale(zoomRef.current, zoomRef.current);
-
-    const dpr = window.devicePixelRatio || 1;
-    const TW = W / zoomRef.current / dpr;
-    const TH = H / zoomRef.current / dpr;
-
-    // background ambient
-    const bg = ctx.createRadialGradient(TW/2, TH/2, 0, TW/2, TH/2, Math.max(TW, TH) * 0.6);
-    bg.addColorStop(0, "rgba(40,30,80,0.18)"); bg.addColorStop(1, "transparent");
-    ctx.fillStyle = bg; ctx.fillRect(0, 0, TW, TH);
-
-    // node map for fast lookup
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
-
-    // which edges are active (connected to focus)
-    const focusConnected = connected;
-    const isFocused = (id: string) => id === focus || focusConnected.has(id);
-
-    // ── draw edges ────────────────────────────────────────────────────────────
-    EDGES.forEach(([aId, bId], idx) => {
-      const a = nodeMap.get(aId), b = nodeMap.get(bId);
-      if (!a || !b) return;
-      const active = aId === focus || bId === focus || focusConnected.has(aId) && focusConnected.has(bId);
-      const alpha = active ? 0.55 : (isFocused(aId) || isFocused(bId) ? 0.28 : 0.08);
-      const aColor = a.color; const bColor = b.color;
-      const grad = ctx.createLinearGradient(a.x, a.y, b.x, b.y);
-      grad.addColorStop(0, aColor + Math.round(alpha*255).toString(16).padStart(2,"0"));
-      grad.addColorStop(1, bColor + Math.round(alpha*255).toString(16).padStart(2,"0"));
-      ctx.beginPath();
-      ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y);
-      ctx.strokeStyle = grad;
-      ctx.lineWidth = active ? 1.8 : 0.8;
-      ctx.stroke();
-
-      // flowing particles along active edges
-      if (active) {
-        const ps = particlesRef.current.filter(p => p.edgeIdx === idx);
-        ps.forEach(p => {
-          const px = a.x + (b.x - a.x) * p.t;
-          const py = a.y + (b.y - a.y) * p.t;
-          ctx.save();
-          ctx.globalCompositeOperation = "lighter";
-          ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2);
-          ctx.fillStyle = aColor + "cc"; ctx.fill();
-          ctx.restore();
-        });
-      }
-    });
-
-    // ── draw nodes ────────────────────────────────────────────────────────────
-    nodes.forEach(node => {
-      const isSelected = node.id === selected;
-      const isHov = node.id === hovered;
-      const dim = !isFocused(node.id) && focus !== node.id;
-      const alpha = dim ? 0.2 : 1;
-      const floatY = Math.sin(t * 0.0006 + node.phase) * 3.5;
-      const px = node.x; const py = node.y + floatY;
-
-      ctx.save(); ctx.globalAlpha = alpha;
-
-      // outer glow (active nodes)
-      if (!dim) {
-        const pulseFactor = 0.5 + 0.5 * Math.sin(t * 0.003 + node.phase * 2);
-        const glowR = node.r + 6 + (isSelected ? pulseFactor * 10 : pulseFactor * 4);
-        const gGrad = ctx.createRadialGradient(px, py, node.r * 0.5, px, py, glowR);
-        gGrad.addColorStop(0, node.color + "44"); gGrad.addColorStop(1, "transparent");
-        ctx.save(); ctx.globalCompositeOperation = "lighter";
-        ctx.beginPath(); ctx.arc(px, py, glowR, 0, Math.PI*2);
-        ctx.fillStyle = gGrad; ctx.fill();
-        ctx.restore();
-      }
-
-      // sprite
-      const sp = getSprite(node.color, node.r, !dim);
-      const pad = !dim ? 20 : 6;
-      ctx.drawImage(sp, px - node.r - pad, py - node.r - pad);
-
-      // ring (selected or hovered)
-      if (isSelected || isHov) {
-        ctx.beginPath(); ctx.arc(px, py, node.r + 4, 0, Math.PI*2);
-        ctx.strokeStyle = node.color; ctx.lineWidth = isSelected ? 2 : 1.2;
-        ctx.globalAlpha = alpha * (isSelected ? 0.9 : 0.6);
-        ctx.stroke();
-        // second ring for selected
-        if (isSelected) {
-          const pulse = 0.4 + 0.6 * Math.sin(t * 0.004);
-          ctx.beginPath(); ctx.arc(px, py, node.r + 10 + pulse*6, 0, Math.PI*2);
-          ctx.strokeStyle = node.color; ctx.lineWidth = 0.8;
-          ctx.globalAlpha = alpha * 0.3 * pulse;
-          ctx.stroke();
-        }
-      }
-
-      ctx.restore();
-
-      // label
-      if (!dim || isSelected) {
-        ctx.save(); ctx.globalAlpha = dim ? 0.25 : 0.85;
-        ctx.font = `${node.type === "agent" ? 600 : 400} ${node.r < 13 ? 9 : 11}px ${MONO.split(",")[0].trim()}`;
-        ctx.fillStyle = node.color;
-        ctx.textAlign = "center"; ctx.textBaseline = "top";
-        ctx.fillText(node.label, px, py + node.r + 5);
-        ctx.restore();
-      }
-    });
-
-    // ── ripple effects ────────────────────────────────────────────────────────
-    ripplesRef.current = ripplesRef.current.filter(r => r.t < 1);
-    ripplesRef.current.forEach(r => {
-      const age = r.t;
-      const radius = age * 80;
-      ctx.save();
-      ctx.globalAlpha = (1 - age) * 0.5;
-      ctx.beginPath(); ctx.arc(r.x, r.y, radius, 0, Math.PI*2);
-      ctx.strokeStyle = "#a78bfa"; ctx.lineWidth = 2; ctx.stroke();
-      ctx.beginPath(); ctx.arc(r.x, r.y, radius * 0.6, 0, Math.PI*2);
-      ctx.strokeStyle = "#6366f1"; ctx.lineWidth = 1; ctx.stroke();
-      r.t += 0.018;
-      ctx.restore();
-    });
-
-    ctx.restore();
-  }, [focus, selected, hovered, connected, getSprite]);
-
-  // ── Physics tick ──────────────────────────────────────────────────────────
-  const tick = useCallback((dt: number) => {
-    const nodes = nodesRef.current;
-    const canvas = canvasRef.current;
-    if (!canvas || nodes.length === 0) return;
-    const dpr = window.devicePixelRatio || 1;
-    const W = canvas.width / dpr / zoomRef.current;
-    const H = canvas.height / dpr / zoomRef.current;
-
-    // node map
-    const nodeMap = new Map(nodes.map(n => [n.id, n]));
-
-    nodes.forEach(n => { n.vx = 0; n.vy = 0; });
-
-    // repulsion
-    for (let i = 0; i < nodes.length; i++) {
-      for (let j = i+1; j < nodes.length; j++) {
-        const a = nodes[i], b = nodes[j];
-        const dx = b.x - a.x, dy = b.y - a.y;
-        const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-        const minDist = (a.r + b.r) * 4.5;
-        if (dist < minDist) {
-          const force = (minDist - dist) / minDist * 0.8;
-          const fx = (dx / dist) * force, fy = (dy / dist) * force;
-          a.vx -= fx; a.vy -= fy; b.vx += fx; b.vy += fy;
-        }
-      }
-    }
-
-    // spring attraction along edges
-    EDGES.forEach(([aId, bId]) => {
-      const a = nodeMap.get(aId), b = nodeMap.get(bId);
-      if (!a || !b) return;
-      const dx = b.x - a.x, dy = b.y - a.y;
-      const dist = Math.sqrt(dx*dx + dy*dy) || 1;
-      const ideal = 80 + (a.r + b.r) * 2.2;
-      const stretch = (dist - ideal) / ideal * 0.12;
-      const fx = (dx/dist) * stretch, fy = (dy/dist) * stretch;
-      a.vx += fx; a.vy += fy; b.vx -= fx; b.vy -= fy;
-    });
-
-    // center gravity
-    const cx = W * 0.5, cy = H * 0.5;
-    nodes.forEach(n => {
-      n.vx += (cx - n.x) * 0.001;
-      n.vy += (cy - n.y) * 0.001;
-    });
-
-    // integrate
-    nodes.forEach(n => {
-      n.x += n.vx * dt * 0.035;
-      n.y += n.vy * dt * 0.035;
-      n.x = Math.max(n.r + 10, Math.min(W - n.r - 10, n.x));
-      n.y = Math.max(n.r + 10, Math.min(H - n.r - 10, n.y));
-    });
-  }, []);
-
-  // ── Particles tick ────────────────────────────────────────────────────────
-  const tickParticles = useCallback((dt: number) => {
-    particlesRef.current.forEach(p => { p.t += p.speed * dt * 0.0008; if (p.t > 1) p.t -= 1; });
-  }, []);
-
-  // ── Init & rAF loop ───────────────────────────────────────────────────────
+  // Load real data on mount (client-only → no hydration mismatch)
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const container = containerRef.current;
-    if (!canvas || !container) return;
+    const merged = [...loadUserItems(), ...SEED];
+    setItems(merged);
+    setSelected(merged[0] ?? null);
+  }, []);
 
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const counts = useMemo(() => {
+    const c: Record<string, number> = { all: items.length };
+    for (const it of items) c[it.type] = (c[it.type] ?? 0) + 1;
+    return c;
+  }, [items]);
 
-    const resize = () => {
-      const rect = container.getBoundingClientRect();
-      canvas.width  = rect.width  * dpr;
-      canvas.height = rect.height * dpr;
-      canvas.style.width  = rect.width  + "px";
-      canvas.style.height = rect.height + "px";
-      const ctx = canvas.getContext("2d")!;
-      ctx.scale(dpr, dpr);
-      nodesRef.current = buildPhysNodes(rect.width, rect.height);
-      spriteCache.current.clear();
+  const totalBytes = useMemo(() => {
+    const b = items.reduce((s, it) => s + new Blob([it.content]).size, 0);
+    return b < 1024 * 1024 ? `${(b / 1024).toFixed(0)} КБ` : `${(b / 1024 / 1024).toFixed(1)} МБ`;
+  }, [items]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return items
+      .filter(it => filter === "all" || it.type === filter)
+      .filter(it => !q || it.title.toLowerCase().includes(q) || it.content.toLowerCase().includes(q) || it.tags.some(t => t.toLowerCase().includes(q)))
+      .sort((a, b) => b.date - a.date);
+  }, [items, query, filter]);
+
+  const addItem = useCallback(() => {
+    if (!draft.title.trim()) return;
+    const item: KItem = {
+      id: `k-${Date.now()}`, type: "doc", title: draft.title.trim(),
+      content: draft.content.trim(), source: "Добавлено вручную", tags: [], date: Date.now(), custom: true,
     };
-    resize();
-
-    // init particles along all edges
-    particlesRef.current = EDGES.flatMap((_, i) =>
-      Array.from({ length: 2 }, () => ({
-        edgeIdx: i, t: Math.random(), speed: 0.3 + Math.random() * 0.5,
-      }))
-    );
-
-    const ro = new ResizeObserver(resize);
-    ro.observe(container);
-
-    let last = performance.now();
-    const loop = (now: number) => {
-      const dt = Math.min(now - last, 50); last = now;
-      timeRef.current = now;
-      tick(dt);
-      tickParticles(dt);
-      draw();
-      rafRef.current = requestAnimationFrame(loop);
-    };
-    rafRef.current = requestAnimationFrame(loop);
-
-    return () => { cancelAnimationFrame(rafRef.current); ro.disconnect(); };
-  }, [draw, tick, tickParticles]);
-
-  // ── Hit test ──────────────────────────────────────────────────────────────
-  const hitTest = useCallback((clientX: number, clientY: number): string | null => {
-    const canvas = canvasRef.current;
-    if (!canvas) return null;
-    const rect = canvas.getBoundingClientRect();
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    const mx = (clientX - rect.left - panRef.current.x / dpr) / zoomRef.current;
-    const my = (clientY - rect.top  - panRef.current.y / dpr) / zoomRef.current;
-    const nodes = nodesRef.current;
-    let best: string | null = null, bestDist = Infinity;
-    nodes.forEach(n => {
-      const floatY = Math.sin(timeRef.current * 0.0006 + n.phase) * 3.5;
-      const dx = mx - n.x, dy = my - (n.y + floatY);
-      const dist = Math.sqrt(dx*dx+dy*dy);
-      if (dist < n.r + 8 && dist < bestDist) { best = n.id; bestDist = dist; }
+    setItems(prev => {
+      const next = [item, ...prev];
+      try {
+        const customs = next.filter(x => x.custom).map(({ ...c }) => c);
+        localStorage.setItem(VAULT_KEY, JSON.stringify(customs));
+      } catch { /* ignore */ }
+      return next;
     });
-    return best;
+    setSelected(item);
+    setDraft({ title: "", content: "" });
+    setAdding(false);
+  }, [draft]);
+
+  const removeItem = useCallback((id: string) => {
+    setItems(prev => {
+      const next = prev.filter(x => x.id !== id);
+      try { localStorage.setItem(VAULT_KEY, JSON.stringify(next.filter(x => x.custom))); } catch { /* ignore */ }
+      return next;
+    });
+    setSelected(s => (s?.id === id ? null : s));
   }, []);
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    const hit = hitTest(e.clientX, e.clientY);
-    if (hit) {
-      setSelected(hit);
-      // ripple
-      const canvas = canvasRef.current;
-      const rect = canvas!.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      const node = nodesRef.current.find(n => n.id === hit);
-      if (node) ripplesRef.current.push({ x: node.x, y: node.y, t: 0 });
-      void rect;
-    }
-  }, [hitTest]);
-
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (dragRef.current) {
-      const dx = e.clientX - dragRef.current.start.x;
-      const dy = e.clientY - dragRef.current.start.y;
-      panRef.current = { x: dragRef.current.pan.x + dx, y: dragRef.current.pan.y + dy };
-      return;
-    }
-    const hit = hitTest(e.clientX, e.clientY);
-    setHovered(hit);
-    const canvas = canvasRef.current;
-    if (canvas) canvas.style.cursor = hit ? "pointer" : "grab";
-  }, [hitTest]);
-
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 1 || e.altKey) {
-      dragRef.current = { start: { x: e.clientX, y: e.clientY }, pan: { ...panRef.current } };
-    }
-  }, []);
-  const handleMouseUp = useCallback(() => { dragRef.current = null; }, []);
-
-  const handleWheel = useCallback((e: React.WheelEvent) => {
-    e.preventDefault();
-    const factor = e.deltaY < 0 ? 1.1 : 0.91;
-    zoomRef.current = Math.max(0.4, Math.min(3, zoomRef.current * factor));
-    setZoom(zoomRef.current);
-  }, []);
-
-  const resetView = useCallback(() => {
-    zoomRef.current = 1; panRef.current = { x: 0, y: 0 }; setZoom(1);
+  const copy = useCallback((text: string) => {
+    navigator.clipboard?.writeText(text).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); }).catch(() => {});
   }, []);
 
   return (
-    <div style={{ display:"flex", height:"100%", background: BG, overflow:"hidden" }}>
+    <div style={{ minHeight: "100%", background: BG, padding: "28px 32px 60px" }}>
+      {/* Header */}
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: EASE }}
+        style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <span style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center",
+              background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
+              <Database size={18} color="#fff" />
+            </span>
+            <h1 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 800, color: TP, letterSpacing: "-0.02em", margin: 0 }}>Knowledge Vault</h1>
+          </div>
+          <p style={{ fontSize: 13.5, color: TS, marginTop: 8, maxWidth: 560, lineHeight: 1.6 }}>
+            Единая база знаний компании: проекты, отчёты, заметки и память агентов — поиск, фильтры и предпросмотр.
+          </p>
+        </div>
+        <button onClick={() => setAdding(true)}
+          style={{ display: "flex", alignItems: "center", gap: 8, height: 42, padding: "0 18px", borderRadius: 12, border: "none",
+            background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer",
+            boxShadow: "0 6px 20px rgba(99,102,241,0.32), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
+          <Plus size={15} /> Добавить в базу
+        </button>
+      </motion.div>
 
-      {/* ── Left panel ── */}
-      <motion.div initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }}
-        transition={{ duration:0.5, ease:EASE }}
-        style={{ width:220, flexShrink:0, display:"flex", flexDirection:"column",
-          borderRight:`1px solid ${BORD}`, background:"rgba(5,6,10,0.9)", overflowY:"auto" }}>
+      {/* Stat row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginTop: 22 }}>
+        {[
+          { label: "Всего записей", value: items.length, color: ACCENT, icon: Database },
+          { label: "Проектов", value: counts.project ?? 0, color: TYPE_META.project.color, icon: FolderOpen },
+          { label: "Заметок", value: counts.note ?? 0, color: TYPE_META.note.color, icon: StickyNote },
+          { label: "Память + доки", value: (counts.memory ?? 0) + (counts.doc ?? 0), color: TYPE_META.doc.color, icon: Brain },
+        ].map((s, i) => (
+          <motion.div key={s.label} initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE, delay: 0.05 + i * 0.05 }}
+            className="surface-card" style={{ padding: "14px 16px", borderRadius: 14, display: "flex", alignItems: "center", gap: 12 }}>
+            <span style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `${s.color}15`, border: `1px solid ${s.color}28` }}>
+              <s.icon size={16} style={{ color: s.color }} />
+            </span>
+            <div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: TP, lineHeight: 1, fontVariantNumeric: "tabular-nums" }}><CountUp to={s.value} /></div>
+              <div style={{ fontSize: 11, color: TM, marginTop: 3 }}>{s.label}</div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
 
-        <div style={{ padding:"18px 16px 10px" }}>
-          <div style={{ fontSize:10, fontWeight:700, letterSpacing:"0.14em", color:TM,
-            fontFamily: MONO, marginBottom:12 }}>АГЕНТЫ · {AGENT_LIST.length}</div>
+      {/* Controls */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 20, flexWrap: "wrap" }}>
+        <div style={{ position: "relative", flex: "1 1 260px", minWidth: 220 }}>
+          <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: TM, pointerEvents: "none" }} />
+          <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Поиск по базе знаний…"
+            style={{ width: "100%", height: 42, padding: "0 12px 0 36px", borderRadius: 12, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 13, outline: "none", boxSizing: "border-box" }}
+            onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+        </div>
+        <span style={{ fontFamily: MONO, fontSize: 11, color: TM, display: "flex", alignItems: "center", gap: 6 }}>
+          <HardDrive size={12} /> {totalBytes}
+        </span>
+      </div>
 
-          {AGENT_LIST.map((ag, i) => {
-            const st = STATUS_STYLE[ag.status];
-            const stats = agentStats(ag.id);
-            const isActive = selected === ag.id;
+      {/* Type filter pills */}
+      <div style={{ display: "flex", gap: 8, marginTop: 12, flexWrap: "wrap" }}>
+        {([["all", "Все", ACCENT] as const, ...(Object.keys(TYPE_META) as KType[]).map(t => [t, TYPE_META[t].label, TYPE_META[t].color] as const)]).map(([key, label, color]) => {
+          const active = filter === key;
+          const n = counts[key] ?? 0;
+          return (
+            <button key={key} onClick={() => setFilter(key as KType | "all")}
+              style={{ display: "flex", alignItems: "center", gap: 7, height: 34, padding: "0 13px", borderRadius: 10, cursor: "pointer",
+                border: `1px solid ${active ? color + "50" : BORD}`, background: active ? `${color}15` : "transparent", color: active ? color : TS, fontSize: 12.5, fontWeight: 600 }}>
+              {key === "all" && <Filter size={12} />}
+              {label}
+              <span style={{ fontFamily: MONO, fontSize: 10, opacity: 0.7 }}>{n}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Main: list + preview */}
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1.35fr) minmax(0, 1fr)", gap: 16, marginTop: 20 }} className="vault-grid">
+        {/* List */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {filtered.length === 0 && (
+            <div style={{ padding: "50px 0", textAlign: "center", color: TM, fontSize: 13 }}>
+              <Sparkles size={22} style={{ color: ACCENT, opacity: 0.6, marginBottom: 10 }} /><br />
+              Ничего не найдено. Создавайте проекты и заметки — они появятся здесь.
+            </div>
+          )}
+          {filtered.map((it, i) => {
+            const meta = TYPE_META[it.type];
+            const active = selected?.id === it.id;
             return (
-              <motion.div key={ag.id}
-                initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }}
-                transition={{ delay: i*0.07, duration:0.4, ease:EASE }}
-                onClick={() => { setSelected(ag.id); ripplesRef.current.push({ x: nodesRef.current.find(n=>n.id===ag.id)?.x??200, y: nodesRef.current.find(n=>n.id===ag.id)?.y??200, t:0 }); }}
-                style={{ padding:"10px 11px", borderRadius:12, marginBottom:6, cursor:"pointer",
-                  background: isActive ? "rgba(167,139,250,0.08)" : "transparent",
-                  border:`1px solid ${isActive ? "rgba(167,139,250,0.3)" : "transparent"}`,
-                  transition:"all 0.18s" }}
-                whileHover={{ background: isActive ? "rgba(167,139,250,0.1)" : "rgba(255,255,255,0.03)" }}>
-                {/* Name + status */}
-                <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:5 }}>
-                  <span style={{ fontSize:12, fontWeight:700, color:isActive ? TP : "rgba(229,231,235,0.75)" }}>{ag.name}</span>
-                  <span style={{ display:"inline-flex", alignItems:"center", gap:4, fontSize:8, fontWeight:700,
-                    fontFamily:MONO, letterSpacing:"0.08em", padding:"2px 6px", borderRadius:5,
-                    background:`${st.color}15`, border:`1px solid ${st.color}38`, color:st.color }}>
-                    <span style={{ width:4, height:4, borderRadius:"50%", background:st.color,
-                      animation: ag.status==="working" ? "kv-pulse 2s ease-in-out infinite" : "none" }} />
-                    {ag.status==="working"?"в рабо.":ag.status==="waiting"?"ожидает":"свобод."}
+              <motion.div key={it.id} layout
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, ease: EASE, delay: Math.min(i * 0.03, 0.3) }}
+                onClick={() => setSelected(it)} whileHover={{ x: 2 }}
+                style={{ padding: 14, borderRadius: 14, cursor: "pointer", position: "relative",
+                  background: active ? `linear-gradient(150deg, ${meta.color}12, rgba(255,255,255,0.02) 60%)` : "rgba(255,255,255,0.022)",
+                  border: `1px solid ${active ? meta.color + "50" : BORD}`, transition: "border-color 0.2s, background 0.2s" }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                  <span style={{ width: 38, height: 38, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: `linear-gradient(140deg, ${meta.color}2e, ${meta.color}0d)`, border: `1px solid ${meta.color}40` }}>
+                    <meta.icon size={17} style={{ color: meta.color }} />
                   </span>
-                </div>
-                <div style={{ fontSize:9, color:TM, fontFamily:MONO, letterSpacing:"0.08em", marginBottom:6 }}>{ag.layer}</div>
-                {/* Stats row */}
-                <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:1,
-                  borderRadius:6, overflow:"hidden", border:`1px solid ${BORD}` }}>
-                  {[
-                    { v: stats.done,          l:"задач" },
-                    { v: `${stats.success}%`, l:"успех" },
-                    { v: `${stats.conf}%`,    l:"конф" },
-                  ].map((s,j) => (
-                    <div key={j} style={{ padding:"5px 0", textAlign:"center", background:"rgba(255,255,255,0.012)",
-                      borderRight: j<2 ? `1px solid ${BORD}` : "none" }}>
-                      <div style={{ fontSize:11, fontWeight:800, color:TYPE_COLOR.agent, fontVariantNumeric:"tabular-nums" }}>{s.v}</div>
-                      <div style={{ fontSize:7.5, color:TM }}>{s.l}</div>
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ flex: 1, minWidth: 0, fontSize: 13.5, fontWeight: 700, color: TP, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{it.title}</span>
+                      <span style={{ fontSize: 9.5, fontWeight: 700, color: meta.color, background: `${meta.color}14`, border: `1px solid ${meta.color}2e`, borderRadius: 5, padding: "1px 6px", flexShrink: 0 }}>{meta.label.replace(/ы$|и$/, "")}</span>
                     </div>
-                  ))}
+                    <p style={{ fontSize: 11.5, color: "rgba(255,255,255,0.42)", lineHeight: 1.5, margin: "5px 0 0", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+                      {it.content || "Пусто"}
+                    </p>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 8, fontFamily: MONO, fontSize: 9.5, color: TM }}>
+                      <span>{it.source}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: 4 }}><Clock size={9} /> {fmtDate(it.date)}</span>
+                      <span>{bytesOf(it.content)}</span>
+                    </div>
+                  </div>
                 </div>
               </motion.div>
             );
           })}
         </div>
 
-        {/* Divider + legend mini */}
-        <div style={{ padding:"10px 16px", borderTop:`1px solid ${BORD}`, marginTop:"auto" }}>
-          <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.12em", color:TM, fontFamily:MONO, marginBottom:8 }}>ТИПЫ УЗЛОВ</div>
-          {(Object.keys(TYPE_COLOR) as NodeType[]).map(t => (
-            <div key={t} style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:4 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:6 }}>
-                <span style={{ width:7, height:7, borderRadius:"50%", background:TYPE_COLOR[t], flexShrink:0 }} />
-                <span style={{ fontSize:10, color:TS }}>{TYPE_LABEL[t]}</span>
-              </div>
-              <span style={{ fontSize:9, color:TM, fontFamily:MONO }}>{TYPE_COUNTS[t]}</span>
-            </div>
-          ))}
-        </div>
-      </motion.div>
+        {/* Preview panel */}
+        <div style={{ position: "sticky", top: 20, alignSelf: "start" }}>
+          <AnimatePresence mode="wait">
+            {selected ? (
+              <motion.div key={selected.id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25, ease: EASE }}
+                className="surface-card" style={{ borderRadius: 18, overflow: "hidden" }}>
+                <div style={{ height: 3, background: `linear-gradient(90deg, transparent, ${TYPE_META[selected.type].color}, transparent)` }} />
+                <div style={{ padding: "18px 20px 20px" }}>
+                  <div style={{ display: "flex", alignItems: "flex-start", gap: 12, marginBottom: 14 }}>
+                    <span style={{ width: 44, height: 44, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                      background: `linear-gradient(140deg, ${TYPE_META[selected.type].color}30, ${TYPE_META[selected.type].color}0d)`, border: `1px solid ${TYPE_META[selected.type].color}40` }}>
+                      {(() => { const I = TYPE_META[selected.type].icon; return <I size={20} style={{ color: TYPE_META[selected.type].color }} />; })()}
+                    </span>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 16, fontWeight: 800, color: TP, letterSpacing: "-0.01em", lineHeight: 1.25 }}>{selected.title}</div>
+                      <div style={{ fontFamily: MONO, fontSize: 10, color: TM, marginTop: 4 }}>{selected.source} · {fmtDate(selected.date)} · {bytesOf(selected.content)}</div>
+                    </div>
+                  </div>
 
-      {/* ── Canvas area ── */}
-      <div style={{ flex:1, position:"relative", overflow:"hidden" }}>
-        <div ref={containerRef} style={{ position:"absolute", inset:0 }}>
-          <canvas ref={canvasRef}
-            onClick={handleClick}
-            onMouseMove={handleMouseMove}
-            onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={() => { setHovered(null); handleMouseUp(); }}
-            onWheel={handleWheel}
-            style={{ display:"block", position:"absolute", inset:0, cursor:"grab" }} />
-        </div>
+                  {selected.tags.length > 0 && (
+                    <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 14 }}>
+                      {selected.tags.map(t => (
+                        <span key={t} style={{ fontSize: 10, color: TS, background: "rgba(255,255,255,0.05)", border: `1px solid ${BORD}`, borderRadius: 6, padding: "2px 8px" }}>{t}</span>
+                      ))}
+                    </div>
+                  )}
 
-        {/* Canvas controls */}
-        <div style={{ position:"absolute", top:16, right:16, display:"flex", flexDirection:"column", gap:6, zIndex:10 }}>
-          {[
-            { icon: ZoomIn,    action: () => { zoomRef.current = Math.min(3, zoomRef.current*1.15); setZoom(zoomRef.current); }, title:"Приблизить" },
-            { icon: ZoomOut,   action: () => { zoomRef.current = Math.max(0.4, zoomRef.current*0.87); setZoom(zoomRef.current); }, title:"Отдалить" },
-            { icon: RotateCcw, action: resetView, title:"Сбросить" },
-            { icon: Info,      action: () => setShowLegend(v=>!v), title:"Легенда" },
-          ].map(({ icon: Icon, action, title }) => (
-            <button key={title} onClick={action} title={title}
-              style={{ width:32, height:32, borderRadius:9, border:`1px solid ${BORD}`,
-                background:"rgba(5,6,10,0.8)", backdropFilter:"blur(8px)",
-                display:"flex", alignItems:"center", justifyContent:"center",
-                color:TS, cursor:"pointer", transition:"all 0.15s" }}
-              onMouseOver={e => { e.currentTarget.style.borderColor=BORD_H; e.currentTarget.style.color=TP; }}
-              onMouseOut={e  => { e.currentTarget.style.borderColor=BORD;   e.currentTarget.style.color=TS; }}>
-              <Icon size={13} />
-            </button>
-          ))}
-        </div>
+                  <div style={{ maxHeight: 340, overflowY: "auto", fontSize: 13, lineHeight: 1.7, color: "rgba(255,255,255,0.72)", whiteSpace: "pre-wrap",
+                    padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.02)", border: `1px solid ${BORD}` }}>
+                    {selected.content || "Пустая запись."}
+                  </div>
 
-        {/* Zoom indicator */}
-        <div style={{ position:"absolute", bottom:16, left:"50%", transform:"translateX(-50%)",
-          padding:"4px 12px", borderRadius:8, background:"rgba(5,6,10,0.7)",
-          border:`1px solid ${BORD}`, backdropFilter:"blur(8px)",
-          fontSize:10, color:TM, fontFamily:MONO, pointerEvents:"none" }}>
-          {Math.round(zoom*100)}%
+                  <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
+                    <button onClick={() => copy(selected.content)}
+                      style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 38, borderRadius: 10, cursor: "pointer",
+                        background: "rgba(255,255,255,0.05)", border: `1px solid ${BORD_H}`, color: TS, fontSize: 12.5, fontWeight: 600 }}>
+                      {copied ? <><Check size={13} style={{ color: "#10b981" }} /> Скопировано</> : <><Copy size={13} /> Копировать</>}
+                    </button>
+                    {selected.custom && (
+                      <button onClick={() => removeItem(selected.id)} title="Удалить"
+                        style={{ width: 38, display: "flex", alignItems: "center", justifyContent: "center", height: 38, borderRadius: 10, cursor: "pointer",
+                          background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444" }}>
+                        <Trash2 size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            ) : (
+              <motion.div key="empty" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+                className="surface-card" style={{ borderRadius: 18, padding: "48px 24px", textAlign: "center" }}>
+                <Database size={26} style={{ color: ACCENT, opacity: 0.5, marginBottom: 12 }} />
+                <div style={{ fontSize: 14, fontWeight: 700, color: TS }}>Выберите запись</div>
+                <div style={{ fontSize: 12, color: TM, marginTop: 4 }}>Нажмите на карточку слева для предпросмотра</div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-
-        {/* Hover tooltip */}
-        <AnimatePresence>
-          {hovered && hovered !== selected && (
-            <motion.div initial={{ opacity:0, y:4 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0 }}
-              transition={{ duration:0.15 }}
-              style={{ position:"absolute", bottom:50, left:"50%", transform:"translateX(-50%)",
-                padding:"6px 14px", borderRadius:9, background:"rgba(10,11,20,0.9)",
-                border:`1px solid ${TYPE_COLOR[NODE_BY_ID[hovered]?.type ?? "agent"]}44`,
-                backdropFilter:"blur(12px)", pointerEvents:"none", whiteSpace:"nowrap",
-                fontSize:11.5, fontWeight:600, color:TP }}>
-              {NODE_BY_ID[hovered]?.title}
-              <span style={{ marginLeft:8, fontSize:9, color:TYPE_COLOR[NODE_BY_ID[hovered]?.type ?? "agent"],
-                fontFamily:MONO, fontWeight:700 }}>{TYPE_LABEL[NODE_BY_ID[hovered]?.type ?? "agent"]}</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
       </div>
 
-      {/* ── Right panel ── */}
+      {/* Add modal */}
       <AnimatePresence>
-        {selectedNode && (
-          <motion.div key={selected}
-            initial={{ opacity:0, x:24 }} animate={{ opacity:1, x:0 }} exit={{ opacity:0, x:16 }}
-            transition={{ duration:0.28, ease:EASE }}
-            style={{ width:280, flexShrink:0, display:"flex", flexDirection:"column",
-              borderLeft:`1px solid ${BORD}`, background:"rgba(5,6,10,0.92)", overflowY:"auto" }}>
-
-            {/* Node header */}
-            <div style={{ padding:"20px 18px 16px",
-              borderBottom:`1px solid ${BORD}` }}>
-              {/* Type chip + scope */}
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:12 }}>
-                <span style={{ display:"inline-flex", alignItems:"center", gap:5, padding:"3px 9px",
-                  borderRadius:7, fontSize:9, fontWeight:700, fontFamily:MONO, letterSpacing:"0.1em",
-                  background:`${TYPE_COLOR[selectedNode.type]}14`,
-                  border:`1px solid ${TYPE_COLOR[selectedNode.type]}38`,
-                  color:TYPE_COLOR[selectedNode.type] }}>
-                  <span style={{ width:5, height:5, borderRadius:"50%", background:TYPE_COLOR[selectedNode.type] }} />
-                  {TYPE_LABEL[selectedNode.type].toUpperCase()}
-                </span>
-                <span style={{ fontSize:9, color:TM, fontFamily:MONO }}>{selectedNode.scope}</span>
+        {adding && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setAdding(false)}
+            style={{ position: "fixed", inset: 0, zIndex: 80, background: "rgba(5,6,10,0.8)", backdropFilter: "blur(8px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
+            <motion.div onClick={e => e.stopPropagation()} initial={{ opacity: 0, scale: 0.95, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ duration: 0.24, ease: EASE }}
+              style={{ width: "min(560px, 100%)", borderRadius: 20, background: "#0a0c15", border: `1px solid ${BORD_H}`, padding: 24, position: "relative" }}>
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, borderRadius: "20px 20px 0 0", background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.7), transparent)" }} />
+              <button onClick={() => setAdding(false)} style={{ position: "absolute", top: 16, right: 16, width: 30, height: 30, borderRadius: 9, background: SURF, border: `1px solid ${BORD}`, color: TS, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <X size={14} />
+              </button>
+              <div style={{ fontSize: 17, fontWeight: 800, color: TP, marginBottom: 4 }}>Добавить в базу знаний</div>
+              <div style={{ fontSize: 12.5, color: TS, marginBottom: 18 }}>Сохраните документ, инсайт или заметку в общую память компании.</div>
+              <input value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="Заголовок"
+                style={{ width: "100%", height: 42, padding: "0 14px", borderRadius: 11, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 14, outline: "none", boxSizing: "border-box", marginBottom: 10 }}
+                onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+              <textarea value={draft.content} onChange={e => setDraft(d => ({ ...d, content: e.target.value }))} placeholder="Содержимое…" rows={6}
+                style={{ width: "100%", padding: "12px 14px", borderRadius: 11, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 13.5, lineHeight: 1.6, outline: "none", resize: "none", boxSizing: "border-box", fontFamily: "inherit" }}
+                onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+              <div style={{ display: "flex", gap: 8, marginTop: 16, justifyContent: "flex-end" }}>
+                <button onClick={() => setAdding(false)} style={{ height: 40, padding: "0 18px", borderRadius: 11, background: "transparent", border: `1px solid ${BORD}`, color: TS, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Отмена</button>
+                <button onClick={addItem} disabled={!draft.title.trim()}
+                  style={{ height: 40, padding: "0 20px", borderRadius: 11, border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: draft.title.trim() ? "pointer" : "default",
+                    background: draft.title.trim() ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.06)", boxShadow: draft.title.trim() ? "0 4px 14px rgba(99,102,241,0.32)" : "none" }}>
+                  Сохранить
+                </button>
               </div>
-
-              {/* Node avatar */}
-              <div style={{ display:"flex", alignItems:"center", gap:12, marginBottom:12 }}>
-                <div style={{ width:44, height:44, borderRadius:13, flexShrink:0, display:"flex",
-                  alignItems:"center", justifyContent:"center", fontSize:14, fontWeight:800,
-                  fontFamily:MONO, color:"#fff",
-                  background:`radial-gradient(circle at 35% 35%, ${TYPE_COLOR[selectedNode.type]}dd, ${TYPE_COLOR[selectedNode.type]}88)`,
-                  boxShadow:`0 8px 24px ${TYPE_COLOR[selectedNode.type]}40, inset 0 1px 0 rgba(255,255,255,0.2)` }}>
-                  {selectedNode.label.slice(0,2).toUpperCase()}
-                </div>
-                <div>
-                  <div style={{ fontSize:14, fontWeight:700, color:TP, letterSpacing:"-0.01em", lineHeight:1.3 }}>{selectedNode.title}</div>
-                  <div style={{ fontSize:10, color:TM, marginTop:3, fontFamily:MONO }}>{selectedNode.bytes}</div>
-                </div>
-              </div>
-
-              <p style={{ fontSize:12, color:TS, lineHeight:1.65, margin:0 }}>{selectedNode.desc}</p>
-            </div>
-
-            {/* Stats (for agents) */}
-            {selectedNode.type === "agent" && (() => {
-              const st = agentStats(selectedNode.id);
-              return (
-                <div style={{ padding:"14px 18px", borderBottom:`1px solid ${BORD}` }}>
-                  <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.12em", color:TM, fontFamily:MONO, marginBottom:10 }}>МЕТРИКИ</div>
-                  <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:8 }}>
-                    {[{ v:st.done, l:"Задач" },{ v:`${st.success}%`, l:"Успех" },{ v:`${st.conf}%`, l:"Конф" }].map((s,i) => (
-                      <div key={i} style={{ padding:"10px 8px", borderRadius:10, background:SURF, border:`1px solid ${BORD}`,
-                        textAlign:"center" }}>
-                        <CountUp to={typeof s.v==="number"?s.v:parseInt(s.v)} suffix={typeof s.v==="string"&&s.v.endsWith("%")?"%":""} color={TYPE_COLOR[selectedNode.type]} />
-                        <div style={{ fontSize:9, color:TM, marginTop:3 }}>{s.l}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              );
-            })()}
-
-            {/* Relations */}
-            <div style={{ padding:"14px 18px" }}>
-              <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.12em", color:TM, fontFamily:MONO, marginBottom:10 }}>СВЯЗИ</div>
-              <div style={{ display:"flex", flexDirection:"column", gap:5 }}>
-                {selectedNode.rels.map(r => (
-                  <div key={r} style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 10px",
-                    borderRadius:8, background:SURF, border:`1px solid ${BORD}` }}>
-                    <span style={{ width:5, height:5, borderRadius:"50%", background:TYPE_COLOR[selectedNode.type], flexShrink:0 }} />
-                    <span style={{ fontSize:11, color:TS }}>{r}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Connected nodes */}
-              <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.12em", color:TM, fontFamily:MONO,
-                marginTop:16, marginBottom:8 }}>СОЕДИНЁН С</div>
-              <div style={{ display:"flex", flexDirection:"column", gap:4 }}>
-                {Array.from(connected).slice(0, 6).map(cId => {
-                  const cn = NODE_BY_ID[cId]; if (!cn) return null;
-                  return (
-                    <button key={cId} onClick={() => setSelected(cId)}
-                      style={{ display:"flex", alignItems:"center", gap:8, padding:"6px 10px",
-                        borderRadius:8, background:"transparent", border:`1px solid ${BORD}`,
-                        cursor:"pointer", transition:"all 0.15s", textAlign:"left" }}
-                      onMouseOver={e => { e.currentTarget.style.borderColor=BORD_H; e.currentTarget.style.background=SURF; }}
-                      onMouseOut={e  => { e.currentTarget.style.borderColor=BORD;   e.currentTarget.style.background="transparent"; }}>
-                      <span style={{ width:7, height:7, borderRadius:"50%", background:TYPE_COLOR[cn.type], flexShrink:0 }} />
-                      <span style={{ fontSize:11, color:TS, flex:1, overflow:"hidden", textOverflow:"ellipsis", whiteSpace:"nowrap" }}>{cn.label}</span>
-                      <span style={{ fontSize:8, color:TM, fontFamily:MONO }}>{TYPE_LABEL[cn.type].slice(0,3).toUpperCase()}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ── Bottom legend table ── */}
-      <AnimatePresence>
-        {showLegend && (
-          <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} exit={{ opacity:0, y:20 }}
-            transition={{ duration:0.25, ease:EASE }}
-            style={{ position:"absolute", bottom:20, left:240, right:300, zIndex:20,
-              background:"rgba(8,9,18,0.94)", border:`1px solid ${BORD}`,
-              borderRadius:14, padding:"12px 16px", backdropFilter:"blur(16px)" }}>
-            <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
-              <span style={{ fontSize:9, fontWeight:700, letterSpacing:"0.14em", color:TM, fontFamily:MONO }}>НОДА · ДЕСКРИПЦИЯ · КОЛ-ВО</span>
-              <button onClick={() => setShowLegend(false)} style={{ background:"none", border:"none", cursor:"pointer", color:TM, padding:0 }}><X size={12} /></button>
-            </div>
-            <div style={{ display:"grid", gridTemplateColumns:"repeat(3,1fr)", gap:"3px 16px" }}>
-              {(Object.keys(TYPE_COLOR) as NodeType[]).map(t => (
-                <div key={t} style={{ display:"flex", alignItems:"center", gap:8, padding:"4px 0" }}>
-                  <span style={{ width:7, height:7, borderRadius:"50%", background:TYPE_COLOR[t], flexShrink:0 }} />
-                  <span style={{ fontSize:10, color:TS, flex:1 }}>{TYPE_LABEL[t]}</span>
-                  <span style={{ fontSize:9, color:TM, fontFamily:MONO, flexShrink:0 }}>{TYPE_COUNTS[t]}</span>
-                </div>
-              ))}
-            </div>
-            <div style={{ marginTop:8, paddingTop:8, borderTop:`1px solid ${BORD}`,
-              fontSize:9, color:TM }}>
-              Нажмите на узел чтобы исследовать · Колесо мыши для зума · Alt+drag для перемещения
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <style>{`
-        @keyframes kv-pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.3;transform:scale(0.5)} }
-        @media (prefers-reduced-motion:reduce) { * { animation-duration:0.01ms!important } }
-        ::-webkit-scrollbar { width: 3px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius:2px; }
+      <style jsx>{`
+        @media (max-width: 860px) {
+          :global(.vault-grid) { grid-template-columns: 1fr !important; }
+        }
       `}</style>
     </div>
   );
-}
-
-// ── Count-up component ─────────────────────────────────────────────────────────
-function CountUp({ to, suffix, color }: { to: number; suffix: string; color: string }) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    let raf = 0; const t0 = performance.now(); const dur = 900;
-    const step = (ts: number) => {
-      const p = Math.min(1, (ts-t0)/dur);
-      setV(Math.round(to * (1 - Math.pow(1-p, 3))));
-      if (p < 1) raf = requestAnimationFrame(step);
-    };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [to]);
-  return <div style={{ fontSize:16, fontWeight:800, color, fontVariantNumeric:"tabular-nums" }}>{v}{suffix}</div>;
 }
