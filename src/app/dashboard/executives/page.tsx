@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useInView, useReducedMotion } from "framer-motion";
 import {
-  CornerDownLeft, X, Crown, Zap, Search, ChevronDown,
+  CornerDownLeft, X, Crown, Zap, Search, ChevronDown, Check,
   MessageSquare, MessagesSquare, LayoutGrid, List,
   Briefcase, Megaphone, Settings2, Cpu, BarChart2, TrendingUp,
   ShieldAlert, Palette, Rocket, Globe, Radio, Phone, Users,
@@ -278,6 +278,9 @@ export default function ExecutiveCouncilPage() {
           </div>
         </motion.div>
 
+        {/* ── Council deliberation (зал заседаний) ── */}
+        <CouncilSession />
+
         {/* ── CEO hero card ── */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.08, duration: 0.55, ease: EASE }}
@@ -293,7 +296,7 @@ export default function ExecutiveCouncilPage() {
           {/* Section label */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
             <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: TM }}>
-              СОВЕТ ДИРЕКТОРОВ & СПЕЦИАЛИСТЫ · {visibleAgents.length}
+              ВСЕ ДИРЕКТОРА & СПЕЦИАЛИСТЫ · {visibleAgents.length}
             </span>
             <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BORD}, transparent)` }} />
           </div>
@@ -445,6 +448,206 @@ function StatusBadge({ working }: { working: boolean }) {
         animation: working ? "ec-pulse 2s ease-in-out infinite" : "none" }} />
       {working ? "ACTIVE" : "IDLE"}
     </div>
+  );
+}
+
+// ── Council deliberation (зал заседаний) ──────────────────────────────────────
+const BOARD_SLUGS = ["ceo", "cfo", "cmo", "coo", "cto"] as const;
+const EXAMPLE_QS = [
+  "Стоит ли поднять цену на 20%?",
+  "Выходить ли на рынок США в этом квартале?",
+  "Нанять сейлза или вложить в маркетинг?",
+];
+
+type Phase = "idle" | "deliberating" | "verdict" | "done";
+type Stat = "thinking" | "answering" | "done";
+
+function CouncilSession() {
+  const [q, setQ]                 = useState("");
+  const [phase, setPhase]         = useState<Phase>("idle");
+  const [asked, setAsked]         = useState("");
+  const [responses, setResponses] = useState<Record<string, string>>({});
+  const [status, setStatus]       = useState<Record<string, Stat>>({});
+  const [verdict, setVerdict]     = useState("");
+
+  const busy = phase === "deliberating" || phase === "verdict";
+  const answered = BOARD_SLUGS.filter(s => status[s] === "done").length;
+
+  const convene = useCallback(async (override?: string) => {
+    const question = (override ?? q).trim();
+    if (!question || phase === "deliberating" || phase === "verdict") return;
+    setQ(question);
+    setAsked(question);
+    setResponses({});
+    setStatus(Object.fromEntries(BOARD_SLUGS.map(s => [s, "thinking" as Stat])));
+    setVerdict("");
+    setPhase("deliberating");
+
+    // All directors deliberate in parallel, each streaming their own view.
+    const results = await Promise.all(BOARD_SLUGS.map(async (slug) => {
+      const a = rich(slug);
+      const persona = `Ты — ${a.name}, ${a.title} (${a.role}). Твоя экспертиза: ${a.specialty}. Ответь основателю строго со своей профессиональной позиции. 3–4 очень коротких предложения, конкретно, без вводных и без markdown.`;
+      setStatus(p => ({ ...p, [slug]: "answering" }));
+      let full = "";
+      try {
+        full = await streamChat(question, persona, t => setResponses(p => ({ ...p, [slug]: (p[slug] || "") + t })));
+      } catch {
+        const fb = (slug in FB ? FB[slug as keyof typeof FB] : undefined)
+          ?? `Со стороны ${a.role}: нужен более узкий контекст. Базово — проверяем гипотезу дешёвым тестом и решаем по данным.`;
+        for (const ch of fb) { full += ch; setResponses(p => ({ ...p, [slug]: (p[slug] || "") + ch })); await new Promise(r => setTimeout(r, 5)); }
+      }
+      setStatus(p => ({ ...p, [slug]: "done" }));
+      return { role: a.role, text: full };
+    }));
+
+    // Chair synthesises the collective verdict.
+    setPhase("verdict");
+    const synthPersona = "Ты — председатель совета директоров Vertlix. Синтезируй мнения директоров в единый вердикт: чёткое решение, 1–2 ключевых риска и конкретный следующий шаг. 3–5 деловых предложений, без markdown.";
+    const synthMsg = `Вопрос основателя: "${question}"\n\nМнения совета:\n` +
+      results.map(r => `${r.role}: ${r.text}`).join("\n\n") + "\n\nДай итоговый вердикт совета.";
+    try {
+      await streamChat(synthMsg, synthPersona, t => setVerdict(prev => prev + t));
+    } catch {
+      const fb = "Вердикт совета: двигаться, но управляемо. Сначала дешёвый тест гипотезы с чётким критерием успеха и пересмотром через 30 дней. Главный риск — расфокус: держите один сегмент и одну метрику.";
+      for (const ch of fb) { setVerdict(prev => prev + ch); await new Promise(r => setTimeout(r, 5)); }
+    }
+    setPhase("done");
+  }, [q, phase]);
+
+  const reset = () => { setPhase("idle"); setAsked(""); setResponses({}); setStatus({}); setVerdict(""); };
+
+  return (
+    <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: EASE }}
+      style={{ marginBottom: 20, borderRadius: 22, overflow: "hidden", position: "relative",
+        border: "1px solid rgba(99,102,241,0.22)", background: "linear-gradient(160deg, rgba(99,102,241,0.06), rgba(255,255,255,0.02) 60%)",
+        boxShadow: "0 20px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
+      <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2,
+        background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.7), transparent)" }} />
+
+      {/* Header */}
+      <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+          background: "linear-gradient(135deg, #6366f1, #4f46e5)", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
+          <MessagesSquare size={19} color="#fff" />
+        </div>
+        <div style={{ flex: 1, minWidth: 200 }}>
+          <div style={{ fontSize: 17, fontWeight: 800, color: TP, letterSpacing: "-0.02em" }}>Зал заседаний совета</div>
+          <div style={{ fontSize: 12.5, color: TS, marginTop: 2 }}>Задайте один вопрос — все 5 директоров совещаются и дают вердикт</div>
+        </div>
+        {phase !== "idle" && (
+          <button onClick={reset} disabled={busy}
+            style={{ height: 34, padding: "0 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: busy ? "default" : "pointer",
+              background: SURF, border: `1px solid ${BORD}`, color: busy ? TM : TS, opacity: busy ? 0.5 : 1 }}>
+            Новый вопрос
+          </button>
+        )}
+      </div>
+
+      {/* Input (idle only) */}
+      {phase === "idle" && (
+        <div style={{ padding: "0 24px 22px" }}>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <textarea value={q} onChange={e => setQ(e.target.value)}
+              onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) convene(); }}
+              placeholder="Например: стоит ли привлекать раунд сейчас или расти на выручке?"
+              rows={2}
+              style={{ flex: 1, minWidth: 260, resize: "none", padding: "12px 14px", borderRadius: 12, fontSize: 13.5, lineHeight: 1.5,
+                background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`, color: TP, outline: "none", fontFamily: "inherit" }}
+              onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")}
+              onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+            <button onClick={() => convene()} disabled={!q.trim()}
+              style={{ height: 46, padding: "0 22px", borderRadius: 12, fontSize: 13.5, fontWeight: 700, cursor: q.trim() ? "pointer" : "default",
+                border: "none", color: "#fff", whiteSpace: "nowrap",
+                background: q.trim() ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.06)",
+                boxShadow: q.trim() ? "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" : "none",
+                display: "flex", alignItems: "center", gap: 8 }}>
+              <Zap size={15} /> Созвать совет
+            </button>
+          </div>
+          <div style={{ display: "flex", gap: 7, marginTop: 12, flexWrap: "wrap" }}>
+            {EXAMPLE_QS.map(ex => (
+              <button key={ex} onClick={() => convene(ex)}
+                style={{ fontSize: 11.5, padding: "5px 11px", borderRadius: 8, cursor: "pointer",
+                  background: "rgba(255,255,255,0.03)", border: `1px solid ${BORD}`, color: TS }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)"; e.currentTarget.style.color = TP; }}
+                onMouseOut={e => { e.currentTarget.style.borderColor = BORD; e.currentTarget.style.color = TS; }}>
+                {ex}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Deliberation */}
+      {phase !== "idle" && (
+        <div style={{ padding: "0 24px 22px" }}>
+          {/* asked question + progress */}
+          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", marginBottom: 14, borderRadius: 12,
+            background: "rgba(255,255,255,0.03)", border: `1px solid ${BORD}` }}>
+            <MessageSquare size={14} style={{ color: ACCENT, flexShrink: 0 }} />
+            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: TP }}>{asked}</span>
+            <span style={{ fontFamily: MONO, fontSize: 11, color: TM, flexShrink: 0 }}>{answered}/5 ответили</span>
+          </div>
+
+          {/* director responses */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
+            {BOARD_SLUGS.map(slug => {
+              const a = rich(slug);
+              const Icon = EXEC_ICON[slug] ?? Crown;
+              const st = status[slug];
+              const text = responses[slug] || "";
+              return (
+                <div key={slug} style={{ borderRadius: 14, padding: 14, background: "rgba(255,255,255,0.022)",
+                  border: `1px solid ${st === "answering" ? a.c + "45" : BORD}`, transition: "border-color 0.3s" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                      background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff", boxShadow: `0 4px 12px ${a.c}33` }}>
+                      <Icon size={16} strokeWidth={1.9} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</div>
+                      <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: a.c }}>{a.role}</div>
+                    </div>
+                    {st === "answering" && !text && (
+                      <span style={{ display: "flex", gap: 3 }}>
+                        {[0, 1, 2].map(i => <span key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: a.c, animation: `ec-think 1s ease-in-out ${i * 0.15}s infinite` }} />)}
+                      </span>
+                    )}
+                    {st === "done" && <Check size={13} style={{ color: "#10b981", flexShrink: 0 }} />}
+                    {st === "thinking" && <span style={{ fontFamily: MONO, fontSize: 9, color: TM }}>в очереди</span>}
+                  </div>
+                  <p style={{ fontSize: 12.5, lineHeight: 1.6, color: text ? "rgba(255,255,255,0.72)" : TM, margin: 0, minHeight: 20 }}>
+                    {text}
+                    {st === "answering" && <span style={{ display: "inline-block", width: 2, height: 13, background: a.c, marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
+                  </p>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Verdict */}
+          {(phase === "verdict" || phase === "done") && (
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: EASE }}
+              style={{ marginTop: 14, borderRadius: 14, padding: 16, position: "relative", overflow: "hidden",
+                background: "linear-gradient(150deg, rgba(99,102,241,0.1), rgba(139,92,246,0.05))",
+                border: "1px solid rgba(99,102,241,0.3)" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                <Crown size={14} style={{ color: "#fbbf24" }} />
+                <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", color: "#a5b4fc", textTransform: "uppercase" }}>
+                  Итоговый вердикт совета
+                </span>
+                {phase === "verdict" && <span style={{ fontSize: 10, color: TM }}>· синтезирую…</span>}
+              </div>
+              <p style={{ fontSize: 13.5, lineHeight: 1.65, color: "rgba(255,255,255,0.82)", margin: 0 }}>
+                {verdict}
+                {phase === "verdict" && <span style={{ display: "inline-block", width: 2, height: 14, background: "#a5b4fc", marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
+              </p>
+            </motion.div>
+          )}
+        </div>
+      )}
+    </motion.div>
   );
 }
 
