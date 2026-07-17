@@ -21,6 +21,7 @@ const EXEC_ICON: Record<string, LucideIcon> = {
   ux: MousePointer2, strategy: GitBranch,
 };
 import { streamChat } from "@/lib/stream-chat";
+import { saveAsk } from "@/lib/ask-history";
 import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/team";
 import { markVisit } from "@/components/dashboard/EngagementPanel";
 
@@ -498,7 +499,7 @@ function CouncilSession() {
         for (const ch of fb) { full += ch; setResponses(p => ({ ...p, [slug]: (p[slug] || "") + ch })); await new Promise(r => setTimeout(r, 5)); }
       }
       setStatus(p => ({ ...p, [slug]: "done" }));
-      return { role: a.role, text: full };
+      return { role: a.role, name: a.name, text: full, color: a.c };
     }));
 
     // Chair synthesises the collective verdict.
@@ -506,13 +507,17 @@ function CouncilSession() {
     const synthPersona = "Ты — председатель совета директоров Vertlix. Синтезируй мнения директоров в единый вердикт: чёткое решение, 1–2 ключевых риска и конкретный следующий шаг. 3–5 деловых предложений, без markdown.";
     const synthMsg = `Вопрос основателя: "${question}"\n\nМнения совета:\n` +
       results.map(r => `${r.role}: ${r.text}`).join("\n\n") + "\n\nДай итоговый вердикт совета.";
+    let verdictFull = "";
     try {
-      await streamChat(synthMsg, synthPersona, t => setVerdict(prev => prev + t));
+      verdictFull = await streamChat(synthMsg, synthPersona, t => setVerdict(prev => prev + t));
     } catch {
       const fb = "Вердикт совета: двигаться, но управляемо. Сначала дешёвый тест гипотезы с чётким критерием успеха и пересмотром через 30 дней. Главный риск — расфокус: держите один сегмент и одну метрику.";
-      for (const ch of fb) { setVerdict(prev => prev + ch); await new Promise(r => setTimeout(r, 5)); }
+      for (const ch of fb) { verdictFull += ch; setVerdict(prev => prev + ch); await new Promise(r => setTimeout(r, 5)); }
     }
     setPhase("done");
+    // Persist the whole board deliberation to the История page.
+    saveAsk({ id: `council-${Date.now()}`, kind: "council", question, date: Date.now(),
+      responses: results.map(r => ({ role: r.role, name: r.name, text: r.text, color: r.color })), verdict: verdictFull });
   }, [q, phase]);
 
   const reset = () => { setPhase("idle"); setAsked(""); setResponses({}); setStatus({}); setVerdict(""); };
@@ -1095,14 +1100,18 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
     const question = q.trim(); if (!question || busy) return;
     setBusy(true); setAnswer("");
     const persona = `Ты — ${agent.name}, ${agent.title}, специализация: ${agent.specialty}. Ответь как топ-менеджер: конкретно, 4–6 предложений. Без markdown.`;
+    let full = "";
     try {
-      await streamChat(question, persona, t => setAnswer(prev => prev + t));
+      full = await streamChat(question, persona, t => setAnswer(prev => prev + t));
     } catch {
       const fb = (agent.slug in FB ? FB[agent.slug as keyof typeof FB] : undefined)
         ?? "Готов помочь — опишите задачу подробнее. Живой анализ доступен после настройки ANTHROPIC_API_KEY.";
-      for (const ch of fb) { setAnswer(prev => prev + ch); await new Promise(r => setTimeout(r, 6)); }
+      for (const ch of fb) { full += ch; setAnswer(prev => prev + ch); await new Promise(r => setTimeout(r, 6)); }
     }
     setBusy(false);
+    // Persist the Q&A so it shows up on the История page.
+    saveAsk({ id: `ask-${Date.now()}`, kind: "agent", question, date: Date.now(),
+      agentSlug: agent.slug, agentName: agent.name, agentRole: agent.role, color: agent.c, answer: full });
   }, [q, busy, agent]);
 
   return (
