@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { saveAsk } from "@/lib/ask-history";
 import {
   Bot, Plus, Search, Play, MessageSquare, Settings2, BarChart2, Copy,
   Star, Zap, Shield, TrendingUp, Users, Code2, Scale, FlaskConical,
@@ -476,6 +477,13 @@ export default function AgentsPage() {
   const [runInput, setRunInput] = useState("");
   const [runOutput, setRunOutput] = useState("");
   const [running, setRunning] = useState(false);
+  const [runCopied, setRunCopied] = useState(false);
+
+  const RUN_PROMPTS = [
+    "Дай 3 конкретные рекомендации по своей зоне.",
+    "Какие 3 риска ты видишь и как их закрыть?",
+    "Составь план на неделю по своему направлению.",
+  ];
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // load user-created/cloned agents + favorites from localStorage
@@ -555,6 +563,7 @@ export default function AgentsPage() {
 
   const executeRun = async () => {
     if (!runAgent || !runInput.trim() || running) return;
+    const question = runInput.trim();
     setRunning(true);
     setRunOutput("");
     const persona = `${runAgent.prompt}\n\nОтвечай по-русски, профессионально и конкретно. Используй markdown, давай чёткие шаги и цифры где уместно.`;
@@ -591,6 +600,11 @@ export default function AgentsPage() {
       }
       if (!acc.trim()) setRunOutput("Пустой ответ. Попробуйте ещё раз.");
       setAgents((prev) => prev.map((x) => x.id === runAgent.id ? { ...x, runs: x.runs + 1 } : x));
+      // Save the ask to История so it isn't lost.
+      if (acc.trim() && !acc.startsWith("⚠️")) {
+        saveAsk({ id: `ask-${Date.now()}`, kind: "agent", question, date: Date.now(),
+          agentSlug: runAgent.id, agentName: runAgent.name, agentRole: runAgent.role, color: runAgent.color, answer: acc });
+      }
     } catch {
       setRunOutput("⚠️ Ошибка соединения с AI-сервисом.");
     } finally {
@@ -890,51 +904,100 @@ export default function AgentsPage() {
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.96, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96, y: 16 }}
+              transition={{ type: "spring", stiffness: 260, damping: 26 }}
               onClick={(e) => e.stopPropagation()}
-              style={{ width: 620, maxWidth: "100%", maxHeight: "86vh", display: "flex", flexDirection: "column", background: "#0d0f17", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, boxShadow: "0 32px 80px rgba(0,0,0,0.8)", overflow: "hidden" }}
+              style={{ width: 640, maxWidth: "100%", maxHeight: "88vh", display: "flex", flexDirection: "column", background: "#0a0c15", border: `1px solid ${runAgent.color}33`, borderRadius: 22, boxShadow: `0 32px 80px rgba(0,0,0,0.7), 0 0 0 1px ${runAgent.color}12`, overflow: "hidden", position: "relative" }}
             >
-              <div style={{ padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 12 }}>
-                <div style={{ width: 40, height: 40, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, background: `linear-gradient(135deg, ${runAgent.color}25, ${runAgent.color}10)`, border: `1px solid ${runAgent.color}40` }}>
-                  {runAgent.emoji}
+              {/* top accent */}
+              <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, ${runAgent.color}, transparent)` }} />
+
+              {/* header: icon tile + identity */}
+              <div style={{ padding: "18px 22px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", gap: 13 }}>
+                <div style={{ position: "relative", width: 46, height: 46, flexShrink: 0 }}>
+                  {running && (
+                    <motion.span aria-hidden animate={{ rotate: 360 }} transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
+                      style={{ position: "absolute", inset: -3, borderRadius: 15, background: `conic-gradient(from 0deg, transparent, ${runAgent.color}, transparent 60%)`,
+                        WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))", mask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))" }} />
+                  )}
+                  <motion.div animate={running ? { scale: [1, 1.06, 1] } : { scale: 1 }} transition={running ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+                    style={{ width: 46, height: 46, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(140deg, ${runAgent.color}30, ${runAgent.color}0d)`, border: `1px solid ${runAgent.color}45`, boxShadow: `0 6px 18px ${runAgent.color}2e` }}>
+                    <AgentIcon agent={runAgent} size={22} />
+                  </motion.div>
                 </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 700, color: "rgba(255,255,255,0.92)" }}>{runAgent.name}</div>
-                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{runAgent.role} · {runAgent.model}</div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>{runAgent.name}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>{runAgent.role} · <span style={{ fontFamily: "var(--font-geist-mono), monospace" }}>{runAgent.model.split("-").slice(0,2).join("-")}</span></div>
                 </div>
+                <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 10, fontWeight: 700, padding: "3px 9px", borderRadius: 7, color: running ? runAgent.color : "#10b981", background: running ? `${runAgent.color}14` : "rgba(16,185,129,0.12)", border: `1px solid ${running ? runAgent.color + "30" : "rgba(16,185,129,0.3)"}` }}>
+                  <span style={{ width: 5, height: 5, borderRadius: "50%", background: running ? runAgent.color : "#10b981", animation: running ? "ec-think 1s ease-in-out infinite" : "none" }} />
+                  {running ? "работает" : "готов"}
+                </span>
                 <button onClick={() => !running && setRunAgent(null)} style={{ background: "none", border: "none", cursor: running ? "not-allowed" : "pointer", color: "rgba(255,255,255,0.3)", padding: 4 }}><X size={16} /></button>
               </div>
 
+              {/* ask box */}
               <div style={{ padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>Задача агенту</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 7 }}>Спросите {runAgent.name.split(" ")[0]}</div>
                 <textarea
                   value={runInput}
                   onChange={(e) => setRunInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) executeRun(); }}
                   rows={2}
                   disabled={running}
-                  style={{ width: "100%", padding: "10px 12px", borderRadius: 10, fontSize: 12.5, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "white", outline: "none", resize: "none", lineHeight: 1.6, boxSizing: "border-box" }}
+                  placeholder={`Например: ${RUN_PROMPTS[0]}`}
+                  style={{ width: "100%", padding: "11px 13px", borderRadius: 11, fontSize: 13, background: "rgba(255,255,255,0.035)", border: "1px solid rgba(255,255,255,0.1)", color: "white", outline: "none", resize: "none", lineHeight: 1.6, boxSizing: "border-box", fontFamily: "inherit" }}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = `${runAgent.color}80`)}
+                  onBlur={(e) => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")}
                 />
+                {/* quick prompts */}
+                <div style={{ display: "flex", gap: 6, marginTop: 9, flexWrap: "wrap" }}>
+                  {RUN_PROMPTS.map((p) => (
+                    <button key={p} onClick={() => !running && setRunInput(p)} disabled={running}
+                      style={{ fontSize: 10.5, padding: "4px 9px", borderRadius: 7, cursor: running ? "default" : "pointer", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.45)" }}>
+                      {p.length > 34 ? p.slice(0, 32) + "…" : p}
+                    </button>
+                  ))}
+                </div>
                 <button
                   onClick={executeRun}
                   disabled={running || !runInput.trim()}
-                  style={{ marginTop: 10, padding: "9px 18px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: running ? "not-allowed" : "pointer", background: running ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg, #8b5cf6, #3b82f6)", border: "none", color: running ? "rgba(255,255,255,0.4)" : "white", display: "inline-flex", alignItems: "center", gap: 6 }}
+                  style={{ marginTop: 11, height: 40, padding: "0 20px", borderRadius: 11, fontSize: 12.5, fontWeight: 700, cursor: running || !runInput.trim() ? "not-allowed" : "pointer",
+                    background: running || !runInput.trim() ? "rgba(255,255,255,0.06)" : `linear-gradient(135deg, ${runAgent.color}, ${runAgent.color}bb)`,
+                    border: "none", color: running || !runInput.trim() ? "rgba(255,255,255,0.4)" : "white", display: "inline-flex", alignItems: "center", gap: 7,
+                    boxShadow: running || !runInput.trim() ? "none" : `0 4px 14px ${runAgent.color}40, inset 0 1px 0 rgba(255,255,255,0.2)` }}
                 >
-                  <Play size={12} /> {running ? "Выполняется…" : "Запустить агента"}
+                  <Play size={12} fill="currentColor" /> {running ? "Агент работает…" : "Спросить агента"}
                 </button>
               </div>
 
-              <div style={{ flex: 1, overflowY: "auto", padding: "18px 22px", minHeight: 160 }}>
+              {/* answer */}
+              <div style={{ flex: 1, overflowY: "auto", padding: "18px 22px", minHeight: 170 }}>
                 {runOutput ? (
-                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.75, whiteSpace: "pre-wrap", margin: 0 }}>{runOutput}</p>
+                  <div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
+                      <span style={{ fontFamily: "var(--font-geist-mono), monospace", fontSize: 9.5, letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)", textTransform: "uppercase" }}>Ответ {runAgent.name.split(" ")[0]}</span>
+                      {!running && (
+                        <button onClick={() => { navigator.clipboard?.writeText(runOutput).then(() => { setRunCopied(true); setTimeout(() => setRunCopied(false), 1500); }).catch(() => {}); }}
+                          style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, cursor: "pointer", background: "transparent", border: "none", color: runCopied ? "#10b981" : "rgba(255,255,255,0.4)" }}>
+                          {runCopied ? <><Check size={12} /> Скопировано</> : <><Copy size={12} /> Копировать</>}
+                        </button>
+                      )}
+                    </div>
+                    <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.82)", lineHeight: 1.75, whiteSpace: "pre-wrap", margin: 0 }}>
+                      {runOutput}
+                      {running && <span style={{ display: "inline-block", width: 2, height: 14, background: runAgent.color, marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
+                    </p>
+                  </div>
                 ) : running ? (
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.4)", fontSize: 12 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 9, color: "rgba(255,255,255,0.45)", fontSize: 12.5 }}>
                     {[0,1,2].map((j) => (
-                      <motion.span key={j} animate={{ opacity: [0.3,1,0.3] }} transition={{ duration: 1.2, repeat: Infinity, delay: j*0.3 }} style={{ width: 7, height: 7, borderRadius: "50%", background: runAgent.color, display: "inline-block" }} />
+                      <motion.span key={j} animate={{ opacity: [0.3,1,0.3], y: [0,-2,0] }} transition={{ duration: 1.2, repeat: Infinity, delay: j*0.15 }} style={{ width: 6, height: 6, borderRadius: "50%", background: runAgent.color, display: "inline-block" }} />
                     ))}
-                    Агент анализирует…
+                    {runAgent.name.split(" ")[0]} анализирует…
                   </div>
                 ) : (
-                  <div style={{ color: "rgba(255,255,255,0.28)", fontSize: 12.5, textAlign: "center", paddingTop: 40 }}>
-                    Нажмите «Запустить», чтобы {runAgent.name} выполнил задачу.
+                  <div style={{ color: "rgba(255,255,255,0.28)", fontSize: 12.5, textAlign: "center", paddingTop: 44 }}>
+                    Задайте вопрос — {runAgent.name} ответит со своей экспертной позиции.
                   </div>
                 )}
               </div>

@@ -291,6 +291,10 @@ input::placeholder, textarea::placeholder { color: rgba(255,255,255,0.3); }
 .dash-page-enter { animation: dashPageEnter 0.28s cubic-bezier(0.22,1,0.36,1) both; }
 @media (prefers-reduced-motion: reduce) { .dash-page-enter { animation: none; } }
 
+/* Agent "thinking" dots + typing caret (used by Council & agent ask) */
+@keyframes ec-think { 0%,100% { opacity: 0.2; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
+@keyframes ec-pulse { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.25; transform: scale(0.5); } }
+
 @keyframes spin-slow { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
 .animate-spin-slow { animation: spin-slow 20s linear infinite; }
 
