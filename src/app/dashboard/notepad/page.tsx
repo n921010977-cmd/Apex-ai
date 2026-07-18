@@ -72,19 +72,12 @@ const TEMPLATES: { id: string; icon: string; name: string; content: string }[] =
   { id: "research", icon: "📚", name: "Исследование",     content: "# Исследование\n\n**Тема:** \n**Дата:** \n\n## Цель\n\n## Методология\n\n## Ключевые находки\n\n## Выводы\n\n## Рекомендации\n\n## Источники\n\n- \n" },
 ];
 
-const DEMO_NOTES: Note[] = [
-  { id: "1", title: "Стратегия выхода на рынок SEA", emoji: "🚀", folder: "Стратегия", tags: ["Важное","Задачи"], color: "#6366f1", pinned: true,  starred: true,  wordCount: 842, createdAt: Date.now()-86400000*5, updatedAt: Date.now()-3600000*2,  content: "# Стратегия выхода на рынок SEA\n\n## Executive Summary\n\nЮго-Восточная Азия представляет собой **ключевую возможность роста** с TAM $840M.\n\n## Целевые рынки\n\n- 🇸🇬 Сингапур — HQ, Enterprise\n- 🇻🇳 Вьетнам — SMB, High growth\n- 🇮🇩 Индонезия — Scale market\n\n## Финансовый план\n\n| Квартал | Выручка | Расходы |\n|---------|---------|----------|\n| Q3 2026 | $120k   | $80k     |\n| Q4 2026 | $280k   | $120k    |\n\n## Следующие шаги\n\n- [ ] Нанять Country Manager\n- [ ] Партнёрство с local VAR\n- [ ] Адаптация продукта\n" },
-  { id: "2", title: "OKR Q3 2026",                   emoji: "🎯", folder: "Стратегия", tags: ["Срочно"],          color: "#10b981", pinned: false, starred: true,  wordCount: 421, createdAt: Date.now()-86400000*3, updatedAt: Date.now()-3600000*5,  content: "# OKR Q3 2026\n\n## Objective 1: Достичь $500k ARR\n\n- [ ] KR1: Закрыть 15 новых клиентов\n- [ ] KR2: Увеличить MRR на 40%\n- [ ] KR3: Churn < 3%\n\n## Objective 2: Масштабировать команду\n\n- [ ] KR1: Нанять 5 инженеров\n- [ ] KR2: NPS команды > 70\n" },
-  { id: "3", title: "Встреча с инвесторами 28 июня", emoji: "📄", folder: "Финансы",   tags: ["Встречи","Важное"],color: "#4f46e5", pinned: false, starred: false, wordCount: 234, createdAt: Date.now()-86400000*1, updatedAt: Date.now()-3600000*1,  content: "# Встреча с инвесторами\n\n**Дата:** 28 июня 2026\n**Участники:** CEO, CFO, Sequoia\n\n## Обсуждение\n\n- Серия А раунд $3M\n- Оценка 12x ARR\n- Milestone: $1M ARR до Q4\n\n## Решения\n\n- Подготовить data room\n- Term sheet к 15 июля\n" },
-  { id: "4", title: "Брейншторм: новые фичи AI",     emoji: "💡", folder: "Продукт",   tags: ["Идеи"],            color: "#8b5cf6", pinned: false, starred: false, wordCount: 178, createdAt: Date.now()-86400000*2, updatedAt: Date.now()-7200000,   content: "# Брейншторм: AI-функции\n\n## Идеи\n\n- Multi-agent чат (несколько CEO, CFO одновременно)\n- AI автоматически создаёт стратегию при добавлении проекта\n- Voice notes + AI расшифровка\n- Конкурентный мониторинг в реальном времени\n\n## Приоритет\n\n1. Multi-agent (высокий)\n2. Auto-strategy (средний)\n3. Voice notes (низкий)\n" },
-  { id: "5", title: "Финансовая модель 2026",         emoji: "💰", folder: "Финансы",   tags: ["Важное"],          color: "#f59e0b", pinned: false, starred: false, wordCount: 567, createdAt: Date.now()-86400000*7, updatedAt: Date.now()-86400000*1, content: "# Финансовая модель 2026\n\n## ARR Прогноз\n\n| Месяц | ARR    | MoM   |\n|-------|--------|-------|\n| Янв   | $180k  | —     |\n| Фев   | $220k  | +22%  |\n| Мар   | $275k  | +25%  |\n\n## Unit Economics\n\n- CAC: $320\n- LTV: $4,800\n- LTV/CAC: 15x ✅\n- Payback: 2.1 мес ✅\n" },
-];
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const load = (): Note[] => {
-  if (typeof window === "undefined") return DEMO_NOTES;
-  try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : DEMO_NOTES; } catch { return DEMO_NOTES; }
+  if (typeof window === "undefined") return [];
+  try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : []; } catch { return []; }
 };
 const save = (n: Note[]) => { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(n)); } catch {} };
 
@@ -149,8 +142,8 @@ const TOOLBAR = [
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export default function NotepadPage() {
-  const [notes, setNotes] = useState<Note[]>(DEMO_NOTES);
-  const [active, setActive] = useState<Note | null>(DEMO_NOTES[0]);
+  const [notes, setNotes] = useState<Note[]>([]);
+  const [active, setActive] = useState<Note | null>(null);
   const [folder, setFolder] = useState("all");
   const [search, setSearch] = useState("");
   const [sidebarSearch, setSidebarSearch] = useState("");
