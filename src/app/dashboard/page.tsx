@@ -631,6 +631,49 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* ═══ ONBOARDING — first-value for users with no real projects ═══ */}
+      {isDemo && (
+        <motion.div className="page-section" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+          style={{ maxWidth: 1280, margin: "36px auto 0", padding: "0 32px" }}>
+          <div style={{ borderRadius: 20, padding: "22px 24px", position: "relative", overflow: "hidden",
+            background: `linear-gradient(150deg, rgba(${ACCENT_RGB},0.1), rgba(255,255,255,0.02) 65%)`, border: `1px solid rgba(${ACCENT_RGB},0.25)`,
+            boxShadow: "0 16px 44px rgba(0,0,0,0.32)" }}>
+            <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, rgba(${ACCENT_RGB},0.7), transparent)` }} />
+            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
+              <Rocket size={16} style={{ color: "#818cf8" }} />
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#a5b4fc" }}>С чего начать</span>
+            </div>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", margin: "0 0 6px" }}>Ваш AI-совет директоров готов к работе</h2>
+            <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 18px", maxWidth: 560 }}>
+              Посмотрите готовый пример анализа за 30 секунд — или сразу запустите свою стратегию, и 20 директоров разберут её.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 }}>
+              {[
+                { icon: Star,          title: "Посмотреть пример", desc: "Готовый анализ проекта", href: "/dashboard/projects/demo", primary: true },
+                { icon: Zap,           title: "Создать стратегию",  desc: "Запустить свой анализ",   href: "/dashboard/new" },
+                { icon: MessageSquare, title: "Спросить совет",     desc: "Задать вопрос директорам", href: "/dashboard/executives" },
+              ].map((s, i) => (
+                <Link key={s.title} href={s.href} style={{ textDecoration: "none" }}>
+                  <motion.div whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
+                    style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 15px", borderRadius: 13, cursor: "pointer",
+                      background: s.primary ? `linear-gradient(135deg, rgba(${ACCENT_RGB},0.16), rgba(${ACCENT_RGB},0.06))` : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${s.primary ? `rgba(${ACCENT_RGB},0.4)` : "rgba(255,255,255,0.08)"}` }}>
+                    <span style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                      background: s.primary ? `linear-gradient(135deg,${ACCENT},#4f46e5)` : "rgba(255,255,255,0.05)", border: s.primary ? "none" : "1px solid rgba(255,255,255,0.08)" }}>
+                      <s.icon size={17} style={{ color: s.primary ? "#fff" : "#818cf8" }} />
+                    </span>
+                    <div style={{ minWidth: 0 }}>
+                      <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: 6 }}>{s.title}{i === 0 && <ArrowUpRight size={13} style={{ color: "#818cf8" }} />}</div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 1 }}>{s.desc}</div>
+                    </div>
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
+
       {/* ═══ MAIN CONTENT ═══ */}
       <div className="main-grid page-section" style={{ maxWidth: 1280, margin: "40px auto 0", padding: "0 32px", display: "grid", gap: 24 }}>
 
