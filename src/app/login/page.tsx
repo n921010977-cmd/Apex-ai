@@ -139,6 +139,11 @@ function LoginForm() {
             Зарегистрироваться →
           </Link>
         </div>
+        <div style={{ textAlign: "center", marginTop: 6 }}>
+          <Link href="/forgot-password" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>
+            Забыли пароль?
+          </Link>
+        </div>
         <div className="term-mono" style={{ textAlign: "center", marginTop: 10, fontSize: 10, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>
           VERTLIX // COMMAND CENTER · SECURE SESSION
         </div>
