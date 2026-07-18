@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "@/components/SessionProvider";
 
 const geistSans = Geist({
@@ -75,6 +76,7 @@ export default function RootLayout({
       </head>
       <body className="bg-[#05060A] text-white min-h-screen overscroll-none">
         <SessionProvider>{children}</SessionProvider>
+        <Analytics />
       </body>
     </html>
   );

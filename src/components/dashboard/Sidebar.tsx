@@ -8,8 +8,10 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
   Bot, Settings, HelpCircle, BookOpen, Database,
-  X, PanelLeftClose, PanelLeft, ChevronRight, History, CheckSquare,
+  X, PanelLeftClose, PanelLeft, ChevronRight, History, CheckSquare, BarChart3,
 } from "lucide-react";
+
+const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "n921010977@gmail.com";
 
 // Pulse dot for live items
 function PulseDot() {
@@ -318,6 +320,15 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <HelpCircle size={13} /> Поддержка
             </Link>
+            {session?.user?.email === ADMIN_EMAIL && (
+              <Link href="/admin" onClick={onClose} title="Аналитика (админ)"
+                className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
+                style={{ height: 30, padding: "0 8px", color: "rgba(129,140,248,0.85)", fontSize: 11.5 }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                <BarChart3 size={13} /> Аналитика
+              </Link>
+            )}
 
             {/* user + plan */}
             <div className="flex items-center gap-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>
