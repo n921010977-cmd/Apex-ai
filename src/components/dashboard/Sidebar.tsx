@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
   Bot, Settings, HelpCircle, BookOpen, Database,
-  X, PanelLeftClose, PanelLeft, ChevronRight, History,
+  X, PanelLeftClose, PanelLeft, ChevronRight, History, CheckSquare,
 } from "lucide-react";
 
 // Pulse dot for live items
@@ -49,21 +49,22 @@ const SECTIONS: NavSection[] = [
       { key: "2", label: "Новая стратегия",  href: "/dashboard/new",        icon: Zap, accent: true },
       { key: "3", label: "Мои проекты",      href: "/dashboard/projects",   icon: FolderOpen, badge: 2 },
       { key: "4", label: "Отчёты",           href: "/dashboard/reports",    icon: FileText, badge: 1 },
+      { key: "5", label: "Задачи",           href: "/dashboard/tasks",      icon: CheckSquare },
     ],
   },
   {
     title: "AI система",
     items: [
-      { key: "5", label: "Исполн. совет",    href: "/dashboard/executives", icon: Users, live: true },
-      { key: "6", label: "История диалогов", href: "/dashboard/history",    icon: History },
+      { key: "6", label: "Исполн. совет",    href: "/dashboard/executives", icon: Users, live: true },
+      { key: "7", label: "История диалогов", href: "/dashboard/history",    icon: History },
     ],
   },
   {
     title: "Инструменты",
     items: [
-      { key: "7", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
-      { key: "8", label: "Knowledge Vault",  href: "/dashboard/vault",      icon: Database, accent: true },
-      { key: "9", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
+      { key: "8", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
+      { key: "9", label: "Knowledge Vault",  href: "/dashboard/vault",      icon: Database, accent: true },
+      { key: "0", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
     ],
   },
 ];

@@ -4,9 +4,10 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { markVisit } from "@/components/dashboard/EngagementPanel";
 import { loadAsks, deleteAsk, clearAsks, syncFromServer, type AskEntry } from "@/lib/ask-history";
+import { addTask } from "@/lib/tasks";
 import {
   History, Search, MessageSquare, MessagesSquare, Trash2, Clock,
-  Filter, Crown, Sparkles, X, Copy, Check,
+  Filter, Crown, Sparkles, X, Copy, Check, ListPlus,
 } from "lucide-react";
 
 // ── Tokens ────────────────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ export default function HistoryPage() {
   const [filter, setFilter] = useState<"all" | "agent" | "council">("all");
   const [selected, setSelected] = useState<AskEntry | null>(null);
   const [copied, setCopied] = useState(false);
+  const [addedTask, setAddedTask] = useState(false);
 
   const refresh = useCallback(() => {
     const a = loadAsks();
@@ -237,6 +239,14 @@ export default function HistoryPage() {
                         : `Вопрос: ${selected.question}\n\n${selected.agentName}: ${selected.answer ?? ""}`)}
                         style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 38, borderRadius: 10, cursor: "pointer", background: "rgba(255,255,255,0.05)", border: `1px solid ${BORD_H}`, color: TS, fontSize: 12.5, fontWeight: 600 }}>
                         {copied ? <><Check size={13} style={{ color: "#10b981" }} /> Скопировано</> : <><Copy size={13} /> Копировать</>}
+                      </button>
+                      <button onClick={() => {
+                        const src = selected.kind === "council" ? "Совет директоров" : `${selected.agentName} · ${selected.agentRole}`;
+                        addTask({ title: selected.question, priority: "medium", source: src, color: selected.color });
+                        setAddedTask(true); setTimeout(() => setAddedTask(false), 1600);
+                      }} title="Добавить в задачи"
+                        style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 38, borderRadius: 10, cursor: "pointer", background: addedTask ? "rgba(16,185,129,0.12)" : "rgba(99,102,241,0.1)", border: `1px solid ${addedTask ? "rgba(16,185,129,0.35)" : "rgba(99,102,241,0.3)"}`, color: addedTask ? "#10b981" : "#a5b4fc", fontSize: 12.5, fontWeight: 600 }}>
+                        {addedTask ? <><Check size={13} /> В задачах</> : <><ListPlus size={13} /> В задачи</>}
                       </button>
                       <button onClick={() => remove(selected.id)} title="Удалить"
                         style={{ width: 38, display: "flex", alignItems: "center", justifyContent: "center", height: 38, borderRadius: 10, cursor: "pointer", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", color: "#ef4444" }}>
