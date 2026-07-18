@@ -80,6 +80,7 @@ export function AgentTicker() {
 
   return (
     <motion.div
+      className="agent-ticker"
       initial={{ opacity: 0, y: 20, scale: 0.95 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ delay: 2, duration: 0.4, ease: EASE }}
