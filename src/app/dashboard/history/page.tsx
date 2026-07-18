@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { markVisit } from "@/components/dashboard/EngagementPanel";
-import { loadAsks, deleteAsk, clearAsks, type AskEntry } from "@/lib/ask-history";
+import { loadAsks, deleteAsk, clearAsks, syncFromServer, type AskEntry } from "@/lib/ask-history";
 import {
   History, Search, MessageSquare, MessagesSquare, Trash2, Clock,
   Filter, Crown, Sparkles, X, Copy, Check,
@@ -44,7 +44,11 @@ export default function HistoryPage() {
 
   useEffect(() => {
     markVisit("history");
-    refresh();
+    refresh();                                  // instant paint from local cache
+    syncFromServer().then(merged => {           // then reconcile with the account
+      setItems(merged);
+      setSelected(s => merged.find(x => x.id === s?.id) ?? merged[0] ?? null);
+    });
     const on = () => refresh();
     window.addEventListener("vertlix-ask-saved", on);
     return () => window.removeEventListener("vertlix-ask-saved", on);
