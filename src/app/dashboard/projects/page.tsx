@@ -605,6 +605,7 @@ export default function ProjectsPage() {
   const [sort, setSort]       = useState<string>("AI Score ↓");
   const [showFilters, setShowFilters] = useState(false);
   const [userProjects, setUserProjects] = useState<Project[]>([]);
+  const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -643,7 +644,9 @@ export default function ProjectsPage() {
       if (Array.isArray(stored) && stored.length) setUserProjects(stored.map(normalize));
     } catch {}
 
-    // Then reconcile with the server
+    // Then reconcile with the server. A non-empty server list is the source of
+    // truth; an empty response must NOT clobber local-only projects (created
+    // while offline or before the server write landed).
     fetch("/api/projects")
       .then(r => r.json())
       .then(d => {
@@ -651,10 +654,14 @@ export default function ProjectsPage() {
           setUserProjects(d.projects.map(normalize));
         }
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => setLoaded(true));
   }, []);
 
-  const ALL_PROJECTS = [...userProjects, ...DEFAULT_PROJECTS];
+  // Real projects win. Only fall back to labelled examples when the user has none.
+  const hasReal = userProjects.length > 0;
+  const isDemo = !hasReal;
+  const ALL_PROJECTS = hasReal ? userProjects : DEFAULT_PROJECTS;
 
   const filtered = ALL_PROJECTS
     .filter(p => {
@@ -814,6 +821,23 @@ export default function ProjectsPage() {
                 })}
               </div>
             </div>
+
+            {/* Example / empty-state banner — only when the user has no real projects */}
+            {loaded && isDemo && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
+                style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", marginBottom: 14, borderRadius: 14,
+                  background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.22)" }}
+              >
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a5b4fc", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>Пример</span>
+                <span style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+                  Это демонстрационные проекты. Запустите свой анализ — здесь появятся ваши стратегии.
+                </span>
+                <Link href="/dashboard/new" style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, height: 34, padding: "0 15px", borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 12.5, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(99,102,241,0.32)" }}>
+                  Создать стратегию
+                </Link>
+              </motion.div>
+            )}
 
             {/* Projects */}
             <AnimatePresence mode="wait">
