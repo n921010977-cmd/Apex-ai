@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, useInView, useReducedMotion } from "framer-motion";
-import { ArrowRight, Sparkles, TrendingUp, Target, Users, ShieldAlert, CheckCircle2, FileText } from "lucide-react";
+import { ArrowRight, Sparkles, TrendingUp, Target, Users, ShieldAlert, CheckCircle2, FileText, MessagesSquare } from "lucide-react";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -220,6 +220,15 @@ export default function StrategyReportPage() {
           <div className="sr-ready"><Sparkles size={12} /> СТРАТЕГИЯ ГОТОВА · {results.length} AI-ДИРЕКТОРОВ ПРОАНАЛИЗИРОВАЛИ</div>
           <h1 className="sr-title">{project.name}</h1>
           <p className="sr-sub">{project.industry || "Бизнес"} · {project.stage || "Ранняя стадия"} · горизонт {project.timeframe || "12"} мес.</p>
+          <button
+            onClick={() => router.push(`/dashboard/executives?ask=${encodeURIComponent(`Обсудите мой проект «${project.name}» (${project.industry || "бизнес"}, стадия: ${project.stage || "ранняя"}). Что улучшить в первую очередь и какие 3 шага сделать?`)}`)}
+            style={{ marginTop: 18, display: "inline-flex", alignItems: "center", gap: 9, height: 46, padding: "0 22px", borderRadius: 13, border: "none", cursor: "pointer",
+              background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 14, fontWeight: 700,
+              boxShadow: "0 8px 24px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.18)" }}
+            onMouseOver={e => { e.currentTarget.style.transform = "translateY(-1px)"; }}
+            onMouseOut={e => { e.currentTarget.style.transform = "translateY(0)"; }}>
+            <MessagesSquare size={16} /> Обсудить с советом
+          </button>
         </motion.div>
 
         {/* Gauge + KPI */}

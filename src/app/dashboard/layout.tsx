@@ -7,7 +7,6 @@ import { TopNav } from "@/components/dashboard/TopNav";
 import { ToastProvider } from "@/components/ui/Toast";
 import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
-import { AgentTicker } from "@/components/dashboard/AgentTicker";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -45,8 +44,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <OnboardingModal />
         {/* Global command palette ⌘K */}
         <CommandPalette />
-        {/* Live agent activity ticker */}
-        <AgentTicker />
       </div>
     </ToastProvider>
   );

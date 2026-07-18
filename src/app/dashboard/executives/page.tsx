@@ -525,6 +525,16 @@ function CouncilSession() {
 
   const reset = () => { setPhase("idle"); setAsked(""); setResponses({}); setStatus({}); setVerdict(""); };
 
+  // Arriving from a strategy page with ?ask=… → prefill and auto-convene the board.
+  useEffect(() => {
+    const ask = new URLSearchParams(window.location.search).get("ask");
+    if (!ask) return;
+    setQ(ask);
+    const t = setTimeout(() => convene(ask), 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: EASE }}
