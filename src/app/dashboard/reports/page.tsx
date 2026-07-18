@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/Toast";
@@ -442,6 +443,7 @@ const fadeUp = (delay = 0) => ({
 // ─── Main ──────────────────────────────────────────────────────────────────────
 export default function ReportsPage() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [isDemo, setIsDemo] = useState(false);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("Все");
@@ -468,9 +470,11 @@ export default function ReportsPage() {
       const res = await fetch("/api/reports");
       const j = await res.json();
       const apiReports = (j.success && j.data?.length > 0) ? j.data : [];
-      setReports([...apiReports, ...DEMO_REPORTS]);
+      // Real reports replace the examples; demo only fills an empty state.
+      if (apiReports.length) { setReports(apiReports); setIsDemo(false); }
+      else                   { setReports(DEMO_REPORTS); setIsDemo(true); }
     } catch {
-      setReports(DEMO_REPORTS);
+      setReports(DEMO_REPORTS); setIsDemo(true);
     } finally {
       setLoading(false);
     }
@@ -570,6 +574,20 @@ export default function ReportsPage() {
                 ))}
               </div>
             </motion.div>
+
+            {/* Example banner — only when the user has no real reports */}
+            {!loading && isDemo && (
+              <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", marginBottom: 14, borderRadius: 14,
+                background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.22)" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a5b4fc", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>Пример</span>
+                <span style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
+                  Это демонстрационные отчёты. Запустите анализ — ваши отчёты появятся здесь.
+                </span>
+                <Link href="/dashboard/new" style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, height: 34, padding: "0 15px", borderRadius: 10, background: `linear-gradient(135deg,${S.accent},${S.accentDark})`, color: "#fff", fontSize: 12.5, fontWeight: 700, textDecoration: "none" }}>
+                  Создать анализ
+                </Link>
+              </div>
+            )}
 
             {/* Grid */}
             {loading ? (
