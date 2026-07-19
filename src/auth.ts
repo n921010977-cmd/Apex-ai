@@ -42,6 +42,10 @@ async function findUserByEmail(email: string) {
 // ─── NextAuth configuration ───────────────────────────────────────────────────
 
 const config: NextAuthConfig = {
+  // Trust the deployment host. Vercel is auto-trusted, but self-hosted and
+  // preview deployments need this explicitly, otherwise NextAuth throws
+  // "UntrustedHost" during SSR/prerender and dashboard pages 404.
+  trustHost: true,
   providers: [
     // ── Google OAuth ──────────────────────────────────────────────────────
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET

@@ -588,7 +588,7 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
 }
 
 export default function SettingsPage() {
-  const [active, setActive] = useState("workspace");
+  const [active, setActive] = useState("profile");
   const [toast, setToast] = useState<{ msg: string; type: "success"|"error" } | null>(null);
   const [settings, setSettings] = useState<Settings>({
     language: "ru", timezone: "Europe/Moscow", theme: "dark",

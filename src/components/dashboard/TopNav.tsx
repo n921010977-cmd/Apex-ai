@@ -99,9 +99,12 @@ export function TopNav({ onMenuClick }: TopNavProps) {
     router.push(t.href);
   };
 
-  const pageLabel = Object.entries(ROUTE_LABELS).find(([k]) =>
-    k === pathname || pathname.startsWith(k + "/")
-  )?.[1] ?? "Dashboard";
+  // Match the most specific (longest) route prefix, otherwise the generic
+  // "/dashboard" entry shadows every sub-page and the breadcrumb always
+  // reads "Dashboard".
+  const pageLabel = Object.entries(ROUTE_LABELS)
+    .filter(([k]) => k === pathname || pathname.startsWith(k + "/"))
+    .sort((a, b) => b[0].length - a[0].length)[0]?.[1] ?? "Dashboard";
 
   const userName = session?.user?.name ?? "Founder";
   const userInitial = userName.charAt(0).toUpperCase();
