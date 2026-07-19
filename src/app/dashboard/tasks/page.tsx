@@ -113,7 +113,7 @@ export default function TasksPage() {
           <AnimatePresence>
             {prioOpen && (
               <motion.div initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }} transition={{ duration: 0.13 }}
-                style={{ position: "absolute", top: 50, left: 0, zIndex: 30, minWidth: 150, background: "#0d0f1a", border: `1px solid ${BORD}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 16px 40px rgba(0,0,0,0.5)" }}>
+                style={{ position: "absolute", top: 50, left: 0, zIndex: 30, minWidth: 150, background: "#0a0c15", border: `1px solid ${BORD}`, borderRadius: 12, overflow: "hidden", boxShadow: "0 16px 40px rgba(0,0,0,0.5)" }}>
                 {(Object.keys(PRIO) as Priority[]).map(p => (
                   <button key={p} onClick={() => { setPrio(p); setPrioOpen(false); }}
                     style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "10px 14px", border: "none", background: prio === p ? "rgba(255,255,255,0.05)" : "transparent", color: PRIO[p].color, fontSize: 13, fontWeight: 600, cursor: "pointer", textAlign: "left" }}>

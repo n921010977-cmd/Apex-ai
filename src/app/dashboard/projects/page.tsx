@@ -285,7 +285,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
               {project.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase().slice(0, 2)}
             </div>
             <span style={{ position: "absolute", right: -1, bottom: -1, width: 8, height: 8, borderRadius: "50%",
-              background: analyzing ? "#f59e0b" : "#10b981", border: "2px solid #0a0b10",
+              background: analyzing ? "#f59e0b" : "#10b981", border: "2px solid #0a0c15",
               boxShadow: `0 0 5px ${analyzing ? "#f59e0b" : "#10b981"}`,
               animation: "pc-pulse 1.8s ease-in-out infinite" }} />
           </div>
@@ -341,7 +341,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
               </div>
               {/* живой статус-точка */}
               <span style={{ position: "absolute", right: -2, bottom: -2, width: 10, height: 10, borderRadius: "50%",
-                background: analyzing ? "#f59e0b" : "#10b981", border: "2px solid #0a0b10",
+                background: analyzing ? "#f59e0b" : "#10b981", border: "2px solid #0a0c15",
                 boxShadow: `0 0 8px ${analyzing ? "#f59e0b" : "#10b981"}`,
                 animation: "pc-pulse 1.8s ease-in-out infinite" }} />
             </div>

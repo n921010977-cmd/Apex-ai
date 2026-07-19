@@ -243,7 +243,7 @@ export default function ExecutiveCouncilPage() {
                       animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: -4, scale: 0.97 }}
                       transition={{ duration: 0.13 }}
                       style={{ position: "absolute", top: 42, left: 0, zIndex: 30, minWidth: 160,
-                        background: "#0d0f1a", border: `1px solid ${BORD_H}`, borderRadius: 12,
+                        background: "#0a0c15", border: `1px solid ${BORD_H}`, borderRadius: 12,
                         boxShadow: "0 16px 48px rgba(0,0,0,0.55)", overflow: "hidden" }}>
                       {options.map(opt => (
                         <button key={opt} onClick={() => {

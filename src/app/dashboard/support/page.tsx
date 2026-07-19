@@ -215,7 +215,7 @@ function TicketModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
       style={{ position: "fixed", inset: 0, zIndex: 70, background: "rgba(5,6,10,0.72)", backdropFilter: "blur(6px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <motion.div initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.98 }} transition={{ duration: 0.24, ease: EASE }}
         onClick={e => e.stopPropagation()}
-        style={{ width: "min(560px, 100%)", maxHeight: "86vh", overflowY: "auto", borderRadius: 20, padding: 24, background: "#0b0d16", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", position: "relative" }}>
+        style={{ width: "min(560px, 100%)", maxHeight: "86vh", overflowY: "auto", borderRadius: 20, padding: 24, background: "#0a0c15", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", position: "relative" }}>
         <button onClick={onClose} aria-label="Закрыть"
           style={{ position: "absolute", top: 16, right: 16, width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>
           <X size={15} />

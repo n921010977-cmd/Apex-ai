@@ -714,9 +714,9 @@ export default function AgentsPage() {
               {/* сортировка */}
               <select value={sortBy} onChange={e => setSortBy(e.target.value as any)}
                 style={{ padding: "8px 12px", borderRadius: 10, fontSize: 11.5, fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.65)", outline: "none" }}>
-                <option value="popular" style={{ background: "#0b0c11" }}>По запускам</option>
-                <option value="rating" style={{ background: "#0b0c11" }}>По рейтингу</option>
-                <option value="name" style={{ background: "#0b0c11" }}>По имени</option>
+                <option value="popular" style={{ background: "#0a0c15" }}>По запускам</option>
+                <option value="rating" style={{ background: "#0a0c15" }}>По рейтингу</option>
+                <option value="name" style={{ background: "#0a0c15" }}>По имени</option>
               </select>
             </div>
             {/* отделы */}
@@ -793,7 +793,7 @@ export default function AgentsPage() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 16 }}
               onClick={(e) => e.stopPropagation()}
-              style={{ width: 560, background: "#0d0f17", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, boxShadow: "0 32px 80px rgba(0,0,0,0.8)", overflow: "hidden" }}
+              style={{ width: 560, background: "#0a0c15", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20, boxShadow: "0 32px 80px rgba(0,0,0,0.8)", overflow: "hidden" }}
             >
               <div style={{ padding: "20px 24px", borderBottom: "1px solid rgba(255,255,255,0.07)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                 <div>
