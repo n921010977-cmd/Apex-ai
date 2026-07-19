@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { authLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
 // POST /api/user/password  { currentPassword?, newPassword }
 // Changes the signed-in user's password. If the account has an existing
@@ -10,6 +11,9 @@ import { createClient } from "@/lib/supabase/server";
 export async function POST(req: Request) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  const limit = await authLimiter(`pwchange:${session.user.id}`);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   let body: { currentPassword?: string; newPassword?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 }); }

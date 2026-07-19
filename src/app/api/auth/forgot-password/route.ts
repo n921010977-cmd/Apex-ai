@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { signResetToken } from "@/lib/reset-token";
+import { authLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
 // POST /api/auth/forgot-password  { email }
 // Always returns a generic success (no account enumeration). If the account
@@ -9,6 +10,10 @@ import { signResetToken } from "@/lib/reset-token";
 export async function POST(req: Request) {
   const generic = NextResponse.json({ ok: true });
   try {
+    const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "unknown";
+    const limit = await authLimiter(`forgot:${ip}`);
+    if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
     const { email } = await req.json();
     if (!email?.trim()) return NextResponse.json({ error: "Укажите email" }, { status: 400 });
     const addr = email.trim().toLowerCase();

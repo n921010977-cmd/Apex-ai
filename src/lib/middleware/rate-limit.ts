@@ -5,9 +5,18 @@ interface RateLimitConfig {
   max: number;
 }
 
+export interface RateLimitResult {
+  allowed: boolean;
+  remaining: number;
+  resetAt: number;
+}
+
+// ─── In-memory fallback store ─────────────────────────────────────────────────
+// Used when Upstash is not configured. Note: on serverless (e.g. Vercel) each
+// instance keeps its own map, so limits are per-instance. Configure Upstash for
+// a shared, durable limit across all instances.
 const store = new Map<string, { count: number; resetAt: number }>();
 
-// Clean up expired entries every 5 minutes
 if (typeof setInterval !== "undefined") {
   setInterval(() => {
     const now = Date.now();
@@ -17,24 +26,67 @@ if (typeof setInterval !== "undefined") {
   }, 5 * 60 * 1000);
 }
 
+function checkMemory(key: string, config: RateLimitConfig): RateLimitResult {
+  const now = Date.now();
+  const existing = store.get(key);
+
+  if (!existing || existing.resetAt < now) {
+    const resetAt = now + config.windowMs;
+    store.set(key, { count: 1, resetAt });
+    return { allowed: true, remaining: config.max - 1, resetAt };
+  }
+
+  if (existing.count >= config.max) {
+    return { allowed: false, remaining: 0, resetAt: existing.resetAt };
+  }
+
+  existing.count++;
+  return { allowed: true, remaining: config.max - existing.count, resetAt: existing.resetAt };
+}
+
+// ─── Upstash Redis (durable, shared across instances) ─────────────────────────
+function upstashConfigured(): boolean {
+  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+}
+
+async function checkUpstash(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
+  const url = process.env.UPSTASH_REDIS_REST_URL!;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN!;
+  const rlKey = `rl:${key}`;
+
+  // Atomic pipeline: INCR, set expiry only on first hit (NX), read remaining TTL.
+  const res = await fetch(`${url}/pipeline`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+    body: JSON.stringify([
+      ["INCR", rlKey],
+      ["PEXPIRE", rlKey, config.windowMs, "NX"],
+      ["PTTL", rlKey],
+    ]),
+    cache: "no-store",
+  });
+
+  if (!res.ok) throw new Error(`Upstash ${res.status}`);
+  const results = (await res.json()) as Array<{ result: number }>;
+  const count = results[0]?.result ?? 1;
+  const pttl = results[2]?.result ?? config.windowMs;
+  const resetAt = Date.now() + (pttl > 0 ? pttl : config.windowMs);
+
+  if (count > config.max) return { allowed: false, remaining: 0, resetAt };
+  return { allowed: true, remaining: config.max - count, resetAt };
+}
+
 export function rateLimit(config: RateLimitConfig) {
-  return function check(identifier: string): { allowed: boolean; remaining: number; resetAt: number } {
-    const now = Date.now();
-    const key = identifier;
-    const existing = store.get(key);
-
-    if (!existing || existing.resetAt < now) {
-      const resetAt = now + config.windowMs;
-      store.set(key, { count: 1, resetAt });
-      return { allowed: true, remaining: config.max - 1, resetAt };
+  return async function check(identifier: string): Promise<RateLimitResult> {
+    if (upstashConfigured()) {
+      try {
+        return await checkUpstash(identifier, config);
+      } catch (err) {
+        // Fail open to the in-memory limiter rather than blocking legit traffic.
+        console.error("[rate-limit] Upstash error, falling back to memory:", err);
+      }
     }
-
-    if (existing.count >= config.max) {
-      return { allowed: false, remaining: 0, resetAt: existing.resetAt };
-    }
-
-    existing.count++;
-    return { allowed: true, remaining: config.max - existing.count, resetAt: existing.resetAt };
+    return checkMemory(identifier, config);
   };
 }
 

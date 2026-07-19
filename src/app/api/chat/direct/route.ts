@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
   // Rate limiting
   const identifier = getIdentifier(req);
-  const limit = chatLimiter(identifier);
+  const limit = await chatLimiter(identifier);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   let rawBody: unknown;

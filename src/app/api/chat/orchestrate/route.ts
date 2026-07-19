@@ -2,11 +2,17 @@ import { NextRequest, NextResponse } from "next/server";
 import { orchestrate } from "@/lib/orchestrator";
 import { validateBody, SendMessageSchema } from "@/lib/validators";
 import { chatLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { auth } from "@/auth";
 import type { StreamEvent } from "@/types";
 
 export const maxDuration = 300;
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { success: false, error: "ANTHROPIC_API_KEY is not configured. Add it to .env.local" },
@@ -14,8 +20,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const identifier = getIdentifier(req);
-  const limit = chatLimiter(identifier);
+  const identifier = getIdentifier(req, session.user.id);
+  const limit = await chatLimiter(identifier);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   let rawBody: unknown;
@@ -34,7 +40,7 @@ export async function POST(req: NextRequest) {
 
       try {
         await orchestrate(
-          { message: data.message, agentId: data.agentId, userId: "anonymous" },
+          { message: data.message, agentId: data.agentId, userId: session.user.id },
           {
             onEvent: (evt: StreamEvent) => {
               send(evt);

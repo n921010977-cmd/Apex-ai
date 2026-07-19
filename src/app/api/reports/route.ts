@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
   if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
   const identifier = getIdentifier(req, session.user.id);
-  const limit = reportLimiter(identifier);
+  const limit = await reportLimiter(identifier);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   let rawBody: unknown;

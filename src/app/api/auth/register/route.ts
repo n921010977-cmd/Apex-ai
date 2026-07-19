@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createClient } from "@/lib/supabase/server";
+import { authLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
 export async function POST(req: Request) {
   try {
+    const ip = req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "unknown";
+    const limit = await authLimiter(`register:${ip}`);
+    if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
     const { name, email, password } = await req.json();
 
     if (!name?.trim() || !email?.trim() || !password) {

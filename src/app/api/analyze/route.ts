@@ -1,6 +1,8 @@
-import { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { AGENT_PROMPTS, AGENT_META, ProjectBrief, AgentResult } from "@/lib/agents";
+import { auth } from "@/auth";
+import { reportLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
 export const maxDuration = 120;
 
@@ -140,6 +142,14 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
 }
 
 export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+
+  const limit = await reportLimiter(getIdentifier(req, session.user.id));
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
   const brief: ProjectBrief = await req.json();
 
   const encoder = new TextEncoder();
