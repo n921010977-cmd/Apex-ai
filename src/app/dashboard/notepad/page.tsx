@@ -214,10 +214,13 @@ export default function NotepadPage() {
       updatedAt: Date.now(),
       template: template?.id,
     };
-    const next = [n, ...notes];
-    persistNotes(next);
+    setNotes(prev => { const next = [n, ...prev]; save(next); return next; });
     setActive(n);
     setShowTemplates(false);
+    // Make sure the new note is actually visible — drop any active filter/search.
+    setFolder("all");
+    setSidebarSearch("");
+    setSearch("");
 
     // Persist to server and swap the temporary id for the real one
     if (apiMode.current) {
