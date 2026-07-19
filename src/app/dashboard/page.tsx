@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
-import { motion, AnimatePresence, useMotionValue, useSpring } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import {
   Zap, TrendingUp, Target, Shield, ChevronRight, ArrowUpRight,
   Brain, DollarSign, Cpu, Globe, Lightbulb, Activity, Users,
@@ -487,6 +487,7 @@ export default function DashboardPage() {
   const [isDemo,   setIsDemo]   = useState(false);
   const [loading,  setLoading]  = useState(true);
   const [tab,      setTab]      = useState<"projects" | "insights">("projects");
+  const reduce = useReducedMotion();
 
   useEffect(() => {
     markVisit("dashboard");
@@ -524,7 +525,24 @@ export default function DashboardPage() {
 
       {/* ═══ HERO + EXEC BOARD (одна секция, всё видно без скролла) ═══ */}
       <div className="relative overflow-hidden" style={{ background: "linear-gradient(180deg, #080B14 0%, #05060A 100%)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <div style={{ position: "absolute", inset: 0, backgroundImage: `radial-gradient(ellipse 55% 70% at 75% 30%, rgba(${ACCENT_RGB},0.08) 0%, transparent 65%)`, pointerEvents: "none" }} />
+        {/* Living aurora — slowly drifting ambient blobs */}
+        <div aria-hidden style={{ position: "absolute", inset: 0, overflow: "hidden", pointerEvents: "none" }}>
+          <motion.div
+            animate={reduce ? undefined : { x: [0, 40, -20, 0], y: [0, 24, -14, 0], scale: [1, 1.12, 0.96, 1] }}
+            transition={reduce ? undefined : { duration: 20, repeat: Infinity, ease: "easeInOut" }}
+            style={{ position: "absolute", top: "-20%", right: "8%", width: 620, height: 460, borderRadius: "50%",
+              background: `radial-gradient(ellipse at center, rgba(${ACCENT_RGB},0.16), transparent 68%)`, filter: "blur(8px)" }} />
+          <motion.div
+            animate={reduce ? undefined : { x: [0, -30, 18, 0], y: [0, -18, 22, 0], scale: [1, 1.08, 0.94, 1] }}
+            transition={reduce ? undefined : { duration: 26, repeat: Infinity, ease: "easeInOut", delay: 2 }}
+            style={{ position: "absolute", top: "10%", left: "-8%", width: 520, height: 420, borderRadius: "50%",
+              background: "radial-gradient(ellipse at center, rgba(139,92,246,0.12), transparent 70%)", filter: "blur(10px)" }} />
+          <motion.div
+            animate={reduce ? undefined : { x: [0, 22, -14, 0], y: [0, -12, 16, 0], opacity: [0.5, 0.85, 0.55, 0.5] }}
+            transition={reduce ? undefined : { duration: 16, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            style={{ position: "absolute", bottom: "-24%", left: "38%", width: 480, height: 360, borderRadius: "50%",
+              background: "radial-gradient(ellipse at center, rgba(16,185,129,0.08), transparent 72%)", filter: "blur(12px)" }} />
+        </div>
 
         <div style={{ maxWidth: 1280, margin: "0 auto", padding: "28px 32px 32px" }}>
 
