@@ -411,6 +411,25 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
   const [twoFA, setTwoFA] = useState(settings.two_fa);
   const [twoFALoading, setTwoFALoading] = useState(false);
 
+  // Password change
+  const [curPw, setCurPw] = useState("");
+  const [newPw, setNewPw] = useState("");
+  const [confPw, setConfPw] = useState("");
+  const [pwLoading, setPwLoading] = useState(false);
+
+  const changePassword = async () => {
+    if (newPw.length < 6) { showToast("Новый пароль минимум 6 символов", "error"); return; }
+    if (newPw !== confPw) { showToast("Пароли не совпадают", "error"); return; }
+    setPwLoading(true);
+    try {
+      const r = await fetch("/api/user/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currentPassword: curPw, newPassword: newPw }) });
+      const d = await r.json();
+      if (d.success) { showToast("Пароль изменён", "success"); setCurPw(""); setNewPw(""); setConfPw(""); }
+      else showToast(d.error || "Не удалось изменить пароль", "error");
+    } catch { showToast("Ошибка сети", "error"); }
+    finally { setPwLoading(false); }
+  };
+
   const toggle2FA = async () => {
     setTwoFALoading(true);
     const next = !twoFA;
@@ -425,6 +444,22 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
 
   return (
     <div>
+      <Section title="Пароль" desc="Смените пароль от аккаунта" accent="#6366f1">
+        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+          <FieldInput label="Текущий пароль" type="password" value={curPw} onChange={setCurPw} placeholder="••••••••" hint="Оставьте пустым, если входите только через Google/GitHub" />
+          <FieldInput label="Новый пароль" type="password" value={newPw} onChange={setNewPw} placeholder="Минимум 6 символов" />
+          <FieldInput label="Повторите новый пароль" type="password" value={confPw} onChange={setConfPw} placeholder="••••••••" />
+          <div>
+            <button onClick={changePassword} disabled={pwLoading || !newPw}
+              style={{ height: 42, padding: "0 20px", borderRadius: 11, border: "none", cursor: pwLoading || !newPw ? "default" : "pointer", fontSize: 13, fontWeight: 700, color: "#fff",
+                background: pwLoading || !newPw ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#6366f1,#4f46e5)", display: "inline-flex", alignItems: "center", gap: 8 }}>
+              {pwLoading && <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />}
+              {pwLoading ? "Сохранение…" : "Изменить пароль"}
+            </button>
+          </div>
+        </div>
+      </Section>
+
       <Section title="Двухфакторная аутентификация" desc="Дополнительный уровень защиты аккаунта" accent={twoFA ? "#10b981" : "#f59e0b"}>
         <Row label="2FA через приложение" desc="Google Authenticator, Authy" last>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
