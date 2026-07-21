@@ -96,9 +96,23 @@ export const chatLimiter    = rateLimit({ windowMs: 60_000,  max: 20  }); // 20 
 export const authLimiter    = rateLimit({ windowMs: 900_000, max: 10  }); // 10 auth/15min
 export const reportLimiter  = rateLimit({ windowMs: 60_000,  max: 5   }); // 5 reports/min
 
+// Resolve the real client IP. Behind Cloudflare the true visitor IP is in
+// CF-Connecting-IP (every other header shows Cloudflare's proxy IP); behind
+// Vercel it falls back to X-Real-IP / the first X-Forwarded-For hop. Using the
+// wrong header would let every request share one key and defeat rate limiting.
+export function clientIp(req: { headers: Headers }): string {
+  const h = req.headers;
+  return (
+    h.get("cf-connecting-ip") ??
+    h.get("x-real-ip") ??
+    h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    "unknown"
+  );
+}
+
 export function getIdentifier(req: NextRequest, userId?: string): string {
   if (userId) return `user:${userId}`;
-  return `ip:${req.headers.get("x-forwarded-for") ?? req.headers.get("x-real-ip") ?? "unknown"}`;
+  return `ip:${clientIp(req)}`;
 }
 
 export function rateLimitResponse(resetAt: number): NextResponse {
