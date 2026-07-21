@@ -677,7 +677,7 @@ export default function NewStrategyPage() {
 
     const existing = JSON.parse(localStorage.getItem("apex-user-projects") || "[]");
     localStorage.setItem("apex-user-projects", JSON.stringify([newProject, ...existing]));
-    router.push(`/report/${id}`);
+    router.push(`/dashboard/projects/${id}`);
   };
 
   if (analyzing) return <AnalyzingScreen doneAgents={doneAgents} agentResults={agentResults} />;
