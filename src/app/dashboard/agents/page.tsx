@@ -486,7 +486,8 @@ export default function AgentsPage() {
   ];
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // load user-created/cloned agents + favorites from localStorage
+  // Instant paint from the localStorage cache, then reconcile with the server
+  // (authoritative) so custom agents + favorites sync across devices.
   useEffect(() => {
     try {
       const saved = localStorage.getItem("apex-custom-agents");
@@ -497,13 +498,35 @@ export default function AgentsPage() {
       const f = localStorage.getItem("apex-fav-agents");
       if (f) setFavs(new Set(JSON.parse(f)));
     } catch { /* ignore */ }
+
+    (async () => {
+      try {
+        const [cRes, fRes] = await Promise.all([fetch("/api/agents/custom"), fetch("/api/agents/favorites")]);
+        if (cRes.ok) {
+          const d = await cRes.json();
+          if (d.success && Array.isArray(d.agents) && d.agents.length) {
+            setAgents([...d.agents, ...AGENTS]);
+            try { localStorage.setItem("apex-custom-agents", JSON.stringify(d.agents)); } catch { /* ignore */ }
+          }
+        }
+        if (fRes.ok) {
+          const d = await fRes.json();
+          if (d.success && Array.isArray(d.favorites)) {
+            setFavs(new Set(d.favorites));
+            try { localStorage.setItem("apex-fav-agents", JSON.stringify(d.favorites)); } catch { /* ignore */ }
+          }
+        }
+      } catch { /* offline — keep the localStorage view */ }
+    })();
   }, []);
 
   const toggleFav = (id: string) => {
     setFavs(prev => {
       const next = new Set(prev);
       next.has(id) ? next.delete(id) : next.add(id);
-      try { localStorage.setItem("apex-fav-agents", JSON.stringify([...next])); } catch { /* ignore */ }
+      const arr = [...next];
+      try { localStorage.setItem("apex-fav-agents", JSON.stringify(arr)); } catch { /* ignore */ }
+      fetch("/api/agents/favorites", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ favorites: arr }) }).catch(() => {});
       return next;
     });
   };
@@ -511,6 +534,12 @@ export default function AgentsPage() {
   const persistCustom = (list: Agent[]) => {
     const custom = list.filter((a) => a.id.startsWith("c"));
     try { localStorage.setItem("apex-custom-agents", JSON.stringify(custom)); } catch { /* ignore */ }
+  };
+
+  // Persist a single custom agent to the server (best-effort — localStorage
+  // already holds it, so the UI stays responsive if the request fails).
+  const saveCustomAgent = (agent: Agent) => {
+    fetch("/api/agents/custom", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ agent }) }).catch(() => {});
   };
 
   const showToast = (msg: string) => {
@@ -536,6 +565,7 @@ export default function AgentsPage() {
   const cloneAgent = (a: Agent) => {
     const copy: Agent = { ...a, id: `c${Date.now()}`, name: `${a.name} (копия)`, runs: 0, status: "idle" };
     setAgents((prev) => { const next = [copy, ...prev]; persistCustom(next); return next; });
+    saveCustomAgent(copy);
     showToast(`Клонирован: ${copy.name}`);
   };
 
@@ -549,6 +579,7 @@ export default function AgentsPage() {
       prompt: newAgent.prompt.trim() || `Ты — ${newAgent.name}, ${newAgent.role}. Помогаешь профессионально решать задачи.`,
     };
     setAgents((prev) => { const next = [created, ...prev]; persistCustom(next); return next; });
+    saveCustomAgent(created);
     setShowCreate(false);
     setNewAgent({ name: "", role: "", dept: "exec", model: MODELS[0], description: "", prompt: "" });
     showToast(`Агент создан: ${created.name}`);
