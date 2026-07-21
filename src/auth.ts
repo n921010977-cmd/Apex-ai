@@ -36,6 +36,14 @@ declare module "next-auth" {
 
 // ─── Helper: look up a user by email via Supabase ─────────────────────────────
 
+// Only http(s) images belong in the JWT — a data-URL avatar (stored in
+// users.avatar_url) would blow past the ~4KB session-cookie limit and break
+// auth. The profile page reads the real avatar from /api/user instead.
+function httpImage(...vals: (string | null | undefined)[]): string | null {
+  for (const v of vals) if (typeof v === "string" && /^https?:\/\//.test(v)) return v;
+  return null;
+}
+
 async function findUserByEmail(email: string) {
   try {
     const supabase = await createClient();
@@ -146,7 +154,7 @@ const config: NextAuthConfig = {
           id:    user.id,
           email: user.email,
           name:  user.name ?? name ?? email.split("@")[0],
-          image: user.image ?? user.avatar_url ?? null,
+          image: httpImage(user.image, user.avatar_url),
           role:  user.role  ?? "FREE",
           tier:  user.tier  ?? "FREE",
         };
@@ -233,7 +241,7 @@ const config: NextAuthConfig = {
           id:    user.id,
           email: user.email,
           name:  user.name ?? email.split("@")[0],
-          image: user.image ?? user.avatar_url ?? null,
+          image: httpImage(user.image, user.avatar_url),
           role:  user.role  ?? "FREE",
           tier:  user.tier  ?? "FREE",
         };

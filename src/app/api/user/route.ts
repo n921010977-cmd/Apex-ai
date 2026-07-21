@@ -7,6 +7,20 @@ export async function GET() {
   const session = await auth();
   if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
+  // Avatar lives on the users row (kept out of the session token to stay under
+  // the cookie size limit), so read it directly. Best-effort — falls back to
+  // whatever image the session carries (e.g. an OAuth picture).
+  let avatarUrl: string | null = session.user.image ?? null;
+  if (process.env.NEXT_PUBLIC_SUPABASE_URL && session.user.id) {
+    try {
+      const supabase = await createClient();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
+      const { data } = await db.from("users").select("avatar_url").eq("id", session.user.id).maybeSingle();
+      if (data?.avatar_url) avatarUrl = data.avatar_url;
+    } catch { /* keep the session fallback */ }
+  }
+
   return NextResponse.json({
     success: true,
     data: {
@@ -14,6 +28,7 @@ export async function GET() {
       email: session.user.email,
       name: session.user.name,
       image: session.user.image,
+      avatar_url: avatarUrl,
     },
   });
 }

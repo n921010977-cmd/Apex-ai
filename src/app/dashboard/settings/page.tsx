@@ -8,7 +8,7 @@ import {
   Check, Eye, EyeOff, AlertTriangle, ChevronRight,
   Moon, Sun, Monitor, Loader2, X, CheckCircle2,
   MessageSquare, Phone, Copy, KeyRound, ShieldCheck,
-  Fingerprint, Trash2, Plus,
+  Fingerprint, Trash2, Plus, Camera,
 } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
 
@@ -206,18 +206,74 @@ function SaveBar({ onSave, loading }: { onSave: () => void; loading: boolean }) 
 
 // ─── Panels ───────────────────────────────────────────────────────────────────
 
+// Resize an uploaded image to a square `size`px JPEG data URL (center-cropped).
+// Keeps avatars tiny so they fit comfortably in a single DB row.
+function resizeToDataUrl(file: File, size = 256): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("read failed"));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error("decode failed"));
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return reject(new Error("no canvas"));
+        const scale = Math.max(size / img.width, size / img.height);
+        const w = img.width * scale, h = img.height * scale;
+        ctx.drawImage(img, (size - w) / 2, (size - h) / 2, w, h);
+        resolve(canvas.toDataURL("image/jpeg", 0.85));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"error") => void }) {
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ firstName: "Founder", lastName: "", email: "" });
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [avatarBusy, setAvatarBusy] = useState(false);
 
   useEffect(() => {
     fetch("/api/user").then(r => r.json()).then(d => {
       if (d.data) {
         const name = (d.data.name || "").split(" ");
         setForm(f => ({ ...f, firstName: name[0] || "Founder", lastName: name.slice(1).join(" ") || "", email: d.data.email || "" }));
+        if (d.data.avatar_url) setAvatar(d.data.avatar_url);
       }
     }).catch(() => {});
   }, []);
+
+  const onPickAvatar = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-picking the same file
+    if (!file) return;
+    if (!file.type.startsWith("image/")) { showToast("Выберите изображение", "error"); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast("Файл больше 5 МБ — выберите поменьше", "error"); return; }
+    setAvatarBusy(true);
+    try {
+      const dataUrl = await resizeToDataUrl(file, 256);
+      const r = await fetch("/api/user/avatar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dataUrl }) });
+      const d = await r.json();
+      if (d.success) { setAvatar(d.avatarUrl); showToast("Аватар обновлён", "success"); }
+      else showToast(d.error || "Не удалось загрузить", "error");
+    } catch { showToast("Не удалось обработать изображение", "error"); }
+    finally { setAvatarBusy(false); }
+  };
+
+  const removeAvatar = async () => {
+    setAvatarBusy(true);
+    try {
+      const r = await fetch("/api/user/avatar", { method: "DELETE" });
+      const d = await r.json();
+      if (d.success) { setAvatar(null); showToast("Аватар удалён", "success"); }
+      else showToast(d.error || "Ошибка", "error");
+    } catch { showToast("Ошибка сети", "error"); }
+    finally { setAvatarBusy(false); }
+  };
 
   const save = async () => {
     setLoading(true);
@@ -236,12 +292,39 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
     <div>
       <Section title="Профиль" desc="Имя, под которым вас видит AI-команда" accent="#6366f1">
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 22, paddingBottom: 22, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <div style={{ width: 68, height: 68, borderRadius: 20, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 800, color: "#fff", boxShadow: "0 8px 24px rgba(99,102,241,0.4)" }}>
-            {form.firstName[0] || "F"}
-          </div>
-          <div>
+          <label title="Загрузить аватар"
+            style={{ position: "relative", width: 68, height: 68, flexShrink: 0, borderRadius: 20, cursor: avatarBusy ? "default" : "pointer", overflow: "hidden", display: "block", boxShadow: "0 8px 24px rgba(99,102,241,0.4)" }}>
+            {avatar ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={avatar} alt="Аватар" width={68} height={68} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            ) : (
+              <span style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 800, color: "#fff" }}>
+                {form.firstName[0] || "F"}
+              </span>
+            )}
+            <span style={{ position: "absolute", inset: 0, background: "rgba(0,0,0,0.45)", opacity: avatarBusy ? 1 : 0, transition: "opacity 0.15s", display: "flex", alignItems: "center", justifyContent: "center" }}
+              onMouseEnter={e => { if (!avatarBusy) e.currentTarget.style.opacity = "1"; }}
+              onMouseLeave={e => { if (!avatarBusy) e.currentTarget.style.opacity = "0"; }}>
+              {avatarBusy ? <Loader2 size={18} style={{ color: "#fff", animation: "spin 1s linear infinite" }} /> : <Camera size={18} style={{ color: "#fff" }} />}
+            </span>
+            <input type="file" accept="image/png,image/jpeg,image/webp" onChange={onPickAvatar} disabled={avatarBusy} style={{ display: "none" }} />
+          </label>
+          <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{form.firstName} {form.lastName}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)" }}>{form.email || "email не указан"}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>{form.email || "email не указан"}</div>
+            <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+              <label style={{ fontSize: 11.5, fontWeight: 600, color: "#a5b4fc", cursor: avatarBusy ? "default" : "pointer" }}>
+                {avatar ? "Изменить фото" : "Загрузить фото"}
+                <input type="file" accept="image/png,image/jpeg,image/webp" onChange={onPickAvatar} disabled={avatarBusy} style={{ display: "none" }} />
+              </label>
+              {avatar && (
+                <button onClick={removeAvatar} disabled={avatarBusy}
+                  style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.4)", background: "none", border: "none", cursor: avatarBusy ? "default" : "pointer", padding: 0 }}>
+                  Удалить
+                </button>
+              )}
+              <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.28)" }}>PNG, JPG, WebP · до 5 МБ</span>
+            </div>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
