@@ -24,6 +24,8 @@ function LoginForm() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState("");
+  const [needsTotp, setNeedsTotp] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
 
   // Boot sequence reveal
   const [bootCount, setBootCount] = useState(0);
@@ -35,13 +37,26 @@ function LoginForm() {
 
   const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (needsTotp) {
+      if (!/^\d{6}$/.test(totpCode)) { setError("ACCESS DENIED · введите 6-значный код"); return; }
+      setLoading("credentials");
+      setError("");
+      const res = await signIn("credentials", { name, email, password, totpCode, redirect: false, callbackUrl });
+      setLoading(null);
+      if (res?.error === "2FA_INVALID") { setError("ACCESS DENIED · неверный код 2FA"); setTotpCode(""); }
+      else if (res?.error) setError("ACCESS DENIED · вход не выполнен, попробуйте снова");
+      else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
+      return;
+    }
+
     if (!name || !email || !password) { setError("ACCESS DENIED · заполните все поля"); return; }
     if (password.length < 6) { setError("ACCESS DENIED · пароль минимум 6 символов"); return; }
     setLoading("credentials");
     setError("");
     const res = await signIn("credentials", { name, email, password, redirect: false, callbackUrl });
     setLoading(null);
-    if (res?.error) setError("ACCESS DENIED · неверный email или пароль");
+    if (res?.error === "2FA_REQUIRED") { setNeedsTotp(true); setError(""); }
+    else if (res?.error) setError("ACCESS DENIED · неверный email или пароль");
     else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
   };
 
@@ -114,7 +129,22 @@ function LoginForm() {
 
           {/* Form */}
           <form onSubmit={handleCredentials} style={{ padding: "0 20px 22px", display: "flex", flexDirection: "column", gap: 14 }}>
-            {[
+            {needsTotp ? (
+              <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+                <label className="term-label" style={{ display: "block", marginBottom: 7, color: "rgba(99,102,241,0.75)" }}>&gt; 2FA CODE</label>
+                <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginBottom: 10, lineHeight: 1.5 }}>
+                  Введите код из приложения-аутентификатора или резервный код
+                </div>
+                <input type="text" inputMode="numeric" placeholder="000000" value={totpCode}
+                  onChange={e => setTotpCode(e.target.value.replace(/[^0-9A-Za-z-]/g, "").slice(0, 12))}
+                  style={{ ...fieldStyle, textAlign: "center", letterSpacing: "0.3em", fontSize: 18 }}
+                  onFocus={onFocus} onBlur={onBlur} autoFocus />
+                <button type="button" onClick={() => { setNeedsTotp(false); setTotpCode(""); setError(""); }}
+                  style={{ marginTop: 10, fontSize: 11.5, color: "rgba(255,255,255,0.4)", background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>
+                  ← Назад к паролю
+                </button>
+              </motion.div>
+            ) : [
               { key: "name", label: "> OPERATOR", type: "text", ph: "никнейм", val: name, set: setName },
               { key: "email", label: "> EMAIL", type: "email", ph: "you@example.com", val: email, set: setEmail },
               { key: "pass", label: "> PASSKEY", type: "password", ph: "••••••••", val: password, set: setPassword },
@@ -148,7 +178,7 @@ function LoginForm() {
             >
               {loading === "credentials"
                 ? <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-                : <>▸ Authenticate</>}
+                : <>▸ {needsTotp ? "Confirm 2FA" : "Authenticate"}</>}
             </motion.button>
           </form>
         </div>

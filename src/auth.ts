@@ -1,9 +1,19 @@
 import NextAuth, { type DefaultSession, type NextAuthConfig } from "next-auth";
+import { CredentialsSignin } from "next-auth";
 import GitHub from "next-auth/providers/github";
 import Google from "next-auth/providers/google";
 import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { createClient } from "@/lib/supabase/server";
+import { verifyTotpCode, matchBackupCode } from "@/lib/two-factor";
+import { authConfig } from "@/auth.config";
+
+// Thrown from authorize() when the account has 2FA enabled. The `code` is
+// surfaced to the client as signIn()'s `error` field (redirect: false), so
+// the login page can branch to a second-step code input instead of showing
+// a generic "wrong credentials" message.
+class TwoFactorRequiredError extends CredentialsSignin { code = "2FA_REQUIRED"; }
+class TwoFactorInvalidError extends CredentialsSignin { code = "2FA_INVALID"; }
 
 // ─── Type augmentation ────────────────────────────────────────────────────────
 
@@ -42,10 +52,7 @@ async function findUserByEmail(email: string) {
 // ─── NextAuth configuration ───────────────────────────────────────────────────
 
 const config: NextAuthConfig = {
-  // Trust the deployment host. Vercel is auto-trusted, but self-hosted and
-  // preview deployments need this explicitly, otherwise NextAuth throws
-  // "UntrustedHost" during SSR/prerender and dashboard pages 404.
-  trustHost: true,
+  ...authConfig,
   providers: [
     // ── Google OAuth ──────────────────────────────────────────────────────
     ...(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET
@@ -75,11 +82,13 @@ const config: NextAuthConfig = {
         name:     { label: "Nickname", type: "text"     },
         email:    { label: "Email",    type: "email"    },
         password: { label: "Password", type: "password" },
+        totpCode: { label: "2FA code", type: "text"      },
       },
       async authorize(credentials) {
         const name     = (credentials?.name     as string | undefined)?.trim();
         const email    = (credentials?.email    as string | undefined)?.trim().toLowerCase();
         const password =  credentials?.password as string | undefined;
+        const totpCode = (credentials?.totpCode as string | undefined)?.trim();
 
         if (!email || !password || password.length < 6) return null;
 
@@ -106,6 +115,30 @@ const config: NextAuthConfig = {
         const valid = await bcrypt.compare(password, user.password_hash);
         if (!valid) return null;
 
+        // ── 2FA gate ────────────────────────────────────────────────────────
+        const supabase = await createClient();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const db = supabase as any;
+        const { data: settings } = await db
+          .from("user_settings")
+          .select("two_fa, two_fa_secret_enc, two_fa_backup_codes")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (settings?.two_fa && settings.two_fa_secret_enc) {
+          if (!totpCode) throw new TwoFactorRequiredError();
+
+          const validTotp = await verifyTotpCode(settings.two_fa_secret_enc, totpCode);
+          if (!validTotp) {
+            const codes: string[] = settings.two_fa_backup_codes ?? [];
+            const idx = await matchBackupCode(codes, totpCode);
+            if (idx === -1) throw new TwoFactorInvalidError();
+            // Backup codes are one-time use — remove the consumed one.
+            const remaining = codes.filter((_, i) => i !== idx);
+            await db.from("user_settings").update({ two_fa_backup_codes: remaining }).eq("user_id", user.id);
+          }
+        }
+
         return {
           id:    user.id,
           email: user.email,
@@ -117,15 +150,6 @@ const config: NextAuthConfig = {
       },
     }),
   ],
-
-  pages: {
-    signIn:   "/login",
-    error:    "/login",
-    signOut:  "/login",
-    newUser:  "/dashboard",
-  },
-
-  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // 30 days
 
   callbacks: {
     // ── jwt: enrich token with custom fields on sign-in ───────────────────
@@ -200,8 +224,6 @@ const config: NextAuthConfig = {
       return !!user;
     },
   },
-
-  secret: process.env.NEXTAUTH_SECRET ?? "apex-ai-dev-secret-change-in-production",
 
   // Debug NextAuth in development only
   debug: process.env.NODE_ENV === "development",

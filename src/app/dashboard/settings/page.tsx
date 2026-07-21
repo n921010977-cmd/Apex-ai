@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User, Bot, Bell, Shield, Globe, Palette,
   Check, Eye, EyeOff, AlertTriangle, ChevronRight,
   Moon, Sun, Monitor, Loader2, X, CheckCircle2,
-  MessageSquare, Phone,
+  MessageSquare, Phone, Copy, KeyRound, ShieldCheck,
 } from "lucide-react";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -408,14 +409,26 @@ function NotificationsPanel({ settings, onUpdate, showToast }: { settings: Setti
 }
 
 function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
-  const [twoFA, setTwoFA] = useState(settings.two_fa);
-  const [twoFALoading, setTwoFALoading] = useState(false);
+  const twoFA = settings.two_fa;
 
   // Password change
   const [curPw, setCurPw] = useState("");
   const [newPw, setNewPw] = useState("");
   const [confPw, setConfPw] = useState("");
   const [pwLoading, setPwLoading] = useState(false);
+
+  // 2FA enrollment flow: idle → enrolling (QR + code) → codes (backup codes, once)
+  const [phase, setPhase] = useState<"idle" | "enrolling" | "codes">("idle");
+  const [qrDataUrl, setQrDataUrl] = useState("");
+  const [manualSecret, setManualSecret] = useState("");
+  const [enrollCode, setEnrollCode] = useState("");
+  const [enrollLoading, setEnrollLoading] = useState(false);
+  const [backupCodes, setBackupCodes] = useState<string[]>([]);
+
+  // Disable flow
+  const [disabling, setDisabling] = useState(false);
+  const [disablePw, setDisablePw] = useState("");
+  const [disableLoading, setDisableLoading] = useState(false);
 
   const changePassword = async () => {
     if (newPw.length < 6) { showToast("Новый пароль минимум 6 символов", "error"); return; }
@@ -430,16 +443,52 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
     finally { setPwLoading(false); }
   };
 
-  const toggle2FA = async () => {
-    setTwoFALoading(true);
-    const next = !twoFA;
+  const startEnroll = async () => {
+    setEnrollLoading(true);
     try {
-      const r = await fetch("/api/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ two_fa: next }) });
+      const r = await fetch("/api/auth/2fa/setup", { method: "POST" });
       const d = await r.json();
-      if (d.success) { setTwoFA(next); onUpdate({ two_fa: next }); showToast(next ? "2FA включена" : "2FA отключена", "success"); }
-      else showToast(d.error || "Ошибка", "error");
+      if (d.success) { setQrDataUrl(d.qrDataUrl); setManualSecret(d.secret); setPhase("enrolling"); }
+      else showToast(d.error || "Не удалось начать настройку 2FA", "error");
     } catch { showToast("Ошибка сети", "error"); }
-    finally { setTwoFALoading(false); }
+    finally { setEnrollLoading(false); }
+  };
+
+  const confirmEnroll = async () => {
+    if (!/^\d{6}$/.test(enrollCode)) { showToast("Введите 6-значный код из приложения", "error"); return; }
+    setEnrollLoading(true);
+    try {
+      const r = await fetch("/api/auth/2fa/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: enrollCode }) });
+      const d = await r.json();
+      if (d.success) {
+        onUpdate({ two_fa: true });
+        setBackupCodes(d.backupCodes);
+        setPhase("codes");
+        setEnrollCode("");
+      } else showToast(d.error || "Неверный код", "error");
+    } catch { showToast("Ошибка сети", "error"); }
+    finally { setEnrollLoading(false); }
+  };
+
+  const finishEnroll = () => {
+    setPhase("idle"); setQrDataUrl(""); setManualSecret(""); setBackupCodes([]);
+    showToast("2FA включена — аккаунт защищён", "success");
+  };
+
+  const confirmDisable = async () => {
+    if (!disablePw) { showToast("Введите текущий пароль", "error"); return; }
+    setDisableLoading(true);
+    try {
+      const r = await fetch("/api/auth/2fa/disable", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: disablePw }) });
+      const d = await r.json();
+      if (d.success) { onUpdate({ two_fa: false }); setDisabling(false); setDisablePw(""); showToast("2FA отключена", "success"); }
+      else showToast(d.error || "Не удалось отключить 2FA", "error");
+    } catch { showToast("Ошибка сети", "error"); }
+    finally { setDisableLoading(false); }
+  };
+
+  const copyBackupCodes = () => {
+    navigator.clipboard?.writeText(backupCodes.join("\n")).then(() => showToast("Резервные коды скопированы", "success"));
   };
 
   return (
@@ -460,17 +509,109 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
         </div>
       </Section>
 
-      <Section title="Двухфакторная аутентификация" desc="Дополнительный уровень защиты аккаунта" accent={twoFA ? "#10b981" : "#f59e0b"}>
-        <Row label="2FA через приложение" desc="Google Authenticator, Authy" last>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            {twoFALoading && <Loader2 size={13} style={{ color: "#6366f1", animation: "spin 1s linear infinite" }} />}
-            <Toggle on={twoFA} onChange={toggle2FA} />
-          </div>
-        </Row>
-        {twoFA && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} style={{ marginTop: 14, padding: "12px 14px", borderRadius: 12, background: "rgba(16,185,129,0.07)", border: "1px solid rgba(16,185,129,0.2)" }}>
-            <div style={{ fontSize: 12, color: "#10b981", fontWeight: 600, display: "flex", alignItems: "center", gap: 7 }}>
-              <CheckCircle2 size={13} />2FA включена — ваш аккаунт защищён
+      <Section title="Двухфакторная аутентификация" desc="Код из приложения-аутентификатора (Google Authenticator, Authy) при каждом входе" accent={twoFA ? "#10b981" : "#f59e0b"}>
+        {twoFA ? (
+          <>
+            <Row label="2FA включена" desc="Вход требует код из приложения-аутентификатора" last={!disabling}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: 12.5, fontWeight: 600 }}>
+                <ShieldCheck size={15} /> Активна
+              </div>
+            </Row>
+            {!disabling ? (
+              <div style={{ marginTop: 10 }}>
+                <button onClick={() => setDisabling(true)}
+                  style={{ height: 36, padding: "0 16px", borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: "pointer",
+                    background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }}>
+                  Отключить 2FA
+                </button>
+              </div>
+            ) : (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
+                style={{ marginTop: 12, padding: "14px 16px", borderRadius: 12, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 10 }}>Подтвердите текущий пароль, чтобы отключить 2FA</div>
+                <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
+                  <div style={{ flex: 1, minWidth: 180 }}>
+                    <FieldInput label="Текущий пароль" type="password" value={disablePw} onChange={setDisablePw} placeholder="••••••••" />
+                  </div>
+                  <button onClick={confirmDisable} disabled={disableLoading || !disablePw}
+                    style={{ height: 42, padding: "0 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: disableLoading ? "default" : "pointer",
+                      background: "linear-gradient(135deg,#ef4444,#b91c1c)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7 }}>
+                    {disableLoading && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
+                    Отключить
+                  </button>
+                  <button onClick={() => { setDisabling(false); setDisablePw(""); }}
+                    style={{ height: 42, padding: "0 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: "pointer", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+                    Отмена
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </>
+        ) : phase === "idle" ? (
+          <Row label="2FA через приложение" desc="Google Authenticator, Authy" last>
+            <button onClick={startEnroll} disabled={enrollLoading}
+              style={{ height: 38, padding: "0 18px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: enrollLoading ? "default" : "pointer",
+                background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+              {enrollLoading && <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />}
+              Включить 2FA
+            </button>
+          </Row>
+        ) : phase === "enrolling" ? (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
+              {qrDataUrl && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={qrDataUrl} alt="QR-код для двухфакторной аутентификации" width={160} height={160}
+                  style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "#fff", padding: 8 }} />
+              )}
+              <div style={{ flex: 1, minWidth: 220 }}>
+                <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: 10 }}>
+                  1. Отсканируйте QR-код в Google Authenticator или Authy.<br />
+                  2. Или введите секретный ключ вручную:
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 14, fontFamily: "monospace", fontSize: 12, color: "#a5b4fc", wordBreak: "break-all" }}>
+                  <KeyRound size={13} style={{ flexShrink: 0 }} /> {manualSecret}
+                </div>
+                <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+                  <div style={{ width: 140 }}>
+                    <FieldInput label="Код из приложения" type="text" value={enrollCode} onChange={v => setEnrollCode(v.replace(/\D/g, "").slice(0, 6))} placeholder="000000" />
+                  </div>
+                  <button onClick={confirmEnroll} disabled={enrollLoading || enrollCode.length !== 6}
+                    style={{ height: 42, padding: "0 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: enrollLoading ? "default" : "pointer",
+                      background: enrollCode.length === 6 ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.06)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7 }}>
+                    {enrollLoading && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
+                    Подтвердить
+                  </button>
+                  <button onClick={() => setPhase("idle")}
+                    style={{ height: 42, padding: "0 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: "pointer", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
+                    Отмена
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
+              <CheckCircle2 size={15} /> 2FA включена — сохраните резервные коды
+            </div>
+            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 12, lineHeight: 1.6 }}>
+              Каждый код можно использовать один раз вместо кода из приложения — если потеряете доступ к телефону. Сохраните их в надёжном месте, они больше не будут показаны.
+            </p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 12 }}>
+              {backupCodes.map(c => (
+                <div key={c} style={{ fontFamily: "monospace", fontSize: 13, color: "#E5E7EB", letterSpacing: "0.03em" }}>{c}</div>
+              ))}
+            </div>
+            <div style={{ display: "flex", gap: 8 }}>
+              <button onClick={copyBackupCodes}
+                style={{ height: 36, padding: "0 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", gap: 6 }}>
+                <Copy size={12} /> Скопировать
+              </button>
+              <button onClick={finishEnroll}
+                style={{ height: 36, padding: "0 16px", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", color: "#fff" }}>
+                Готово
+              </button>
             </div>
           </motion.div>
         )}
@@ -587,8 +728,28 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
   );
 }
 
-export default function SettingsPage() {
-  const [active, setActive] = useState("profile");
+const VALID_TABS = new Set(["profile", "ai", "notifications", "security", "language", "appearance"]);
+
+function SettingsPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get("tab");
+  const [active, setActiveState] = useState(initialTab && VALID_TABS.has(initialTab) ? initialTab : "profile");
+
+  // Keep the tab deep-linkable and back-button-friendly, like a real
+  // settings page: switching tabs updates ?tab= without a full navigation,
+  // and browser back/forward restores the previous tab.
+  const selectTab = useCallback((id: string) => {
+    setActiveState(id);
+    router.push(`/dashboard/settings?tab=${id}`, { scroll: false });
+  }, [router]);
+
+  useEffect(() => {
+    const t = searchParams.get("tab");
+    if (t && VALID_TABS.has(t) && t !== active) setActiveState(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   const [toast, setToast] = useState<{ msg: string; type: "success"|"error" } | null>(null);
   const [settings, setSettings] = useState<Settings>({
     language: "ru", timezone: "Europe/Moscow", theme: "dark",
@@ -658,7 +819,7 @@ export default function SettingsPage() {
             {NAV.filter(n => n.group === group).map(item => (
               <button
                 key={item.id}
-                onClick={() => setActive(item.id)}
+                onClick={() => selectTab(item.id)}
                 style={{
                   width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px",
                   borderRadius: 10, fontSize: 12, fontWeight: active === item.id ? 700 : 500,
@@ -710,5 +871,13 @@ export default function SettingsPage() {
         {toast && <Toast key={toast.msg} msg={toast.msg} type={toast.type} onClose={() => setToast(null)} />}
       </AnimatePresence>
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div style={{ minHeight: "100vh", background: "#05060A" }} />}>
+      <SettingsPageInner />
+    </Suspense>
   );
 }
