@@ -1167,41 +1167,25 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
   );
 }
 
-// ─── AI TEAM TAB — PIPELINE GRAPH ────────────────────────────────────────────
+// ─── AI TEAM TAB — organized roster (design-system rewrite) ─────────────────
 
-const NW = 112, NH = 58; // node width / height
+// Division = a C-level lead + their direct reports, matching the org reality
+// described by AGENT_META in src/lib/agents.ts.
+const DIVISIONS: { lead: string; badge: string; reports: string[] }[] = [
+  { lead: "CMO", badge: "CMO", reports: ["Brand Strategist", "PR Director", "Market Research"] },
+  { lead: "COO", badge: "COO", reports: ["Supply Chain", "HR Director", "UX Researcher"] },
+  { lead: "CFO", badge: "CFO", reports: ["Investor Relations", "Risk Manager"] },
+  { lead: "CTO", badge: "CTO", reports: ["Product Manager", "Data Scientist"] },
+  { lead: "Sales Director", badge: "SALES", reports: ["Growth Hacker", "Business Analyst"] },
+  { lead: "Strategy Advisor", badge: "STRAT", reports: ["Legal Advisor"] },
+];
 
-// Graph layout: x/y are node center coordinates
-const GRAPH_LAYOUT: Record<string, { x: number; y: number; parent: string | null; badge: string }> = {
-  "CEO":               { x: 787,  y: 44,  parent: null,               badge: "C.E.O"  },
-  "Strategy Advisor":  { x: 71,   y: 200, parent: "CEO",              badge: "S.ADV"  },
-  "CMO":               { x: 321,  y: 200, parent: "CEO",              badge: "C.M.O"  },
-  "COO":               { x: 693,  y: 200, parent: "CEO",              badge: "C.O.O"  },
-  "CFO":               { x: 1004, y: 200, parent: "CEO",              badge: "C.F.O"  },
-  "CTO":               { x: 1254, y: 200, parent: "CEO",              badge: "C.T.O"  },
-  "Sales Director":    { x: 1504, y: 200, parent: "CEO",              badge: "S.DIR"  },
-  "Legal Advisor":     { x: 71,   y: 378, parent: "Strategy Advisor", badge: "L.ADV"  },
-  "Brand Strategist":  { x: 199,  y: 378, parent: "CMO",              badge: "BRAND"  },
-  "PR Director":       { x: 321,  y: 378, parent: "CMO",              badge: "P.R"    },
-  "Market Research":   { x: 443,  y: 378, parent: "CMO",              badge: "MKT"    },
-  "Supply Chain":      { x: 571,  y: 378, parent: "COO",              badge: "SCM"    },
-  "HR Director":       { x: 693,  y: 378, parent: "COO",              badge: "H.R"    },
-  "UX Researcher":     { x: 815,  y: 378, parent: "COO",              badge: "U.X.R"  },
-  "Investor Relations":{ x: 943,  y: 378, parent: "CFO",              badge: "INV.R"  },
-  "Risk Manager":      { x: 1065, y: 378, parent: "CFO",              badge: "RISK"   },
-  "Product Manager":   { x: 1193, y: 378, parent: "CTO",              badge: "P.M"    },
-  "Data Scientist":    { x: 1315, y: 378, parent: "CTO",              badge: "DATA"   },
-  "Growth Hacker":     { x: 1443, y: 378, parent: "Sales Director",   badge: "GRW"    },
-  "Business Analyst":  { x: 1565, y: 378, parent: "Sales Director",   badge: "B.ANL"  },
-};
-const CANVAS_W = 1640, CANVAS_H = 480;
-
-const PIPELINE_AGENT_COLORS: Record<string, string> = {
-  "CEO": "#8b5cf6", "CFO": "#3b82f6", "CMO": "#f43f5e", "COO": "#10b981",
-  "CTO": "#a78bfa", "Sales Director": "#fb923c", "Strategy Advisor": "#c084fc",
-  "Legal Advisor": "#94a3b8", "Brand Strategist": "#f472b6", "PR Director": "#f43f5e",
-  "Market Research": "#f59e0b", "Supply Chain": "#10b981", "HR Director": "#f472b6",
-  "UX Researcher": "#a78bfa", "Investor Relations": "#3b82f6", "Risk Manager": "#f43f5e",
+const TEAM_AGENT_COLORS: Record<string, string> = {
+  "CEO": "#6366f1", "CFO": "#3b82f6", "CMO": "#f43f5e", "COO": "#10b981",
+  "CTO": "#8b5cf6", "Sales Director": "#f59e0b", "Strategy Advisor": "#a78bfa",
+  "Legal Advisor": "#94a3b8", "Brand Strategist": "#f472b6", "PR Director": "#fb7185",
+  "Market Research": "#f59e0b", "Supply Chain": "#34d399", "HR Director": "#f472b6",
+  "UX Researcher": "#a78bfa", "Investor Relations": "#60a5fa", "Risk Manager": "#f87171",
   "Product Manager": "#a78bfa", "Data Scientist": "#38bdf8", "Growth Hacker": "#fb923c",
   "Business Analyst": "#f59e0b",
 };
@@ -1210,312 +1194,216 @@ const PIPELINE_AGENT_COLORS: Record<string, string> = {
 function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress, onReanalyze }:
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   { aiResults: any[]; isUserProject: boolean; isReanalyzing: boolean; reanalyzeProgress: number; onReanalyze: () => void }) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [selectedRole, setSelectedRole] = useState<string | null>(null);
-  const [zoom, setZoom] = useState(1);
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const animated = useAnimated(200);
+  const animated = useAnimated(150);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const agentMap: Record<string, any> = {};
   aiResults.forEach(a => { agentMap[a.role] = a; });
 
-  // Popup data for selected node
+  const ceo = agentMap["CEO"];
   const selAgent = selectedRole ? agentMap[selectedRole] : null;
-  const selLayout = selectedRole ? GRAPH_LAYOUT[selectedRole] : null;
-  const selColor = selectedRole ? (PIPELINE_AGENT_COLORS[selectedRole] ?? "#8b5cf6") : "#8b5cf6";
+  const selColor = selectedRole ? (TEAM_AGENT_COLORS[selectedRole] ?? "#6366f1") : "#6366f1";
+  const emptyState = aiResults.length === 0;
 
   function agentStats(role: string) {
     const seed = role.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-    const tasks = 80 + (seed % 120);
-    const accuracy = (94 + (seed % 59) / 10).toFixed(1);
-    const avgTime = (8 + (seed % 12)).toFixed(1);
-    const tokPerSec = 60 + (seed % 50);
-    const avgLen = 2000 + (seed % 3000);
-    return { tasks, accuracy, avgTime, tokPerSec, avgLen };
+    return {
+      tasks: 80 + (seed % 120),
+      accuracy: (94 + (seed % 59) / 10).toFixed(1),
+      avgTime: (8 + (seed % 12)).toFixed(1),
+      tokPerSec: 60 + (seed % 50),
+    };
   }
 
-  const emptyState = aiResults.length === 0;
+  // Small roster chip — used for both division leads and their reports.
+  function AgentChip({ role, small }: { role: string; small?: boolean }) {
+    const color = TEAM_AGENT_COLORS[role] ?? "#6366f1";
+    const hasData = !!agentMap[role];
+    const isSelected = role === selectedRole;
+    const score = agentMap[role]?.score;
+    return (
+      <button
+        onClick={() => setSelectedRole(isSelected ? null : role)}
+        style={{
+          display: "flex", alignItems: "center", gap: 10,
+          padding: small ? "8px 12px" : "10px 14px",
+          borderRadius: 12, cursor: "pointer", textAlign: "left", width: "100%",
+          background: isSelected ? `${color}14` : "rgba(255,255,255,0.025)",
+          border: `1px solid ${isSelected ? `${color}55` : "rgba(255,255,255,0.07)"}`,
+          transition: "background 0.2s, border-color 0.2s",
+        }}
+      >
+        <span style={{
+          width: small ? 26 : 32, height: small ? 26 : 32, borderRadius: 9, flexShrink: 0,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          background: `${color}18`, border: `1px solid ${color}35`,
+          fontSize: small ? 10 : 12, fontWeight: 800, color,
+        }}>{role[0]}</span>
+        <span style={{ flex: 1, minWidth: 0 }}>
+          <span style={{ display: "block", fontSize: small ? 11.5 : 12.5, fontWeight: 700, color: "#E5E7EB", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{role}</span>
+        </span>
+        <span style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          {hasData ? (
+            <span style={{ fontSize: 11, fontWeight: 800, fontFamily: "ui-monospace,monospace", color }}>{score}</span>
+          ) : (
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#f43f5e" }} />
+          )}
+        </span>
+      </button>
+    );
+  }
 
   return (
     <div style={{ position: "relative" }}>
-      <style>{`
-        @keyframes pipe-dash { to { stroke-dashoffset: -20; } }
-        @keyframes node-pop { from { transform: scale(0.7); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-        @keyframes pipe-glow { 0%,100%{opacity:0.6} 50%{opacity:1} }
-      `}</style>
-
       <div style={{ marginBottom: 14 }}>
-        <AgentBrief letter="V" name="Victoria Sterling" role="CEO" color="#8b5cf6" rgb="139,92,246"
-          text="Это ваша AI-команда — 20 специалистов, каждый разобрал проект со своей стороны. Кликните на любого агента, чтобы увидеть его метрики. Нажмите «Озвучить», и я вкратце расскажу главное голосом." />
+        <AgentBrief letter="V" name="Victoria Sterling" role="CEO" color="#6366f1" rgb="99,102,241"
+          text="Это ваша AI-команда — 20 специалистов, каждый разобрал проект со своей стороны. Кликните на любого агента, чтобы увидеть его полный анализ. Нажмите «Озвучить», и я вкратце расскажу главное голосом." />
       </div>
 
-      {/* Run Pipeline button */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.2em", textTransform: "uppercase" }}>
-          Исполнительный Совет — Граф Агентов
+      {/* Header row */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
+            Исполнительный совет — организационная структура
+          </div>
+          <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>
+            {aiResults.length} из 20 агентов активны · нажмите на карточку для полного анализа
+          </div>
         </div>
-        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-          {/* Zoom controls */}
-          {["+", "−", "⊡"].map((lbl, i) => (
-            <button key={i} onClick={() => {
-              if (lbl === "+") setZoom(z => Math.min(1.6, z + 0.15));
-              else if (lbl === "−") setZoom(z => Math.max(0.5, z - 0.15));
-              else setZoom(1);
-            }} style={{
-              width: 30, height: 30, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-              color: "rgba(255,255,255,0.6)", fontSize: lbl === "⊡" ? 14 : 18, cursor: "pointer", fontWeight: 700,
-            }}>{lbl}</button>
-          ))}
+        {isUserProject && (
+          <button onClick={onReanalyze} disabled={isReanalyzing} style={{
+            height: 38, padding: "0 18px", borderRadius: 11, fontSize: 12.5, fontWeight: 700, cursor: isReanalyzing ? "default" : "pointer",
+            background: isReanalyzing ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#6366f1,#4f46e5)",
+            color: isReanalyzing ? "rgba(255,255,255,0.4)" : "#fff",
+            border: "none", display: "flex", alignItems: "center", gap: 8,
+            boxShadow: isReanalyzing ? "none" : "0 6px 18px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)",
+          }}>
+            <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 11, height: 11 }}><polygon points="3,2 14,8 3,14"/></svg>
+            {isReanalyzing ? `Анализ… ${reanalyzeProgress}/8` : "Запустить анализ"}
+          </button>
+        )}
+      </div>
+
+      {emptyState ? (
+        <div style={{
+          borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)",
+          padding: "56px 24px", textAlign: "center",
+        }}>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 8 }}>AI-анализ ещё не запущен</div>
+          <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", marginBottom: 20, lineHeight: 1.6, maxWidth: 320, marginInline: "auto" }}>
+            Запустите анализ, чтобы активировать всех 20 агентов совета.
+          </p>
           {isUserProject && (
-            <button onClick={onReanalyze} disabled={isReanalyzing} style={{
-              height: 36, padding: "0 18px", borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: "pointer",
-              background: isReanalyzing ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#3CFF6A,#00C44F)",
-              color: isReanalyzing ? "rgba(255,255,255,0.4)" : "#0a1a0a",
-              border: "none", display: "flex", alignItems: "center", gap: 7,
-              boxShadow: isReanalyzing ? "none" : "0 0 20px rgba(60,255,106,0.35)",
-            }}>
-              <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}>
-                <polygon points="3,2 14,8 3,14"/>
-              </svg>
-              {isReanalyzing ? `Анализ… ${reanalyzeProgress}/8` : "Run Pipeline"}
+            <button onClick={onReanalyze} disabled={isReanalyzing}
+              style={{ height: 42, padding: "0 28px", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: 11, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
+              <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}><polygon points="3,2 14,8 3,14"/></svg>
+              {isReanalyzing ? `Запуск… ${reanalyzeProgress}/8` : "Запустить анализ"}
             </button>
           )}
         </div>
-      </div>
+      ) : (
+        <>
+          {/* CEO hero row */}
+          <div style={{ marginBottom: 14, opacity: animated ? 1 : 0, transition: "opacity 0.4s" }}>
+            <button onClick={() => setSelectedRole(selectedRole === "CEO" ? null : "CEO")}
+              style={{
+                width: "100%", display: "flex", alignItems: "center", gap: 16, textAlign: "left", cursor: "pointer",
+                borderRadius: 16, padding: "16px 20px",
+                background: selectedRole === "CEO" ? "rgba(99,102,241,0.12)" : "linear-gradient(160deg, rgba(99,102,241,0.08), rgba(255,255,255,0.02) 65%)",
+                border: `1px solid ${selectedRole === "CEO" ? "rgba(99,102,241,0.5)" : "rgba(99,102,241,0.22)"}`,
+              }}>
+              <span style={{ width: 48, height: 48, borderRadius: 13, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>C</span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span style={{ display: "block", fontSize: 14.5, fontWeight: 800, color: "white" }}>CEO — Генеральный директор</span>
+                <span style={{ display: "block", fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Синтезирует выводы всех директоров в единую стратегию</span>
+              </span>
+              {ceo && <span style={{ fontSize: 26, fontWeight: 900, fontFamily: "ui-monospace,monospace", color: "#818cf8" }}>{ceo.score}</span>}
+            </button>
+          </div>
 
-      {/* Graph canvas */}
-      <div style={{
-        borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)",
-        background: "radial-gradient(ellipse at 50% 0%,rgba(30,20,60,0.95) 0%,rgba(6,6,14,0.99) 70%)",
-        overflow: "hidden", position: "relative",
-      }}>
-        {/* Top vignette */}
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 60, background: "linear-gradient(to bottom,rgba(0,0,0,0.5),transparent)", pointerEvents: "none", zIndex: 2 }}/>
-
-        {/* Scrollable graph area */}
-        <div ref={scrollRef} style={{ overflowX: "auto", overflowY: "hidden", cursor: "default" }}>
-          <div style={{
-            width: CANVAS_W, height: CANVAS_H + 20,
-            position: "relative",
-            transform: `scale(${zoom})`, transformOrigin: "top left",
-            transition: "transform 0.2s",
-          }}>
-
-            {/* Background dot grid */}
-            <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
-              <defs>
-                <pattern id="dotgrid" width="32" height="32" patternUnits="userSpaceOnUse">
-                  <circle cx="1" cy="1" r="1" fill="rgba(255,255,255,0.06)"/>
-                </pattern>
-              </defs>
-              <rect width="100%" height="100%" fill="url(#dotgrid)"/>
-
-              {/* Connection edges */}
-              {Object.entries(GRAPH_LAYOUT).map(([role, layout]) => {
-                if (!layout.parent) return null;
-                const parent = GRAPH_LAYOUT[layout.parent];
-                if (!parent) return null;
-                const x1 = parent.x, y1 = parent.y + NH/2;
-                const x2 = layout.x, y2 = layout.y - NH/2;
-                const my = (y1 + y2) / 2;
-                const hasData = !!agentMap[role];
-                const hasParentData = !!agentMap[layout.parent];
-                const active = role === selectedRole || layout.parent === selectedRole;
-                const lineColor = active ? selColor : (hasData && hasParentData ? "rgba(139,92,246,0.5)" : "rgba(255,255,255,0.12)");
-                return (
-                  <path key={role}
-                    d={`M${x1},${y1} C${x1},${my} ${x2},${my} ${x2},${y2}`}
-                    fill="none" stroke={lineColor} strokeWidth={active ? 1.5 : 1}
-                    strokeDasharray={hasData ? "none" : "5 4"}
-                    style={{
-                      filter: active ? `drop-shadow(0 0 4px ${selColor})` : "none",
-                      transition: "stroke 0.3s, filter 0.3s",
-                    }}
-                  />
-                );
-              })}
-
-              {/* Arrow markers for leaf connections */}
-              {Object.entries(GRAPH_LAYOUT).map(([role, layout]) => {
-                if (!layout.parent) return null;
-                const layout2 = GRAPH_LAYOUT[layout.parent];
-                if (!layout2) return null;
-                const x2 = layout.x, y2 = layout.y - NH/2;
-                return (
-                  <polygon key={`arr-${role}`}
-                    points={`${x2-4},${y2+1} ${x2+4},${y2+1} ${x2},${y2-7}`}
-                    fill={role === selectedRole ? selColor : "rgba(255,255,255,0.2)"}
-                    style={{ transition: "fill 0.3s" }}
-                  />
-                );
-              })}
-            </svg>
-
-            {/* Nodes */}
-            {Object.entries(GRAPH_LAYOUT).map(([role, layout], idx) => {
-              const color = PIPELINE_AGENT_COLORS[role] ?? "#8b5cf6";
-              const hasData = !!agentMap[role];
-              const isSelected = role === selectedRole;
-              const score = agentMap[role]?.score;
+          {/* Division grid */}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
+            {DIVISIONS.map((div, di) => {
+              const leadColor = TEAM_AGENT_COLORS[div.lead] ?? "#6366f1";
               return (
-                <div key={role} onClick={() => setSelectedRole(isSelected ? null : role)}
-                  style={{
-                    position: "absolute",
-                    left: layout.x - NW/2, top: layout.y - NH/2,
-                    width: NW, height: NH,
-                    borderRadius: 10,
-                    background: isSelected
-                      ? `linear-gradient(135deg,rgba(0,231,231,0.15),rgba(10,10,28,0.95))`
-                      : `linear-gradient(135deg,rgba(${hasData ? "30,22,60" : "14,14,28"},0.98),rgba(10,10,22,0.96))`,
-                    border: isSelected
-                      ? "2px solid #00E7E7"
-                      : `1px solid ${hasData ? `${color}45` : "rgba(255,255,255,0.1)"}`,
-                    boxShadow: isSelected
-                      ? "0 0 24px rgba(0,231,231,0.5), 0 0 48px rgba(0,231,231,0.2)"
-                      : hasData ? `0 0 12px ${color}20` : "none",
-                    cursor: "pointer",
-                    opacity: animated ? 1 : 0,
-                    animation: animated ? `node-pop 0.45s cubic-bezier(0.34,1.56,0.64,1) ${idx * 35}ms both` : "none",
-                    transition: "border 0.25s, box-shadow 0.25s, background 0.25s",
-                    userSelect: "none",
-                    zIndex: isSelected ? 10 : 1,
-                  }}>
-                  {/* Badge top-left */}
-                  <div style={{
-                    position: "absolute", top: 5, left: 6,
-                    fontSize: 7, fontWeight: 800, color, letterSpacing: "0.08em",
-                    background: `${color}18`, borderRadius: 4, padding: "1px 5px",
-                  }}>{layout.badge}</div>
-                  {/* Status dot top-right */}
-                  <div style={{
-                    position: "absolute", top: 7, right: 7,
-                    width: 6, height: 6, borderRadius: "50%",
-                    background: hasData ? "#10b981" : "#f43f5e",
-                    boxShadow: hasData ? "0 0 6px #10b981" : "none",
-                    animation: hasData ? "pipe-glow 2s ease-in-out infinite" : "none",
-                  }}/>
-                  {/* Role name */}
-                  <div style={{
-                    position: "absolute", bottom: 16, left: 0, right: 0,
-                    textAlign: "center", fontSize: 11, fontWeight: 700,
-                    color: isSelected ? "#00E7E7" : "rgba(255,255,255,0.9)",
-                    letterSpacing: "-0.01em", paddingInline: 6,
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>{role}</div>
-                  {/* Model / score */}
-                  <div style={{
-                    position: "absolute", bottom: 5, left: 0, right: 0,
-                    textAlign: "center", fontSize: 9, color: "rgba(255,255,255,0.3)",
-                  }}>{hasData ? `Score ${score}` : "Claude Haiku 4.5"}</div>
+                <div key={div.lead} style={{
+                  borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)",
+                  padding: 12, opacity: animated ? 1 : 0, transform: animated ? "none" : "translateY(8px)",
+                  transition: `opacity 0.4s ${di * 40}ms, transform 0.4s ${di * 40}ms`,
+                }}>
+                  <div style={{ fontSize: 9, fontWeight: 700, color: leadColor, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8, paddingLeft: 2 }}>
+                    {div.badge} · направление
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <AgentChip role={div.lead} />
+                    {div.reports.length > 0 && (
+                      <div style={{ display: "flex", flexDirection: "column", gap: 6, paddingLeft: 14, marginTop: 2, borderLeft: "1px solid rgba(255,255,255,0.06)" }}>
+                        {div.reports.map(r => <AgentChip key={r} role={r} small />)}
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
             })}
-
-            {/* Popup tooltip */}
-            {selAgent && selLayout && (() => {
-              const stats = agentStats(selectedRole!);
-              const popupW = 270;
-              let px = selLayout.x - NW/2;
-              let py = selLayout.y + NH/2 + 10;
-              if (px + popupW > CANVAS_W - 10) px = CANVAS_W - popupW - 10;
-              if (py + 260 > CANVAS_H) py = selLayout.y - NH/2 - 270;
-              const currentTask = [selAgent.analysis, selAgent.summary].filter(Boolean).join(" ").slice(0, 40) || "Анализ бизнес-данных проекта";
-              return (
-                <div style={{
-                  position: "absolute", left: px, top: py,
-                  width: popupW, background: "rgba(10,10,26,0.97)",
-                  border: `1px solid ${selColor}40`, borderRadius: 12,
-                  boxShadow: `0 8px 32px rgba(0,0,0,0.6), 0 0 24px ${selColor}20`,
-                  padding: "12px 14px", zIndex: 20,
-                  animation: "node-pop 0.25s cubic-bezier(0.34,1.56,0.64,1) both",
-                }}>
-                  <div style={{ fontSize: 9, fontWeight: 800, color: selColor, letterSpacing: "0.12em", marginBottom: 8, textTransform: "uppercase" }}>
-                    {selectedRole} | Характеристики Агента
-                  </div>
-                  {[
-                    ["Модель",               "Claude Haiku 4.5"],
-                    ["Статус",               "Активен"],
-                    ["Оценка",               `${(selAgent.score / 20).toFixed(1)} / 5.0`],
-                    ["Выполненных задач",     `${stats.tasks}`],
-                    ["Ср. время задачи",      `${stats.avgTime} мин`],
-                    ["Точность",              `${stats.accuracy}%`],
-                    ["Скорость генерации",    `${stats.tokPerSec} ток./сек`],
-                    ["Ср. длина отчёта",      `${stats.avgLen} слов`],
-                    ["Текущая задача",        `'${currentTask}'`],
-                  ].map(([k, v]) => (
-                    <div key={k} style={{ display: "flex", justifyContent: "space-between", gap: 8, marginBottom: 5, fontSize: 10 }}>
-                      <span style={{ color: "rgba(255,255,255,0.38)" }}>{k}</span>
-                      <span style={{ color: k === "Статус" ? "#10b981" : "rgba(255,255,255,0.82)", fontWeight: k === "Статус" ? 700 : 400, textAlign: "right", maxWidth: 140, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{v}</span>
-                    </div>
-                  ))}
-                </div>
-              );
-            })()}
-
           </div>
-        </div>
-
-        {/* Empty state overlay */}
-        {emptyState && (
-          <div style={{
-            position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
-            background: "rgba(6,6,14,0.7)", zIndex: 30, borderRadius: 18, backdropFilter: "blur(4px)",
-          }}>
-            <div style={{ textAlign: "center" }}>
-              <div style={{ fontSize: 36, marginBottom: 12 }}>🤖</div>
-              <div style={{ fontSize: 14, fontWeight: 600, color: "white", marginBottom: 8 }}>AI-анализ ещё не запущен</div>
-              <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", marginBottom: 20, lineHeight: 1.6, maxWidth: 300 }}>Запустите анализ, чтобы активировать всех агентов в пайплайне.</p>
-              {isUserProject && (
-                <button onClick={onReanalyze} disabled={isReanalyzing}
-                  style={{ height: 40, padding: "0 28px", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg,#3CFF6A,#00C44F)", color: "#0a1a0a", border: "none", borderRadius: 10, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
-                  <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}><polygon points="3,2 14,8 3,14"/></svg>
-                  {isReanalyzing ? `Запуск… ${reanalyzeProgress}/8` : "Run Pipeline"}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
-
-      </div>
-
-      {/* Selected agent full detail panel below */}
-      {selAgent && (
-        <div style={{
-          marginTop: 16,
-          background: `linear-gradient(135deg,${selColor}08 0%,rgba(10,10,18,0.95) 100%)`,
-          border: `1px solid ${selColor}20`, borderRadius: 16, padding: "18px 22px",
-          position: "relative", overflow: "hidden",
-          animation: "node-pop 0.35s ease both",
-        }}>
-          <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: `linear-gradient(90deg,transparent,${selColor}55,transparent)` }}/>
-          <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-            <div style={{ width: 44, height: 44, borderRadius: 12, background: `${selColor}18`, border: `1px solid ${selColor}30`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: selColor }}>{selAgent.role[0]}</div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "white" }}>{selAgent.role}</div>
-              <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)", marginTop: 2 }}>{selAgent.title}</div>
-            </div>
-            <div style={{ fontSize: 28, fontWeight: 900, color: selColor, fontFamily: "monospace", textShadow: `0 0 16px ${selColor}80` }}>{selAgent.score}</div>
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            {[
-              { label: "📌 Краткий вывод", text: selAgent.summary },
-              { label: "📊 Анализ", text: selAgent.analysis },
-              { label: "🚀 Рекомендации", text: selAgent.recommendations },
-            ].filter(s => s.text).map((sec, si) => (
-              <div key={si} style={{ padding: "12px 14px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.04)" }}>
-                <div style={{ fontSize: 9, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.15em", marginBottom: 6 }}>{sec.label}</div>
-                <p style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", lineHeight: 1.75, margin: 0 }}>{sec.text}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+        </>
       )}
+
+      {/* Selected agent — full analysis panel */}
+      {selAgent && (() => {
+        const stats = agentStats(selectedRole!);
+        return (
+          <div style={{
+            marginTop: 16, borderRadius: 18, padding: "20px 22px",
+            background: `linear-gradient(160deg, ${selColor}0e, rgba(255,255,255,0.02) 60%)`,
+            border: `1px solid ${selColor}35`,
+            boxShadow: `0 1px 2px rgba(0,0,0,0.4), 0 16px 44px rgba(0,0,0,0.28)`,
+          }}>
+            <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 16, paddingBottom: 14, borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+              <div style={{ width: 44, height: 44, borderRadius: 12, background: `${selColor}18`, border: `1px solid ${selColor}35`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 16, fontWeight: 800, color: selColor }}>{selAgent.role[0]}</div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14.5, fontWeight: 800, color: "white" }}>{selAgent.role}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>{selAgent.title || selAgent.role}</div>
+              </div>
+              <div style={{ fontSize: 28, fontWeight: 900, color: selColor, fontFamily: "monospace" }}>{selAgent.score}</div>
+            </div>
+
+            {/* Compact stat row */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 16 }}>
+              {[
+                ["Модель", "Claude Haiku 4.5"],
+                ["Точность", `${stats.accuracy}%`],
+                ["Задач выполнено", `${stats.tasks}`],
+                ["Ср. время", `${stats.avgTime} мин`],
+              ].map(([k, v]) => (
+                <div key={k} style={{ padding: "9px 11px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em", marginBottom: 3 }}>{k}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 700, color: "#E5E7EB", fontVariantNumeric: "tabular-nums" }}>{v}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {[
+                { label: "Краткий вывод", text: selAgent.summary },
+                { label: "Анализ", text: selAgent.analysis },
+                { label: "Рекомендации", text: selAgent.recommendations },
+                { label: "Риски", text: selAgent.risks },
+              ].filter(s => s.text).map((sec, si) => (
+                <div key={si} style={{ padding: "13px 15px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 7 }}>{sec.label}</div>
+                  <p style={{ fontSize: 13, color: "rgba(255,255,255,0.72)", lineHeight: 1.75, margin: 0, whiteSpace: "pre-wrap" }}>{sec.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })()}
     </div>
   );
 }
-
 // ─── WHAT-IF SIMULATOR ────────────────────────────────────────────────────────
 // Live recompute of the financial model when the operator changes assumptions.
 function parseMoney(s?: string): number {
