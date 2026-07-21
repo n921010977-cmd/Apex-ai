@@ -8,7 +8,9 @@ import {
   Check, Eye, EyeOff, AlertTriangle, ChevronRight,
   Moon, Sun, Monitor, Loader2, X, CheckCircle2,
   MessageSquare, Phone, Copy, KeyRound, ShieldCheck,
+  Fingerprint, Trash2, Plus,
 } from "lucide-react";
+import { startRegistration } from "@simplewebauthn/browser";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -430,6 +432,57 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
   const [disablePw, setDisablePw] = useState("");
   const [disableLoading, setDisableLoading] = useState(false);
 
+  // Security event log
+  const [log, setLog] = useState<{ id: string; type: string; created_at: string }[]>([]);
+  const [logLoaded, setLogLoaded] = useState(false);
+  useEffect(() => {
+    fetch("/api/security/log").then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.success && Array.isArray(d.data)) setLog(d.data);
+    }).catch(() => {}).finally(() => setLogLoaded(true));
+  }, [twoFA]); // refetch after enabling/disabling 2FA so the new event shows
+
+  // Passkeys (WebAuthn)
+  type Passkey = { id: string; device_label: string | null; created_at: string; last_used_at: string | null };
+  const [passkeys, setPasskeys] = useState<Passkey[]>([]);
+  const [pkLoaded, setPkLoaded] = useState(false);
+  const [pkAdding, setPkAdding] = useState(false);
+  const loadPasskeys = useCallback(() => {
+    fetch("/api/auth/passkey").then(r => r.ok ? r.json() : null).then(d => {
+      if (d?.success && Array.isArray(d.passkeys)) setPasskeys(d.passkeys);
+    }).catch(() => {}).finally(() => setPkLoaded(true));
+  }, []);
+  useEffect(() => { loadPasskeys(); }, [loadPasskeys]);
+
+  const addPasskey = async () => {
+    setPkAdding(true);
+    try {
+      const optRes = await fetch("/api/auth/passkey/register/options", { method: "POST" });
+      const optData = await optRes.json();
+      if (!optRes.ok || !optData.success) { showToast(optData.error || "Не удалось начать регистрацию passkey", "error"); return; }
+      const label = typeof navigator !== "undefined" ? navigator.platform || "Устройство" : "Устройство";
+      const attestation = await startRegistration(optData.options);
+      const verifyRes = await fetch("/api/auth/passkey/register/verify", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ response: attestation, label }),
+      });
+      const verifyData = await verifyRes.json();
+      if (verifyData.success) { showToast("Passkey добавлен", "success"); loadPasskeys(); setLog([]); setLogLoaded(false); fetch("/api/security/log").then(r => r.ok ? r.json() : null).then(d => { if (d?.success && Array.isArray(d.data)) setLog(d.data); }).catch(() => {}).finally(() => setLogLoaded(true)); }
+      else showToast(verifyData.error || "Passkey не подтверждён", "error");
+    } catch {
+      showToast("Регистрация passkey отменена", "error");
+    } finally {
+      setPkAdding(false);
+    }
+  };
+
+  const removePasskey = async (id: string) => {
+    try {
+      const r = await fetch(`/api/auth/passkey/${encodeURIComponent(id)}`, { method: "DELETE" });
+      const d = await r.json();
+      if (d.success) { showToast("Passkey удалён", "success"); setPasskeys(p => p.filter(k => k.id !== id)); }
+      else showToast(d.error || "Не удалось удалить passkey", "error");
+    } catch { showToast("Ошибка сети", "error"); }
+  };
+
   const changePassword = async () => {
     if (newPw.length < 6) { showToast("Новый пароль минимум 6 символов", "error"); return; }
     if (newPw !== confPw) { showToast("Пароли не совпадают", "error"); return; }
@@ -616,9 +669,88 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
           </motion.div>
         )}
       </Section>
+
+      <Section title="Passkeys" desc="Вход по отпечатку, Face ID или PIN устройства — без пароля" accent="#8b5cf6">
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {!pkLoaded ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.35)", fontSize: 12.5, padding: "8px 0" }}>
+              <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Загрузка…
+            </div>
+          ) : passkeys.length === 0 ? (
+            <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, padding: "2px 0" }}>
+              У вас пока нет passkey. Добавьте его, чтобы входить без пароля — быстрее и безопаснее.
+            </div>
+          ) : (
+            passkeys.map(pk => (
+              <div key={pk.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                <span style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(139,92,246,0.14)", border: "1px solid rgba(139,92,246,0.3)" }}>
+                  <Fingerprint size={15} style={{ color: "#8b5cf6" }} />
+                </span>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ fontSize: 12.5, color: "#E5E7EB", fontWeight: 600 }}>{pk.device_label || "Passkey"}</div>
+                  <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontVariantNumeric: "tabular-nums" }}>
+                    Добавлен {new Date(pk.created_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", year: "numeric" })}
+                    {pk.last_used_at && ` · вход ${new Date(pk.last_used_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "short" })}`}
+                  </div>
+                </div>
+                <button onClick={() => removePasskey(pk.id)} title="Удалить passkey"
+                  style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", color: "#f87171" }}>
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))
+          )}
+          <div>
+            <button onClick={addPasskey} disabled={pkAdding}
+              style={{ height: 38, padding: "0 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: pkAdding ? "default" : "pointer",
+                background: pkAdding ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#8b5cf6,#6d28d9)", border: "none", color: "#fff", display: "inline-flex", alignItems: "center", gap: 8 }}>
+              {pkAdding ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Plus size={14} />}
+              {pkAdding ? "Добавление…" : "Добавить passkey"}
+            </button>
+          </div>
+        </div>
+      </Section>
+
+      <Section title="Журнал безопасности" desc="Последние действия с вашим аккаунтом" accent="#6366f1">
+        {!logLoaded ? (
+          <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.35)", fontSize: 12.5, padding: "8px 0" }}>
+            <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Загрузка…
+          </div>
+        ) : log.length === 0 ? (
+          <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.35)", padding: "6px 0" }}>
+            Событий безопасности пока нет. Смена пароля, включение 2FA и добавление passkey будут отображаться здесь.
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {log.map(ev => {
+              const meta = SECURITY_EVENT_META[ev.type] ?? { label: ev.type.replace("security.", ""), color: "#6366f1", Icon: Shield };
+              return (
+                <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `${meta.color}16`, border: `1px solid ${meta.color}30` }}>
+                    <meta.Icon size={14} style={{ color: meta.color }} />
+                  </span>
+                  <span style={{ flex: 1, fontSize: 12.5, color: "#E5E7EB", fontWeight: 600 }}>{meta.label}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontVariantNumeric: "tabular-nums" }}>
+                    {new Date(ev.created_at).toLocaleString("ru-RU", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </Section>
     </div>
   );
 }
+
+const SECURITY_EVENT_META: Record<string, { label: string; color: string; Icon: typeof Shield }> = {
+  "security.password_changed": { label: "Пароль изменён",       color: "#6366f1", Icon: KeyRound },
+  "security.2fa_enabled":      { label: "2FA включена",         color: "#10b981", Icon: ShieldCheck },
+  "security.2fa_disabled":     { label: "2FA отключена",        color: "#f59e0b", Icon: Shield },
+  "security.passkey_added":    { label: "Добавлен passkey",     color: "#8b5cf6", Icon: KeyRound },
+  "security.passkey_removed":  { label: "Passkey удалён",       color: "#f59e0b", Icon: KeyRound },
+  "security.login":            { label: "Вход в аккаунт",       color: "#3b82f6", Icon: CheckCircle2 },
+};
 
 function LanguagePanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
   const [lang, setLang] = useState(settings.language || "ru");

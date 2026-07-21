@@ -135,11 +135,34 @@ export default function KnowledgeVaultPage() {
 
   useEffect(() => { markVisit("vault"); }, []);
 
-  // Load real data on mount (client-only → no hydration mismatch)
+  // Load real data on mount (client-only → no hydration mismatch).
+  // Server-stored custom items take priority; localStorage acts as an offline
+  // cache/fallback, and the seeded institutional docs always show.
   useEffect(() => {
-    const merged = [...loadUserItems(), ...SEED];
-    setItems(merged);
-    setSelected(merged[0] ?? null);
+    const localMerged = [...loadUserItems(), ...SEED];
+    setItems(localMerged);
+    setSelected(localMerged[0] ?? null);
+
+    (async () => {
+      try {
+        const r = await fetch("/api/vault");
+        if (!r.ok) return; // 401 in demo/no-session → keep local
+        const d = await r.json();
+        if (!d.success || !Array.isArray(d.data)) return;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const serverItems: KItem[] = d.data.map((x: any) => ({
+          id: x.id, type: (x.type ?? "doc") as KType, title: x.title ?? "Без названия",
+          content: x.content ?? "", source: x.source ?? "База знаний",
+          tags: Array.isArray(x.tags) ? x.tags : [],
+          date: new Date(x.updated_at ?? x.created_at ?? Date.now()).getTime(), custom: true,
+        }));
+        // Replace localStorage-only custom items with the authoritative server list.
+        const nonCustom = [...loadUserItems().filter(i => !i.custom), ...SEED];
+        const merged = [...serverItems, ...nonCustom];
+        setItems(merged);
+        setSelected(s => merged.find(m => m.id === s?.id) ?? merged[0] ?? null);
+      } catch { /* offline → keep local */ }
+    })();
   }, []);
 
   const counts = useMemo(() => {
@@ -161,32 +184,41 @@ export default function KnowledgeVaultPage() {
       .sort((a, b) => b.date - a.date);
   }, [items, query, filter]);
 
-  const addItem = useCallback(() => {
+  const persistLocal = (list: KItem[]) => {
+    try { localStorage.setItem(VAULT_KEY, JSON.stringify(list.filter(x => x.custom))); } catch { /* ignore */ }
+  };
+
+  const addItem = useCallback(async () => {
     if (!draft.title.trim()) return;
     const item: KItem = {
       id: `k-${Date.now()}`, type: "doc", title: draft.title.trim(),
       content: draft.content.trim(), source: "Добавлено вручную", tags: [], date: Date.now(), custom: true,
     };
-    setItems(prev => {
-      const next = [item, ...prev];
-      try {
-        const customs = next.filter(x => x.custom).map(({ ...c }) => c);
-        localStorage.setItem(VAULT_KEY, JSON.stringify(customs));
-      } catch { /* ignore */ }
-      return next;
-    });
+    // Optimistic insert
+    setItems(prev => { const next = [item, ...prev]; persistLocal(next); return next; });
     setSelected(item);
     setDraft({ title: "", content: "" });
     setAdding(false);
+
+    // Persist to server; swap the optimistic id for the server id on success.
+    try {
+      const r = await fetch("/api/vault", { method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: item.title, content: item.content, type: item.type }) });
+      const d = await r.json();
+      if (d.success && d.data?.id) {
+        setItems(prev => prev.map(x => x.id === item.id ? { ...x, id: d.data.id } : x));
+        setSelected(s => (s?.id === item.id ? { ...s, id: d.data.id } : s));
+      }
+    } catch { /* offline — stays in localStorage */ }
   }, [draft]);
 
-  const removeItem = useCallback((id: string) => {
-    setItems(prev => {
-      const next = prev.filter(x => x.id !== id);
-      try { localStorage.setItem(VAULT_KEY, JSON.stringify(next.filter(x => x.custom))); } catch { /* ignore */ }
-      return next;
-    });
+  const removeItem = useCallback(async (id: string) => {
+    setItems(prev => { const next = prev.filter(x => x.id !== id); persistLocal(next); return next; });
     setSelected(s => (s?.id === id ? null : s));
+    // Server-stored items have UUID ids (not the local "k-…" prefix).
+    if (!id.startsWith("k-")) {
+      try { await fetch(`/api/vault/${id}`, { method: "DELETE" }); } catch { /* ignore */ }
+    }
   }, []);
 
   const copy = useCallback((text: string) => {

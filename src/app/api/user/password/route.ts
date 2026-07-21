@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
+import { logSecurityEvent } from "@/lib/security-log";
 import { createClient } from "@/lib/supabase/server";
 import { authLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
@@ -39,5 +40,6 @@ export async function POST(req: Request) {
   const { error } = await db.from("users").update({ password_hash }).eq("id", session.user.id);
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
 
+  await logSecurityEvent(session.user.id, "password_changed");
   return NextResponse.json({ success: true });
 }

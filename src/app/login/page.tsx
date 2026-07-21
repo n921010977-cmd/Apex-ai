@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import { signIn } from "next-auth/react";
+import { startAuthentication } from "@simplewebauthn/browser";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { track, EVENTS } from "@/lib/analytics/events";
@@ -58,6 +59,34 @@ function LoginForm() {
     if (res?.error === "2FA_REQUIRED") { setNeedsTotp(true); setError(""); }
     else if (res?.error) setError("ACCESS DENIED · неверный email или пароль");
     else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
+  };
+
+  // ── Passkey (WebAuthn) sign-in ────────────────────────────────────────
+  const handlePasskey = async () => {
+    const target = email.trim().toLowerCase();
+    if (!target) { setError("ACCESS DENIED · введите email для входа по passkey"); return; }
+    setLoading("passkey");
+    setError("");
+    try {
+      const optRes = await fetch("/api/auth/passkey/auth/options", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: target }),
+      });
+      const optData = await optRes.json();
+      if (!optRes.ok || !optData.success) {
+        setLoading(null);
+        setError(optRes.status === 404 ? "ACCESS DENIED · у этого аккаунта нет passkey" : "ACCESS DENIED · не удалось начать вход");
+        return;
+      }
+      const assertion = await startAuthentication(optData.options);
+      const res = await signIn("passkey", { email: target, response: JSON.stringify(assertion), redirect: false, callbackUrl });
+      setLoading(null);
+      if (res?.error) { setError("ACCESS DENIED · passkey не подтверждён"); return; }
+      track(EVENTS.SIGN_IN, { method: "passkey" });
+      router.push(callbackUrl); router.refresh();
+    } catch {
+      setLoading(null);
+      setError("ACCESS DENIED · вход по passkey отменён");
+    }
   };
 
   const fieldStyle: React.CSSProperties = {
@@ -119,6 +148,13 @@ function LoginForm() {
               style={{ height: 46, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 13.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 016 0C17 4.6 18 5 18 5c.6 1.6.2 2.8 0 3.2.9.8 1.3 1.9 1.3 3.1 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1 .9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0012 .3"/></svg>
               Продолжить с GitHub
+            </button>
+            <button type="button" onClick={handlePasskey} disabled={!!loading}
+              style={{ height: 46, borderRadius: 10, border: "1px solid rgba(99,102,241,0.3)", background: "rgba(99,102,241,0.08)", color: "#c7d2fe", fontSize: 13.5, fontWeight: 600, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
+              {loading === "passkey"
+                ? <span style={{ width: 15, height: 15, border: "2px solid rgba(199,210,254,0.35)", borderTopColor: "#c7d2fe", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="10" cy="8" r="5"/><path d="M2 21a8 8 0 0 1 10.434-7.62"/><circle cx="18" cy="18" r="3"/><path d="M18 14v1M18 21v1M22 18h-1M15 18h-1M20.5 15.5l-.7.7M16.2 19.8l-.7.7M20.5 20.5l-.7-.7M16.2 16.2l-.7-.7"/></svg>}
+              Войти по passkey
             </button>
             <div style={{ display: "flex", alignItems: "center", gap: 12, margin: "4px 0" }}>
               <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.08)" }} />

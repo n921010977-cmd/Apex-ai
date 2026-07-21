@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { auth } from "@/auth";
+import { logSecurityEvent } from "@/lib/security-log";
 import { createClient } from "@/lib/supabase/server";
 import { verifyTotpCode } from "@/lib/two-factor";
 import { authLimiter, rateLimitResponse, clientIp } from "@/lib/middleware/rate-limit";
@@ -44,5 +45,6 @@ export async function POST(req: Request) {
   }).eq("user_id", session.user.id);
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
 
+  await logSecurityEvent(session.user.id, "2fa_disabled");
   return NextResponse.json({ success: true });
 }

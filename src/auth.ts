@@ -6,6 +6,9 @@ import Credentials from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { createClient } from "@/lib/supabase/server";
 import { verifyTotpCode, matchBackupCode } from "@/lib/two-factor";
+import { verifyAuthenticationResponse } from "@simplewebauthn/server";
+import { isoBase64URL } from "@simplewebauthn/server/helpers";
+import { getRpID, getRpOrigin } from "@/lib/webauthn";
 import { authConfig } from "@/auth.config";
 
 // Thrown from authorize() when the account has 2FA enabled. The `code` is
@@ -143,6 +146,93 @@ const config: NextAuthConfig = {
           id:    user.id,
           email: user.email,
           name:  user.name ?? name ?? email.split("@")[0],
+          image: user.image ?? user.avatar_url ?? null,
+          role:  user.role  ?? "FREE",
+          tier:  user.tier  ?? "FREE",
+        };
+      },
+    }),
+
+    // ── Passkey (WebAuthn) ────────────────────────────────────────────────
+    // The browser has already run the authentication ceremony; here we verify
+    // the signed assertion server-side against the stored challenge + public
+    // key, bump the signature counter, and mint the session.
+    Credentials({
+      id: "passkey",
+      name: "passkey",
+      credentials: {
+        email:    { label: "Email",    type: "email" },
+        response: { label: "Response", type: "text"  },
+      },
+      async authorize(credentials) {
+        const email = (credentials?.email as string | undefined)?.trim().toLowerCase();
+        const raw   =  credentials?.response as string | undefined;
+        if (!email || !raw) return null;
+
+        // Passkeys require a real database — no demo fallback.
+        if (!process.env.NEXT_PUBLIC_SUPABASE_URL) return null;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        let response: any;
+        try { response = JSON.parse(raw); } catch { return null; }
+
+        const supabase = await createClient();
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const db = supabase as any;
+
+        const user = await findUserByEmail(email);
+        if (!user) return null;
+
+        // Match the credential the browser used.
+        const { data: cred } = await db
+          .from("webauthn_credentials")
+          .select("id, public_key, counter")
+          .eq("id", response.id)
+          .eq("user_id", user.id)
+          .maybeSingle();
+        if (!cred) return null;
+
+        // Load the freshest authentication challenge for this email.
+        const { data: ch } = await db
+          .from("webauthn_challenges")
+          .select("id, challenge")
+          .eq("email", email)
+          .eq("kind", "authenticate")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (!ch?.challenge) return null;
+
+        let verification;
+        try {
+          verification = await verifyAuthenticationResponse({
+            response,
+            expectedChallenge: ch.challenge,
+            expectedOrigin: getRpOrigin(),
+            expectedRPID: getRpID(),
+            authenticator: {
+              credentialID: isoBase64URL.toBuffer(cred.id),
+              credentialPublicKey: isoBase64URL.toBuffer(cred.public_key),
+              counter: Number(cred.counter) || 0,
+            },
+          });
+        } catch {
+          return null;
+        }
+
+        if (!verification.verified) return null;
+
+        // Bump the counter (clone-detection) and mark the passkey used.
+        await db
+          .from("webauthn_credentials")
+          .update({ counter: verification.authenticationInfo.newCounter, last_used_at: new Date().toISOString() })
+          .eq("id", cred.id);
+        await db.from("webauthn_challenges").delete().eq("id", ch.id);
+
+        return {
+          id:    user.id,
+          email: user.email,
+          name:  user.name ?? email.split("@")[0],
           image: user.image ?? user.avatar_url ?? null,
           role:  user.role  ?? "FREE",
           tier:  user.tier  ?? "FREE",
