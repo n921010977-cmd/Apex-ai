@@ -9,7 +9,9 @@ export async function POST(req: Request) {
     const limit = await authLimiter(`register:${ip}`);
     if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-    const { name, email, password } = await req.json();
+    let body: { name?: string; email?: string; password?: string };
+    try { body = await req.json(); } catch { return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 }); }
+    const { name, email, password } = body;
 
     if (!name?.trim() || !email?.trim() || !password) {
       return NextResponse.json({ error: "Заполните все поля" }, { status: 400 });

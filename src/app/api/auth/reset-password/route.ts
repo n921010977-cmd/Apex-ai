@@ -11,7 +11,9 @@ export async function POST(req: Request) {
     const limit = await authLimiter(`reset:${ip}`);
     if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-    const { token, password } = await req.json();
+    let body: { token?: string; password?: string };
+    try { body = await req.json(); } catch { return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 }); }
+    const { token, password } = body;
     if (!token || !password) return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 });
     if (password.length < 6) return NextResponse.json({ error: "Пароль минимум 6 символов" }, { status: 400 });
 
