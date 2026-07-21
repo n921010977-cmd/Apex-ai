@@ -464,52 +464,92 @@ const EXAMPLE_QS = [
 ];
 
 type Phase = "idle" | "deliberating" | "verdict" | "done";
-type Stat = "thinking" | "answering" | "done";
+type Stance = "for" | "against" | "caution";
+
+const STANCE_META: Record<Stance, { label: string; c: string }> = {
+  for:     { label: "ЗА",        c: "#10b981" },
+  against: { label: "ПРОТИВ",    c: "#ef4444" },
+  caution: { label: "ОСТОРОЖНО", c: "#f59e0b" },
+};
+// Fallback stances when the API is unavailable (matches the FB texts' tone).
+const FB_STANCE: Record<string, Stance> = { ceo: "for", cfo: "caution", cmo: "for", coo: "caution", cto: "caution" };
+
+// Directors are told to open with a [ЗА]/[ПРОТИВ]/[ОСТОРОЖНО] tag; strip it for display.
+function parseStance(t: string): { stance: Stance | null; clean: string } {
+  const m = t.match(/^\s*\[?\s*(ЗА|ПРОТИВ|ОСТОРОЖНО)\s*\]?[:.\s—–-]*/i);
+  if (!m) return { stance: null, clean: t.replace(/\*\*/g, "") };
+  const w = m[1].toUpperCase();
+  return { stance: w === "ЗА" ? "for" : w === "ПРОТИВ" ? "against" : "caution", clean: t.slice(m[0].length).replace(/\*\*/g, "") };
+}
 
 function CouncilSession() {
   const reduce = useReducedMotion();
-  const [q, setQ]                 = useState("");
-  const [phase, setPhase]         = useState<Phase>("idle");
-  const [asked, setAsked]         = useState("");
-  const [responses, setResponses] = useState<Record<string, string>>({});
-  const [status, setStatus]       = useState<Record<string, Stat>>({});
-  const [verdict, setVerdict]     = useState("");
+  const [q, setQ]             = useState("");
+  const [followQ, setFollowQ] = useState("");
+  const [phase, setPhase]     = useState<Phase>("idle");
+  const [asked, setAsked]     = useState("");
+  const [speeches, setSpeeches] = useState<Record<string, string>>({});
+  const [stances, setStances]   = useState<Record<string, Stance>>({});
+  const [current, setCurrent]   = useState<string | null>(null);
+  const [spoken, setSpoken]     = useState<string[]>([]);
+  const [verdict, setVerdict]   = useState("");
+  const prevCtx = useRef("");
+  const feedRef = useRef<HTMLDivElement>(null);
 
   const busy = phase === "deliberating" || phase === "verdict";
-  const answered = BOARD_SLUGS.filter(s => status[s] === "done").length;
+  const answered = spoken.length;
 
-  const convene = useCallback(async (override?: string) => {
+  // Keep the protocol feed pinned to the latest speech.
+  useEffect(() => {
+    if (busy && feedRef.current) feedRef.current.scrollTo({ top: feedRef.current.scrollHeight, behavior: reduce ? "auto" : "smooth" });
+  }, [speeches, verdict, busy, reduce]);
+
+  const convene = useCallback(async (override?: string, isFollowUp = false) => {
     const question = (override ?? q).trim();
     if (!question || phase === "deliberating" || phase === "verdict") return;
     setQ(question);
     setAsked(question);
-    setResponses({});
-    setStatus(Object.fromEntries(BOARD_SLUGS.map(s => [s, "thinking" as Stat])));
+    setSpeeches({});
+    setStances({});
+    setSpoken([]);
+    setFollowQ("");
     setVerdict("");
     setPhase("deliberating");
 
-    // All directors deliberate in parallel, each streaming their own view.
-    const results = await Promise.all(BOARD_SLUGS.map(async (slug) => {
+    // Directors speak in turn, like a real boardroom: each sees what was
+    // already said and reacts to it, then casts a stance.
+    const results: { slug: string; role: string; name: string; text: string; stance: Stance; color: string }[] = [];
+    for (const slug of BOARD_SLUGS) {
       const a = rich(slug);
-      const persona = `Ты — ${a.name}, ${a.title} (${a.role}). Твоя экспертиза: ${a.specialty}. Ответь основателю строго со своей профессиональной позиции. 3–4 очень коротких предложения, конкретно, без вводных и без markdown.`;
-      setStatus(p => ({ ...p, [slug]: "answering" }));
-      let full = "";
+      setCurrent(slug);
+      const heard = results.length
+        ? `\n\nУже выступили:\n${results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text.slice(0, 220)}`).join("\n")}\nМожешь согласиться или возразить коллегам — по делу.`
+        : "";
+      const ctx = isFollowUp && prevCtx.current ? `\n\nКонтекст прошлого решения совета: ${prevCtx.current.slice(0, 400)}` : "";
+      const persona = `Ты — ${a.name}, ${a.title} (${a.role}) на заседании совета директоров Vertlix. Твоя экспертиза: ${a.specialty}. Начни ответ ровно с одной метки твоей позиции: [ЗА], [ПРОТИВ] или [ОСТОРОЖНО]. Затем 2–3 коротких предложения строго со своей профессиональной позиции, конкретно, без вводных и без markdown.`;
+      let raw = "";
       try {
-        full = await streamChat(question, persona, t => setResponses(p => ({ ...p, [slug]: (p[slug] || "") + t })));
+        raw = await streamChat(`${question}${ctx}${heard}`, persona, t => setSpeeches(p => ({ ...p, [slug]: (p[slug] || "") + t })));
       } catch {
-        const fb = (slug in FB ? FB[slug as keyof typeof FB] : undefined)
-          ?? `Со стороны ${a.role}: нужен более узкий контекст. Базово — проверяем гипотезу дешёвым тестом и решаем по данным.`;
-        for (const ch of fb) { full += ch; setResponses(p => ({ ...p, [slug]: (p[slug] || "") + ch })); await new Promise(r => setTimeout(r, 5)); }
+        const fb = `[${STANCE_META[FB_STANCE[slug] ?? "caution"].label}] ` + ((slug in FB ? FB[slug as keyof typeof FB] : undefined)
+          ?? `Со стороны ${a.role}: нужен более узкий контекст. Базово — проверяем гипотезу дешёвым тестом и решаем по данным.`);
+        for (const ch of fb) { raw += ch; setSpeeches(p => ({ ...p, [slug]: (p[slug] || "") + ch })); await new Promise(r => setTimeout(r, 5)); }
       }
-      setStatus(p => ({ ...p, [slug]: "done" }));
-      return { role: a.role, name: a.name, text: full, color: a.c };
-    }));
+      const { stance, clean } = parseStance(raw);
+      const st: Stance = stance ?? FB_STANCE[slug] ?? "caution";
+      setStances(p => ({ ...p, [slug]: st }));
+      setSpoken(p => [...p, slug]);
+      results.push({ slug, role: a.role, name: a.name, text: clean, stance: st, color: a.c });
+    }
+    setCurrent(null);
 
-    // Chair synthesises the collective verdict.
+    // Chair counts the votes and synthesises the collective verdict.
     setPhase("verdict");
-    const synthPersona = "Ты — председатель совета директоров Vertlix. Синтезируй мнения директоров в единый вердикт: чёткое решение, 1–2 ключевых риска и конкретный следующий шаг. 3–5 деловых предложений, без markdown.";
-    const synthMsg = `Вопрос основателя: "${question}"\n\nМнения совета:\n` +
-      results.map(r => `${r.role}: ${r.text}`).join("\n\n") + "\n\nДай итоговый вердикт совета.";
+    const tally = results.reduce((acc, r) => { acc[r.stance] = (acc[r.stance] ?? 0) + 1; return acc; }, {} as Record<Stance, number>);
+    const tallyStr = (Object.keys(STANCE_META) as Stance[]).filter(s => tally[s]).map(s => `${STANCE_META[s].label}: ${tally[s]}`).join(", ");
+    const synthPersona = "Ты — председатель совета директоров Vertlix. Синтезируй дебаты в единый вердикт: чёткое решение с опорой на голосование, 1–2 ключевых риска и конкретный следующий шаг. 3–5 деловых предложений, без markdown.";
+    const synthMsg = `Вопрос основателя: "${question}"\n\nГолосование: ${tallyStr}\n\nВыступления:\n` +
+      results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text}`).join("\n\n") + "\n\nДай итоговый вердикт совета.";
     let verdictFull = "";
     try {
       verdictFull = await streamChat(synthMsg, synthPersona, t => setVerdict(prev => prev + t));
@@ -517,13 +557,18 @@ function CouncilSession() {
       const fb = "Вердикт совета: двигаться, но управляемо. Сначала дешёвый тест гипотезы с чётким критерием успеха и пересмотром через 30 дней. Главный риск — расфокус: держите один сегмент и одну метрику.";
       for (const ch of fb) { verdictFull += ch; setVerdict(prev => prev + ch); await new Promise(r => setTimeout(r, 5)); }
     }
+    prevCtx.current = `Вопрос: ${question}. Вердикт: ${verdictFull}`;
     setPhase("done");
     // Persist the whole board deliberation to the История page.
     saveAsk({ id: `council-${Date.now()}`, kind: "council", question, date: Date.now(),
-      responses: results.map(r => ({ role: r.role, name: r.name, text: r.text, color: r.color })), verdict: verdictFull });
+      responses: results.map(r => ({ role: `${r.role} · ${STANCE_META[r.stance].label}`, name: r.name, text: r.text, color: r.color })), verdict: verdictFull });
   }, [q, phase]);
 
-  const reset = () => { setPhase("idle"); setAsked(""); setResponses({}); setStatus({}); setVerdict(""); };
+  const reset = () => { setPhase("idle"); setAsked(""); setSpeeches({}); setStances({}); setSpoken([]); setCurrent(null); setVerdict(""); setFollowQ(""); prevCtx.current = ""; };
+
+  const tallyChips = (Object.keys(STANCE_META) as Stance[])
+    .map(s => ({ s, n: Object.values(stances).filter(v => v === s).length }))
+    .filter(x => x.n > 0);
 
   // Arriving from a strategy page with ?ask=… → prefill and auto-convene the board.
   useEffect(() => {
@@ -623,15 +668,16 @@ function CouncilSession() {
         </div>
       )}
 
-      {/* Deliberation */}
+      {/* Meeting in session — agenda, table, protocol */}
       {phase !== "idle" && (
         <div style={{ padding: "0 24px 22px" }}>
-          {/* asked question + animated progress ring */}
-          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 14px", marginBottom: 16, borderRadius: 12,
+          {/* Agenda bar */}
+          <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", marginBottom: 16, borderRadius: 12,
             background: "rgba(255,255,255,0.03)", border: `1px solid ${BORD}` }}>
-            <MessageSquare size={14} style={{ color: ACCENT, flexShrink: 0 }} />
-            <span style={{ flex: 1, fontSize: 13.5, fontWeight: 600, color: TP }}>{asked}</span>
-            {/* progress ring */}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: TM, marginBottom: 3 }}>ПОВЕСТКА ЗАСЕДАНИЯ</div>
+              <div style={{ fontSize: 13.5, fontWeight: 600, color: TP }}>{asked}</div>
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
               <svg width={26} height={26} viewBox="0 0 26 26" style={{ transform: "rotate(-90deg)" }}>
                 <circle cx={13} cy={13} r={10} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth={3} />
@@ -642,122 +688,166 @@ function CouncilSession() {
             </div>
           </div>
 
-          {/* director responses — staggered spring entrance */}
-          <motion.div
-            initial="hidden" animate="show"
-            variants={{ show: { transition: { staggerChildren: reduce ? 0 : 0.09 } } }}
-            style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12 }}>
+          {/* The table: who has the floor */}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 14, marginBottom: 16, flexWrap: "wrap" }}>
             {BOARD_SLUGS.map(slug => {
               const a = rich(slug);
               const Icon = EXEC_ICON[slug] ?? Crown;
-              const st = status[slug];
-              const text = responses[slug] || "";
-              const answering = st === "answering";
+              const speaking = current === slug;
+              const st = stances[slug];
+              const waiting = !speaking && !st;
               return (
-                <motion.div key={slug}
-                  variants={{ hidden: { opacity: 0, y: 18, scale: 0.96 }, show: { opacity: 1, y: 0, scale: 1 } }}
-                  transition={{ type: "spring", stiffness: 240, damping: 22 }}
-                  style={{ borderRadius: 14, padding: 14, position: "relative", overflow: "hidden",
-                    background: answering ? `linear-gradient(150deg, ${a.c}0e, rgba(255,255,255,0.02) 70%)` : "rgba(255,255,255,0.022)",
-                    border: `1px solid ${answering ? a.c + "55" : st === "done" ? a.c + "26" : BORD}`,
-                    boxShadow: answering ? `0 10px 30px ${a.c}1f` : "none",
-                    transition: "border-color 0.35s, background 0.35s, box-shadow 0.35s" }}>
-                  {/* ambient glow while answering */}
-                  {answering && !reduce && (
-                    <motion.div aria-hidden animate={{ opacity: [0.35, 0.12, 0.35] }} transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
-                      style={{ position: "absolute", top: -40, right: -30, width: 140, height: 140, borderRadius: "50%", pointerEvents: "none",
-                        background: `radial-gradient(circle, ${a.c}22, transparent 70%)` }} />
-                  )}
-                  <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10, position: "relative" }}>
-                    {/* avatar with rotating ring while answering */}
-                    <div style={{ position: "relative", width: 36, height: 36, flexShrink: 0 }}>
-                      {answering && !reduce && (
-                        <motion.span aria-hidden animate={{ rotate: 360 }} transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
-                          style={{ position: "absolute", inset: -3, borderRadius: 12,
-                            background: `conic-gradient(from 0deg, transparent, ${a.c}, transparent 60%)`,
-                            WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))",
-                            mask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))" }} />
-                      )}
-                      <motion.div
-                        animate={answering && !reduce ? { scale: [1, 1.06, 1] } : { scale: 1 }}
-                        transition={answering && !reduce ? { duration: 1.8, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
-                        style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center",
-                          background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff", boxShadow: `0 4px 14px ${a.c}44` }}>
-                        <Icon size={16} strokeWidth={1.9} />
-                      </motion.div>
-                    </div>
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{a.name}</div>
-                      <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: a.c }}>{a.role}</div>
-                    </div>
-                    {answering && !text && (
-                      <span style={{ display: "flex", gap: 3 }}>
-                        {[0, 1, 2].map(i => <span key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: a.c, animation: `ec-think 1s ease-in-out ${i * 0.15}s infinite` }} />)}
-                      </span>
+                <div key={slug} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, width: 62 }}>
+                  <div style={{ position: "relative", width: 44, height: 44 }}>
+                    {speaking && !reduce && (
+                      <motion.span aria-hidden animate={{ rotate: 360 }} transition={{ duration: 2.2, repeat: Infinity, ease: "linear" }}
+                        style={{ position: "absolute", inset: -4, borderRadius: 15,
+                          background: `conic-gradient(from 0deg, transparent, ${a.c}, transparent 60%)`,
+                          WebkitMask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))",
+                          mask: "radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 2px))" }} />
                     )}
-                    <AnimatePresence>
-                      {st === "done" && (
-                        <motion.span initial={{ scale: 0, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 15 }}
-                          style={{ display: "flex", flexShrink: 0, width: 18, height: 18, borderRadius: "50%", alignItems: "center", justifyContent: "center", background: "rgba(16,185,129,0.15)", border: "1px solid rgba(16,185,129,0.4)" }}>
-                          <Check size={11} style={{ color: "#10b981" }} strokeWidth={3} />
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                    {st === "thinking" && <span style={{ fontFamily: MONO, fontSize: 9, color: TM }}>в очереди</span>}
+                    <motion.div
+                      animate={{ scale: speaking && !reduce ? [1, 1.07, 1] : 1, opacity: waiting ? 0.38 : 1 }}
+                      transition={speaking && !reduce ? { duration: 1.6, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
+                      style={{ width: 44, height: 44, borderRadius: 13, display: "flex", alignItems: "center", justifyContent: "center",
+                        background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff",
+                        boxShadow: speaking ? `0 6px 20px ${a.c}55` : `0 4px 14px ${a.c}30` }}>
+                      <Icon size={18} strokeWidth={1.9} />
+                    </motion.div>
+                    {st && (
+                      <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 400, damping: 16 }}
+                        style={{ position: "absolute", right: -4, bottom: -4, width: 16, height: 16, borderRadius: "50%",
+                          background: STANCE_META[st].c, border: "2px solid #0a0c15", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                        {st === "for" ? <Check size={9} color="#052e22" strokeWidth={3.5} /> : st === "against" ? <X size={9} color="#3d0a0a" strokeWidth={3.5} /> : <span style={{ width: 6, height: 2, borderRadius: 1, background: "#3d2a00" }} />}
+                      </motion.span>
+                    )}
                   </div>
-                  <p style={{ fontSize: 12.5, lineHeight: 1.6, color: text ? "rgba(255,255,255,0.75)" : TM, margin: 0, minHeight: 20, position: "relative" }}>
-                    {text}
-                    {answering && <span style={{ display: "inline-block", width: 2, height: 13, background: a.c, marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
-                  </p>
-                </motion.div>
+                  <span style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: 700, letterSpacing: "0.1em", color: speaking ? a.c : waiting ? TM : TS }}>{a.role}</span>
+                </div>
               );
             })}
-          </motion.div>
+          </div>
 
-          {/* Verdict — dramatic reveal */}
-          <AnimatePresence>
-            {(phase === "verdict" || phase === "done") && (
-              <motion.div
-                initial={{ opacity: 0, y: 18, scale: 0.97 }} animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 22 }}
-                style={{ marginTop: 16, borderRadius: 16, padding: 18, position: "relative", overflow: "hidden",
-                  background: "linear-gradient(150deg, rgba(99,102,241,0.13), rgba(139,92,246,0.06) 70%)",
-                  border: "1px solid rgba(99,102,241,0.35)",
-                  boxShadow: "0 16px 44px rgba(99,102,241,0.16), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
-                {/* pulsing ambient */}
-                {!reduce && (
-                  <motion.div aria-hidden animate={{ opacity: [0.5, 0.2, 0.5] }} transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                    style={{ position: "absolute", top: -60, left: "30%", width: 240, height: 160, borderRadius: "50%", pointerEvents: "none",
-                      background: "radial-gradient(circle, rgba(99,102,241,0.2), transparent 70%)" }} />
-                )}
-                {/* shimmer top bar */}
-                <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2,
-                  background: "linear-gradient(90deg, transparent, rgba(129,140,248,0.9), transparent)" }} />
-                <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10, position: "relative" }}>
-                  <motion.span
-                    initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.1 }}
-                    style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
-                      background: "linear-gradient(135deg,#fbbf24,#d97706)", boxShadow: "0 4px 12px rgba(245,158,11,0.5)" }}>
-                    <Crown size={13} color="#3a2a00" strokeWidth={2.4} />
-                  </motion.span>
-                  <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", color: "#a5b4fc", textTransform: "uppercase" }}>
-                    Итоговый вердикт совета
-                  </span>
-                  {phase === "verdict" && (
-                    <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: TM }}>
-                      <span style={{ display: "flex", gap: 2 }}>{[0, 1, 2].map(i => <span key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "#a5b4fc", animation: `ec-think 1s ease-in-out ${i * 0.15}s infinite` }} />)}</span>
-                      синтезирую
+          {/* Protocol — the meeting transcript, speeches land in order */}
+          <div ref={feedRef} style={{ maxHeight: 420, overflowY: "auto", borderRadius: 16, border: `1px solid ${BORD}`,
+            background: "rgba(255,255,255,0.015)", padding: "4px 0" }}>
+            <div style={{ padding: "10px 16px 6px", fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: TM }}>
+              ПРОТОКОЛ ЗАСЕДАНИЯ
+            </div>
+            <AnimatePresence>
+              {BOARD_SLUGS.filter(s => speeches[s] !== undefined).map(slug => {
+                const a = rich(slug);
+                const Icon = EXEC_ICON[slug] ?? Crown;
+                const speaking = current === slug;
+                const st = stances[slug];
+                const { stance: liveStance, clean } = parseStance(speeches[slug] || "");
+                const shownStance = st ?? liveStance;
+                return (
+                  <motion.div key={slug}
+                    initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.45, ease: EASE }}
+                    style={{ display: "flex", gap: 12, padding: "12px 16px",
+                      borderTop: "1px solid rgba(255,255,255,0.04)",
+                      background: speaking ? `linear-gradient(90deg, ${a.c}0a, transparent 55%)` : "transparent",
+                      transition: "background 0.4s" }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 11, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                      background: `linear-gradient(140deg, ${a.g[0]}, ${a.g[1]})`, color: "#fff", boxShadow: `0 3px 10px ${a.c}35` }}>
+                      <Icon size={15} strokeWidth={1.9} />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4, flexWrap: "wrap" }}>
+                        <span style={{ fontSize: 12.5, fontWeight: 700, color: TP }}>{a.name}</span>
+                        <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.1em", color: a.c }}>{a.role}</span>
+                        {shownStance && (
+                          <motion.span initial={{ opacity: 0, scale: 0.7 }} animate={{ opacity: 1, scale: 1 }}
+                            style={{ fontFamily: MONO, fontSize: 8.5, fontWeight: 800, letterSpacing: "0.1em", padding: "2px 7px", borderRadius: 6,
+                              color: STANCE_META[shownStance].c, background: `${STANCE_META[shownStance].c}18`, border: `1px solid ${STANCE_META[shownStance].c}40` }}>
+                            {STANCE_META[shownStance].label}
+                          </motion.span>
+                        )}
+                        {speaking && !clean && (
+                          <span style={{ display: "flex", gap: 3 }}>
+                            {[0, 1, 2].map(i => <span key={i} style={{ width: 4, height: 4, borderRadius: "50%", background: a.c, animation: `ec-think 1s ease-in-out ${i * 0.15}s infinite` }} />)}
+                          </span>
+                        )}
+                      </div>
+                      <p style={{ fontSize: 13, lineHeight: 1.65, color: clean ? "rgba(255,255,255,0.78)" : TM, margin: 0 }}>
+                        {clean}
+                        {speaking && <span style={{ display: "inline-block", width: 2, height: 13, background: a.c, marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
+                      </p>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+
+            {/* Verdict inside the protocol — chair closes the meeting */}
+            <AnimatePresence>
+              {(phase === "verdict" || phase === "done") && (
+                <motion.div
+                  initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 24 }}
+                  style={{ margin: "10px 12px 8px", borderRadius: 14, padding: 16, position: "relative", overflow: "hidden",
+                    background: "linear-gradient(150deg, rgba(99,102,241,0.12), rgba(99,102,241,0.04) 70%)",
+                    border: "1px solid rgba(99,102,241,0.35)",
+                    boxShadow: "0 12px 34px rgba(99,102,241,0.14), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
+                  <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2,
+                    background: "linear-gradient(90deg, transparent, rgba(129,140,248,0.9), transparent)" }} />
+                  <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10, flexWrap: "wrap" }}>
+                    <motion.span
+                      initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} transition={{ type: "spring", stiffness: 300, damping: 14, delay: 0.1 }}
+                      style={{ width: 26, height: 26, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center",
+                        background: "linear-gradient(135deg,#fbbf24,#d97706)", boxShadow: "0 4px 12px rgba(245,158,11,0.5)" }}>
+                      <Crown size={13} color="#3a2a00" strokeWidth={2.4} />
+                    </motion.span>
+                    <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", color: "#a5b4fc", textTransform: "uppercase" }}>
+                      Вердикт совета
                     </span>
-                  )}
-                </div>
-                <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.86)", margin: 0, position: "relative" }}>
-                  {verdict}
-                  {phase === "verdict" && <span style={{ display: "inline-block", width: 2, height: 15, background: "#a5b4fc", marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
-                </p>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                    {/* Vote tally */}
+                    <span style={{ display: "flex", gap: 6, marginLeft: "auto" }}>
+                      {tallyChips.map(({ s, n }) => (
+                        <span key={s} style={{ fontFamily: MONO, fontSize: 9, fontWeight: 800, letterSpacing: "0.08em", padding: "3px 8px", borderRadius: 6,
+                          color: STANCE_META[s].c, background: `${STANCE_META[s].c}16`, border: `1px solid ${STANCE_META[s].c}38` }}>
+                          {n} {STANCE_META[s].label}
+                        </span>
+                      ))}
+                    </span>
+                    {phase === "verdict" && (
+                      <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: TM }}>
+                        <span style={{ display: "flex", gap: 2 }}>{[0, 1, 2].map(i => <span key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "#a5b4fc", animation: `ec-think 1s ease-in-out ${i * 0.15}s infinite` }} />)}</span>
+                        синтезирую
+                      </span>
+                    )}
+                  </div>
+                  <p style={{ fontSize: 14, lineHeight: 1.7, color: "rgba(255,255,255,0.86)", margin: 0 }}>
+                    {verdict.replace(/\*\*/g, "")}
+                    {phase === "verdict" && <span style={{ display: "inline-block", width: 2, height: 15, background: "#a5b4fc", marginLeft: 2, verticalAlign: "middle", animation: "ec-pulse 1s step-end infinite" }} />}
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* Follow-up — continue the meeting with a clarifying question */}
+          {phase === "done" && (
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: EASE, delay: 0.2 }}
+              style={{ display: "flex", gap: 10, marginTop: 14 }}>
+              <input value={followQ} onChange={e => setFollowQ(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && followQ.trim()) convene(followQ, true); }}
+                placeholder="Уточнить у совета… (совет помнит своё прошлое решение)"
+                style={{ flex: 1, height: 42, padding: "0 14px", borderRadius: 12, fontSize: 13,
+                  background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`, color: TP, outline: "none" }}
+                onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")}
+                onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+              <button onClick={() => followQ.trim() && convene(followQ, true)} disabled={!followQ.trim()}
+                style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: followQ.trim() ? "pointer" : "default",
+                  border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7,
+                  background: followQ.trim() ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.06)",
+                  boxShadow: followQ.trim() ? "0 6px 18px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.16)" : "none" }}>
+                <CornerDownLeft size={14} /> Спросить
+              </button>
+            </motion.div>
+          )}
         </div>
       )}
     </motion.div>
