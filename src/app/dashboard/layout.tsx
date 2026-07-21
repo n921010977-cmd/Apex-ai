@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { ToastProvider } from "@/components/ui/Toast";
-import { OnboardingModal } from "@/components/dashboard/OnboardingModal";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -40,8 +39,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           </main>
         </div>
 
-        {/* First-run onboarding */}
-        <OnboardingModal />
         {/* Global command palette ⌘K */}
         <CommandPalette />
       </div>
