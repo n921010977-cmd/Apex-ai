@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { checkoutUrl, type PaidPlanId } from "@/lib/billing";
+import { track, EVENTS } from "@/lib/analytics/events";
 
 const ACCENT     = "#6366f1";
 const ACCENT_RGB = "99,102,241";
@@ -44,6 +45,8 @@ export function PricingSection() {
 
   const plan = PLANS[rec];
   const price = annual ? plan.annual : plan.monthly;
+
+  useEffect(() => { track(EVENTS.PRICING_VIEWED); }, []);
 
   const Row = ({ label, value, children }: { label: string; value: string; children: React.ReactNode }) => (
     <div>
@@ -180,7 +183,9 @@ export function PricingSection() {
                     ))}
                   </ul>
 
-                  <Link href={plan.id === "starter" ? "/register" : checkoutUrl(plan.id as PaidPlanId)} className="term-mono" style={{
+                  <Link href={plan.id === "starter" ? "/register" : checkoutUrl(plan.id as PaidPlanId)} className="term-mono"
+                    onClick={() => track(plan.id === "starter" ? EVENTS.CTA_CLICKED : EVENTS.UPGRADE_CLICKED, { plan: plan.id, price, billing: annual ? "annual" : "monthly" })}
+                    style={{
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     height: 48, borderRadius: 12, textDecoration: "none",
                     fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff",

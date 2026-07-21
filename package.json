@@ -29,6 +29,7 @@
     "next": "16.2.9",
     "next-auth": "^5.0.0-beta.31",
     "node-fetch": "^3.3.2",
+    "posthog-js": "^1.405.2",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "tailwind-merge": "^3.6.0",

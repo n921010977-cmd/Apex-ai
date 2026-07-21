@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
+import { track, EVENTS } from "@/lib/analytics/events";
 
 const BOOT_LINES = [
   "> vertlix kernel v2.0 · initializing…",
@@ -81,6 +82,7 @@ export default function RegisterPage() {
     }
 
     setSuccess(true);
+    track(EVENTS.SIGN_UP, { method: "credentials" });
 
     // Auto sign-in after registration
     await signIn("credentials", {

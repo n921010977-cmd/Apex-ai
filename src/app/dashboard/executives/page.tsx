@@ -24,6 +24,7 @@ import { streamChat } from "@/lib/stream-chat";
 import { saveAsk } from "@/lib/ask-history";
 import { TEAM, TEAM_BY_SLUG, C_LEVEL, reportsOf, type TeamMember } from "@/lib/team";
 import { markVisit } from "@/components/dashboard/EngagementPanel";
+import { track, EVENTS } from "@/lib/analytics/events";
 
 // ── Design tokens ─────────────────────────────────────────────────────────────
 const EASE   = [0.22, 1, 0.36, 1] as const;
@@ -515,6 +516,7 @@ function CouncilSession() {
     setFollowQ("");
     setVerdict("");
     setPhase("deliberating");
+    track(EVENTS.COUNCIL_CONVENED, { follow_up: isFollowUp, directors: BOARD_SLUGS.length });
 
     // Directors speak in turn, like a real boardroom: each sees what was
     // already said and reacts to it, then casts a stance.
@@ -558,6 +560,7 @@ function CouncilSession() {
       for (const ch of fb) { verdictFull += ch; setVerdict(prev => prev + ch); await new Promise(r => setTimeout(r, 5)); }
     }
     prevCtx.current = `Вопрос: ${question}. Вердикт: ${verdictFull}`;
+    track(EVENTS.COUNCIL_VERDICT, { votes: { for: tally.for ?? 0, against: tally.against ?? 0, caution: tally.caution ?? 0 } });
     setPhase("done");
     // Persist the whole board deliberation to the История page.
     saveAsk({ id: `council-${Date.now()}`, kind: "council", question, date: Date.now(),

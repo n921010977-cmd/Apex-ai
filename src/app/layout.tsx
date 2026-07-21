@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "@/components/SessionProvider";
+import { PostHogProvider } from "@/components/PostHogProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -75,7 +76,9 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="bg-[#05060A] text-white min-h-screen overscroll-none">
-        <SessionProvider>{children}</SessionProvider>
+        <SessionProvider>
+          <PostHogProvider>{children}</PostHogProvider>
+        </SessionProvider>
         <Analytics />
       </body>
     </html>
