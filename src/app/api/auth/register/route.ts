@@ -2,6 +2,9 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { createClient } from "@/lib/supabase/server";
 import { authLimiter, rateLimitResponse, clientIp } from "@/lib/middleware/rate-limit";
+import { validatePasswordStrength } from "@/lib/password";
+import { signVerifyToken } from "@/lib/verify-token";
+import { sendEmail, verificationEmailHtml } from "@/lib/email";
 
 export async function POST(req: Request) {
   try {
@@ -16,9 +19,11 @@ export async function POST(req: Request) {
     if (!name?.trim() || !email?.trim() || !password) {
       return NextResponse.json({ error: "Заполните все поля" }, { status: 400 });
     }
-    if (password.length < 6) {
-      return NextResponse.json({ error: "Пароль минимум 6 символов" }, { status: 400 });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      return NextResponse.json({ error: "Некорректный email" }, { status: 400 });
     }
+    const weak = validatePasswordStrength(password);
+    if (weak) return NextResponse.json({ error: weak }, { status: 400 });
 
     // Demo mode — no Supabase configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -54,6 +59,18 @@ export async function POST(req: Request) {
     if (error) {
       console.error("[register]", error);
       return NextResponse.json({ error: "Ошибка сервера, попробуйте ещё раз" }, { status: 500 });
+    }
+
+    // Send an email-verification link (best-effort — never block signup on it).
+    // Without RESEND_API_KEY the link is logged server-side instead of sent.
+    try {
+      const addr = email.trim().toLowerCase();
+      const token = signVerifyToken(addr);
+      const base = process.env.NEXTAUTH_URL || new URL(req.url).origin;
+      const link = `${base}/verify-email?token=${encodeURIComponent(token)}`;
+      await sendEmail({ to: addr, subject: "Подтвердите email · Vertlix AI", html: verificationEmailHtml(link) });
+    } catch (e) {
+      console.error("[register] verification email", e);
     }
 
     return NextResponse.json({ ok: true });

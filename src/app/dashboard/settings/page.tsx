@@ -484,7 +484,8 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
   };
 
   const changePassword = async () => {
-    if (newPw.length < 6) { showToast("Новый пароль минимум 6 символов", "error"); return; }
+    if (newPw.length < 8) { showToast("Новый пароль минимум 8 символов", "error"); return; }
+    if (!/[a-zа-яё]/i.test(newPw) || !/[0-9]/.test(newPw)) { showToast("Пароль должен содержать буквы и цифры", "error"); return; }
     if (newPw !== confPw) { showToast("Пароли не совпадают", "error"); return; }
     setPwLoading(true);
     try {
@@ -549,7 +550,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
       <Section title="Пароль" desc="Смените пароль от аккаунта" accent="#6366f1">
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <FieldInput label="Текущий пароль" type="password" value={curPw} onChange={setCurPw} placeholder="••••••••" hint="Оставьте пустым, если входите только через Google/GitHub" />
-          <FieldInput label="Новый пароль" type="password" value={newPw} onChange={setNewPw} placeholder="Минимум 6 символов" />
+          <FieldInput label="Новый пароль" type="password" value={newPw} onChange={setNewPw} placeholder="Минимум 8 символов, буквы и цифры" />
           <FieldInput label="Повторите новый пароль" type="password" value={confPw} onChange={setConfPw} placeholder="••••••••" />
           <div>
             <button onClick={changePassword} disabled={pwLoading || !newPw}

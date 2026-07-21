@@ -56,8 +56,12 @@ export default function RegisterPage() {
       setError("ACCESS DENIED · заполните все поля");
       return;
     }
-    if (password.length < 6) {
-      setError("ACCESS DENIED · пароль минимум 6 символов");
+    if (password.length < 8) {
+      setError("ACCESS DENIED · пароль минимум 8 символов");
+      return;
+    }
+    if (!/[a-zа-яё]/i.test(password) || !/[0-9]/.test(password)) {
+      setError("ACCESS DENIED · пароль должен содержать буквы и цифры");
       return;
     }
     if (password !== confirm) {

@@ -4,6 +4,7 @@ import { auth } from "@/auth";
 import { logSecurityEvent } from "@/lib/security-log";
 import { createClient } from "@/lib/supabase/server";
 import { authLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { validatePasswordStrength } from "@/lib/password";
 
 // POST /api/user/password  { currentPassword?, newPassword }
 // Changes the signed-in user's password. If the account has an existing
@@ -20,7 +21,8 @@ export async function POST(req: Request) {
   try { body = await req.json(); } catch { return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 }); }
 
   const newPassword = body.newPassword ?? "";
-  if (newPassword.length < 6) return NextResponse.json({ success: false, error: "Новый пароль минимум 6 символов" }, { status: 400 });
+  const weak = validatePasswordStrength(newPassword);
+  if (weak) return NextResponse.json({ success: false, error: weak }, { status: 400 });
 
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
