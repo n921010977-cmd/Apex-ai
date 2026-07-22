@@ -54,9 +54,18 @@ export async function createClient() {
     return createDemoClient() as any;
   }
   const cookieStore = await cookies();
+
+  // Prefer the SERVICE ROLE key server-side. It bypasses RLS, which lets us
+  // enable RLS-deny on every table (migration 009) so the public anon key can't
+  // touch the DB directly from a browser. This key is NEVER shipped to the
+  // client — this module is server-only (imports next/headers). Authorization
+  // is enforced by per-user / per-org scoping in the API routes. Falls back to
+  // the anon key when the service key isn't set (do NOT enable RLS in that case).
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
   return createServerClient<Database>(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    key,
     {
       cookies: {
         getAll() { return cookieStore.getAll(); },
