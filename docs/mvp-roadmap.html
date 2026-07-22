@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<style>
+  @page { size: A4; margin: 0; }
+  :root{
+    --bg:#05060A; --surface:rgba(255,255,255,0.03); --surface2:rgba(255,255,255,0.05);
+    --hair:rgba(255,255,255,0.09); --hair2:rgba(255,255,255,0.14);
+    --ink:#E5E7EB; --ink2:#9CA3AF; --ink3:#6B7280;
+    --indigo:#6366f1; --indigo2:#818cf8; --violet:#8b5cf6;
+    --green:#10b981; --amber:#f59e0b; --red:#ef4444; --cyan:#22d3ee;
+  }
+  *{box-sizing:border-box; -webkit-print-color-adjust:exact; print-color-adjust:exact;}
+  html,body{margin:0;padding:0;background:var(--bg);}
+  body{font-family:"DejaVu Sans","Liberation Sans",system-ui,Arial,sans-serif;color:var(--ink);
+       font-size:11px;line-height:1.55;-webkit-font-smoothing:antialiased;}
+  .page{position:relative;width:210mm;min-height:297mm;background:var(--bg);
+        padding:16mm 15mm 14mm;page-break-after:always;overflow:hidden;}
+  .page:last-child{page-break-after:auto;}
+
+  h1,h2,h3{margin:0;letter-spacing:-0.02em;font-weight:800;color:#fff;}
+  .eyebrow{font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--indigo2);font-weight:700;}
+  .sec-num{font-family:"DejaVu Sans Mono",monospace;color:var(--indigo);font-weight:800;}
+  .h-sec{font-size:22px;line-height:1.1;margin:6px 0 3px;}
+  .lead{color:var(--ink2);font-size:11.5px;margin:0 0 14px;max-width:165mm;}
+  .rule{height:1px;background:linear-gradient(90deg,var(--hair2),transparent);margin:10px 0 16px;}
+  p{margin:0 0 8px;}
+  b,strong{color:#fff;font-weight:700;}
+  .muted{color:var(--ink2);} .dim{color:var(--ink3);}
+
+  .card{background:var(--surface);border:1px solid var(--hair);border-radius:12px;padding:13px 15px;margin:0 0 10px;}
+  .card h3{font-size:12.5px;margin:0 0 5px;}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+
+  table{width:100%;border-collapse:collapse;margin:4px 0 12px;font-size:10px;}
+  th{text-align:left;color:var(--ink2);font-weight:700;font-size:8.8px;letter-spacing:0.08em;
+     text-transform:uppercase;padding:7px 9px;border-bottom:1px solid var(--hair2);}
+  td{padding:7px 9px;border-bottom:1px solid var(--hair);vertical-align:top;color:var(--ink);}
+  tr:last-child td{border-bottom:none;}
+  td b{font-weight:700;}
+
+  .pill{display:inline-block;padding:1.5px 8px;border-radius:999px;font-size:8.5px;font-weight:700;
+        letter-spacing:0.04em;white-space:nowrap;}
+  .p-must{background:rgba(239,68,68,0.14);color:#fca5a5;border:1px solid rgba(239,68,68,0.3);}
+  .p-should{background:rgba(245,158,11,0.14);color:#fcd34d;border:1px solid rgba(245,158,11,0.3);}
+  .p-nice{background:rgba(99,102,241,0.16);color:var(--indigo2);border:1px solid rgba(99,102,241,0.32);}
+  .p-later{background:rgba(255,255,255,0.06);color:var(--ink2);border:1px solid var(--hair);}
+  .done{color:var(--green);font-weight:700;} .todo{color:var(--amber);font-weight:700;} .fut{color:var(--ink3);font-weight:700;}
+
+  .kv{display:flex;gap:8px;margin:0 0 5px;}
+  .kv .k{color:var(--ink2);min-width:90px;font-weight:700;font-size:9.5px;}
+  .kv .v{color:var(--ink);flex:1;}
+
+  ul{margin:4px 0 10px;padding-left:16px;} li{margin:0 0 4px;}
+  .tag{font-family:"DejaVu Sans Mono",monospace;font-size:9px;color:var(--cyan);}
+  .foot{position:absolute;bottom:8mm;left:15mm;right:15mm;display:flex;justify-content:space-between;
+        font-size:8px;color:var(--ink3);letter-spacing:0.06em;border-top:1px solid var(--hair);padding-top:6px;}
+  .foot .brand{color:var(--indigo2);font-weight:700;}
+
+  /* Cover */
+  .cover{display:flex;flex-direction:column;justify-content:center;padding:0 22mm;}
+  .glow{position:absolute;top:20mm;left:50%;transform:translateX(-50%);width:170mm;height:170mm;border-radius:50%;
+        background:radial-gradient(circle,rgba(99,102,241,0.22),transparent 62%);filter:blur(10px);}
+  .cover .logo{display:inline-flex;align-items:center;gap:10px;margin-bottom:26px;position:relative;}
+  .cover .mark{width:44px;height:44px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);
+        display:flex;align-items:center;justify-content:center;box-shadow:0 8px 30px rgba(99,102,241,0.5);}
+  .cover .mark span{color:#fff;font-size:24px;font-weight:800;}
+  .cover .brandname{font-size:20px;font-weight:800;color:#fff;letter-spacing:-0.02em;}
+  .cover h1{font-size:52px;line-height:1.02;position:relative;margin-bottom:14px;}
+  .cover h1 em{font-style:normal;background:linear-gradient(120deg,#818cf8,#c4b5fd);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .cover .sub{font-size:15px;color:var(--ink2);max-width:150mm;position:relative;margin-bottom:30px;}
+  .cover .tagline{position:relative;display:inline-flex;gap:10px;align-items:center;font-size:12px;color:var(--indigo2);
+        border:1px solid rgba(99,102,241,0.35);background:rgba(99,102,241,0.08);border-radius:999px;padding:7px 16px;font-weight:700;letter-spacing:0.02em;}
+  .cover .meta{position:relative;margin-top:40px;display:flex;gap:34px;}
+  .cover .meta .k{font-size:8.5px;letter-spacing:0.16em;text-transform:uppercase;color:var(--ink3);margin-bottom:3px;}
+  .cover .meta .val{font-size:12px;color:var(--ink);font-weight:700;}
+  .toc-item{display:flex;align-items:baseline;gap:10px;padding:5px 0;border-bottom:1px solid var(--hair);}
+  .toc-item .n{font-family:"DejaVu Sans Mono",monospace;color:var(--indigo);font-weight:800;min-width:26px;font-size:11px;}
+  .toc-item .t{color:var(--ink);font-weight:600;font-size:11px;flex:1;}
+  .toc-item .pg{color:var(--ink3);font-size:9.5px;}
+  .banner{background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.06));
+        border:1px solid rgba(99,102,241,0.28);border-radius:14px;padding:16px 18px;margin:0 0 14px;}
+  .banner h3{color:var(--indigo2);font-size:13px;margin-bottom:6px;}
+  .stat{display:flex;gap:18px;margin:8px 0 4px;}
+  .stat .s{flex:1;background:var(--surface);border:1px solid var(--hair);border-radius:10px;padding:10px 12px;}
+  .stat .num{font-size:20px;font-weight:800;color:#fff;}
+  .stat .lbl{font-size:8.5px;color:var(--ink2);letter-spacing:0.08em;text-transform:uppercase;}
+  .phase{border-left:2px solid var(--indigo);padding:2px 0 2px 14px;margin:0 0 12px;position:relative;}
+  .phase::before{content:"";position:absolute;left:-5px;top:4px;width:8px;height:8px;border-radius:50%;background:var(--indigo);}
+  .phase h3{font-size:12.5px;margin-bottom:2px;}
+  .phase .when{font-size:9px;color:var(--indigo2);font-weight:700;letter-spacing:0.06em;}
+</style>
+</head>
+<body>
+
+<!-- ===== COVER ===== -->
+<section class="page cover">
+  <div class="glow"></div>
+  <div class="logo"><div class="mark"><span>&#9733;</span></div><div class="brandname">Vertlix&nbsp;AI</div></div>
+  <div class="eyebrow" style="position:relative">Product &amp; Engineering · Official Document</div>
+  <h1>MVP Development<br><em>Roadmap</em></h1>
+  <div class="sub">Самый быстрый путь от идеи до работающего AI SaaS: получить первых пользователей,
+  проверить спрос, собрать обратную связь и начать монетизацию — без попытки построить идеальный продукт сразу.</div>
+  <div class="tagline">&#9889;&nbsp; Build Less &nbsp;·&nbsp; Learn Faster</div>
+  <div class="meta">
+    <div><div class="k">Версия</div><div class="val">1.0</div></div>
+    <div><div class="k">Дата</div><div class="val">2026-07-22</div></div>
+    <div><div class="k">Продукт</div><div class="val">Vertlix AI — AI-совет директоров</div></div>
+    <div><div class="k">Статус</div><div class="val">MVP в основном построен → фокус на запуск</div></div>
+  </div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>MVP Roadmap · строго конфиденциально</span></div>
+</section>
+
+<!-- ===== TOC + PRINCIPLE ===== -->
+<section class="page">
+  <div class="eyebrow">Содержание</div>
+  <h2 class="h-sec">Что внутри</h2>
+  <div class="rule"></div>
+  <div class="grid2">
+    <div>
+      <div class="toc-item"><span class="n">01</span><span class="t">MVP Strategy</span><span class="pg">с.3</span></div>
+      <div class="toc-item"><span class="n">02</span><span class="t">MVP Scope (приоритеты)</span><span class="pg">с.4</span></div>
+      <div class="toc-item"><span class="n">03</span><span class="t">MVP Version 0.1</span><span class="pg">с.5</span></div>
+      <div class="toc-item"><span class="n">04</span><span class="t">User Flow</span><span class="pg">с.6</span></div>
+      <div class="toc-item"><span class="n">05</span><span class="t">Development Phases</span><span class="pg">с.7</span></div>
+      <div class="toc-item"><span class="n">06</span><span class="t">Technical Task Breakdown</span><span class="pg">с.8</span></div>
+      <div class="toc-item"><span class="n">07</span><span class="t">Development Order (Day 1→90)</span><span class="pg">с.9</span></div>
+      <div class="toc-item"><span class="n">08</span><span class="t">AI MVP Architecture</span><span class="pg">с.10</span></div>
+      <div class="toc-item"><span class="n">09</span><span class="t">Database MVP</span><span class="pg">с.11</span></div>
+      <div class="toc-item"><span class="n">10</span><span class="t">UI MVP Screens</span><span class="pg">с.12</span></div>
+    </div>
+    <div>
+      <div class="toc-item"><span class="n">11</span><span class="t">Testing Plan</span><span class="pg">с.13</span></div>
+      <div class="toc-item"><span class="n">12</span><span class="t">Launch Plan</span><span class="pg">с.14</span></div>
+      <div class="toc-item"><span class="n">13</span><span class="t">First Users Strategy</span><span class="pg">с.15</span></div>
+      <div class="toc-item"><span class="n">14</span><span class="t">Feedback Loop</span><span class="pg">с.16</span></div>
+      <div class="toc-item"><span class="n">15</span><span class="t">Metrics</span><span class="pg">с.16</span></div>
+      <div class="toc-item"><span class="n">16</span><span class="t">Post-MVP Roadmap</span><span class="pg">с.17</span></div>
+      <div class="toc-item"><span class="n">17</span><span class="t">Team Requirements</span><span class="pg">с.18</span></div>
+      <div class="toc-item"><span class="n">18</span><span class="t">Budget Estimation</span><span class="pg">с.18</span></div>
+      <div class="toc-item"><span class="n">19</span><span class="t">Risks &amp; Mitigations</span><span class="pg">с.19</span></div>
+      <div class="toc-item"><span class="n">20</span><span class="t">Итог &amp; Launch Checklist</span><span class="pg">с.20</span></div>
+    </div>
+  </div>
+
+  <div class="banner" style="margin-top:16px">
+    <h3>&#9889; Главный принцип: Build Less, Learn Faster</h3>
+    <p class="muted" style="margin:0">Каждая строчка кода — это риск. Цель MVP не «сделать красиво», а
+    <b>максимально быстро проверить: платят ли люди за AI-совет директоров.</b> Всё, что не приближает к первому
+    платящему пользователю, — откладывается.</p>
+  </div>
+
+  <div class="grid3">
+    <div class="card"><h3 style="color:var(--green)">&#10003; Обязательно</h3><p class="muted" style="margin:0;font-size:10px">Auth, дашборд, AI-чат с 1–3 агентами, история, базовая подписка. Без этого нет продукта.</p></div>
+    <div class="card"><h3 style="color:var(--amber)">&#8635; Отложить</h3><p class="muted" style="margin:0;font-size:10px">Команды, marketplace, RAG-загрузка документов, интеграции, кастомные модели.</p></div>
+    <div class="card"><h3 style="color:var(--ink3)">&#10007; Не делать сейчас</h3><p class="muted" style="margin:0;font-size:10px">Мобильное приложение, on-prem, SSO/SAML, сложная аналитика, автоматизации.</p></div>
+  </div>
+
+  <div class="banner" style="border-color:rgba(16,185,129,0.28);background:linear-gradient(135deg,rgba(16,185,129,0.1),transparent)">
+    <h3 style="color:var(--green)">Реальность проекта: MVP уже почти построен</h3>
+    <p class="muted" style="margin:0">Vertlix AI — не с нуля. Auth (2FA, passkeys), дашборд, стриминг AI-чата, 20 агентов,
+    генерация стратегий, план-лимиты и безопасность (RLS) <b>уже реализованы и работают</b>. Поэтому этот роадмап —
+    не «построить с нуля», а <b>самый быстрый путь к запуску и первым пользователям</b>: доделать последнюю милю
+    (реальный checkout, Cloudflare, аналитика) и выйти на рынок.</p>
+  </div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Содержание · с.2</span></div>
+</section>
+
+<!-- ===== 01 STRATEGY ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">01</span> &nbsp;MVP Strategy</div>
+  <h2 class="h-sec">Кому, какую боль и почему заплатят</h2>
+  <div class="lead">Одна аудитория, одна боль, одно ядро ценности. Фокус — не «все предприниматели», а тот, кому AI-совет нужен вчера.</div>
+
+  <div class="grid2">
+    <div class="card"><h3>&#127919; Target User</h3><p class="muted" style="margin:0">Соло-основатель стартапа / владелец МСБ (25–45), у которого <b>нет команды и денег на консультантов</b>, но есть решения с высокой ставкой каждую неделю.</p></div>
+    <div class="card"><h3>&#128293; Main Problem</h3><p class="muted" style="margin:0">«Мне не с кем обсудить бизнес-решение на уровне CFO/CMO/CEO. Найм экспертов — дорого и медленно, ChatGPT даёт общий ответ без структуры и роли.»</p></div>
+    <div class="card"><h3>&#128142; Core Value Proposition</h3><p class="muted" style="margin:0"><b>Виртуальный совет из 20 AI-директоров</b>, который анализирует твой проект и даёт структурированное решение с обоснованием — за минуты, не за $$$.</p></div>
+    <div class="card"><h3>&#9889; Main Feature (одна!)</h3><p class="muted" style="margin:0">Задать вопрос профильному директору (CEO/CFO/CMO) о своём проекте и получить <b>экспертный ответ со стримингом + обоснованием</b>. Всё остальное — вокруг этого.</p></div>
+  </div>
+
+  <div class="banner">
+    <h3>Почему пользователь заплатит за MVP?</h3>
+    <p class="muted" style="margin:0 0 6px">Потому что альтернатива дороже: консультант — от $150/час, найм C-level — от $10k/мес,
+    а «бесплатный ChatGPT» не даёт <b>ролевую экспертизу + структуру решения + сохранённую историю проекта</b>.
+    За $19–49/мес основатель получает «совет директоров по требованию».</p>
+    <p class="muted" style="margin:0"><b>Гипотеза для проверки:</b> ≥ 3% зарегистрировавшихся конвертируются в платящих в первый месяц.</p>
+  </div>
+
+  <div class="stat">
+    <div class="s"><div class="num">1</div><div class="lbl">Аудитория</div></div>
+    <div class="s"><div class="num">1</div><div class="lbl">Ядро ценности</div></div>
+    <div class="s"><div class="num">$19+</div><div class="lbl">Точка входа / мес</div></div>
+    <div class="s"><div class="num">3%</div><div class="lbl">Целевая конверсия</div></div>
+  </div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>MVP Strategy · с.3</span></div>
+</section>
+
+<!-- ===== 02 SCOPE ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">02</span> &nbsp;MVP Scope</div>
+  <h2 class="h-sec">Приоритизация функций</h2>
+  <div class="lead">Value × Complexity → приоритет. Строим только то, что даёт ценность при минимальной сложности и приближает к первому платящему.</div>
+  <table>
+    <thead><tr><th>Feature</th><th>Value</th><th>Сложность</th><th>Приоритет</th><th>Статус</th></tr></thead>
+    <tbody>
+      <tr><td><b>Auth (email + OAuth)</b></td><td>Высокая</td><td>Средняя</td><td><span class="pill p-must">MUST</span></td><td><span class="done">&#10003; готово</span></td></tr>
+      <tr><td><b>AI-чат с директором (стриминг)</b></td><td>Критич.</td><td>Средняя</td><td><span class="pill p-must">MUST</span></td><td><span class="done">&#10003; готово</span></td></tr>
+      <tr><td><b>1–3 AI-агента</b></td><td>Критич.</td><td>Низкая</td><td><span class="pill p-must">MUST</span></td><td><span class="done">&#10003; 20 агентов</span></td></tr>
+      <tr><td><b>Дашборд + профиль</b></td><td>Высокая</td><td>Низкая</td><td><span class="pill p-must">MUST</span></td><td><span class="done">&#10003; готово</span></td></tr>
+      <tr><td><b>История диалогов</b></td><td>Высокая</td><td>Низкая</td><td><span class="pill p-must">MUST</span></td><td><span class="done">&#10003; готово</span></td></tr>
+      <tr><td><b>Landing + Pricing</b></td><td>Высокая</td><td>Низкая</td><td><span class="pill p-must">MUST</span></td><td><span class="done">&#10003; есть</span></td></tr>
+      <tr><td><b>Подписка + checkout (реальный)</b></td><td>Критич.</td><td>Средняя</td><td><span class="pill p-must">MUST</span></td><td><span class="todo">&#8635; лимиты есть, checkout доделать</span></td></tr>
+      <tr><td>Генерация стратегии (6 секций)</td><td>Высокая</td><td>Средняя</td><td><span class="pill p-should">SHOULD</span></td><td><span class="done">&#10003; готово</span></td></tr>
+      <tr><td>Совет с голосованием</td><td>Средняя</td><td>Высокая</td><td><span class="pill p-should">SHOULD</span></td><td><span class="done">&#10003; готово</span></td></tr>
+      <tr><td>Аналитика продукта (PostHog)</td><td>Средняя</td><td>Низкая</td><td><span class="pill p-should">SHOULD</span></td><td><span class="todo">&#8635; частично</span></td></tr>
+      <tr><td>Email-уведомления</td><td>Средняя</td><td>Низкая</td><td><span class="pill p-nice">NICE</span></td><td><span class="todo">&#8635; auth-письма</span></td></tr>
+      <tr><td>Загрузка документов (RAG)</td><td>Средняя</td><td>Высокая</td><td><span class="pill p-later">LATER</span></td><td><span class="fut">&#9675; retrieval готов</span></td></tr>
+      <tr><td>Команды / организации</td><td>Средняя</td><td>Высокая</td><td><span class="pill p-later">LATER</span></td><td><span class="fut">&#9675; V1</span></td></tr>
+      <tr><td>Agent Marketplace, интеграции</td><td>Низкая</td><td>Высокая</td><td><span class="pill p-later">LATER</span></td><td><span class="fut">&#9675; V2</span></td></tr>
+    </tbody>
+  </table>
+  <p class="muted" style="font-size:9.5px"><span class="done">&#10003;</span> реализовано &nbsp;·&nbsp; <span class="todo">&#8635;</span> доделать до запуска &nbsp;·&nbsp; <span class="fut">&#9675;</span> после MVP</p>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>MVP Scope · с.4</span></div>
+</section>
+
+<!-- ===== 03 V0.1 ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">03</span> &nbsp;MVP Version 0.1</div>
+  <h2 class="h-sec">Самая первая версия</h2>
+  <div class="lead">Минимум, при котором пользователь может пройти путь «пришёл → получил ценность → заплатил». Каждый пункт обоснован.</div>
+  <table>
+    <thead><tr><th>Компонент</th><th>Почему в v0.1</th><th>Статус</th></tr></thead>
+    <tbody>
+      <tr><td><b>Landing Page</b></td><td>Первое касание, объясняет ценность, конвертирует в регистрацию</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>Authentication</b></td><td>Без входа нет аккаунта, истории, монетизации; безопасность = доверие</td><td><span class="done">&#10003; +2FA/passkeys</span></td></tr>
+      <tr><td><b>User Profile</b></td><td>Идентичность, настройки, точка управления подпиской</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>Dashboard</b></td><td>Дом пользователя, точка входа ко всем действиям</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>AI Chat</b></td><td>Само ядро ценности — ради этого пришли</td><td><span class="done">&#10003; стриминг</span></td></tr>
+      <tr><td><b>1–3 AI Agents</b></td><td>Ролевая экспертиза = отличие от ChatGPT; больше 3 не нужно для проверки</td><td><span class="done">&#10003; 20 директоров</span></td></tr>
+      <tr><td><b>Conversation History</b></td><td>Накопленная ценность удерживает; «моя работа сохранена»</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>Basic Subscription</b></td><td>Монетизация с первого дня; лимиты создают повод для апгрейда</td><td><span class="todo">&#8635; checkout</span></td></tr>
+      <tr><td><b>Analytics</b></td><td>Без метрик не понять, работает ли гипотеза (activation/conversion)</td><td><span class="todo">&#8635; PostHog</span></td></tr>
+    </tbody>
+  </table>
+  <div class="banner">
+    <h3>Вывод по v0.1</h3>
+    <p class="muted" style="margin:0"><b>7 из 9 компонентов v0.1 уже готовы.</b> До первой версии осталась «последняя миля»:
+    (1) довести <b>реальный checkout</b> подписки, (2) включить <b>PostHog-события</b> для ключевых действий,
+    (3) поставить перед приложением <b>Cloudflare</b> и <b>Sentry</b>. Это дни, не месяцы.</p>
+  </div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>MVP v0.1 · с.5</span></div>
+</section>
+
+<!-- ===== 04 USER FLOW ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">04</span> &nbsp;MVP User Flow</div>
+  <h2 class="h-sec">Полный путь пользователя</h2>
+  <div class="lead">От анонимного посетителя до платящего. Каждый шаг убирает трение и ведёт к «первому результату» как можно быстрее.</div>
+
+  <div class="card"><div class="kv"><span class="k">1 · Visitor</span><span class="v">Заходит на Landing → видит «AI-совет директоров для твоего бизнеса» + один CTA «Начать».</span></div>
+  <div class="kv"><span class="k">2 · Register</span><span class="v">Email+пароль или Google/GitHub (1 клик). Минимум полей. Организация создаётся автоматически.</span></div>
+  <div class="kv"><span class="k">3 · Onboarding</span><span class="v">Не тур, а первое действие: «Расскажи о проекте» → короткая форма (идея/индустрия/стадия).</span></div>
+  <div class="kv"><span class="k">4 · Choose Agent</span><span class="v">Выбирает директора (CEO/CFO/CMO) — или совет целиком.</span></div>
+  <div class="kv"><span class="k">5 · Ask Question</span><span class="v">Задаёт бизнес-вопрос о своём проекте.</span></div>
+  <div class="kv"><span class="k">6 · Receive Result</span><span class="v"><b>Стриминг ответа по токенам</b> + обоснование + следующий шаг. «Ага-момент».</span></div>
+  <div class="kv"><span class="k">7 · Save Result</span><span class="v">Сохраняет в историю / Vault; может сгенерировать стратегию (6 секций) и отчёт.</span></div>
+  <div class="kv"><span class="k">8 · Upgrade</span><span class="v">На 4-м проекте / лимите отчётов → «Перейти на Pro» (контекстно, не навязчиво).</span></div></div>
+
+  <div class="banner">
+    <h3>Ключевая метрика этого флоу: Time-to-Value</h3>
+    <p class="muted" style="margin:0">Цель — <b>первый полезный AI-ответ менее чем за 5 минут</b> от регистрации.
+    Всё, что удлиняет путь до «ага-момента» (лишние поля, туры, подтверждения), — убирается.</p>
+  </div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>User Flow · с.6</span></div>
+</section>
+
+<!-- ===== 05 PHASES ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">05</span> &nbsp;Development Phases</div>
+  <h2 class="h-sec">Четыре фазы разработки</h2>
+  <div class="lead">Последовательность, а не всё сразу. Каждая фаза заканчивается проверяемым результатом.</div>
+
+  <div class="phase"><div class="when">PHASE 1 · FOUNDATION</div><h3>Фундамент <span class="done" style="font-size:9px">&#10003; готово</span></h3>
+    <p class="muted" style="margin:0">Project setup (Next.js/TS), БД (Supabase + RLS), Authentication (NextAuth + 2FA + passkeys), Design System (токены), Basic Layout (shell: sidebar+topnav).</p></div>
+
+  <div class="phase"><div class="when">PHASE 2 · CORE PRODUCT</div><h3>Ядро продукта <span class="done" style="font-size:9px">&#10003; в основном готово</span></h3>
+    <p class="muted" style="margin:0">Dashboard, AI Chat (стриминг), Agent System (20 директоров), History, Profile. Плюс бонус: генерация стратегий, совет с голосованием.</p></div>
+
+  <div class="phase"><div class="when">PHASE 3 · MONETIZATION</div><h3>Монетизация <span class="todo" style="font-size:9px">&#8635; последняя миля</span></h3>
+    <p class="muted" style="margin:0">Pricing (есть), Checkout (LemonSqueezy — доделать поток оплаты), Subscription (webhook есть), Usage Limits (серверные, есть: Free=3 проекта → 402).</p></div>
+
+  <div class="phase"><div class="when">PHASE 4 · IMPROVEMENT</div><h3>Улучшения <span class="todo" style="font-size:9px">&#8635; к запуску / после</span></h3>
+    <p class="muted" style="margin:0">Analytics (PostHog-события), Feedback (виджет + 👍/👎 на ответах), Notifications (email транзакционные), Optimization (кэш AI-ответов, скорость).</p></div>
+
+  <div class="stat">
+    <div class="s"><div class="num done">P1</div><div class="lbl">Готово</div></div>
+    <div class="s"><div class="num done">P2</div><div class="lbl">Готово</div></div>
+    <div class="s"><div class="num todo">P3</div><div class="lbl">Последняя миля</div></div>
+    <div class="s"><div class="num todo">P4</div><div class="lbl">К запуску</div></div>
+  </div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Development Phases · с.7</span></div>
+</section>
+
+<!-- ===== 06 TASK BREAKDOWN ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">06</span> &nbsp;Technical Task Breakdown</div>
+  <h2 class="h-sec">Разбивка работы по направлениям</h2>
+  <div class="lead">Что осталось до запуска — по дисциплинам. Готовое помечено; фокус на «последней миле».</div>
+  <div class="grid2">
+    <div class="card"><h3>&#128421; Frontend</h3><ul class="muted" style="margin:2px 0 0"><li>Checkout-экран + upgrade-модалка</li><li>Feedback-виджет (👍/👎, баг-репорт)</li><li>Полировка onboarding-формы</li><li class="dim">&#10003; Landing, dashboard, чат, настройки</li></ul></div>
+    <div class="card"><h3>&#9881; Backend</h3><ul class="muted" style="margin:2px 0 0"><li>LemonSqueezy checkout-сессия + возврат</li><li>Транзакционные email (отчёт готов, инвайт)</li><li class="dim">&#10003; API-роуты, auth, webhook (HMAC)</li><li class="dim">&#10003; лимиты плана (серверные)</li></ul></div>
+    <div class="card"><h3>&#128451; Database</h3><ul class="muted" style="margin:2px 0 0"><li>Консолидировать дубль 001-миграции</li><li>Включить PITR на проде</li><li class="dim">&#10003; схема, RLS на 33 таблицах</li></ul></div>
+    <div class="card"><h3>&#129504; AI</h3><ul class="muted" style="margin:2px 0 0"><li>👍/👎 фидбек на ответах (для eval)</li><li class="dim">&#10003; стриминг, 20 агентов, tools</li><li class="dim">&#10003; RAG retrieval (pgvector)</li></ul></div>
+    <div class="card"><h3>&#9729; DevOps</h3><ul class="muted" style="margin:2px 0 0"><li>Cloudflare (WAF/DDoS/Turnstile)</li><li>GitHub Actions CI (lint/tsc/build)</li><li>Sentry подключить</li><li class="dim">&#10003; Vercel деплой, preview</li></ul></div>
+    <div class="card"><h3>&#128274; Security</h3><ul class="muted" style="margin:2px 0 0"><li>Обновить зависимости (npm audit)</li><li>Turnstile-CAPTCHA на login/register</li><li class="dim">&#10003; RLS, 2FA, IDOR/mass-assign закрыты</li><li class="dim">&#10003; security-headers, rate-limit</li></ul></div>
+  </div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Task Breakdown · с.8</span></div>
+</section>
+
+<!-- ===== 07 ORDER ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">07</span> &nbsp;Development Order</div>
+  <h2 class="h-sec">Правильный порядок · Day 1 → 90</h2>
+  <div class="lead">Т.к. ядро готово, таймлайн — это «путь к запуску и первым пользователям», а не разработка с нуля.</div>
+  <table>
+    <thead><tr><th>Веха</th><th>Что сделать</th><th>Результат</th></tr></thead>
+    <tbody>
+      <tr><td><b>Day 1</b></td><td>Финальный security-чек, обновить зависимости, включить PostHog-события</td><td>Продукт измерим и безопасен</td></tr>
+      <tr><td><b>Day 7</b></td><td>Доделать LemonSqueezy checkout + upgrade-флоу; Cloudflare + Sentry</td><td><b>Можно принимать деньги</b></td></tr>
+      <tr><td><b>Day 14</b></td><td>Legal-страницы, SEO-мета, feedback-виджет, email-уведомления</td><td>Готов к публичному запуску</td></tr>
+      <tr><td><b>Day 30</b></td><td>Private-бета: первые 10 пользователей вручную, сбор фидбека, багфиксы</td><td>Проверка гипотезы ценности</td></tr>
+      <tr><td><b>Day 60</b></td><td>Публичный запуск (Product Hunt / сообщества), итерации по фидбеку, оптимизация конверсии</td><td><b>Первые 100 пользователей</b></td></tr>
+      <tr><td><b>Day 90</b></td><td>Рост: контент/SEO, реферальная механика, первые платящие когорты, метрики retention</td><td>Проверка монетизации → 1000</td></tr>
+    </tbody>
+  </table>
+  <div class="banner"><h3>Правило таймлайна</h3><p class="muted" style="margin:0">Каждая веха = <b>проверяемая гипотеза</b>, а не «список фич». Если Day 30-бета показывает, что не платят — меняем ценностное предложение, а не добавляем функции.</p></div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Development Order · с.9</span></div>
+</section>
+
+<!-- ===== 08 AI MVP ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">08</span> &nbsp;AI MVP Architecture</div>
+  <h2 class="h-sec">Какие AI-агенты нужны сначала</h2>
+  <div class="lead">Для проверки гипотезы достаточно 3 сильных агентов (не 20). У Vertlix они уже есть — вот ядро для MVP-фокуса.</div>
+
+  <div class="card"><h3 style="color:var(--indigo2)">&#128188; Business Analyst / CFO</h3>
+    <div class="kv"><span class="k">Purpose</span><span class="v">Анализ жизнеспособности, unit-экономика, финансовые риски.</span></div>
+    <div class="kv"><span class="k">Prompt</span><span class="v muted">«Ты — CFO мирового уровня. Оцени проект по числам, посчитай метрики, укажи 3 риска и как их закрыть. По-русски, конкретно, 7–12 предложений.»</span></div>
+    <div class="kv"><span class="k">Tools</span><span class="v"><span class="tag">calculate_metrics</span> (LTV/CAC/MRR/ARR/burn/runway), <span class="tag">get_project_data</span></span></div>
+    <div class="kv"><span class="k">Output</span><span class="v">Финансовая оценка + метрики с формулами + список рисков.</span></div>
+  </div>
+
+  <div class="card"><h3 style="color:var(--violet)">&#128226; Marketing Expert / CMO</h3>
+    <div class="kv"><span class="k">Purpose</span><span class="v">GTM-стратегия, позиционирование, каналы привлечения.</span></div>
+    <div class="kv"><span class="k">Prompt</span><span class="v muted">«Ты — CMO. Предложи позиционирование, 3 канала привлечения и первое сообщение для ЦА этого проекта.»</span></div>
+    <div class="kv"><span class="k">Tools</span><span class="v"><span class="tag">search_web</span>, <span class="tag">generate_report</span></span></div>
+    <div class="kv"><span class="k">Output</span><span class="v">GTM-план, воронка, месседжинг.</span></div>
+  </div>
+
+  <div class="card"><h3 style="color:var(--cyan)">&#9989; Idea Validator / CEO-Стратег</h3>
+    <div class="kv"><span class="k">Purpose</span><span class="v">Быстрая валидация идеи, «go / no-go», следующий шаг.</span></div>
+    <div class="kv"><span class="k">Prompt</span><span class="v muted">«Ты — CEO-стратег. Оцени идею: сильные/слабые стороны, стоит ли делать, и один самый важный следующий шаг.»</span></div>
+    <div class="kv"><span class="k">Tools</span><span class="v"><span class="tag">get_project_data</span>, синтез мнений совета</span></div>
+    <div class="kv"><span class="k">Output</span><span class="v">Вердикт + обоснование + приоритетный next step.</span></div>
+  </div>
+  <p class="muted" style="font-size:9.5px">Модель: Haiku для быстрых ответов, Opus для сложного анализа. Стриминг по токенам. Ответ всегда с обоснованием (не «чёрный ящик»).</p>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>AI MVP Architecture · с.10</span></div>
+</section>
+
+<!-- ===== 09 DATABASE ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">09</span> &nbsp;Database MVP</div>
+  <h2 class="h-sec">Минимальные таблицы</h2>
+  <div class="lead">Только то, что нужно для ядра. Всё остальное — не добавлять, пока гипотеза не подтверждена.</div>
+  <table>
+    <thead><tr><th>Таблица</th><th>Зачем в MVP</th><th>Статус</th></tr></thead>
+    <tbody>
+      <tr><td><b>users</b></td><td>Аккаунт, аутентификация, тариф</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>organizations</b></td><td>Тенант (граница биллинга/данных)</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>agents</b></td><td>Конфиг директоров (промпт/модель/tools)</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>conversations</b></td><td>Диалоги пользователя с агентами</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>messages</b></td><td>Сообщения (роль, контент, tokens_used)</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>subscriptions</b></td><td>План, статус, лимиты, биллинг</td><td><span class="done">&#10003;</span></td></tr>
+    </tbody>
+  </table>
+  <div class="banner" style="border-color:rgba(245,158,11,0.28);background:linear-gradient(135deg,rgba(245,158,11,0.08),transparent)">
+    <h3 style="color:var(--amber)">Что НЕ добавлять пока</h3>
+    <p class="muted" style="margin:0">Команды-таблицы сверх минимума, document_chunks/embeddings для загрузки файлов, marketplace-сущности,
+    сложные audit-таблицы, per-token usage-биллинг, api_keys. Всё это — <b>после</b> подтверждения спроса (V1/V2).
+    Каждая лишняя таблица = поддержка + миграции + риск.</p>
+  </div>
+  <p class="muted" style="font-size:9.5px">У Vertlix реально уже 33 таблицы (продукт продвинут) — для MVP-фокуса важны эти 6; остальное не мешает, но и не расширяется без нужды.</p>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Database MVP · с.11</span></div>
+</section>
+
+<!-- ===== 10 UI SCREENS ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">10</span> &nbsp;UI MVP Screens</div>
+  <h2 class="h-sec">Список экранов</h2>
+  <div class="lead">Минимальный набор экранов для полного цикла. Строятся из шаблонов дизайн-системы (архетипы T1–T10).</div>
+  <div class="grid2">
+    <div class="card"><h3>&#127760; Public</h3>
+      <div class="kv"><span class="k">Landing</span><span class="v">Ценность + CTA <span class="done">&#10003;</span></span></div>
+      <div class="kv"><span class="k">Pricing</span><span class="v">Планы, выделен Pro <span class="done">&#10003;</span></span></div>
+      <div class="kv"><span class="k">Login/Register</span><span class="v">Email + OAuth + 2FA <span class="done">&#10003;</span></span></div>
+      <div class="kv"><span class="k">Legal</span><span class="v">Privacy/Terms/AI-дисклеймер <span class="todo">&#8635;</span></span></div>
+    </div>
+    <div class="card"><h3>&#128273; Application</h3>
+      <div class="kv"><span class="k">Dashboard</span><span class="v">Дом, быстрые действия <span class="done">&#10003;</span></span></div>
+      <div class="kv"><span class="k">AI Chat</span><span class="v">Ядро, стриминг <span class="done">&#10003;</span></span></div>
+      <div class="kv"><span class="k">Agents</span><span class="v">Каталог директоров <span class="done">&#10003;</span></span></div>
+      <div class="kv"><span class="k">History</span><span class="v">Прошлые диалоги <span class="done">&#10003;</span></span></div>
+      <div class="kv"><span class="k">Settings</span><span class="v">Профиль/безопасность/подписка <span class="done">&#10003;</span></span></div>
+    </div>
+  </div>
+  <div class="banner"><h3>Принцип экранов</h3><p class="muted" style="margin:0">Каждый экран = один главный вопрос + одно главное действие. Тёмная тема, один индиго-акцент, hairline-границы — как в этом документе. Все состояния (loading/empty/error) обязательны.</p></div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>UI MVP Screens · с.12</span></div>
+</section>
+
+<!-- ===== 11 TESTING ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">11</span> &nbsp;Testing Plan</div>
+  <h2 class="h-sec">План тестирования</h2>
+  <div class="lead">Не 100% покрытие, а покрытие критичных путей: деньги, безопасность, ядро ценности.</div>
+  <div class="grid2">
+    <div class="card"><h3>&#9989; Functional</h3><ul class="muted" style="margin:2px 0 0"><li>Регистрация → онбординг → AI-ответ → сохранение</li><li>Оплата → апгрейд → снятие лимитов</li><li>Все состояния (loading/empty/error)</li></ul></div>
+    <div class="card"><h3>&#128274; Security</h3><ul class="muted" style="margin:2px 0 0"><li>Authz-матрица (IDOR, скоуп по tenant)</li><li>Rate-limit, auth на LLM-эндпоинтах</li><li class="dim">&#10003; пентест проведён (RLS, IDOR, mass-assign)</li></ul></div>
+    <div class="card"><h3>&#129504; AI Quality</h3><ul class="muted" style="margin:2px 0 0"><li>Релевантность/точность ответов агентов</li><li>Отсутствие галлюцинаций без основания</li><li>👍/👎 фидбек → эталонные кейсы</li></ul></div>
+    <div class="card"><h3>&#128101; User Testing</h3><ul class="muted" style="margin:2px 0 0"><li>5–10 живых сессий с наблюдением</li><li>Где застревают? Понятен ли «ага-момент»?</li><li>Готовы ли платить и за сколько?</li></ul></div>
+  </div>
+  <p class="muted" style="font-size:9.5px">CI-гейт: lint + tsc + build + миграции-с-нуля. E2E (Playwright) на 2–3 критичных флоу.</p>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Testing Plan · с.13</span></div>
+</section>
+
+<!-- ===== 12 LAUNCH ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">12</span> &nbsp;Launch Plan</div>
+  <h2 class="h-sec">Перед запуском</h2>
+  <div class="lead">Чек-лист готовности. Не запускаем, пока каждый пункт не зелёный.</div>
+  <table>
+    <thead><tr><th>Область</th><th>Что проверить</th><th>Статус</th></tr></thead>
+    <tbody>
+      <tr><td><b>Security Check</b></td><td>RLS, 2FA, IDOR/mass-assign, headers, rate-limit, обновлённые зависимости</td><td><span class="done">&#10003; / &#8635; deps</span></td></tr>
+      <tr><td><b>Performance</b></td><td>Скорость страниц, стриминг AI, нет CLS, кэш агрегатов</td><td><span class="done">&#10003;</span></td></tr>
+      <tr><td><b>Analytics</b></td><td>PostHog: регистрации, входы, AI-использование, конверсия</td><td><span class="todo">&#8635;</span></td></tr>
+      <tr><td><b>SEO</b></td><td>Мета-теги, OG-превью, sitemap, скорость Lighthouse</td><td><span class="todo">&#8635;</span></td></tr>
+      <tr><td><b>Legal Pages</b></td><td>Privacy, Terms, Cookie, AI-дисклеймер</td><td><span class="todo">&#8635;</span></td></tr>
+      <tr><td><b>Support</b></td><td>Тикет-система / email поддержки, база FAQ</td><td><span class="done">&#10003; тикеты</span></td></tr>
+      <tr><td><b>Billing</b></td><td>Реальный checkout, webhook, лимиты, инвойсы</td><td><span class="todo">&#8635; checkout</span></td></tr>
+      <tr><td><b>Infra</b></td><td>Cloudflare (WAF/DDoS), Sentry, бэкапы+PITR</td><td><span class="todo">&#8635;</span></td></tr>
+    </tbody>
+  </table>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Launch Plan · с.14</span></div>
+</section>
+
+<!-- ===== 13 FIRST USERS ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">13</span> &nbsp;First Users Strategy</div>
+  <h2 class="h-sec">Как получить первых пользователей</h2>
+  <div class="lead">Не масштаб, а обучение. Первые пользователи — источник фидбека, а не выручки.</div>
+
+  <div class="card"><h3 style="color:var(--green)">Первые 10 — вручную (Do things that don't scale)</h3>
+    <p class="muted" style="margin:0">Личные приглашения: знакомые основатели, чаты/сообщества предпринимателей, Indie Hackers. Персональный онбординг каждого, наблюдение за сессией, интервью «за что заплатил бы?». Цель — качество фидбека.</p></div>
+
+  <div class="card"><h3 style="color:var(--amber)">Первые 100 — публичный запуск</h3>
+    <p class="muted" style="margin:0">Product Hunt / Reddit (r/entrepreneur, r/startups) / профильные Telegram-каналы / LinkedIn-контент основателя.
+    Бесплатный tier как крючок, «AI-совет директоров» как хук. Реферальная механика (пригласи → бонус-лимиты).</p></div>
+
+  <div class="card"><h3 style="color:var(--indigo2)">Первые 1000 — рост</h3>
+    <p class="muted" style="margin:0">Контент/SEO (шаблоны стратегий, разборы), партнёрства с бизнес-сообществами/акселераторами,
+    платные каналы только после подтверждённой unit-экономики (LTV &gt; 3×CAC). Кейсы первых пользователей как соц-доказательство.</p></div>
+
+  <div class="stat">
+    <div class="s"><div class="num">10</div><div class="lbl">Вручную · фидбек</div></div>
+    <div class="s"><div class="num">100</div><div class="lbl">Запуск · спрос</div></div>
+    <div class="s"><div class="num">1000</div><div class="lbl">Рост · монетизация</div></div>
+  </div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>First Users · с.15</span></div>
+</section>
+
+<!-- ===== 14 + 15 FEEDBACK + METRICS ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">14</span> &nbsp;Feedback Loop &nbsp;·&nbsp; <span class="sec-num">15</span> Metrics</div>
+  <h2 class="h-sec">Обратная связь и метрики</h2>
+  <div class="lead">Learn Faster: измеряем, слушаем, итерируем каждую неделю.</div>
+
+  <div class="grid2">
+    <div class="card"><h3>&#128172; Feedback Loop</h3><ul class="muted" style="margin:2px 0 0">
+      <li><b>User Feedback</b> — виджет в приложении + интервью</li>
+      <li><b>Bug Reports</b> — быстрая форма + Sentry-ошибки</li>
+      <li><b>Feature Requests</b> — сбор + голосование (не строим всё)</li>
+      <li><b>Analytics</b> — где отваливаются, что не используют</li>
+    </ul></div>
+    <div class="card"><h3>&#128202; Ключевые метрики</h3><ul class="muted" style="margin:2px 0 0">
+      <li><b>Activation</b> — % дошедших до первого AI-ответа</li>
+      <li><b>Retention</b> — D1/D7/D30 возвраты</li>
+      <li><b>Conversion</b> — free → paid (цель ≥3%)</li>
+      <li><b>Revenue</b> — MRR, ARPU, churn</li>
+      <li><b>AI Usage</b> — сообщений/юзер, токены, стоимость</li>
+    </ul></div>
+  </div>
+
+  <table>
+    <thead><tr><th>Метрика</th><th>Что показывает</th><th>Цель MVP</th></tr></thead>
+    <tbody>
+      <tr><td><b>Activation</b></td><td>Продукт понятен, ценность достигнута</td><td>&gt; 40%</td></tr>
+      <tr><td><b>D7 Retention</b></td><td>Есть ли повторная ценность</td><td>&gt; 20%</td></tr>
+      <tr><td><b>Free → Paid</b></td><td>Готовность платить (гл. гипотеза)</td><td>&gt; 3%</td></tr>
+      <tr><td><b>Time-to-Value</b></td><td>Скорость до «ага-момента»</td><td>&lt; 5 мин</td></tr>
+      <tr><td><b>AI cost / активный юзер</b></td><td>Экономика (не жечь на free)</td><td>&lt; выручки</td></tr>
+    </tbody>
+  </table>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Feedback &amp; Metrics · с.16</span></div>
+</section>
+
+<!-- ===== 16 POST-MVP ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">16</span> &nbsp;Post-MVP Roadmap</div>
+  <h2 class="h-sec">После запуска</h2>
+  <div class="lead">Строим следующее только после подтверждения спроса. Каждая версия — новый уровень ценности.</div>
+
+  <div class="phase"><div class="when">VERSION 1 · RETENTION &amp; TEAMS</div><h3>Команды и знания</h3>
+    <p class="muted" style="margin:0"><b>Multi-Agent</b> (совет-граф, делегирование) · <b>Team</b> (организации, роли, инвайты) ·
+    <b>Knowledge Base</b> (загрузка документов → RAG-ingestion; retrieval уже готов). Цель — удержание и expansion.</p></div>
+
+  <div class="phase"><div class="when">VERSION 2 · PLATFORM</div><h3>Автоматизация и экосистема</h3>
+    <p class="muted" style="margin:0"><b>Automation</b> (workflow, ежедневные брифы) · <b>Integrations</b> (CRM, email, календарь) ·
+    <b>Marketplace</b> (каталог специализированных агентов). Цель — платформа и сетевой эффект.</p></div>
+
+  <div class="phase"><div class="when">VERSION 3 · ENTERPRISE</div><h3>Крупные клиенты</h3>
+    <p class="muted" style="margin:0">SSO/SAML, углублённый RBAC, audit-логи, приватные агенты/модели, data-изоляция, SLA, SOC 2. Цель — enterprise-выручка (ACV).</p></div>
+
+  <div class="banner"><h3>Принцип post-MVP</h3><p class="muted" style="margin:0">Не строим V1/V2/V3 «на всякий случай». Каждый уровень запускается, только когда предыдущий доказал ценность метриками. <b>Build Less, Learn Faster</b> — и после запуска тоже.</p></div>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Post-MVP Roadmap · с.17</span></div>
+</section>
+
+<!-- ===== 17 + 18 TEAM + BUDGET ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">17</span> &nbsp;Team &nbsp;·&nbsp; <span class="sec-num">18</span> Budget</div>
+  <h2 class="h-sec">Команда и бюджет</h2>
+  <div class="lead">MVP можно запустить очень малой командой (даже соло + AI). Бюджет — минимальный, растёт с пользователями.</div>
+
+  <div class="card"><h3>&#128101; Кто нужен</h3>
+  <table style="margin:2px 0 0">
+    <thead><tr><th>Роль</th><th>Зачем на MVP</th><th>Когда</th></tr></thead>
+    <tbody>
+      <tr><td><b>Solo Founder</b></td><td>Видение, продукт, первые продажи, фидбек</td><td>С Day 1</td></tr>
+      <tr><td><b>AI Assistant</b></td><td>Ускорение разработки/контента (этот документ — пример)</td><td>С Day 1</td></tr>
+      <tr><td><b>Developer (full-stack)</b></td><td>Довести последнюю милю, поддержка</td><td>С Day 1 (может = founder)</td></tr>
+      <tr><td>Designer</td><td>Полировка (дизайн-система уже есть)</td><td>По необходимости</td></tr>
+      <tr><td>Marketing</td><td>Первые пользователи, контент</td><td>С Day 30 (запуск)</td></tr>
+    </tbody>
+  </table></div>
+
+  <div class="grid3">
+    <div class="card"><h3 style="color:var(--green)">Minimum</h3><div class="num" style="font-size:18px;font-weight:800;color:#fff">~$50–100/мес</div><ul class="muted" style="margin:6px 0 0;font-size:9.5px"><li>Vercel Hobby/Pro</li><li>Supabase Free/Pro</li><li>AI API (по факту)</li><li>Домен</li></ul></div>
+    <div class="card"><h3 style="color:var(--amber)">Recommended</h3><div class="num" style="font-size:18px;font-weight:800;color:#fff">~$300–600/мес</div><ul class="muted" style="margin:6px 0 0;font-size:9.5px"><li>Vercel/Supabase Pro</li><li>Upstash, Sentry, PostHog</li><li>AI API (рост)</li><li>Cloudflare, email</li><li>Первый маркетинг</li></ul></div>
+    <div class="card"><h3 style="color:var(--indigo2)">Scaling</h3><div class="num" style="font-size:18px;font-weight:800;color:#fff">$2–10k+/мес</div><ul class="muted" style="margin:6px 0 0;font-size:9.5px"><li>Реплики БД, S3, очереди</li><li>Datadog, мониторинг</li><li>AI API (масштаб)</li><li>Платные каналы</li></ul></div>
+  </div>
+  <p class="muted" style="font-size:9px">Крупнейшая переменная статья — <b>AI API</b>. Контролируется model-router (Haiku по умолчанию), кэшем ответов и лимитами плана.</p>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Team &amp; Budget · с.18</span></div>
+</section>
+
+<!-- ===== 19 RISKS ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">19</span> &nbsp;Risks</div>
+  <h2 class="h-sec">Риски и решения</h2>
+  <div class="lead">Что может пойти не так — и как заранее снизить вероятность/урон.</div>
+  <table>
+    <thead><tr><th>Категория</th><th>Риск</th><th>Решение</th></tr></thead>
+    <tbody>
+      <tr><td><b>Technical</b></td><td>AI-стоимость выходит из-под контроля</td><td>Model-router (Haiku), кэш ответов, лимиты плана, алерты на аномалии</td></tr>
+      <tr><td><b>Technical</b></td><td>Дубль 001-миграции ломает прод-схему</td><td>Консолидировать перед прод-масштабом; тест миграций с нуля в CI</td></tr>
+      <tr><td><b>Market</b></td><td>Не платят / низкая конверсия</td><td>Day-30 бета проверяет ДО масштаба; менять value prop, не добавлять фичи</td></tr>
+      <tr><td><b>Market</b></td><td>«Это же просто ChatGPT»</td><td>Подчёркивать ролевую экспертизу + структуру решения + историю проекта</td></tr>
+      <tr><td><b>AI</b></td><td>Галлюцинации / неточные советы</td><td>Обоснование к каждому ответу, дисклеймер, 👍/👎 фидбек, eval-кейсы</td></tr>
+      <tr><td><b>AI</b></td><td>Prompt injection / злоупотребление</td><td>Auth+rate-limit на LLM, untrusted-контент, tenant-изоляция (уже сделано)</td></tr>
+      <tr><td><b>Security</b></td><td>Утечка данных (multi-tenant)</td><td>RLS на всех таблицах (сделано), скоуп по tenant, шифрование секретов</td></tr>
+      <tr><td><b>Security</b></td><td>DDoS / боты / брутфорс</td><td>Cloudflare WAF/DDoS + Turnstile, rate-limit (частично сделано)</td></tr>
+    </tbody>
+  </table>
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Risks · с.19</span></div>
+</section>
+
+<!-- ===== 20 FINAL ===== -->
+<section class="page">
+  <div class="eyebrow"><span class="sec-num">20</span> &nbsp;Итог</div>
+  <h2 class="h-sec">Launch Checklist &amp; резюме</h2>
+  <div class="lead">Самый быстрый путь: доделать последнюю милю, запустить бету на 10, публично на 100, расти к 1000.</div>
+
+  <div class="banner">
+    <h3>Где мы сейчас</h3>
+    <p class="muted" style="margin:0"><b>Фазы 1–2 (фундамент + ядро) готовы.</b> Осталась «последняя миля» до запуска:
+    checkout, Cloudflare, Sentry, аналитика, legal, обновление зависимостей. Это <b>дни, а не месяцы</b> —
+    и затем сразу к первым пользователям.</p>
+  </div>
+
+  <div class="grid2">
+    <div class="card"><h3 style="color:var(--green)">&#10003; Готово к запуску</h3><ul class="muted" style="margin:2px 0 0;font-size:9.5px">
+      <li>Auth + 2FA + passkeys</li><li>Дашборд, чат (стриминг), 20 агентов</li><li>История, стратегии, отчёты</li>
+      <li>Серверные план-лимиты</li><li>Безопасность: RLS, IDOR/mass-assign закрыты, headers</li></ul></div>
+    <div class="card"><h3 style="color:var(--amber)">&#8635; Последняя миля</h3><ul class="muted" style="margin:2px 0 0;font-size:9.5px">
+      <li>Реальный checkout (LemonSqueezy)</li><li>PostHog-события + Sentry</li><li>Cloudflare (WAF/Turnstile)</li>
+      <li>Legal-страницы + SEO</li><li>Обновить зависимости; консолидировать 001-миграцию</li></ul></div>
+  </div>
+
+  <div class="banner" style="border-color:rgba(99,102,241,0.4);background:linear-gradient(135deg,rgba(99,102,241,0.16),rgba(139,92,246,0.06));text-align:center;padding:20px">
+    <h3 style="font-size:15px;color:#fff">Build Less. Learn Faster. Ship.</h3>
+    <p class="muted" style="margin:6px 0 0">Не строй идеальный продукт — <b>запусти работающий</b>, узнай, платят ли, и итерируй.
+    Vertlix AI уже готов на 90%. Осталось выйти на рынок.</p>
+  </div>
+
+  <div class="foot"><span class="brand">VERTLIX AI</span><span>Итог · с.20 · конец документа</span></div>
+</section>
+
+</body>
+</html>
