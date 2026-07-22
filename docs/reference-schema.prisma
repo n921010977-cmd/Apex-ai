@@ -1,0 +1,464 @@
+// ============================================================================
+// Vertlix AI — REFERENCE Prisma schema (data model documentation)
+// ----------------------------------------------------------------------------
+// ⚠️ STATUS: this is a REFERENCE / modeling artifact, NOT the runtime ORM.
+//    Production runs on **Supabase (PostgreSQL) with SQL migrations + RLS**
+//    (see supabase/migrations/*.sql), accessed via @supabase/ssr — not Prisma.
+//    A dead prisma/schema.prisma was removed earlier because it implied Prisma
+//    was active. This file lives in docs/ on purpose: it is a canonical, typed
+//    model of the real schema — useful as documentation and as an optional
+//    future migration target if the team ever adopts Prisma. It intentionally
+//    does NOT sit at prisma/schema.prisma so it can't be mistaken for runtime.
+//
+//    Faithful to supabase/migrations/ (001_initial_schema is the real base;
+//    001_init.sql is a conflicting duplicate — see DATABASE-ARCHITECTURE.md §20).
+//    Models marked "TARGET" are planned (RAG/vector, richer billing), not yet in DB.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")       // Supabase pooled (PgBouncer)
+  directUrl = env("DIRECT_URL")         // direct (migrations)
+  // extensions = [pgvector(map: "vector")]  // TARGET: enable for embeddings
+}
+
+// ─── Enums ──────────────────────────────────────────────────────────────────
+enum MemberRole      { owner admin manager member viewer }
+enum Plan            { free starter professional business enterprise }
+enum ProjectStatus   { active archived }
+enum MessageRole     { user assistant system }
+enum StrategyKey     { vision goals swot execution kpis risks }
+enum SubStatus       { active past_due canceled paused }
+enum TicketStatus    { open pending resolved closed }
+enum VaultType       { doc note memory project report }
+
+// ─── User system ────────────────────────────────────────────────────────────
+model User {
+  id             String    @id @default(uuid()) @db.Uuid
+  email          String    @unique
+  name           String?
+  passwordHash   String?   @map("password_hash")
+  avatarUrl      String?   @map("avatar_url")
+  role           String    @default("FREE")            // account tier (FREE/PRO/…)
+  tier           String    @default("FREE")
+  isVerified     Boolean   @default(false) @map("is_verified")
+  emailVerified  DateTime? @map("email_verified")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt      @map("updated_at")
+
+  memberships    Member[]
+  ownedOrgs      Organization[] @relation("OrgOwner")
+  projects       Project[]
+  conversations  Conversation[]
+  settings       UserSettings?
+  credentials    WebauthnCredential[]
+  vaultItems     VaultItem[]
+  notes          Note[]
+  notifications  Notification[]
+  auditLogs      ActivityLog[]
+
+  @@index([email])
+  @@map("users")
+}
+
+model UserSettings {
+  userId            String  @id @map("user_id") @db.Uuid
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  language          String  @default("ru")
+  timezone          String  @default("Europe/Moscow")
+  theme             String  @default("system")
+  emailNotifs       Boolean @default(true)  @map("email_notifs")
+  pushNotifs        Boolean @default(false) @map("push_notifs")
+  twoFa             Boolean @default(false) @map("two_fa")
+  twoFaSecretEnc    String? @map("two_fa_secret_enc")     // AES-256-GCM
+  twoFaBackupCodes  String[] @map("two_fa_backup_codes")  // bcrypt-hashed
+  favAgents         String[] @default([]) @map("fav_agents")
+  preferences       Json     @default("{}")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  @@map("user_settings")
+}
+
+model WebauthnCredential {
+  id           String   @id                          // base64url credential id
+  userId       String   @map("user_id") @db.Uuid
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  publicKey    String   @map("public_key")
+  counter      BigInt   @default(0)
+  transports   String[]
+  deviceLabel  String?  @map("device_label")
+  createdAt    DateTime @default(now()) @map("created_at")
+  lastUsedAt   DateTime? @map("last_used_at")
+
+  @@index([userId])
+  @@map("webauthn_credentials")
+}
+
+// Session / VerificationToken: NextAuth uses stateless JWT + signed HMAC tokens,
+// so there are no DB session/verification tables. Modeled here only if the team
+// switches to the database session strategy (TARGET).
+
+// ─── Organization system (multi-tenant) ─────────────────────────────────────
+model Organization {
+  id         String   @id @default(uuid()) @db.Uuid
+  name       String
+  slug       String?  @unique
+  ownerId    String?  @map("owner_id") @db.Uuid
+  owner      User?    @relation("OrgOwner", fields: [ownerId], references: [id], onDelete: SetNull)
+  plan       Plan     @default(free)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  members       Member[]
+  projects      Project[]
+  agents        Agent[]
+  subscription  Subscription?
+  usageStats    UsageStat[]
+
+  @@index([ownerId])
+  @@map("organizations")
+}
+
+model Member {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  role           MemberRole   @default(member)
+  permissions    Json         @default("{}")
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([organizationId])
+  @@map("members")
+}
+
+// ─── Project system ─────────────────────────────────────────────────────────
+model Project {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @map("organization_id") @db.Uuid
+  userId         String?       @map("user_id") @db.Uuid
+  name           String
+  description    String?
+  industry       String?
+  stage          String?
+  goals          String[]
+  targetRevenue  String?       @map("target_revenue")
+  timeframe      String?
+  overallScore   Int           @default(0) @map("overall_score")
+  status         ProjectStatus @default(active)
+  aiResults      Json          @default("[]") @map("ai_results")
+  metadata       Json          @default("{}")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  conversations  Conversation[]
+  strategies     Strategy[]
+  reports        Report[]
+  tasks          Task[]
+
+  @@index([userId])
+  @@index([organizationId])
+  @@index([organizationId, status])
+  @@index([createdAt])
+  @@map("projects")
+}
+
+model Task {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  projectId  String?  @map("project_id") @db.Uuid
+  title      String
+  status     String   @default("todo")   // todo / doing / done
+  dueDate    DateTime? @map("due_date")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  project    Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("tasks")
+}
+
+// ─── AI system ──────────────────────────────────────────────────────────────
+model Agent {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  name           String
+  description    String?
+  type           String   @default("custom")   // ceo/cfo/cmo/coo/cto/analyst/legal/sales/custom
+  systemPrompt   String?  @map("system_prompt")
+  model          String   @default("claude-haiku-4-5-20251001")
+  temperature    Decimal  @default(0.7) @db.Decimal(3, 2)
+  maxTokens      Int      @default(2000) @map("max_tokens")
+  toolsEnabled   String[] @default([]) @map("tools_enabled")
+  isActive       Boolean  @default(true) @map("is_active")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  tools          AgentTool[]
+
+  @@index([organizationId])
+  @@map("agents")
+}
+
+model AgentTool {
+  id          String   @id @default(uuid()) @db.Uuid
+  agentId     String   @map("agent_id") @db.Uuid
+  name        String                       // search / email / create_task / database_query
+  description String?
+  config      Json     @default("{}")
+  isEnabled   Boolean  @default(true) @map("is_enabled")
+
+  agent       Agent    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+
+  @@index([agentId])
+  @@map("agent_tools")
+}
+
+// Per-user custom/cloned agents (localStorage was migrated to server).
+model CustomAgent {
+  id        String   @db.Text
+  userId    String   @map("user_id") @db.Uuid
+  data      Json                          // full agent persona blob
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@id([userId, id])
+  @@index([userId])
+  @@map("custom_agents")
+}
+
+// ─── Conversation system ────────────────────────────────────────────────────
+model Conversation {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  projectId  String?  @map("project_id") @db.Uuid
+  title      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project    Project?  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  messages   Message[]
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String      @id @default(uuid()) @db.Uuid
+  conversationId String      @map("conversation_id") @db.Uuid
+  role           MessageRole
+  content        String
+  tokensUsed     Int         @default(0) @map("tokens_used")
+  metadata       Json        @default("{}")
+  createdAt      DateTime    @default(now()) @map("created_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  // attachments MessageAttachment[]   // TARGET
+  // feedback    MessageFeedback[]     // TARGET
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+// ─── Strategy & Board ───────────────────────────────────────────────────────
+model Strategy {
+  id            String   @id @default(uuid()) @db.Uuid
+  projectId     String   @map("project_id") @db.Uuid
+  questionnaire Json     @default("{}")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  project       Project           @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  sections      StrategySection[]
+
+  @@index([projectId])
+  @@map("strategies")
+}
+
+model StrategySection {
+  id         String      @id @default(uuid()) @db.Uuid
+  strategyId String      @map("strategy_id") @db.Uuid
+  sectionKey StrategyKey @map("section_key")
+  content    String?
+  order      Int         @default(0)
+
+  strategy   Strategy    @relation(fields: [strategyId], references: [id], onDelete: Cascade)
+
+  @@index([strategyId])
+  @@map("strategy_sections")
+}
+
+// board_meetings / board_speeches / board_votes / board_decisions — collective
+// council decisions (meeting -> speeches -> votes -> decision). Modeled compactly:
+model BoardMeeting {
+  id        String   @id @default(uuid()) @db.Uuid
+  projectId String?  @map("project_id") @db.Uuid
+  topic     String?
+  status    String   @default("scheduled")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([projectId])
+  @@map("board_meetings")
+}
+
+// ─── Billing & usage ────────────────────────────────────────────────────────
+model Subscription {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @unique @map("organization_id") @db.Uuid
+  plan           Plan       @default(free)
+  status         SubStatus  @default(active)
+  provider       String     @default("lemonsqueezy")
+  externalId     String?    @map("external_id")
+  currentPeriodEnd DateTime? @map("current_period_end")
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoices       Invoice[]
+
+  @@map("subscriptions")
+}
+
+model Invoice {
+  id             String   @id @default(uuid()) @db.Uuid
+  subscriptionId String   @map("subscription_id") @db.Uuid
+  amountCents    Int      @map("amount_cents")
+  currency       String   @default("USD")
+  status         String   @default("paid")
+  externalId     String?  @map("external_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([subscriptionId])
+  @@map("invoices")
+}
+
+model UsageStat {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  metric         String                          // ai_requests / tokens / storage_bytes / projects
+  value          BigInt   @default(0)
+  periodStart    DateTime @map("period_start")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, metric, periodStart])
+  @@map("usage_stats")
+}
+
+// ─── Workspace content ──────────────────────────────────────────────────────
+model VaultItem {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @map("user_id") @db.Uuid
+  type      VaultType @default(doc)
+  title     String
+  content   String?
+  source    String?
+  tags      String[]  @default([])
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("vault_items")
+}
+
+model Note {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  title     String?
+  content   String?
+  aiSummary String?  @map("ai_summary")
+  isDeleted Boolean  @default(false) @map("is_deleted")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isDeleted])
+  @@map("notes")
+}
+
+model Report {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  projectId String?  @map("project_id") @db.Uuid
+  title     String?
+  content   Json     @default("{}")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("reports")
+}
+
+// ─── Notifications & security ───────────────────────────────────────────────
+model Notification {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  type      String
+  title     String?
+  body      String?
+  data      Json     @default("{}")
+  actionUrl String?  @map("action_url")
+  readAt    DateTime? @map("read_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model ActivityLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String?  @map("user_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  type           String                          // security.* / project_create / ...
+  data           Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user           User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt])
+  @@index([type])
+  @@map("activity_logs")
+}
+
+model SupportTicket {
+  id          String      @id @default(uuid()) @db.Uuid
+  userId      String      @map("user_id") @db.Uuid
+  subject     String?
+  description String
+  aiResponse  String?     @map("ai_response")
+  status      TicketStatus @default(open)
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@index([userId])
+  @@map("support_tickets")
+}
+
+// ─── TARGET: RAG / vector (needs pgvector; not yet in DB) ────────────────────
+// model Document      { id ... orgId ... storageKey ... status  @@map("documents") }
+// model DocumentChunk { id ... documentId ... content ...
+//   embedding Unsupported("vector(1536)")?    // pgvector
+//   @@index([documentId]); @@map("document_chunks") }
+// model MemoryChunk   { id ... orgId ... content ... embedding Unsupported("vector(1536)")?
+//   @@map("memory_chunks") }   // ivfflat index on embedding via SQL migration
