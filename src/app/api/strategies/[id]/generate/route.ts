@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const maxDuration = 120;
@@ -17,7 +18,11 @@ const SECTIONS = [
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  // Strategy generation is an expensive multi-section LLM call — cap it hard.
+  const limit = await reportLimiter(`strategy-gen:${session.user.id}`);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
 import { directChat } from "@/lib/orchestrator";
 import { validateBody, SendMessageSchema } from "@/lib/validators";
 import { chatLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
@@ -6,6 +7,11 @@ import { chatLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/
 export const maxDuration = 120;
 
 export async function POST(req: NextRequest) {
+  // Require a signed-in user first — this is a paid LLM endpoint, and anonymous
+  // callers shouldn't learn anything about service configuration.
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
   if (!process.env.ANTHROPIC_API_KEY) {
     return NextResponse.json(
       { success: false, error: "ANTHROPIC_API_KEY is not configured. Add it to .env.local" },
@@ -13,8 +19,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Rate limiting
-  const identifier = getIdentifier(req);
+  // Rate limiting (keyed per user so one account can't exhaust a shared IP's budget)
+  const identifier = getIdentifier(req, session.user.id);
   const limit = await chatLimiter(identifier);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const maxDuration = 60;
@@ -8,7 +9,10 @@ export const maxDuration = 60;
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const session = await auth();
-  if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  if (!session?.user?.id) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  const limit = await chatLimiter(`note-summary:${session.user.id}`);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

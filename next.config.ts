@@ -30,10 +30,25 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   { key: "X-DNS-Prefetch-Control", value: "on" },
-  { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
+  // Deny powerful features outright; disable ad-targeting cohort APIs.
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), " +
+           "magnetometer=(), gyroscope=(), accelerometer=(), interest-cohort=(), browsing-topics=()",
+  },
   { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
+  // Stop other origins from hotlinking/embedding our responses.
+  { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
+  // Give this origin its own agent cluster (side-channel isolation).
+  { key: "Origin-Agent-Cluster", value: "?1" },
+  // No Adobe cross-domain policy files anywhere.
+  { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   // Enforce HTTPS for 2 years incl. subdomains; eligible for the HSTS preload list.
   { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains; preload" },
+  // NOTE: Cross-Origin-Embedder-Policy (require-corp) is intentionally NOT set —
+  // it would block the Google/GitHub OAuth avatar images (cross-origin, no CORP
+  // header) and the OAuth popup flow, and we don't use SharedArrayBuffer. COOP +
+  // CORP above already give the meaningful isolation without that breakage.
 ];
 
 // Optional canonical host redirect (www.<domain> → <domain>). No-op unless

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
+import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { runOrchestrator } from "@/lib/orchestrator.legacy";
 
 export const maxDuration = 120;
@@ -9,8 +11,12 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  const user = session?.user;
+  if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const limit = await chatLimiter(`agent-run:${user.id}`);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   const { message, conversationId } = await req.json();
   if (!message || !conversationId) return NextResponse.json({ error: "message and conversationId required" }, { status: 400 });

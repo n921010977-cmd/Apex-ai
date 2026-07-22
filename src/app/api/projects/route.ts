@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { auth } from "@/auth";
 
 // GET /api/projects — list user's projects
 export async function GET() {
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  const user = session?.user;
+  if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const { data, error } = await db
     .from("projects")
@@ -24,8 +26,9 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const session = await auth();
+  const user = session?.user;
+  if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const body = await req.json();
 
