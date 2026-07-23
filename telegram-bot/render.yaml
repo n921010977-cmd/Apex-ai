@@ -1,0 +1,30 @@
+# Render Blueprint. Place this file at the REPO ROOT (or point Render's Blueprint
+# at it). The bot runs as a Background Worker — long-polling, no public port.
+# Secrets (sync:false) are entered once in the Render dashboard, never in git.
+services:
+  - type: worker
+    name: vertlix-telegram-bot
+    runtime: docker
+    rootDir: telegram-bot
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: BOT_MODE
+        value: polling
+      - key: DEFAULT_MODEL
+        value: claude-haiku-4-5-20251001
+      - key: BOT_TOKEN
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: DIRECT_URL
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: ADMIN_TELEGRAM_IDS
+        sync: false
+      - key: BOT_SECRET
+        generateValue: true

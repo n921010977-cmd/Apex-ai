@@ -1,0 +1,29 @@
+# Fly.io — long-polling worker (no public services needed).
+# Deploy:
+#   fly launch --no-deploy            # creates the app from this file
+#   fly secrets set BOT_TOKEN=... DATABASE_URL=... DIRECT_URL=... ANTHROPIC_API_KEY=... BOT_SECRET=...
+#   fly deploy
+# For webhook mode instead: set BOT_MODE=webhook + WEBHOOK_DOMAIN, and uncomment [http_service].
+
+app = "vertlix-telegram-bot"
+primary_region = "fra"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  BOT_MODE = "polling"
+  PORT = "8080"
+
+# Polling needs no inbound traffic. Uncomment for webhook mode:
+# [http_service]
+#   internal_port = 8080
+#   force_https = true
+#   auto_stop_machines = false
+#   auto_start_machines = true
+#   min_machines_running = 1
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"
+  cpus = 1

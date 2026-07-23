@@ -124,6 +124,15 @@ pm2 start ecosystem.config.cjs
 pm2 logs vertlix-bot
 ```
 
+**Managed platforms (long-polling worker — no public port).** Config files are
+included; enter secrets in the platform dashboard (never in git):
+- **Railway** — `railway.json` (Dockerfile build). New Project → Deploy from repo → set env vars.
+- **Fly.io** — `fly.toml`. `fly launch --no-deploy` → `fly secrets set BOT_TOKEN=… DATABASE_URL=… ANTHROPIC_API_KEY=…` → `fly deploy`.
+- **Render** — `render.yaml` (Background Worker, `rootDir: telegram-bot`). New Blueprint → fill the `sync:false` secrets.
+
+> This sandbox can't host the bot (no persistent process, and api.telegram.org is
+> not reachable from here) — deploy on one of the above or your own VPS.
+
 ## 6. Security
 
 - **telegram_id verification** on every update (`attachAccount`); blocked accounts rejected.
