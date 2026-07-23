@@ -1,0 +1,194 @@
+// Vertlix Telegram Bot — Prisma schema.
+// The bot is a SEPARATE service that talks to the SAME Postgres DB as the
+// Vertlix web app (which itself uses the Supabase client, not Prisma — that's
+// fine, they're different processes over one database). This schema maps the
+// existing tables the bot needs + adds two Telegram-only tables.
+//
+// After `prisma db push`, add these two tables to the app's Supabase migrations
+// too (telegram_accounts, telegram_link_codes) so RLS/ownership stays consistent.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Telegram-specific (new) ──────────────────────────────────────────────────
+model TelegramAccount {
+  telegramId   BigInt    @id @map("telegram_id")
+  userId       String    @unique @map("user_id") @db.Uuid
+  username     String?
+  firstName    String?   @map("first_name")
+  languageCode String?   @map("language_code")
+  defaultModel String    @default("claude-haiku-4-5-20251001") @map("default_model")
+  activeAgent  String    @default("ceo") @map("active_agent")
+  activeConversationId String? @map("active_conversation_id") @db.Uuid
+  notifyEnabled Boolean  @default(true) @map("notify_enabled")
+  isBlocked    Boolean   @default(false) @map("is_blocked")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  lastSeenAt   DateTime  @default(now()) @map("last_seen_at")
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("telegram_accounts")
+}
+
+model TelegramLinkCode {
+  id         String   @id @default(uuid()) @db.Uuid
+  telegramId BigInt   @map("telegram_id")
+  email      String
+  codeHash   String   @map("code_hash")     // sha256(code + BOT_SECRET)
+  expiresAt  DateTime @map("expires_at")
+  attempts   Int      @default(0)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([telegramId])
+  @@map("telegram_link_codes")
+}
+
+// ─── Existing Vertlix tables (subset the bot reads/writes) ────────────────────
+model User {
+  id            String   @id @default(uuid()) @db.Uuid
+  email         String   @unique
+  name          String?
+  avatarUrl     String?  @map("avatar_url")
+  role          String   @default("FREE")
+  tier          String   @default("FREE")
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  telegram      TelegramAccount?
+  memberships   Member[]
+  projects      Project[]
+  conversations Conversation[]
+
+  @@map("users")
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  ownerId   String?  @map("owner_id") @db.Uuid
+  plan      String   @default("free")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  members   Member[]
+  projects  Project[]
+  agents    Agent[]
+
+  @@map("organizations")
+}
+
+model Member {
+  id             String @id @default(uuid()) @db.Uuid
+  userId         String @map("user_id") @db.Uuid
+  organizationId String @map("organization_id") @db.Uuid
+  role           String @default("member")
+
+  user           User         @relation(fields: [userId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@unique([userId, organizationId])
+  @@map("members")
+}
+
+model Agent {
+  id             String  @id @default(uuid()) @db.Uuid
+  organizationId String  @map("organization_id") @db.Uuid
+  name           String
+  description    String?
+  type           String  @default("custom")
+  systemPrompt   String? @map("system_prompt")
+  model          String  @default("claude-haiku-4-5-20251001")
+  isActive       Boolean @default(true) @map("is_active")
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  @@map("agents")
+}
+
+model Project {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  userId         String?  @map("user_id") @db.Uuid
+  name           String
+  description    String?
+  industry       String?
+  stage          String?
+  status         String   @default("active")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user           User?          @relation(fields: [userId], references: [id])
+  organization   Organization   @relation(fields: [organizationId], references: [id])
+  conversations  Conversation[]
+
+  @@index([userId])
+  @@map("projects")
+}
+
+model Conversation {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  projectId String?  @map("project_id") @db.Uuid
+  title     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at")
+
+  user      User      @relation(fields: [userId], references: [id])
+  project   Project?  @relation(fields: [projectId], references: [id])
+  messages  Message[]
+
+  @@index([userId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String   @id @default(uuid()) @db.Uuid
+  conversationId String   @map("conversation_id") @db.Uuid
+  role           String
+  content        String
+  tokensUsed     Int      @default(0) @map("tokens_used")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+model Subscription {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @unique @map("organization_id") @db.Uuid
+  plan           String   @default("free")
+  status         String   @default("active")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("subscriptions")
+}
+
+model UsageStat {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  metric         String
+  value          BigInt   @default(0)
+  periodStart    DateTime @map("period_start")
+
+  @@index([organizationId, metric, periodStart])
+  @@map("usage_stats")
+}
+
+model ActivityLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String?  @map("user_id") @db.Uuid
+  organizationId String?  @map("organization_id") @db.Uuid
+  type           String
+  data           Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@map("activity_logs")
+}

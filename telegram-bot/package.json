@@ -1,0 +1,30 @@
+{
+  "name": "vertlix-telegram-bot",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Vertlix AI — Telegram bot: a full alternate interface to the Vertlix AI platform.",
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
+    "typecheck": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:push": "prisma db push"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.107.0",
+    "@prisma/client": "^5.22.0",
+    "dotenv": "^16.4.5",
+    "ioredis": "^5.4.1",
+    "telegraf": "^4.16.3",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.6.3"
+  }
+}
