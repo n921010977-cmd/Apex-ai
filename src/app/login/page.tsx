@@ -36,6 +36,21 @@ function LoginForm() {
     return () => clearTimeout(t);
   }, [bootCount]);
 
+  // OAuth providers redirect back with `?error=...` on failure (they don't use
+  // signIn's redirect:false path the credentials form does) — without this,
+  // a failed Google/GitHub sign-in silently dropped the user back on a blank
+  // form with no explanation at all.
+  useEffect(() => {
+    const code = searchParams.get("code") || searchParams.get("error");
+    if (!code) return;
+    if (code === "RATE_LIMITED") setError("ACCESS DENIED · слишком много попыток входа, попробуйте через 15 минут");
+    else if (code === "OAuthAccountNotLinked") setError("ACCESS DENIED · этот email уже зарегистрирован другим способом входа");
+    else if (code === "AccessDenied") setError("ACCESS DENIED · доступ отклонён");
+    else if (code === "Configuration") setError("ACCESS DENIED · провайдер входа временно недоступен");
+    else setError("ACCESS DENIED · вход не выполнен, попробуйте снова");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
     if (needsTotp) {
@@ -45,6 +60,7 @@ function LoginForm() {
       const res = await signIn("credentials", { name, email, password, totpCode, redirect: false, callbackUrl });
       setLoading(null);
       if (res?.error === "2FA_INVALID") { setError("ACCESS DENIED · неверный код 2FA"); setTotpCode(""); }
+      else if (res?.error === "RATE_LIMITED") setError("ACCESS DENIED · слишком много попыток входа, попробуйте через 15 минут");
       else if (res?.error) setError("ACCESS DENIED · вход не выполнен, попробуйте снова");
       else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
       return;
@@ -57,6 +73,7 @@ function LoginForm() {
     const res = await signIn("credentials", { name, email, password, redirect: false, callbackUrl });
     setLoading(null);
     if (res?.error === "2FA_REQUIRED") { setNeedsTotp(true); setError(""); }
+    else if (res?.error === "RATE_LIMITED") setError("ACCESS DENIED · слишком много попыток входа, попробуйте через 15 минут");
     else if (res?.error) setError("ACCESS DENIED · неверный email или пароль");
     else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
   };

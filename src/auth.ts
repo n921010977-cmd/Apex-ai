@@ -10,6 +10,7 @@ import { verifyAuthenticationResponse } from "@simplewebauthn/server";
 import { isoBase64URL } from "@simplewebauthn/server/helpers";
 import { getRpID, getRpOrigin } from "@/lib/webauthn";
 import { authConfig } from "@/auth.config";
+import { authLimiter, clientIp } from "@/lib/middleware/rate-limit";
 
 // Thrown from authorize() when the account has 2FA enabled. The `code` is
 // surfaced to the client as signIn()'s `error` field (redirect: false), so
@@ -17,6 +18,11 @@ import { authConfig } from "@/auth.config";
 // a generic "wrong credentials" message.
 class TwoFactorRequiredError extends CredentialsSignin { code = "2FA_REQUIRED"; }
 class TwoFactorInvalidError extends CredentialsSignin { code = "2FA_INVALID"; }
+// Thrown when too many sign-in attempts have been made for this IP+email
+// combination — without this, authorize() had no brute-force protection at
+// all (only /api/auth/register did), so a password could be guessed with
+// unlimited attempts straight through NextAuth's own credentials flow.
+class RateLimitedError extends CredentialsSignin { code = "RATE_LIMITED"; }
 
 // ─── Type augmentation ────────────────────────────────────────────────────────
 
@@ -95,13 +101,20 @@ const config: NextAuthConfig = {
         password: { label: "Password", type: "password" },
         totpCode: { label: "2FA code", type: "text"      },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         const name     = (credentials?.name     as string | undefined)?.trim();
         const email    = (credentials?.email    as string | undefined)?.trim().toLowerCase();
         const password =  credentials?.password as string | undefined;
         const totpCode = (credentials?.totpCode as string | undefined)?.trim();
 
         if (!email || !password || password.length < 6) return null;
+
+        // ── Brute-force protection ───────────────────────────────────────────
+        // Keyed by IP+email so one attacker can't grind a single account, and
+        // one compromised account list can't be sprayed from one IP either.
+        const ip = clientIp(request);
+        const attempt = await authLimiter(`login:${ip}:${email}`);
+        if (!attempt.allowed) throw new RateLimitedError();
 
         // ── Demo mode: no database configured → accept any valid input ──────
         // Lets users sign in with nickname + email + password when Supabase
