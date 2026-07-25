@@ -4,6 +4,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "@/components/SessionProvider";
 import { PostHogProvider } from "@/components/PostHogProvider";
+import { CookieBanner } from "@/components/CookieBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -79,6 +80,7 @@ export default function RootLayout({
         <SessionProvider>
           <PostHogProvider>{children}</PostHogProvider>
         </SessionProvider>
+        <CookieBanner />
         <Analytics />
       </body>
     </html>
