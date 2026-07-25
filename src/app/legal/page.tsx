@@ -54,7 +54,7 @@ export default function LegalPage() {
         <h1 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px" }}>Правовая информация</h1>
         <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: "0 0 20px" }}>Последнее обновление: июль 2026</p>
         <p style={{ fontSize: 14.5, lineHeight: 1.7, color: "rgba(255,255,255,0.6)", margin: "0 0 32px" }}>
-          Полная <Link href="/legal/privacy" style={{ color: "#a5b4fc", textDecoration: "none", fontWeight: 600 }}>Политика конфиденциальности</Link> — с детальным описанием собираемых данных, провайдеров, мер безопасности и ваших прав.
+          Полные документы: <Link href="/legal/privacy" style={{ color: "#a5b4fc", textDecoration: "none", fontWeight: 600 }}>Политика конфиденциальности</Link> и <Link href="/legal/terms" style={{ color: "#a5b4fc", textDecoration: "none", fontWeight: 600 }}>Пользовательское соглашение</Link>. Ниже — краткий обзор.
         </p>
 
         {/* Anchor nav */}
