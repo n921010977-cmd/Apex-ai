@@ -22,8 +22,8 @@ const SECTIONS = [
   {
     id: "cookies", title: "Использование Cookies",
     body: [
-      "Мы используем только необходимые cookies для авторизации (сессия) и сохранения настроек интерфейса.",
-      "Мы не используем рекламные или трекинговые cookies третьих сторон.",
+      "Мы используем необходимые cookies для авторизации (сессия) и сохранения настроек интерфейса, а также аналитические cookies (PostHog, Vercel Analytics), чтобы улучшать продукт.",
+      "Мы не используем рекламные cookies для показа вам сторонней рекламы.",
       "Вы можете очистить cookies в настройках браузера, но это приведёт к выходу из аккаунта.",
     ],
   },
@@ -52,7 +52,10 @@ export default function LegalPage() {
 
       <div style={{ maxWidth: 760, margin: "0 auto", padding: "48px 24px 80px" }}>
         <h1 style={{ fontSize: "clamp(26px,4vw,40px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px" }}>Правовая информация</h1>
-        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: "0 0 32px" }}>Последнее обновление: июль 2026</p>
+        <p style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", margin: "0 0 20px" }}>Последнее обновление: июль 2026</p>
+        <p style={{ fontSize: 14.5, lineHeight: 1.7, color: "rgba(255,255,255,0.6)", margin: "0 0 32px" }}>
+          Полная <Link href="/legal/privacy" style={{ color: "#a5b4fc", textDecoration: "none", fontWeight: 600 }}>Политика конфиденциальности</Link> — с детальным описанием собираемых данных, провайдеров, мер безопасности и ваших прав.
+        </p>
 
         {/* Anchor nav */}
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginBottom: 40 }}>
