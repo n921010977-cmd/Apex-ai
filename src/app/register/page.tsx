@@ -39,6 +39,7 @@ export default function RegisterPage() {
   const [success,  setSuccess]  = useState(false);
   const [bootCount, setBootCount] = useState(0);
   const [showPass,  setShowPass]  = useState(false);
+  const [consent,   setConsent]   = useState(false);
 
   useEffect(() => {
     if (bootCount >= BOOT_LINES.length) return;
@@ -66,6 +67,10 @@ export default function RegisterPage() {
     }
     if (password !== confirm) {
       setError("ACCESS DENIED · пароли не совпадают");
+      return;
+    }
+    if (!consent) {
+      setError("ACCESS DENIED · подтвердите согласие на обработку данных");
       return;
     }
 
@@ -288,6 +293,25 @@ export default function RegisterPage() {
                     )}
                   </div>
                 </motion.div>
+
+                {/* Consent checkbox — краткая версия для регистрации */}
+                <motion.label
+                  initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 1.8 }}
+                  htmlFor="consent"
+                  style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer", userSelect: "none" }}
+                >
+                  <input
+                    id="consent" type="checkbox" checked={consent}
+                    onChange={e => setConsent(e.target.checked)}
+                    style={{ marginTop: 2, width: 16, height: 16, accentColor: "#6366f1", cursor: "pointer", flexShrink: 0 }}
+                  />
+                  <span style={{ fontSize: 12, lineHeight: 1.55, color: "rgba(255,255,255,0.55)" }}>
+                    Я согласен на обработку персональных данных (email, технических данных и запросов к AI) для создания аккаунта и работы Сервиса и принимаю{" "}
+                    <Link href="/legal/consent" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Согласие</Link>,{" "}
+                    <Link href="/legal/terms" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Условия</Link> и{" "}
+                    <Link href="/legal/privacy" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Политику конфиденциальности</Link>.
+                  </span>
+                </motion.label>
 
                 {/* Error */}
                 <AnimatePresence>
