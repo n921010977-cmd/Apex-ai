@@ -56,6 +56,10 @@ export default function ForgotPasswordPage() {
                 {busy ? "Отправляем…" : "Отправить ссылку"}
               </button>
             </form>
+            <p style={{ fontSize: 11, lineHeight: 1.6, color: "rgba(255,255,255,0.3)", margin: "12px 0 0" }}>
+              Отправляя форму, вы соглашаетесь на обработку email для восстановления доступа —{" "}
+              <Link href="/legal/privacy" style={{ color: "rgba(165,180,252,0.8)", textDecoration: "none" }}>политика конфиденциальности</Link>.
+            </p>
             <Link href="/login" style={{ display: "inline-block", marginTop: 16, fontSize: 12.5, color: "rgba(255,255,255,0.4)", textDecoration: "none" }}>← Вернуться ко входу</Link>
           </>
         )}

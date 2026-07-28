@@ -231,7 +231,7 @@ function LoginForm() {
             >
               {loading === "credentials"
                 ? <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-                : <>▸ {needsTotp ? "Confirm 2FA" : "Authenticate"}</>}
+                : <>▸ {needsTotp ? "Подтвердить код 2FA" : "Войти"}</>}
             </motion.button>
           </form>
         </div>
@@ -248,8 +248,14 @@ function LoginForm() {
           </Link>
         </div>
         <div className="term-mono" style={{ textAlign: "center", marginTop: 10, fontSize: 10, color: "rgba(255,255,255,0.22)", letterSpacing: "0.1em" }}>
-          VERTLIX // COMMAND CENTER · SECURE SESSION
+          VERTLIX // ЦЕНТР УПРАВЛЕНИЯ · ЗАЩИЩЁННАЯ СЕССИЯ
         </div>
+        <p style={{ textAlign: "center", marginTop: 12, fontSize: 11, lineHeight: 1.6, color: "rgba(255,255,255,0.3)" }}>
+          Входя в аккаунт, вы подтверждаете согласие с{" "}
+          <Link href="/legal/offer" style={{ color: "rgba(165,180,252,0.8)", textDecoration: "none" }}>офертой</Link>,{" "}
+          <Link href="/legal/terms" style={{ color: "rgba(165,180,252,0.8)", textDecoration: "none" }}>условиями</Link> и{" "}
+          <Link href="/legal/privacy" style={{ color: "rgba(165,180,252,0.8)", textDecoration: "none" }}>политикой конфиденциальности</Link>.
+        </p>
       </motion.div>
     </div>
   );

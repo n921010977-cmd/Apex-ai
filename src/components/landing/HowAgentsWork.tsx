@@ -217,7 +217,7 @@ export function HowAgentsWork() {
                     </div>
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>CEO · Sophia — решение совета</div>
-                      <div className="term-mono" style={{ fontSize: 9, letterSpacing: "0.12em", color: `rgba(${RGB},0.8)` }}>SYNTHESIS COMPLETE</div>
+                      <div className="term-mono" style={{ fontSize: 9, letterSpacing: "0.12em", color: `rgba(${RGB},0.8)` }}>СИНТЕЗ ЗАВЕРШЁН</div>
                     </div>
                     <div className="term-value" style={{ fontSize: 26, fontWeight: 800, color: "#34d399" }}>{VERDICT.score}<span style={{ fontSize: 12, opacity: 0.5 }}>/100</span></div>
                   </div>

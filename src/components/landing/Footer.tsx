@@ -35,6 +35,7 @@ const NAV_COLUMNS = [
   {
     heading: "Правовая информация",
     links: [
+      { label: "Публичная оферта", href: "/legal/offer" },
       { label: "Конфиденциальность", href: "/legal#privacy" },
       { label: "Условия использования", href: "/legal#terms" },
       { label: "Cookies", href: "/legal#cookies" },
@@ -105,8 +106,8 @@ export function Footer() {
                 </svg>
               </div>
               <div>
-                <div className="text-[15px] font-bold text-white tracking-tight">Business Command Center</div>
-                <div className="text-[10px] text-white/35 tracking-[0.18em] uppercase">AI Executive Board</div>
+                <div className="text-[15px] font-bold text-white tracking-tight">Центр управления бизнесом</div>
+                <div className="text-[10px] text-white/35 tracking-[0.18em] uppercase">Совет ИИ-директоров</div>
               </div>
             </div>
             <p className="text-sm text-white/40 leading-relaxed max-w-sm mb-6">
