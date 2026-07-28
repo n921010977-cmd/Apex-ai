@@ -42,8 +42,16 @@ export async function POST(req: Request) {
           html: `<p>Вы запросили сброс пароля в Vertlix AI.</p><p><a href="${link}">Установить новый пароль</a></p><p>Ссылка действует 1 час. Если это были не вы — просто проигнорируйте письмо.</p>`,
         }),
       }).catch((e) => console.error("[forgot-password] resend", e));
+    } else if (process.env.NODE_ENV !== "production") {
+      // Только для локальной разработки: без почтового провайдера иначе не
+      // получить ссылку. В продакшене печатать её нельзя — логи Vercel видит
+      // вся команда и любой интегрированный сборщик логов, а ссылка равна
+      // праву сменить пароль этому аккаунту.
+      console.log(`[forgot-password] dev-ссылка для ${addr}: ${link}`);
     } else {
-      console.log(`[forgot-password] reset link for ${addr}: ${link}`);
+      // Продакшен без RESEND_API_KEY: письмо отправить нечем. Сообщаем об этом
+      // без самой ссылки и без адреса пользователя.
+      console.error("[forgot-password] RESEND_API_KEY не настроен — письмо не отправлено");
     }
 
     return generic;

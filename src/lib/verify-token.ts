@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { authSecret } from "@/lib/auth-secret";
 
 // ─── Stateless email-verification tokens ──────────────────────────────────────
 // Same HMAC-SHA256 scheme as reset-token, but the payload carries a distinct
@@ -8,7 +9,7 @@ import crypto from "crypto";
 const TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
 
 function secret(): string {
-  return process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "vertlix-dev-secret-change-me";
+  return authSecret();
 }
 
 function b64url(buf: Buffer): string {

@@ -28,14 +28,31 @@ if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY && !(po
   });
 }
 
+// Параметры, которые нельзя отправлять в аналитику ни при каком согласии:
+// ссылка сброса пароля и ссылка подтверждения email содержат подписанный токен,
+// то есть право войти в аккаунт. Раньше $pageview слал полный URL, и такой
+// токен оседал в PostHog — этого достаточно для захвата аккаунта тем, у кого
+// есть доступ к аналитике. Значения вырезаем, сам факт параметра сохраняем.
+const SENSITIVE_PARAMS = new Set(["token", "code", "secret", "key", "email", "access_token", "refresh_token"]);
+
+function sanitizeQuery(qs: string | undefined): string {
+  if (!qs) return "";
+  const params = new URLSearchParams(qs);
+  let touched = false;
+  for (const key of [...params.keys()]) {
+    if (SENSITIVE_PARAMS.has(key.toLowerCase())) { params.set(key, "[скрыто]"); touched = true; }
+  }
+  const out = params.toString();
+  return out ? `?${touched ? decodeURIComponent(out) : out}` : "";
+}
+
 // Manual $pageview on every App Router navigation (searchParams included).
 function PageviewTracker() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   useEffect(() => {
     if (!(posthog as unknown as { __loaded?: boolean }).__loaded) return;
-    const qs = searchParams?.toString();
-    posthog.capture("$pageview", { $current_url: window.location.origin + pathname + (qs ? `?${qs}` : "") });
+    posthog.capture("$pageview", { $current_url: window.location.origin + pathname + sanitizeQuery(searchParams?.toString()) });
   }, [pathname, searchParams]);
   return null;
 }

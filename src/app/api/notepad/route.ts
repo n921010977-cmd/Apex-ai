@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { safeSearchTerm } from "@/lib/search-filter";
+
+// Границы для одной заметки. Без них принималась запись любого размера —
+// это раздувание базы и оплата чужого «хранилища» за наш счёт.
+const MAX_TITLE = 200;
+const MAX_CONTENT = 100_000;
+const MAX_TAGS = 20;
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -10,7 +17,7 @@ export async function GET(req: NextRequest) {
   const folder = searchParams.get("folder");
   const tag = searchParams.get("tag");
   const pinned = searchParams.get("pinned");
-  const search = searchParams.get("q");
+  const search = safeSearchTerm(searchParams.get("q"));
   const limit = Math.min(parseInt(searchParams.get("limit") ?? "30"), 100);
   const offset = parseInt(searchParams.get("offset") ?? "0");
 
@@ -54,11 +61,21 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
+  const content = body.content ?? "";
+  if (content.length > MAX_CONTENT) {
+    return NextResponse.json({ success: false, error: `Заметка не длиннее ${MAX_CONTENT} символов` }, { status: 422 });
+  }
+  if ((body.title?.length ?? 0) > MAX_TITLE) {
+    return NextResponse.json({ success: false, error: `Заголовок не длиннее ${MAX_TITLE} символов` }, { status: 422 });
+  }
+  if (Array.isArray(body.tags) && body.tags.length > MAX_TAGS) {
+    return NextResponse.json({ success: false, error: `Не больше ${MAX_TAGS} тегов` }, { status: 422 });
+  }
+
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
 
-  const content = body.content ?? "";
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length;
 
   const { data, error } = await db.from("notes").insert({

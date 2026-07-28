@@ -1,4 +1,5 @@
 import type { NextAuthConfig } from "next-auth";
+import { authSecret } from "@/lib/auth-secret";
 
 /**
  * Edge-safe subset of the NextAuth config — no Credentials provider, no
@@ -24,5 +25,5 @@ export const authConfig: NextAuthConfig = {
     newUser: "/dashboard",
   },
   session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 }, // 30 days
-  secret: process.env.NEXTAUTH_SECRET ?? "apex-ai-dev-secret-change-in-production",
+  secret: authSecret(),
 };

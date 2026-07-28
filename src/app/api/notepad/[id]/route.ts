@@ -47,6 +47,18 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
+  // Те же границы, что и на создании заметки — иначе лимит обходится
+  // редактированием уже созданной записи.
+  if (typeof body.content === "string" && body.content.length > 100_000) {
+    return NextResponse.json({ success: false, error: "Заметка не длиннее 100000 символов" }, { status: 422 });
+  }
+  if (typeof body.title === "string" && body.title.length > 200) {
+    return NextResponse.json({ success: false, error: "Заголовок не длиннее 200 символов" }, { status: 422 });
+  }
+  if (Array.isArray(body.tags) && body.tags.length > 20) {
+    return NextResponse.json({ success: false, error: "Не больше 20 тегов" }, { status: 422 });
+  }
+
   const allowed = ["title", "content", "emoji", "tags", "folder", "is_pinned", "ai_summary"];
   const update: Record<string, unknown> = { updated_at: new Date().toISOString() };
 
@@ -58,7 +70,11 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     update.word_count = body.content.trim().split(/\s+/).filter(Boolean).length;
   }
 
-  const { data, error } = await db.from("notes").update(update).eq("id", id).select().single();
+  // user_id повторяется и в самом UPDATE: владение уже проверено выше, но
+  // фильтр по владельцу в запросе — то, что защищает от ошибки в будущем
+  // рефакторинге и от гонки между проверкой и записью.
+  const { data, error } = await db.from("notes").update(update)
+    .eq("id", id).eq("user_id", session.user.id).select().single();
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
 
   return NextResponse.json({ success: true, data });

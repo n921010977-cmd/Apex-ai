@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { safeSearchTerm } from "@/lib/search-filter";
 
 // GET /api/vault — list the signed-in user's custom vault items.
 export async function GET(req: NextRequest) {
@@ -17,7 +18,8 @@ export async function GET(req: NextRequest) {
   const db = supabase as any;
   let query = db.from("vault_items").select("*").eq("user_id", session.user.id).order("updated_at", { ascending: false }).limit(limit);
   if (type && type !== "all") query = query.eq("type", type);
-  if (q) query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`);
+  const safeQ = safeSearchTerm(q);
+  if (safeQ) query = query.or(`title.ilike.%${safeQ}%,content.ilike.%${safeQ}%`);
 
   const { data, error } = await query;
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });

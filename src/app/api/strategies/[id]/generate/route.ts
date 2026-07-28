@@ -37,7 +37,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const questionnaire = body.questionnaire ?? strategy.questionnaire ?? {};
   const language = body.language ?? strategy.language ?? "ru";
 
-  await db.from("strategies").update({ status: "generating", questionnaire }).eq("id", id);
+  await db.from("strategies").update({ status: "generating", questionnaire }).eq("id", id).eq("user_id", session.user.id);
 
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return NextResponse.json({ success: false, error: "AI not configured" }, { status: 503 });
@@ -87,7 +87,7 @@ ${qFormatted}
     }
     tokensUsed = (response.usage.input_tokens ?? 0) + (response.usage.output_tokens ?? 0);
   } catch (err) {
-    await db.from("strategies").update({ status: "draft" }).eq("id", id);
+    await db.from("strategies").update({ status: "draft" }).eq("id", id).eq("user_id", session.user.id);
     const msg = err instanceof Error ? err.message : "AI error";
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
@@ -97,7 +97,7 @@ ${qFormatted}
     const jsonMatch = rawJson.match(/\{[\s\S]*\}/);
     parsed = JSON.parse(jsonMatch ? jsonMatch[0] : rawJson);
   } catch {
-    await db.from("strategies").update({ status: "draft" }).eq("id", id);
+    await db.from("strategies").update({ status: "draft" }).eq("id", id).eq("user_id", session.user.id);
     return NextResponse.json({ success: false, error: "AI returned invalid JSON" }, { status: 500 });
   }
 
@@ -122,7 +122,7 @@ ${qFormatted}
     ai_model: "claude-sonnet-5",
     ai_tokens: tokensUsed,
     updated_at: new Date().toISOString(),
-  }).eq("id", id);
+  }).eq("id", id).eq("user_id", session.user.id);
 
   const { data: sections } = await db.from("strategy_sections").select("*").eq("strategy_id", id).order("sort_order");
 

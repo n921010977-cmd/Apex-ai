@@ -34,7 +34,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { count } = await db.from("messages").select("id", { count: "exact" }).eq("conversation_id", conversationId);
   if ((count ?? 0) <= 1) {
     const title = message.length > 50 ? message.slice(0, 47) + "..." : message;
-    await db.from("conversations").update({ title, updated_at: new Date().toISOString() }).eq("id", conversationId);
+    await db.from("conversations").update({ title, updated_at: new Date().toISOString() }).eq("id", conversationId).eq("user_id", user.id);
   }
 
   const encoder = new TextEncoder();

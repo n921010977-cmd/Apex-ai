@@ -1,4 +1,5 @@
 import crypto from "crypto";
+import { authSecret as secret } from "@/lib/auth-secret";
 
 // ─── Stateless password-reset tokens ──────────────────────────────────────────
 // A reset link carries a signed token instead of a DB row: base64url(payload)
@@ -6,10 +7,6 @@ import crypto from "crypto";
 // self-expires. Changing NEXTAUTH_SECRET invalidates all outstanding links.
 
 const TTL_MS = 60 * 60 * 1000; // 1 hour
-
-function secret(): string {
-  return process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET || "vertlix-dev-secret-change-me";
-}
 
 function b64url(buf: Buffer): string {
   return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");

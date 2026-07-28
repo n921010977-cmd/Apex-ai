@@ -2,8 +2,15 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
 export const maxDuration = 60;
+
+// Границы пользовательского ввода. Без них тикет с описанием в сотни тысяч
+// символов уходил в модель целиком — это прямые деньги за токены на каждый
+// запрос и способ исчерпать наш бюджет чужими руками.
+const MAX_SUBJECT = 200;
+const MAX_DESCRIPTION = 4_000;
 
 const SUPPORT_SYSTEM_PROMPT = `You are a helpful and empathetic support agent for Vertlix AI, an executive AI platform.
 Your role is to assist users with their questions and issues about the platform.
@@ -71,6 +78,16 @@ export async function POST(req: NextRequest) {
   if (!body.description?.trim()) {
     return NextResponse.json({ success: false, error: "Description is required" }, { status: 422 });
   }
+  if (body.subject.length > MAX_SUBJECT) {
+    return NextResponse.json({ success: false, error: `Тема не длиннее ${MAX_SUBJECT} символов` }, { status: 422 });
+  }
+  if (body.description.length > MAX_DESCRIPTION) {
+    return NextResponse.json({ success: false, error: `Описание не длиннее ${MAX_DESCRIPTION} символов` }, { status: 422 });
+  }
+
+  // Каждый тикет вызывает модель — держим ту же квоту, что и на чате.
+  const limit = await chatLimiter(`support:${session.user.id}`);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   const VALID_CATEGORIES = ["general", "billing", "technical", "feature", "bug"];
   const VALID_PRIORITIES = ["low", "medium", "high", "urgent"];

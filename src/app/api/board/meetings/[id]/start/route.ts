@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
 export const maxDuration = 120;
 
@@ -82,6 +83,11 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const { id } = await params;
   const session = await auth();
   if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  // Самый дорогой вызов в продукте: одно заседание — это прогон всего совета
+  // директоров. Без квоты один аккаунт в цикле сжигает бюджет на токены.
+  const limit = await reportLimiter(`board-start:${session.user.id}`);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

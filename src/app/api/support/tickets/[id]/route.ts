@@ -51,7 +51,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     if (key in body) update[key] = body[key];
   }
 
-  const { data, error } = await db.from("support_tickets").update(update).eq("id", id).select().single();
+  const { data, error } = await db.from("support_tickets").update(update).eq("id", id).eq("user_id", session.user.id).select().single();
   if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
 
   return NextResponse.json({ success: true, data });
