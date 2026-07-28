@@ -10,7 +10,6 @@ const NAV_COLUMNS = [
       { label: "Возможности", href: "#product" },
       { label: "AI команда", href: "#executives" },
       { label: "Отзывы", href: "#testimonials" },
-      { label: "Тарифы", href: "#pricing" },
       { label: "AI Чат", href: "/chat" },
     ],
   },
@@ -18,7 +17,6 @@ const NAV_COLUMNS = [
     heading: "Компания",
     links: [
       { label: "Как это работает", href: "#product" },
-      { label: "Тарифы", href: "#pricing" },
       { label: "Контакты", href: "mailto:n921010977@gmail.com" },
       { label: "Начать бесплатно", href: "/register" },
     ],

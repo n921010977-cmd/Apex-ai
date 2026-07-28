@@ -7,7 +7,6 @@ import { HowAgentsWork } from "@/components/landing/HowAgentsWork";
 import { WhyNotChatGPT } from "@/components/landing/WhyNotChatGPT";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
-import { PricingSection } from "@/components/landing/PricingSection";
 import { FaqSection } from "@/components/landing/FaqSection";
 import { CtaBanner } from "@/components/landing/CtaBanner";
 import { ScrollProgress } from "@/components/landing/ScrollProgress";
@@ -26,7 +25,6 @@ export default function LandingPage() {
       <WhyNotChatGPT />
       <FeaturesSection />
       <TestimonialsSection />
-      <PricingSection />
       <FaqSection />
       <CtaBanner />
       <Footer />
