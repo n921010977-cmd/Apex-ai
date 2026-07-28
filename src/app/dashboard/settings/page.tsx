@@ -9,8 +9,11 @@ import {
   Moon, Sun, Monitor, Loader2, X, CheckCircle2,
   MessageSquare, Phone, Copy, KeyRound, ShieldCheck,
   Fingerprint, Trash2, Plus, Camera,
+  Lock, Download, FileText, Cookie, LogOut,
 } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
+import { signOut } from "next-auth/react";
+import { getConsent, setConsent } from "@/lib/consent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -63,6 +66,7 @@ const NAV = [
   { id: "ai",            label: "AI Ассистент",  icon: Bot,     group: "Аккаунт" },
   { id: "notifications", label: "Уведомления",   icon: Bell,    group: "Система" },
   { id: "security",      label: "Безопасность",  icon: Shield,  group: "Система" },
+  { id: "privacy",       label: "Приватность и данные", icon: Lock, group: "Система" },
   { id: "language",      label: "Язык и регион", icon: Globe,   group: "Настройки" },
   { id: "appearance",    label: "Внешний вид",   icon: Palette, group: "Настройки" },
 ];
@@ -72,6 +76,7 @@ const DESCRIPTIONS: Record<string, string> = {
   ai:            "Конфигурация AI-ассистента и 20 агентов совета директоров",
   notifications: "Контролируй как и когда ты получаешь уведомления",
   security:      "Двухфакторная аутентификация и защита аккаунта",
+  privacy:       "Ваши данные, согласия и удаление аккаунта",
   language:      "Язык интерфейса, регион и форматы",
   appearance:    "Тема, цвета и визуальные настройки",
 };
@@ -873,6 +878,189 @@ function LanguagePanel({ settings, onUpdate, showToast }: { settings: Settings; 
   );
 }
 
+// ─── Приватность и данные ─────────────────────────────────────────────────────
+// Классический для любого сервиса раздел: что мы храним, экспорт своей копии
+// (право на переносимость), управление согласием на аналитику и удаление
+// аккаунта. Экспорт и удаление ходят в уже существующие /api/user/*.
+
+const LEGAL_DOCS = [
+  { href: "/legal/privacy", title: "Политика конфиденциальности", desc: "Какие данные собираем и зачем" },
+  { href: "/legal/terms",   title: "Пользовательское соглашение", desc: "Правила использования Сервиса" },
+  { href: "/legal/offer",   title: "Публичная оферта",            desc: "Условия предоставления доступа" },
+  { href: "/legal/cookies", title: "Политика cookies",            desc: "Какие cookies и для чего" },
+  { href: "/legal/consent", title: "Согласие на обработку данных", desc: "Текст согласия, которое вы дали" },
+];
+
+function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"error") => void }) {
+  const [analytics, setAnalytics] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [confirm, setConfirm] = useState("");
+  const [deleting, setDeleting] = useState(false);
+
+  // Согласие живёт в localStorage — читаем только на клиенте после монтирования.
+  useEffect(() => { setAnalytics(getConsent()?.analytics === true); }, []);
+
+  const toggleAnalytics = () => {
+    const next = !analytics;
+    setAnalytics(next);
+    setConsent(next);
+    showToast(next ? "Аналитика включена" : "Аналитика отключена", "success");
+  };
+
+  const exportData = async () => {
+    setExporting(true);
+    try {
+      const r = await fetch("/api/user/export");
+      if (!r.ok) { showToast("Не удалось выгрузить данные", "error"); return; }
+      const data = await r.json();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `vertlix-данные-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Архив данных скачан", "success");
+    } catch { showToast("Ошибка сети", "error"); }
+    finally { setExporting(false); }
+  };
+
+  const deleteAccount = async () => {
+    if (confirm !== "УДАЛИТЬ") return;
+    setDeleting(true);
+    try {
+      const r = await fetch("/api/user", { method: "DELETE" });
+      const d = await r.json();
+      if (d.success) { showToast("Аккаунт удалён", "success"); await signOut({ callbackUrl: "/" }); }
+      else { showToast(d.error || "Не удалось удалить аккаунт", "error"); setDeleting(false); }
+    } catch { showToast("Ошибка сети", "error"); setDeleting(false); }
+  };
+
+  return (
+    <div>
+      <Section title="Ваши данные" desc="Полная копия всего, что хранится в вашем аккаунте" accent="#6366f1">
+        <Row label="Скачать архив данных" desc="Проекты, стратегии, отчёты, заметки, история — в формате JSON" last>
+          <button
+            onClick={exportData}
+            disabled={exporting}
+            style={{
+              display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 10,
+              fontSize: 12.5, fontWeight: 600, color: "#fff", cursor: exporting ? "default" : "pointer",
+              background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)",
+              opacity: exporting ? 0.6 : 1, flexShrink: 0,
+            }}
+          >
+            {exporting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={13} />}
+            {exporting ? "Готовим…" : "Скачать"}
+          </button>
+        </Row>
+      </Section>
+
+      <Section title="Согласия" desc="Что можно отключить без потери работы Сервиса" accent="#10b981">
+        <Row label="Аналитика использования" desc="Обезличенная статистика, помогает улучшать продукт. Содержимое проектов и запросов к AI не собирается.">
+          <Toggle on={analytics} onChange={toggleAnalytics} />
+        </Row>
+        <Row label="Необходимые cookies" desc="Вход, безопасность и защита от перебора — без них Сервис не работает, отключить нельзя" last>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>
+            <Cookie size={13} style={{ color: "rgba(255,255,255,0.25)" }} />
+            Всегда включены
+          </div>
+        </Row>
+      </Section>
+
+      <Section title="Правовые документы" desc="Актуальные редакции" accent="#8b5cf6">
+        <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+          {LEGAL_DOCS.map(doc => (
+            <a
+              key={doc.href}
+              href={doc.href}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                display: "flex", alignItems: "center", gap: 11, padding: "10px 12px", margin: "0 -12px",
+                borderRadius: 10, textDecoration: "none", transition: "background 0.15s",
+              }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
+            >
+              <FileText size={14} style={{ color: "rgba(139,92,246,0.7)", flexShrink: 0 }} />
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{doc.title}</div>
+                <div style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>{doc.desc}</div>
+              </div>
+              <ChevronRight size={13} style={{ color: "rgba(255,255,255,0.2)", flexShrink: 0 }} />
+            </a>
+          ))}
+        </div>
+      </Section>
+
+      <Section title="Сессия" accent="#f59e0b">
+        <Row label="Выйти из аккаунта" desc="Завершить текущую сессию на этом устройстве" last>
+          <button
+            onClick={() => signOut({ callbackUrl: "/" })}
+            style={{
+              display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 10,
+              fontSize: 12.5, fontWeight: 600, color: "rgba(255,255,255,0.7)", cursor: "pointer",
+              background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0,
+            }}
+          >
+            <LogOut size={13} /> Выйти
+          </button>
+        </Row>
+      </Section>
+
+      {/* Danger zone */}
+      <div style={{ borderRadius: 18, background: "rgba(239,68,68,0.04)", border: "1px solid rgba(239,68,68,0.22)", overflow: "hidden", marginBottom: 14 }}>
+        <div style={{ padding: "16px 22px 14px", borderBottom: "1px solid rgba(239,68,68,0.12)", display: "flex", alignItems: "center", gap: 10 }}>
+          <div style={{ width: 3, height: 20, borderRadius: 2, background: "#ef4444", flexShrink: 0 }} />
+          <div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#fca5a5" }}>Удаление аккаунта</div>
+            <div style={{ fontSize: 11, color: "rgba(252,165,165,0.5)", marginTop: 1 }}>Действие необратимо</div>
+          </div>
+        </div>
+        <div style={{ padding: "18px 22px" }}>
+          <p style={{ fontSize: 12.5, lineHeight: 1.65, color: "rgba(255,255,255,0.5)", margin: "0 0 16px" }}>
+            Будут безвозвратно удалены все ваши проекты, стратегии, отчёты, заметки, история запросов
+            и настройки. Восстановить их будет невозможно. Рекомендуем сначала скачать архив данных.
+          </p>
+          <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
+            <div style={{ flex: 1, minWidth: 200 }}>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
+                Введите <span style={{ color: "#fca5a5", fontWeight: 700 }}>УДАЛИТЬ</span> для подтверждения
+              </label>
+              <input
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                placeholder="УДАЛИТЬ"
+                style={{
+                  width: "100%", height: 40, borderRadius: 10, padding: "0 13px", fontSize: 13,
+                  background: "rgba(255,255,255,0.035)", border: "1px solid rgba(239,68,68,0.25)",
+                  color: "#fff", outline: "none",
+                }}
+              />
+            </div>
+            <button
+              onClick={deleteAccount}
+              disabled={confirm !== "УДАЛИТЬ" || deleting}
+              style={{
+                display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 18px", borderRadius: 10,
+                fontSize: 12.5, fontWeight: 700, border: "none", flexShrink: 0,
+                cursor: confirm === "УДАЛИТЬ" && !deleting ? "pointer" : "not-allowed",
+                background: confirm === "УДАЛИТЬ" ? "#ef4444" : "rgba(239,68,68,0.12)",
+                color: confirm === "УДАЛИТЬ" ? "#fff" : "rgba(252,165,165,0.4)",
+                transition: "all 0.2s",
+              }}
+            >
+              {deleting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Trash2 size={13} />}
+              {deleting ? "Удаление…" : "Удалить аккаунт"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
   const [theme, setTheme] = useState(settings.theme || "dark");
   const [accent, setAccent] = useState("#6366f1");
@@ -944,7 +1132,7 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
   );
 }
 
-const VALID_TABS = new Set(["profile", "ai", "notifications", "security", "language", "appearance"]);
+const VALID_TABS = new Set(["profile", "ai", "notifications", "security", "privacy", "language", "appearance"]);
 
 function SettingsPageInner() {
   const router = useRouter();
@@ -1003,6 +1191,7 @@ function SettingsPageInner() {
       case "ai":            return <AIPanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
       case "notifications": return <NotificationsPanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
       case "security":      return <SecurityPanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
+      case "privacy":       return <PrivacyPanel showToast={showToast} />;
       case "language":      return <LanguagePanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
       case "appearance":    return <AppearancePanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
       default:              return null;
