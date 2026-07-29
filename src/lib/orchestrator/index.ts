@@ -244,12 +244,17 @@ export async function directChat(opts: {
   history?: { role: "user" | "assistant"; content: string }[];
   image?: { data: string; mediaType: string };
   onToken?: (token: string) => void;
+  // Явный потолок вывода для намеренных, квотируемых операций (например,
+  // генерация артефакта): в отличие от чата, где короткий ответ — это экономия,
+  // деку нужен весь JSON целиком, иначе он обрежется и не распарсится.
+  maxTokens?: number;
 }): Promise<{ content: string; tokensUsed: number }> {
-  const { message, agentId, persona, history = [], image, onToken } = opts;
+  const { message, agentId, persona, history = [], image, onToken, maxTokens: maxTokensOverride } = opts;
   const agent = (agentId && AGENT_REGISTRY[agentId]) ? AGENT_REGISTRY[agentId] : AGENT_REGISTRY.general ?? Object.values(AGENT_REGISTRY)[0];
   const systemPrompt = persona && persona.trim().length > 0 ? persona : agent.systemPrompt;
 
-  const maxTokensPlanned = Math.min(agent.maxTokens, MAX_TOKENS_CHAT);
+  // Обычный чат экономит на выводе; при явном override (артефакты) берём его.
+  const maxTokensPlanned = maxTokensOverride ?? Math.min(agent.maxTokens, MAX_TOKENS_CHAT);
 
   // Очередь запасных провайдеров: Gemini, затем Grok. Берём только настроенные,
   // порядок фиксированный. Персона и история передаются те же, поэтому роль

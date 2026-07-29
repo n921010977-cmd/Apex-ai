@@ -1,0 +1,104 @@
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/auth";
+import { directChat } from "@/lib/orchestrator";
+import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { industryPromptBlock } from "@/lib/industries";
+import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
+
+export const maxDuration = 120;
+
+// POST /api/artifacts/pitch-deck
+// Из короткого брифа собирает инвесторский питч-дек по классической структуре
+// (10 слайдов) и возвращает его строго структурированным JSON — фронт рисует из
+// него презентацию и отдаёт на скачивание. Это «киллер-артефакт»: ChatGPT даёт
+// текст в окне, здесь — готовый документ, который не стыдно показать инвестору.
+
+const MAX_BRIEF = 4000;
+
+// Каноническая последовательность слайдов инвесторской презентации.
+const SLIDES = [
+  { key: "title",      title: "Титул" },
+  { key: "problem",    title: "Проблема" },
+  { key: "solution",   title: "Решение" },
+  { key: "market",     title: "Рынок (TAM/SAM/SOM)" },
+  { key: "product",    title: "Продукт" },
+  { key: "business",   title: "Бизнес-модель" },
+  { key: "traction",   title: "Трекшн" },
+  { key: "competition",title: "Конкуренты" },
+  { key: "team",       title: "Команда" },
+  { key: "ask",        title: "Запрос инвестиций" },
+];
+
+function buildPrompt(brief: string): string {
+  return `Собери инвесторский питч-дек для стартапа на основе брифа основателя.
+
+Бриф: ${brief}
+
+Верни СТРОГО JSON без пояснений и без markdown-обёртки, формата:
+{
+  "company": "рабочее название компании",
+  "tagline": "одна фраза-позиционирование",
+  "slides": {
+    "title":       { "headline": "...", "sub": "..." },
+    "problem":     { "headline": "...", "bullets": ["...","...","..."] },
+    "solution":    { "headline": "...", "bullets": ["...","...","..."] },
+    "market":      { "headline": "...", "tam": "...", "sam": "...", "som": "...", "note": "..." },
+    "product":     { "headline": "...", "bullets": ["...","...","..."] },
+    "business":    { "headline": "...", "bullets": ["...","...","..."] },
+    "traction":    { "headline": "...", "metrics": [{"label":"...","value":"..."}], "note": "..." },
+    "competition": { "headline": "...", "edge": ["...","...","..."] },
+    "team":        { "headline": "...", "bullets": ["...","...","..."] },
+    "ask":         { "headline": "...", "amount": "...", "use": ["...","...","..."], "milestone": "..." }
+  }
+}
+
+Правила: цифры реалистичные и обоснованные (TAM/SAM/SOM, суммы), метрики трекшна — примеры, которые основателю нужно достичь, помечай их как цели. Тон — уверенный, инвесторский. Язык — русский. Только JSON.`;
+}
+
+export async function POST(req: NextRequest) {
+  const session = await auth();
+  if (!session?.user?.id) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+
+  // Генерация дека — дорогой одиночный вызов модели: держим квоту отчётов.
+  const limit = await reportLimiter(`pitch:${session.user.id}`);
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
+  let body: { brief?: string; industry?: string };
+  try { body = await req.json(); } catch {
+    return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
+  }
+  const brief = body.brief?.trim();
+  if (!brief) return NextResponse.json({ success: false, error: "Опишите бизнес" }, { status: 422 });
+  if (brief.length > MAX_BRIEF) {
+    return NextResponse.json({ success: false, error: `Бриф не длиннее ${MAX_BRIEF} символов` }, { status: 422 });
+  }
+
+  // Персона = инструкция составителя дека + отраслевая экспертиза по нише.
+  const persona =
+    "Ты — партнёр венчурного фонда и ex-founder. Ты собираешь убедительные, "
+    + "реалистичные инвесторские питч-деки. Отвечаешь строго валидным JSON."
+    + industryPromptBlock(body.industry);
+
+  let raw: string;
+  try {
+    // Деку нужен весь JSON целиком — даём увеличенный потолок вывода.
+    const result = await directChat({ message: buildPrompt(brief), persona, maxTokens: Math.max(MAX_TOKENS_HEAVY, 3000) });
+    raw = result.content;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "AI error";
+    // Провайдеры не настроены / недоступны — понятная ошибка, не 500-заглушка.
+    const status = /not configured|не настроен/i.test(msg) ? 503 : 500;
+    return NextResponse.json({ success: false, error: msg }, { status });
+  }
+
+  // Модель иногда оборачивает JSON в ```json — вырезаем и парсим устойчиво.
+  let deck: unknown;
+  try {
+    const match = raw.match(/\{[\s\S]*\}/);
+    deck = JSON.parse(match ? match[0] : raw);
+  } catch {
+    return NextResponse.json({ success: false, error: "Модель вернула некорректный JSON, попробуйте ещё раз" }, { status: 502 });
+  }
+
+  return NextResponse.json({ success: true, deck, slideOrder: SLIDES, model: MODEL_HEAVY });
+}

@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
   Bot, Settings, HelpCircle, BookOpen, Database,
-  X, PanelLeftClose, PanelLeft, ChevronRight, History, CheckSquare, BarChart3, Sparkles, Target,
+  X, PanelLeftClose, PanelLeft, ChevronRight, History, CheckSquare, BarChart3, Sparkles, Target, Presentation,
 } from "lucide-react";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "n921010977@gmail.com";
@@ -65,6 +65,7 @@ const SECTIONS: NavSection[] = [
     title: "Инструменты",
     items: [
       { key: "t", label: "Цели и план",      href: "/dashboard/tools",      icon: Target, accent: true },
+      { key: "p", label: "Питч-дек",         href: "/dashboard/pitch",      icon: Presentation, accent: true },
       { key: "8", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
       { key: "9", label: "Knowledge Vault",  href: "/dashboard/vault",      icon: Database, accent: true },
       { key: "0", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
