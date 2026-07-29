@@ -93,15 +93,16 @@ export default function RegisterPage() {
     setSuccess(true);
     track(EVENTS.SIGN_UP, { method: "credentials" });
 
-    // Auto sign-in after registration
+    // Вход сразу после регистрации. redirect:true обязателен: при redirect:false
+    // клиент next-auth в этой конфигурации не сохраняет cookie сессии, и человек
+    // после регистрации оказывался снова на экране входа. С redirect:true сервер
+    // отдаёт 302 с Set-Cookie и сам уводит на /dashboard — надёжно.
     await signIn("credentials", {
       name: name.trim(),
       email: email.trim(),
       password,
-      redirect: false,
+      callbackUrl: "/dashboard",
     });
-
-    setTimeout(() => router.push("/dashboard"), 1400);
   };
 
   const fieldStyle: React.CSSProperties = {

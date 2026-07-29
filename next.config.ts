@@ -1,4 +1,44 @@
 import type { NextConfig } from "next";
+import crypto from "crypto";
+import fs from "fs";
+import path from "path";
+
+// ─── Секрет подписи сессий на этапе сборки ────────────────────────────────────
+// Этим секретом подписывается session-JWT. Его читают ДВЕ разные среды: вход в
+// аккаунт (Node-runtime) и middleware, проверяющий сессию (Edge-runtime). Если
+// значение в них разное, токен, выданный при входе, не проходит проверку в
+// middleware («no matching decryption secret») — пользователя выбрасывает на
+// экран входа сразу после успешного входа.
+//
+// Секрет фиксируется здесь и через `env` ниже вшивается в ОБА бандла одинаковым.
+// Тонкость: next.config загружается несколько раз за сборку (отдельно для Node и
+// Edge), поэтому генерировать случайное значение прямо здесь нельзя — каждый
+// проход получил бы своё. Сохраняем сгенерированное в кэш-файл и переиспользуем:
+// в пределах одной сборки — одно значение для обеих сред; Vercel к тому же
+// кэширует .next/cache между деплоями, поэтому сессии переживают редеплой.
+function resolveBuildSecret(): string {
+  const fromEnv = process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET;
+  if (fromEnv && fromEnv.trim()) return fromEnv;
+
+  // node_modules/.cache не вычищается `next build` (в отличие от .next),
+  // поэтому значение доживает от загрузки Node-конфига до загрузки Edge-конфига.
+  const cacheFile = path.join(process.cwd(), "node_modules", ".cache", "vertlix-auth-secret");
+  try {
+    if (fs.existsSync(cacheFile)) {
+      const cached = fs.readFileSync(cacheFile, "utf8").trim();
+      if (cached) return cached;
+    }
+  } catch { /* кэш недоступен — сгенерируем заново ниже */ }
+
+  const secret = crypto.randomBytes(32).toString("base64");
+  try {
+    fs.mkdirSync(path.dirname(cacheFile), { recursive: true });
+    fs.writeFileSync(cacheFile, secret);
+  } catch { /* нет прав на запись — секрет будет разным для сред, см. коммент */ }
+  return secret;
+}
+
+const BUILD_AUTH_SECRET = resolveBuildSecret();
 
 // ─── Content-Security-Policy ──────────────────────────────────────────────────
 // Tuned to what this app actually loads:
@@ -61,6 +101,13 @@ const SITE_DOMAIN = process.env.SITE_DOMAIN;
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+
+  // Вшиваем секрет одинаково в Node- и Edge-бандлы. `env` инлайнит значение в
+  // те места, где читается process.env.NEXTAUTH_SECRET — а это только серверный
+  // код авторизации, в клиент оно не попадает.
+  env: {
+    NEXTAUTH_SECRET: BUILD_AUTH_SECRET,
+  },
 
   // Remote avatars (Google / GitHub OAuth) — optimized via next/image
   images: {
