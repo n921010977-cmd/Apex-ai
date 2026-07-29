@@ -78,6 +78,25 @@ function LoginForm() {
     else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
   };
 
+  // ── Вход без регистрации ──────────────────────────────────────────────
+  // Сессия выдаётся сразу, аккаунт не создаётся. Нужен, чтобы посмотреть
+  // продукт, не заводя учётную запись и не дожидаясь письма.
+  const handleGuest = async () => {
+    setLoading("guest");
+    setError("");
+    const res = await signIn("guest", { redirect: false, callbackUrl });
+    setLoading(null);
+    if (res?.error) {
+      setError(res.error === "RATE_LIMITED"
+        ? "ACCESS DENIED · слишком много попыток, попробуйте позже"
+        : "ACCESS DENIED · гостевой вход недоступен");
+      return;
+    }
+    track(EVENTS.SIGN_IN, { method: "guest" });
+    router.push(callbackUrl);
+    router.refresh();
+  };
+
   // ── Passkey (WebAuthn) sign-in ────────────────────────────────────────
   const handlePasskey = async () => {
     const target = email.trim().toLowerCase();
@@ -165,6 +184,13 @@ function LoginForm() {
               style={{ height: 46, borderRadius: 10, border: "1px solid rgba(255,255,255,0.12)", background: "rgba(255,255,255,0.05)", color: "#fff", fontSize: 13.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>
               <svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .3a12 12 0 00-3.8 23.4c.6.1.8-.3.8-.6v-2c-3.3.7-4-1.6-4-1.6-.6-1.4-1.4-1.8-1.4-1.8-1-.7.1-.7.1-.7 1.2 0 1.8 1.2 1.8 1.2 1 1.8 2.8 1.3 3.5 1 0-.8.4-1.3.7-1.6-2.7-.3-5.5-1.3-5.5-6 0-1.2.5-2.3 1.3-3.1-.2-.4-.6-1.6 0-3.2 0 0 1-.3 3.4 1.2a11.5 11.5 0 016 0C17 4.6 18 5 18 5c.6 1.6.2 2.8 0 3.2.9.8 1.3 1.9 1.3 3.1 0 4.6-2.8 5.6-5.5 5.9.5.4.9 1 .9 2.2v3.3c0 .3.1.7.8.6A12 12 0 0012 .3"/></svg>
               Продолжить с GitHub
+            </button>
+            <button type="button" onClick={handleGuest} disabled={!!loading}
+              style={{ height: 48, borderRadius: 10, border: "none", background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 14, fontWeight: 700, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10, boxShadow: "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
+              {loading === "guest"
+                ? <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.35)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
+                : <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>}
+              Войти без регистрации
             </button>
             <button type="button" onClick={handlePasskey} disabled={!!loading}
               style={{ height: 46, borderRadius: 10, border: "1px solid rgba(99,102,241,0.3)", background: "rgba(99,102,241,0.08)", color: "#c7d2fe", fontSize: 13.5, fontWeight: 600, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 10 }}>

@@ -174,6 +174,42 @@ const config: NextAuthConfig = {
       },
     }),
 
+    // ── Гостевой вход (без регистрации) ───────────────────────────────────
+    // Пускает в продукт одним нажатием: аккаунт не создаётся, выдаётся сессия
+    // со случайным идентификатором. Всё скоупится по этому id так же, как по
+    // обычному пользователю, поэтому гости не видят чужих данных и не мешают
+    // друг другу — но и данные гостя живут только до конца сессии.
+    //
+    // Выключается переменной ALLOW_GUEST_ACCESS=false. Это важно: гостевой
+    // вход открыт всему интернету, а за каждым AI-запросом стоят наши деньги.
+    ...(process.env.ALLOW_GUEST_ACCESS !== "false"
+      ? [
+          Credentials({
+            id: "guest",
+            name: "guest",
+            credentials: {},
+            async authorize(_credentials, request) {
+              // Тот же лимитер, что и на обычном входе: иначе гостевые сессии
+              // можно печь пачками и через них жечь квоту на AI.
+              const ip = clientIp(request);
+              const attempt = await authLimiter(`guest:${ip}`);
+              if (!attempt.allowed) throw new RateLimitedError();
+
+              const rnd = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+              const short = rnd.replace(/-/g, "").slice(0, 12);
+              return {
+                id:    `guest-${short}`,
+                email: `guest-${short}@vertlix.local`,
+                name:  "Гость",
+                image: null,
+                role:  "FREE",
+                tier:  "FREE",
+              };
+            },
+          }),
+        ]
+      : []),
+
     // ── Passkey (WebAuthn) ────────────────────────────────────────────────
     // The browser has already run the authentication ceremony; here we verify
     // the signed assertion server-side against the stored challenge + public
