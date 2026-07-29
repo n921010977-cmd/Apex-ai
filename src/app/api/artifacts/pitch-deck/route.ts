@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { directChat } from "@/lib/orchestrator";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
+import { getServerPlan } from "@/lib/server/plan";
 import { industryPromptBlock, matchIndustry } from "@/lib/industries";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { webResearch, webContextBlock, webResearchConfigured } from "@/lib/web-research";
@@ -63,6 +65,10 @@ export async function POST(req: NextRequest) {
   // Генерация дека — дорогой одиночный вызов модели: держим квоту отчётов.
   const limit = await reportLimiter(`pitch:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
+  const plan = await getServerPlan();
+  const quota = await enforceUsage(session.user.id, plan, "pitchDecks");
+  if (!quota.allowed) return quotaExceededResponse("pitchDecks", quota);
 
   let body: { brief?: string; industry?: string; research?: boolean };
   try { body = await req.json(); } catch {

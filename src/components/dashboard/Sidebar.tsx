@@ -91,9 +91,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const { plan, allows } = usePlan();
 
   const [collapsed, setCollapsed] = useState(false);
-  const [projectCount, setProjectCount] = useState<number | null>(null);
-
-  const projectLimit = 3;
+  const [usage, setUsage] = useState<{ used: number; limit: number | null } | null>(null);
 
   // Persist collapse
   useEffect(() => {
@@ -106,13 +104,13 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
     });
   };
 
-  // Usage
+  // Usage: AI-сообщения за текущий месяц (реальная квота тарифа)
   useEffect(() => {
-    fetch("/api/dashboard")
+    fetch("/api/usage")
       .then(r => r.json())
-      .then(d => { if (d.success) setProjectCount(d.data?.kpis?.projects?.total ?? 0); })
-      .catch(() => setProjectCount(0));
-  }, []);
+      .then(d => { if (d.success) setUsage({ used: d.usage.aiMessages.used, limit: d.usage.aiMessages.limit }); })
+      .catch(() => setUsage(null));
+  }, [plan]);
 
   // Hotkeys: ⌘/Ctrl+B collapse · digits 1–9 navigate
   useEffect(() => {
@@ -134,7 +132,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   const userName = session?.user?.name ?? "Founder";
   const userInitial = userName.charAt(0).toUpperCase();
-  const usedPct = projectCount != null ? Math.min(100, (projectCount / projectLimit) * 100) : 0;
+  const usedPct = usage && usage.limit ? Math.min(100, (usage.used / usage.limit) * 100) : 0;
 
   const W = collapsed ? 64 : 224;
 
@@ -292,11 +290,11 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           <div style={{ borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.055)", padding: 10 }}>
             {/* usage */}
             <div className="flex items-center justify-between mb-1.5">
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>Проекты использовано</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>AI-сообщения (мес)</span>
               <span className="term-mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>
-                {projectCount != null
-                  ? `${projectCount} / ${projectLimit}`
-                  : <span style={{ opacity: 0.5 }}>— / {projectLimit}</span>}
+                {usage
+                  ? `${usage.used} / ${usage.limit === null ? "∞" : usage.limit}`
+                  : <span style={{ opacity: 0.5 }}>—</span>}
               </span>
             </div>
             <div className="h-1 rounded-full overflow-hidden mb-2.5" style={{ background: "rgba(255,255,255,0.06)" }}>

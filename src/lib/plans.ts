@@ -141,6 +141,20 @@ export const PLAN_BY_ID: Record<PlanId, Plan> = Object.fromEntries(
   PLANS.map(p => [p.id, p]),
 ) as Record<PlanId, Plan>;
 
+/** Бесплатный лимит без тарифа: даём попробовать, но не даём абьюзить. */
+export const FREE_LIMITS: PlanLimits = {
+  aiMessages: 20,
+  pitchDecks: 0,
+  strategies: 2,
+  boardMeetings: 1,
+  weeklyFocus: 0,
+};
+
+/** Лимиты для активного тарифа (или бесплатные, если тариф не куплен). */
+export function limitsFor(plan: PlanId | "none"): PlanLimits {
+  return plan === "none" ? FREE_LIMITS : PLAN_BY_ID[plan].limits;
+}
+
 /** Открыта ли возможность на данном тарифе. */
 export function planAllows(plan: PlanId, feature: keyof PlanFeatures): boolean {
   return PLAN_BY_ID[plan]?.features[feature] ?? false;

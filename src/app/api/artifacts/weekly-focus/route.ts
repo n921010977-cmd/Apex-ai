@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { directChat } from "@/lib/orchestrator";
 import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
+import { getServerPlan } from "@/lib/server/plan";
 import { industryPromptBlock } from "@/lib/industries";
 
 export const maxDuration = 60;
@@ -58,6 +60,10 @@ export async function POST(req: NextRequest) {
 
   const limit = await chatLimiter(`weekly-focus:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
+  const plan = await getServerPlan();
+  const quota = await enforceUsage(session.user.id, plan, "weeklyFocus");
+  if (!quota.allowed) return quotaExceededResponse("weeklyFocus", quota);
 
   let body: { goals?: Goal[]; industry?: string };
   try { body = await req.json(); } catch {

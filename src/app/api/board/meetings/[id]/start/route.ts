@@ -3,6 +3,8 @@ import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
+import { getServerPlan } from "@/lib/server/plan";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 
 export const maxDuration = 120;
@@ -89,6 +91,10 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   // директоров. Без квоты один аккаунт в цикле сжигает бюджет на токены.
   const limit = await reportLimiter(`board-start:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
+  const plan = await getServerPlan();
+  const quota = await enforceUsage(session.user.id, plan, "boardMeetings");
+  if (!quota.allowed) return quotaExceededResponse("boardMeetings", quota);
 
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

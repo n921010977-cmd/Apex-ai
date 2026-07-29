@@ -36,14 +36,20 @@ export default function BillingPage() {
   const { toast } = useToast();
   const [busy, setBusy] = useState<string | null>(null);
 
-  const choose = (p: Plan) => {
+  const choose = async (p: Plan) => {
     setBusy(p.id);
-    // Тут в будущем будет редирект на checkout LemonSqueezy.
-    setTimeout(() => {
-      setPlan(p.id);
-      setBusy(null);
-      toast(`Тариф ${p.name} активирован — вкладки разблокированы`, "success");
-    }, 450);
+    // Тут в будущем будет редирект на checkout LemonSqueezy. Ставим тариф и на
+    // клиенте (разблокировка вкладок), и на сервере (cookie для лимитов).
+    try {
+      await fetch("/api/billing/select", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: p.id }),
+      });
+    } catch { /* cookie не критична для демо-разблокировки */ }
+    setPlan(p.id);
+    setBusy(null);
+    toast(`Тариф ${p.name} активирован — вкладки разблокированы`, "success");
   };
 
   return (
