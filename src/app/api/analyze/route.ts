@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { AGENT_PROMPTS, AGENT_META, ProjectBrief, AgentResult } from "@/lib/agents";
 import { auth } from "@/auth";
 import { reportLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { industryPromptBlock } from "@/lib/industries";
 
 export const maxDuration = 120;
 
@@ -64,7 +65,11 @@ function computeFallbackScore(role: string, brief: ProjectBrief): number {
 }
 
 async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult> {
-  const systemPrompt = AGENT_PROMPTS[role];
+  // Персона агента + отраслевая экспертиза по нише проекта: с этим блоком
+  // директор даёт советы с метриками и бенчмарками именно этой ниши, а не
+  // общие рассуждения. Блок оформлен как данные (<industry_expertise>),
+  // не как перезаписываемая пользователем команда.
+  const systemPrompt = AGENT_PROMPTS[role] + industryPromptBlock(brief.industry);
   const meta = AGENT_META.find((a) => a.role === role)!;
 
   try {

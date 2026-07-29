@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import Anthropic from "@anthropic-ai/sdk";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
+import { industryPromptBlock } from "@/lib/industries";
 
 export const maxDuration = 120;
 
@@ -75,11 +76,20 @@ ${qFormatted}
   let rawJson = "";
   let tokensUsed = 0;
 
+  // Отраслевая экспертиза по нише проекта — в system, отдельно от данных
+  // пользователя. Ниша берётся из анкеты или из самой стратегии.
+  const industryRaw = (questionnaire as Record<string, unknown>).industry
+    ?? strategy.industry ?? null;
+  const strategySystem =
+    "Ты — Senior Strategy Consultant уровня McKinsey. Давай конкретику с цифрами."
+    + industryPromptBlock(typeof industryRaw === "string" ? industryRaw : null);
+
   try {
     const response = await client.messages.create({
       model: MODEL_HEAVY,
       max_tokens: MAX_TOKENS_HEAVY,
       temperature: 0.5,
+      system: strategySystem,
       messages: [{ role: "user", content: prompt }],
     });
 

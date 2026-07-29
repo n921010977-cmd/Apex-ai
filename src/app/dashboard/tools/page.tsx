@@ -6,6 +6,7 @@ import {
   Download, BookOpen, History, ListTree, SendHorizonal, FilePlus2,
 } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics/events";
+import { INDUSTRIES, industryPromptBlock } from "@/lib/industries";
 
 // ─── ЦЕЛИ И ПЛАН КОМПАНИИ — AI-студия планирования ─────────────────────────────
 // Один сфокусированный инструмент вместо витрины из пяти. Слева — структурный
@@ -33,7 +34,7 @@ const EXAMPLES = [
   "Маркетплейс хендмейда",
 ];
 
-function buildPersona(horizonId: string, focusId: string): string {
+function buildPersona(horizonId: string, focusId: string, industryId: string): string {
   const horizon = HORIZONS.find(h => h.id === horizonId)?.label ?? "12 месяцев";
   const focusText =
     focusId === "profit" ? "прибыльность и здоровая юнит-экономика"
@@ -47,7 +48,9 @@ function buildPersona(horizonId: string, focusId: string): string {
     `## План 30/60/90 — подзаголовки ### Дни 1–30, ### Дни 31–60, ### Дни 61–90, в каждом 3–5 конкретных шагов.\n` +
     `## Метрики недели — 4–6 метрик, которые отслеживать еженедельно.\n` +
     `## Риски — 3 главных риска и способ снять каждый.\n` +
-    `Пиши кратко и конкретно, без воды. Только на русском.`
+    `Пиши кратко и конкретно, без воды. Только на русском.` +
+    // отраслевая экспертиза по выбранной нише — метрики и бенчмарки именно её
+    industryPromptBlock(industryId)
   );
 }
 
@@ -130,7 +133,7 @@ function Markdown({ text }: { text: string }) {
 }
 
 // ─── Локальная история запусков ──────────────────────────────────────────────────
-type HistoryItem = { brief: string; horizon: string; focus: string; answer: string; ts: number };
+type HistoryItem = { brief: string; horizon: string; focus: string; industry?: string; answer: string; ts: number };
 const HISTORY_KEY = "vertlix_plan_history";
 
 function loadHistory(): HistoryItem[] {
@@ -145,6 +148,7 @@ export default function GoalsPlanStudio() {
   const [brief, setBrief] = useState("");
   const [horizon, setHorizon] = useState("12");
   const [focus, setFocus] = useState("growth");
+  const [industry, setIndustry] = useState("saas");
   const [out, setOut] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(false);
@@ -174,7 +178,7 @@ export default function GoalsPlanStudio() {
       const res = await fetch("/api/chat/direct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message, persona: buildPersona(horizon, focus), history: hist }),
+        body: JSON.stringify({ message, persona: buildPersona(horizon, focus, industry), history: hist }),
         signal: ctrl.signal,
       });
       if (res.status === 401) { setError("Войдите в аккаунт, чтобы построить план."); return null; }
@@ -221,7 +225,7 @@ export default function GoalsPlanStudio() {
     const answer = await stream(userMsg, []);
     if (answer) {
       turnsRef.current = [{ role: "user", content: userMsg }, { role: "assistant", content: answer }];
-      const item: HistoryItem = { brief: text, horizon, focus, answer, ts: Date.now() };
+      const item: HistoryItem = { brief: text, horizon, focus, industry, answer, ts: Date.now() };
       const next = [item, ...loadHistory().filter(h => h.brief !== text)].slice(0, 10);
       saveHistory(next); setHistory(next);
     }
@@ -271,7 +275,7 @@ export default function GoalsPlanStudio() {
   };
 
   const restore = (h: HistoryItem) => {
-    setBrief(h.brief); setHorizon(h.horizon); setFocus(h.focus);
+    setBrief(h.brief); setHorizon(h.horizon); setFocus(h.focus); setIndustry(h.industry ?? "saas");
     setOut(h.answer); setDone(true); setError(""); setRefineCount(0);
     turnsRef.current = [{ role: "user", content: `Бизнес: ${h.brief}` }, { role: "assistant", content: h.answer }];
     setShowHistory(false);
@@ -385,6 +389,22 @@ export default function GoalsPlanStudio() {
                     <button key={h.id} onClick={() => setHorizon(h.id)} disabled={busy}
                       style={{ padding: "9px 4px", borderRadius: 10, fontSize: 12.5, fontWeight: 650, cursor: "pointer", transition: "all .15s", color: sel ? "#fff" : "rgba(255,255,255,0.5)", background: sel ? `rgba(${RGB},0.16)` : "rgba(255,255,255,0.03)", border: sel ? `1px solid rgba(${RGB},0.45)` : "1px solid rgba(255,255,255,0.08)" }}>
                       {h.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Ниша</label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                {INDUSTRIES.map(ind => {
+                  const sel = industry === ind.id;
+                  return (
+                    <button key={ind.id} onClick={() => setIndustry(ind.id)} disabled={busy} title={ind.revenueModel}
+                      style={{ display: "flex", alignItems: "center", gap: 6, padding: "7px 11px", borderRadius: 9, fontSize: 12.5, fontWeight: 650, cursor: "pointer", transition: "all .15s", color: sel ? "#fff" : "rgba(255,255,255,0.55)", background: sel ? `rgba(${RGB},0.16)` : "rgba(255,255,255,0.03)", border: sel ? `1px solid rgba(${RGB},0.45)` : "1px solid rgba(255,255,255,0.08)" }}>
+                      <span>{ind.emoji}</span>
+                      <span>{ind.label.split(" / ")[0]}</span>
                     </button>
                   );
                 })}
