@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import Anthropic from "@anthropic-ai/sdk";
+import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 
 export const maxDuration = 120;
 
@@ -76,8 +77,8 @@ ${qFormatted}
 
   try {
     const response = await client.messages.create({
-      model: "claude-sonnet-5",
-      max_tokens: 4096,
+      model: MODEL_HEAVY,
+      max_tokens: MAX_TOKENS_HEAVY,
       temperature: 0.5,
       messages: [{ role: "user", content: prompt }],
     });
@@ -119,7 +120,7 @@ ${qFormatted}
 
   await db.from("strategies").update({
     status: "generated",
-    ai_model: "claude-sonnet-5",
+    ai_model: MODEL_HEAVY,
     ai_tokens: tokensUsed,
     updated_at: new Date().toISOString(),
   }).eq("id", id).eq("user_id", session.user.id);

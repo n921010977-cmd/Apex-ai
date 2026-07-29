@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { MODEL_HEAVY } from "@/lib/ai/model-config";
 
 const DEFAULTS = {
   language: "ru",
   timezone: "Europe/Moscow",
   theme: "dark",
-  ai_model: "claude-sonnet-5",
+  ai_model: MODEL_HEAVY,
   email_notifs: true,
   push_notifs: false,
   two_fa: false,

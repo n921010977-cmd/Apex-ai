@@ -1,5 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { geminiChat, geminiConfigured } from "@/lib/ai/gemini";
+import { shouldFailover, failoverReason } from "@/lib/ai/provider";
+import { MAX_TOKENS_CHAT } from "@/lib/ai/model-config";
 import { AGENT_REGISTRY, detectRequiredAgents } from "@/lib/agents/registry";
 import { TOOL_DEFINITIONS, executeTool } from "@/lib/tools";
 import type { AgentResult, OrchestratorRequest, StreamEvent, AgentConfig } from "@/types";
@@ -10,7 +12,10 @@ function getClient(): Anthropic {
   if (!_client) {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not configured. Add it to .env.local");
-    _client = new Anthropic({ apiKey });
+    // baseURL переопределяется переменной окружения — нужно, чтобы прогнать
+    // сценарий «у Anthropic кончились деньги» против локального мока.
+    const baseURL = process.env.ANTHROPIC_BASE_URL?.trim();
+    _client = new Anthropic({ apiKey, ...(baseURL ? { baseURL } : {}) });
   }
   return _client;
 }
@@ -274,35 +279,57 @@ export async function directChat(opts: {
   let fullContent = "";
   let tokensUsed = 0;
 
-  if (onToken) {
-    const stream = await getClient().messages.stream({
-      model: agent.model,
-      max_tokens: agent.maxTokens,
-      temperature: agent.temperature,
-      system: systemPrompt,
-      messages,
-    });
+  // Потолок вывода берём минимальный из настройки агента и общего лимита чата:
+  // так один «щедрый» агент не может обойти экономию по всему продукту.
+  const maxTokens = Math.min(agent.maxTokens, MAX_TOKENS_CHAT);
 
-    for await (const event of stream) {
-      if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-        onToken(event.delta.text);
-        fullContent += event.delta.text;
+  try {
+    if (onToken) {
+      const stream = await getClient().messages.stream({
+        model: agent.model,
+        max_tokens: maxTokens,
+        temperature: agent.temperature,
+        system: systemPrompt,
+        messages,
+      });
+
+      for await (const event of stream) {
+        if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+          onToken(event.delta.text);
+          fullContent += event.delta.text;
+        }
+        if (event.type === "message_delta" && event.usage) {
+          tokensUsed += event.usage.output_tokens ?? 0;
+        }
       }
-      if (event.type === "message_delta" && event.usage) {
-        tokensUsed += event.usage.output_tokens ?? 0;
+    } else {
+      const response = await getClient().messages.create({
+        model: agent.model,
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages,
+      });
+      for (const block of response.content) {
+        if (block.type === "text") fullContent += block.text;
       }
+      tokensUsed = response.usage.output_tokens;
     }
-  } else {
-    const response = await getClient().messages.create({
-      model: agent.model,
-      max_tokens: agent.maxTokens,
-      system: systemPrompt,
-      messages,
+  } catch (err) {
+    // Anthropic не может ответить (кончились средства, квота, сбой) — отдаём
+    // запрос Gemini. Переключаемся только если ещё ничего не успели показать:
+    // иначе пользователь увидел бы два разных ответа, склеенных подряд.
+    if (!geminiConfigured() || fullContent.length > 0 || !shouldFailover(err)) throw err;
+
+    console.warn(`[ai] Anthropic недоступен, переключаюсь на Gemini — ${failoverReason(err)}`);
+    return geminiChat({
+      message,
+      systemPrompt,
+      history,
+      image,
+      maxTokens,
+      temperature: agent.temperature,
+      onToken,
     });
-    for (const block of response.content) {
-      if (block.type === "text") fullContent += block.text;
-    }
-    tokensUsed = response.usage.output_tokens;
   }
 
   return { content: fullContent, tokensUsed };

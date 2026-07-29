@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
+import { MODEL_HEAVY } from "@/lib/ai/model-config";
 
 const EXECUTIVES = [
   {
@@ -9,7 +10,7 @@ const EXECUTIVES = [
     title: "Chief Executive Officer",
     emoji: "👑",
     color: "#6366f1",
-    model: "claude-sonnet-5",
+    model: MODEL_HEAVY,
     description: "Стратегическое руководство, принятие ключевых решений и управление исполнительной командой.",
     expertise: ["Стратегия", "Лидерство", "M&A", "Инвесторы", "Культура"],
     risk_tolerance: "moderate-aggressive",
@@ -22,7 +23,7 @@ const EXECUTIVES = [
     title: "Chief Financial Officer",
     emoji: "💼",
     color: "#3b82f6",
-    model: "claude-sonnet-5",
+    model: MODEL_HEAVY,
     description: "Финансовое планирование, бюджет, риски и инвестиционные решения.",
     expertise: ["P&L", "Cashflow", "Unit Economics", "Fundraising", "ROI"],
     risk_tolerance: "conservative",
@@ -39,7 +40,7 @@ const EXECUTIVES = [
     expertise: ["Процессы", "Масштабирование", "Team", "OKR", "Supply Chain"],
     risk_tolerance: "moderate",
     decision_style: "process-oriented",
-    model: "claude-sonnet-5",
+    model: MODEL_HEAVY,
   },
   {
     id: "cmo",
@@ -52,7 +53,7 @@ const EXECUTIVES = [
     expertise: ["Growth", "Brand", "Content", "Performance", "Community"],
     risk_tolerance: "moderate-aggressive",
     decision_style: "creative-analytical",
-    model: "claude-sonnet-5",
+    model: MODEL_HEAVY,
   },
   {
     id: "cto",
@@ -65,7 +66,7 @@ const EXECUTIVES = [
     expertise: ["Architecture", "AI/ML", "Security", "DevOps", "R&D"],
     risk_tolerance: "moderate",
     decision_style: "technical",
-    model: "claude-sonnet-5",
+    model: MODEL_HEAVY,
   },
 ];
 

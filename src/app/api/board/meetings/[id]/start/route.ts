@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 
 export const maxDuration = 120;
 
@@ -13,7 +14,7 @@ const EXECUTIVES = [
     name: "Sophia Rivers",
     emoji: "👑",
     color: "#6366f1",
-    model: "claude-sonnet-5" as const,
+    model: MODEL_HEAVY,
     systemPrompt: `You are Sophia Rivers, CEO of the company. You are a visionary leader with 20+ years of experience.
 You focus on: strategic direction, company culture, investor relations, M&A, and long-term value creation.
 Risk tolerance: moderate-aggressive. Decision style: analytical yet bold.
@@ -26,7 +27,7 @@ Keep responses concise (150-250 words). Use professional executive language.`,
     name: "Marcus Chen",
     emoji: "💼",
     color: "#3b82f6",
-    model: "claude-sonnet-5" as const,
+    model: MODEL_HEAVY,
     systemPrompt: `You are Marcus Chen, CFO of the company. You are a disciplined financial steward.
 You focus on: P&L, cash flow, unit economics, fundraising, ROI, financial risk.
 Risk tolerance: conservative. Decision style: data-driven, numbers-first.
@@ -39,7 +40,7 @@ Keep responses concise (150-250 words). Always anchor opinions in financial data
     name: "James Wright",
     emoji: "⚙️",
     color: "#f59e0b",
-    model: "claude-sonnet-5" as const,
+    model: MODEL_HEAVY,
     systemPrompt: `You are James Wright, COO of the company. You are an operations excellence expert.
 You focus on: process optimization, KPIs, team scaling, OKRs, supply chain, execution velocity.
 Risk tolerance: moderate. Decision style: process-oriented, systematic.
@@ -52,7 +53,7 @@ Keep responses concise (150-250 words). Ground everything in operational reality
     name: "Elena Torres",
     emoji: "📣",
     color: "#10b981",
-    model: "claude-sonnet-5" as const,
+    model: MODEL_HEAVY,
     systemPrompt: `You are Elena Torres, CMO of the company. You are a growth-obsessed marketing innovator.
 You focus on: brand strategy, growth marketing, customer acquisition, retention, community, content.
 Risk tolerance: moderate-aggressive. Decision style: creative-analytical.
@@ -65,7 +66,7 @@ Keep responses concise (150-250 words). Balance creativity with measurable outco
     name: "Aiden Park",
     emoji: "🔬",
     color: "#a855f7",
-    model: "claude-sonnet-5" as const,
+    model: MODEL_HEAVY,
     systemPrompt: `You are Aiden Park, CTO of the company. You are a technical visionary and engineering leader.
 You focus on: technology strategy, architecture, AI/ML, security, DevOps, R&D, technical debt.
 Risk tolerance: moderate. Decision style: technical, pragmatic.
@@ -139,7 +140,7 @@ Please provide your perspective on the agenda items as a C-suite executive. Addr
       EXECUTIVES.map(async (exec) => {
         const response = await client.messages.create({
           model: exec.model,
-          max_tokens: 600,
+          max_tokens: Math.min(600, MAX_TOKENS_HEAVY),
           temperature: 0.7,
           system: exec.systemPrompt,
           messages: [{ role: "user", content: userPrompt }],
@@ -192,7 +193,7 @@ Now provide your deliberation response: address any disagreements, build on area
       EXECUTIVES.map(async (exec) => {
         const response = await client.messages.create({
           model: exec.model,
-          max_tokens: 400,
+          max_tokens: Math.min(400, MAX_TOKENS_HEAVY),
           temperature: 0.6,
           system: exec.systemPrompt,
           messages: [{ role: "user", content: deliberationPrompt }],
@@ -308,7 +309,7 @@ Respond in JSON:
 
     const decisionResponse = await client.messages.create({
       model: ceoExec.model,
-      max_tokens: 400,
+      max_tokens: Math.min(400, MAX_TOKENS_HEAVY),
       temperature: 0.4,
       system: ceoExec.systemPrompt,
       messages: [{ role: "user", content: decisionPrompt }],
