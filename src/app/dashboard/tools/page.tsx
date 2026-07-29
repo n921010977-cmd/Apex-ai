@@ -144,7 +144,13 @@ function saveHistory(items: HistoryItem[]) {
 }
 
 // ─── Страница ───────────────────────────────────────────────────────────────────
+import { PlanGate } from "@/components/dashboard/PlanGate";
+
 export default function GoalsPlanStudio() {
+  return <PlanGate feature="goalsPlan"><GoalsPlanStudioInner /></PlanGate>;
+}
+
+function GoalsPlanStudioInner() {
   const [brief, setBrief] = useState("");
   const [horizon, setHorizon] = useState("12");
   const [focus, setFocus] = useState("growth");

@@ -33,7 +33,13 @@ const EXAMPLES = [
   "Маркетплейс аренды спецтехники для строек",
 ];
 
+import { PlanGate } from "@/components/dashboard/PlanGate";
+
 export default function PitchDeckPage() {
+  return <PlanGate feature="pitchDeck"><PitchDeckInner /></PlanGate>;
+}
+
+function PitchDeckInner() {
   const [brief, setBrief] = useState("");
   const [industry, setIndustry] = useState("saas");
   const [busy, setBusy] = useState(false);

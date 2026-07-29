@@ -73,7 +73,13 @@ function inline(t: string): React.ReactNode {
 
 const BLANK = { title: "", metric: "", start: "", current: "", target: "", deadline: "" };
 
+import { PlanGate } from "@/components/dashboard/PlanGate";
+
 export default function GoalsPage() {
+  return <PlanGate feature="weeklyFocus"><GoalsPageInner /></PlanGate>;
+}
+
+function GoalsPageInner() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [industry, setIndustry] = useState("saas");
   const [draft, setDraft] = useState(BLANK);

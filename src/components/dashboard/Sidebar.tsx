@@ -9,7 +9,10 @@ import {
   LayoutDashboard, Zap, FolderOpen, FileText, Users,
   Bot, Settings, HelpCircle, BookOpen, Database,
   X, PanelLeftClose, PanelLeft, ChevronRight, History, CheckSquare, BarChart3, Sparkles, Target, Presentation, Flag,
+  Lock, CreditCard,
 } from "lucide-react";
+import { usePlan } from "@/lib/use-plan";
+import { PLAN_BY_ID, type PlanFeatures } from "@/lib/plans";
 
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "n921010977@gmail.com";
 
@@ -40,7 +43,7 @@ function Badge({ n }: { n: number }) {
 }
 
 // ─── Sectioned navigation (matches Command Center reference) ──────────────────
-type NavItem = { key: string; label: string; href: string; exact?: boolean; icon: any; accent?: boolean; badge?: number; live?: boolean };
+type NavItem = { key: string; label: string; href: string; exact?: boolean; icon: any; accent?: boolean; badge?: number; live?: boolean; gate?: keyof PlanFeatures };
 type NavSection = { title: string; items: NavItem[] };
 
 const SECTIONS: NavSection[] = [
@@ -64,9 +67,9 @@ const SECTIONS: NavSection[] = [
   {
     title: "Инструменты",
     items: [
-      { key: "t", label: "Цели и план",      href: "/dashboard/tools",      icon: Target, accent: true },
-      { key: "p", label: "Питч-дек",         href: "/dashboard/pitch",      icon: Presentation, accent: true },
-      { key: "g", label: "Цели и фокус",     href: "/dashboard/goals",      icon: Flag, accent: true },
+      { key: "t", label: "Цели и план",      href: "/dashboard/tools",      icon: Target, accent: true, gate: "goalsPlan" },
+      { key: "p", label: "Питч-дек",         href: "/dashboard/pitch",      icon: Presentation, accent: true, gate: "pitchDeck" },
+      { key: "g", label: "Цели и фокус",     href: "/dashboard/goals",      icon: Flag, accent: true, gate: "weeklyFocus" },
       { key: "8", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
       { key: "9", label: "Knowledge Vault",  href: "/dashboard/vault",      icon: Database, accent: true },
       { key: "0", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
@@ -85,6 +88,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session } = useSession();
+  const { plan, allows } = usePlan();
 
   const [collapsed, setCollapsed] = useState(false);
   const [projectCount, setProjectCount] = useState<number | null>(null);
@@ -211,6 +215,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             )}
             {section.items.map(item => {
               const active = isActive(item.href, item.exact);
+              const locked = item.gate ? !allows(item.gate) : false;
               const Icon = item.icon;
               return (
                 <Link
@@ -262,8 +267,12 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   {/* badges */}
                   {!collapsed && !active && item.badge && <Badge n={item.badge} />}
                   {!collapsed && !active && item.live && !item.badge && <PulseDot />}
-                  {/* accent dot for special items (no badge) */}
-                  {!collapsed && item.accent && !active && !item.badge && !item.live && (
+                  {/* lock for gated-and-locked items */}
+                  {!collapsed && locked && (
+                    <Lock size={12} style={{ flexShrink: 0, color: "rgba(255,255,255,0.3)" }} />
+                  )}
+                  {/* accent dot for special items (no badge, not locked) */}
+                  {!collapsed && item.accent && !locked && !active && !item.badge && !item.live && (
                     <span className="size-1.5 rounded-full flex-shrink-0" style={{ background: "#6366f1", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }} />
                   )}
                   {/* active chevron */}
@@ -309,6 +318,13 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                 <Settings size={13} /> Настройки
               </Link>
             </div>
+            <Link href="/dashboard/billing" onClick={onClose} title="Тарифы и подписка"
+              className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
+              style={{ height: 30, padding: "0 8px", color: "rgba(129,140,248,0.85)", fontSize: 11.5 }}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
+              onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+              <CreditCard size={13} /> Тарифы
+            </Link>
             <Link href="/dashboard/support" onClick={onClose} title="Поддержка"
               className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
               style={{ height: 30, padding: "0 8px", color: "rgba(255,255,255,0.4)", fontSize: 11.5 }}
@@ -335,7 +351,9 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="truncate" style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{userName}</div>
-                <div className="term-mono" style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", letterSpacing: "0.08em" }}>STARTER PLAN</div>
+                <div className="term-mono" style={{ fontSize: 9, color: plan === "none" ? "rgba(255,255,255,0.3)" : "rgba(129,140,248,0.9)", letterSpacing: "0.08em" }}>
+                  {plan === "none" ? "БЕЗ ТАРИФА" : `${PLAN_BY_ID[plan].name.toUpperCase()} PLAN`}
+                </div>
               </div>
               <ChevronRight size={13} style={{ color: "rgba(255,255,255,0.25)" }} />
             </div>
