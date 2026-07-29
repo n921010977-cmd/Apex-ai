@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { geminiChat, geminiConfigured } from "@/lib/ai/gemini";
 import { AGENT_REGISTRY, detectRequiredAgents } from "@/lib/agents/registry";
 import { TOOL_DEFINITIONS, executeTool } from "@/lib/tools";
 import type { AgentResult, OrchestratorRequest, StreamEvent, AgentConfig } from "@/types";
@@ -241,6 +242,21 @@ export async function directChat(opts: {
   const { message, agentId, persona, history = [], image, onToken } = opts;
   const agent = (agentId && AGENT_REGISTRY[agentId]) ? AGENT_REGISTRY[agentId] : AGENT_REGISTRY.general ?? Object.values(AGENT_REGISTRY)[0];
   const systemPrompt = persona && persona.trim().length > 0 ? persona : agent.systemPrompt;
+
+  // Запасной провайдер: если ключа Anthropic нет, а Gemini настроен — отвечаем
+  // через него. Персона и история передаются те же, поэтому поведение агентов
+  // не меняется, меняется только модель под капотом.
+  if (!process.env.ANTHROPIC_API_KEY?.trim() && geminiConfigured()) {
+    return geminiChat({
+      message,
+      systemPrompt,
+      history,
+      image,
+      maxTokens: agent.maxTokens,
+      temperature: agent.temperature,
+      onToken,
+    });
+  }
 
   // Vision: attach an image to the latest user message when provided
   const lastUserContent: Anthropic.MessageParam["content"] = image

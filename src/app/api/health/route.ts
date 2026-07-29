@@ -11,12 +11,12 @@ export async function GET() {
 
   const integrations = {
     anthropic:  has(process.env.ANTHROPIC_API_KEY),
+    gemini:     has(process.env.GEMINI_API_KEY),
     supabase:   has(process.env.NEXT_PUBLIC_SUPABASE_URL) && has(process.env.SUPABASE_SERVICE_ROLE_KEY),
     nextauth:   has(process.env.NEXTAUTH_SECRET),
     oauthGoogle: has(process.env.GOOGLE_CLIENT_ID) && has(process.env.GOOGLE_CLIENT_SECRET),
     oauthGithub: has(process.env.GITHUB_CLIENT_ID) && has(process.env.GITHUB_CLIENT_SECRET),
     openai:     has(process.env.OPENAI_API_KEY),
-    gemini:     has(process.env.GOOGLE_AI_API_KEY),
     grok:       has(process.env.XAI_API_KEY),
     braveSearch: has(process.env.BRAVE_SEARCH_API_KEY),
     stripe:     has(process.env.STRIPE_SECRET_KEY),
