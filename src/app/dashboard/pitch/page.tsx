@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Presentation, Sparkles, Download, Loader2, RotateCcw } from "lucide-react";
+import { Presentation, Sparkles, Download, Loader2, RotateCcw, Globe } from "lucide-react";
 import { INDUSTRIES } from "@/lib/industries";
 import { track, EVENTS } from "@/lib/analytics/events";
 
@@ -40,6 +40,8 @@ export default function PitchDeckPage() {
   const [error, setError] = useState("");
   const [deck, setDeck] = useState<Deck | null>(null);
   const [order, setOrder] = useState<SlideMeta[]>([]);
+  const [research, setResearch] = useState(false);
+  const [researched, setResearched] = useState(false);
 
   const generate = async () => {
     if (brief.trim().length < 15) { setError("Опишите бизнес хотя бы одним предложением"); return; }
@@ -48,11 +50,11 @@ export default function PitchDeckPage() {
       const res = await fetch("/api/artifacts/pitch-deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brief: brief.trim(), industry }),
+        body: JSON.stringify({ brief: brief.trim(), industry, research }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) { setError(data.error || "Не удалось собрать дек"); return; }
-      setDeck(data.deck); setOrder(data.slideOrder || []);
+      setDeck(data.deck); setOrder(data.slideOrder || []); setResearched(!!data.researched);
       track(EVENTS.REPORT_GENERATED, { artifact: "pitch_deck", industry });
     } catch { setError("Ошибка сети"); }
     finally { setBusy(false); }
@@ -115,6 +117,18 @@ export default function PitchDeckPage() {
           })}
         </div>
 
+        <button onClick={() => setResearch(v => !v)} disabled={busy}
+          style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 14, padding: "9px 12px", borderRadius: 10, cursor: "pointer", width: "100%", textAlign: "left", background: research ? `rgba(${RGB},0.1)` : "rgba(255,255,255,0.03)", border: research ? `1px solid rgba(${RGB},0.4)` : "1px solid rgba(255,255,255,0.08)" }}>
+          <Globe size={15} color={research ? "#a5b4fc" : "rgba(255,255,255,0.4)"} style={{ flexShrink: 0 }} />
+          <span style={{ flex: 1 }}>
+            <span style={{ display: "block", fontSize: 13, fontWeight: 650, color: research ? "#fff" : "rgba(255,255,255,0.7)" }}>Свежие данные с рынка</span>
+            <span style={{ display: "block", fontSize: 11, color: "rgba(255,255,255,0.4)", marginTop: 1 }}>Веб-поиск актуальных цифр по рынку и конкурентам (дольше, точнее)</span>
+          </span>
+          <span style={{ position: "relative", width: 38, height: 22, borderRadius: 11, flexShrink: 0, background: research ? ACCENT : "rgba(255,255,255,0.12)", transition: "background .2s" }}>
+            <span style={{ position: "absolute", top: 2, left: research ? 18 : 2, width: 18, height: 18, borderRadius: "50%", background: "#fff", transition: "left .2s" }} />
+          </span>
+        </button>
+
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           <button onClick={generate} disabled={busy}
             style={{ display: "flex", alignItems: "center", gap: 9, padding: "11px 20px", borderRadius: 12, border: "none", fontSize: 14, fontWeight: 700, color: "#fff", cursor: busy ? "default" : "pointer", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 6px 22px rgba(${RGB},0.32)`, opacity: busy ? 0.7 : 1 }}>
@@ -136,7 +150,14 @@ export default function PitchDeckPage() {
         <div style={{ marginTop: 24 }}>
           {deck.company && (
             <div style={{ marginBottom: 14 }}>
-              <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>{deck.company}</div>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>{deck.company}</div>
+                {researched && (
+                  <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 650, padding: "3px 9px", borderRadius: 999, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: "#34d399" }}>
+                    <Globe size={11} /> на свежих данных
+                  </span>
+                )}
+              </div>
               {deck.tagline && <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>{deck.tagline}</div>}
             </div>
           )}

@@ -2,8 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { directChat } from "@/lib/orchestrator";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
-import { industryPromptBlock } from "@/lib/industries";
+import { industryPromptBlock, matchIndustry } from "@/lib/industries";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
+import { webResearch, webContextBlock, webResearchConfigured } from "@/lib/web-research";
 
 export const maxDuration = 120;
 
@@ -63,7 +64,7 @@ export async function POST(req: NextRequest) {
   const limit = await reportLimiter(`pitch:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-  let body: { brief?: string; industry?: string };
+  let body: { brief?: string; industry?: string; research?: boolean };
   try { body = await req.json(); } catch {
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
@@ -79,10 +80,25 @@ export async function POST(req: NextRequest) {
     + "реалистичные инвесторские питч-деки. Отвечаешь строго валидным JSON."
     + industryPromptBlock(body.industry);
 
+  // Если включены свежие данные и настроен Brave — подтягиваем актуальную
+  // информацию по рынку и конкурентам и подмешиваем как контекст с источниками.
+  let webBlock = "";
+  let researched = false;
+  if (body.research && webResearchConfigured()) {
+    const niche = matchIndustry(body.industry).label;
+    const results = await webResearch([
+      `${brief} рынок объём 2026`,
+      `${brief} конкуренты`,
+      `${niche} тренды 2026`,
+    ]);
+    webBlock = webContextBlock(results);
+    researched = results.length > 0;
+  }
+
   let raw: string;
   try {
     // Деку нужен весь JSON целиком — даём увеличенный потолок вывода.
-    const result = await directChat({ message: buildPrompt(brief), persona, maxTokens: Math.max(MAX_TOKENS_HEAVY, 3000) });
+    const result = await directChat({ message: buildPrompt(brief) + webBlock, persona, maxTokens: Math.max(MAX_TOKENS_HEAVY, 3000) });
     raw = result.content;
   } catch (err) {
     const msg = err instanceof Error ? err.message : "AI error";
@@ -100,5 +116,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Модель вернула некорректный JSON, попробуйте ещё раз" }, { status: 502 });
   }
 
-  return NextResponse.json({ success: true, deck, slideOrder: SLIDES, model: MODEL_HEAVY });
+  return NextResponse.json({ success: true, deck, slideOrder: SLIDES, model: MODEL_HEAVY, researched });
 }
