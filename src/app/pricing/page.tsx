@@ -1,22 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { PricingSection } from "@/components/landing/PricingSection";
+import { PricingCards } from "@/components/landing/PricingCards";
 
 export const metadata: Metadata = {
   title: "Тарифы — Vertlix AI",
-  description: "Выберите план Vertlix AI: Starter бесплатно, Pro и Agency для растущих команд.",
+  description: "Три тарифа Vertlix AI: Starter $29, Pro $39, Max $49. Прозрачные лимиты, отмена в любой момент.",
 };
 
 export default async function PricingPage({ searchParams }: { searchParams: Promise<{ limit?: string }> }) {
   const { limit } = await searchParams;
   return (
-    <main style={{ minHeight: "100dvh", background: "#05060A" }}>
+    <main style={{ minHeight: "100dvh", background: "#05060A", color: "#fff" }}>
       {limit && (
         <div style={{ background: "rgba(245,158,11,0.1)", borderBottom: "1px solid rgba(245,158,11,0.25)", padding: "12px 24px", textAlign: "center", color: "#fbbf24", fontSize: 13.5, fontWeight: 600 }}>
-          Достигнут лимит бесплатного плана. Перейдите на Pro для безлимитных стратегий.
+          Достигнут лимит тарифа. Перейдите выше, чтобы продолжить.
         </div>
       )}
-      {/* Minimal top bar */}
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "18px 24px", maxWidth: 1200, margin: "0 auto" }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }}>
           <div style={{ width: 30, height: 30, borderRadius: 9, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 14px rgba(99,102,241,0.35)" }}>
@@ -28,7 +27,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           ← В дашборд
         </Link>
       </header>
-      <PricingSection />
+      <PricingCards />
     </main>
   );
 }

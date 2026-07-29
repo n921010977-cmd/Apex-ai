@@ -10,6 +10,7 @@ const NAV_COLUMNS = [
       { label: "Возможности", href: "#product" },
       { label: "AI команда", href: "#executives" },
       { label: "Отзывы", href: "#testimonials" },
+      { label: "Тарифы", href: "/pricing" },
       { label: "AI Чат", href: "/chat" },
     ],
   },

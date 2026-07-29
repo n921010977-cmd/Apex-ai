@@ -11,6 +11,7 @@ import { FaqSection } from "@/components/landing/FaqSection";
 import { CtaBanner } from "@/components/landing/CtaBanner";
 import { ScrollProgress } from "@/components/landing/ScrollProgress";
 import { Footer } from "@/components/landing/Footer";
+import { PricingCards } from "@/components/landing/PricingCards";
 
 export default function LandingPage() {
   return (
@@ -25,6 +26,7 @@ export default function LandingPage() {
       <WhyNotChatGPT />
       <FeaturesSection />
       <TestimonialsSection />
+      <div id="pricing"><PricingCards /></div>
       <FaqSection />
       <CtaBanner />
       <Footer />
