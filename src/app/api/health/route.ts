@@ -17,7 +17,7 @@ export async function GET() {
     oauthGoogle: has(process.env.GOOGLE_CLIENT_ID) && has(process.env.GOOGLE_CLIENT_SECRET),
     oauthGithub: has(process.env.GITHUB_CLIENT_ID) && has(process.env.GITHUB_CLIENT_SECRET),
     openai:     has(process.env.OPENAI_API_KEY),
-    grok:       has(process.env.XAI_API_KEY),
+    grok:       has(process.env.GROK_API_KEY) || has(process.env.XAI_API_KEY),
     braveSearch: has(process.env.BRAVE_SEARCH_API_KEY),
     stripe:     has(process.env.STRIPE_SECRET_KEY),
     email:      has(process.env.RESEND_API_KEY),

@@ -4,6 +4,7 @@ import { directChat } from "@/lib/orchestrator";
 import { validateBody, SendMessageSchema } from "@/lib/validators";
 import { chatLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { geminiConfigured } from "@/lib/ai/gemini";
+import { grokConfigured } from "@/lib/ai/grok";
 
 export const maxDuration = 120;
 
@@ -13,10 +14,10 @@ export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
 
-  // Достаточно любого из провайдеров: Anthropic основной, Gemini запасной.
-  if (!process.env.ANTHROPIC_API_KEY?.trim() && !geminiConfigured()) {
+  // Достаточно любого из провайдеров: Anthropic основной, Gemini и Grok — запасные.
+  if (!process.env.ANTHROPIC_API_KEY?.trim() && !geminiConfigured() && !grokConfigured()) {
     return NextResponse.json(
-      { success: false, error: "AI не настроен: задайте ANTHROPIC_API_KEY или GEMINI_API_KEY" },
+      { success: false, error: "AI не настроен: задайте ANTHROPIC_API_KEY, GEMINI_API_KEY или GROK_API_KEY" },
       { status: 503 }
     );
   }

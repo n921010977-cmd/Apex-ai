@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import { geminiChat, geminiConfigured } from "@/lib/ai/gemini";
+import { grokChat, grokConfigured } from "@/lib/ai/grok";
 import { shouldFailover, failoverReason } from "@/lib/ai/provider";
 import { MAX_TOKENS_CHAT } from "@/lib/ai/model-config";
 import { AGENT_REGISTRY, detectRequiredAgents } from "@/lib/agents/registry";
@@ -248,19 +249,47 @@ export async function directChat(opts: {
   const agent = (agentId && AGENT_REGISTRY[agentId]) ? AGENT_REGISTRY[agentId] : AGENT_REGISTRY.general ?? Object.values(AGENT_REGISTRY)[0];
   const systemPrompt = persona && persona.trim().length > 0 ? persona : agent.systemPrompt;
 
-  // Запасной провайдер: если ключа Anthropic нет, а Gemini настроен — отвечаем
-  // через него. Персона и история передаются те же, поэтому поведение агентов
-  // не меняется, меняется только модель под капотом.
-  if (!process.env.ANTHROPIC_API_KEY?.trim() && geminiConfigured()) {
-    return geminiChat({
-      message,
-      systemPrompt,
-      history,
-      image,
-      maxTokens: agent.maxTokens,
-      temperature: agent.temperature,
-      onToken,
+  const maxTokensPlanned = Math.min(agent.maxTokens, MAX_TOKENS_CHAT);
+
+  // Очередь запасных провайдеров: Gemini, затем Grok. Берём только настроенные,
+  // порядок фиксированный. Персона и история передаются те же, поэтому роль
+  // агента не меняется — меняется только модель под капотом.
+  const fallbacks: { name: string; run: () => Promise<{ content: string; tokensUsed: number }> }[] = [];
+  if (geminiConfigured()) {
+    fallbacks.push({
+      name: "Gemini",
+      run: () => geminiChat({ message, systemPrompt, history, image, maxTokens: maxTokensPlanned, temperature: agent.temperature, onToken }),
     });
+  }
+  if (grokConfigured()) {
+    // Grok в нашей обёртке работает только с текстом — если в запросе картинка,
+    // он бесполезен, и лучше честно пропустить его в очереди.
+    if (!image) {
+      fallbacks.push({
+        name: "Grok",
+        run: () => grokChat({ message, systemPrompt, history, maxTokens: maxTokensPlanned, temperature: agent.temperature, onToken }),
+      });
+    }
+  }
+
+  /** Пройти по очереди запасных, вернуть первый успешный ответ. */
+  async function runFallbacks(cause: unknown): Promise<{ content: string; tokensUsed: number }> {
+    let lastError = cause;
+    for (const provider of fallbacks) {
+      console.warn(`[ai] переключаюсь на ${provider.name} — ${failoverReason(lastError)}`);
+      try {
+        return await provider.run();
+      } catch (err) {
+        lastError = err;
+        if (!shouldFailover(err)) throw err; // сломан сам запрос — дальше идти незачем
+      }
+    }
+    throw lastError;
+  }
+
+  // Ключа Anthropic нет вовсе — сразу идём по очереди запасных.
+  if (!process.env.ANTHROPIC_API_KEY?.trim() && fallbacks.length > 0) {
+    return runFallbacks(new Error("ANTHROPIC_API_KEY не задан"));
   }
 
   // Vision: attach an image to the latest user message when provided
@@ -281,7 +310,7 @@ export async function directChat(opts: {
 
   // Потолок вывода берём минимальный из настройки агента и общего лимита чата:
   // так один «щедрый» агент не может обойти экономию по всему продукту.
-  const maxTokens = Math.min(agent.maxTokens, MAX_TOKENS_CHAT);
+  const maxTokens = maxTokensPlanned;
 
   try {
     if (onToken) {
@@ -318,18 +347,8 @@ export async function directChat(opts: {
     // Anthropic не может ответить (кончились средства, квота, сбой) — отдаём
     // запрос Gemini. Переключаемся только если ещё ничего не успели показать:
     // иначе пользователь увидел бы два разных ответа, склеенных подряд.
-    if (!geminiConfigured() || fullContent.length > 0 || !shouldFailover(err)) throw err;
-
-    console.warn(`[ai] Anthropic недоступен, переключаюсь на Gemini — ${failoverReason(err)}`);
-    return geminiChat({
-      message,
-      systemPrompt,
-      history,
-      image,
-      maxTokens,
-      temperature: agent.temperature,
-      onToken,
-    });
+    if (fallbacks.length === 0 || fullContent.length > 0 || !shouldFailover(err)) throw err;
+    return runFallbacks(err);
   }
 
   return { content: fullContent, tokensUsed };
