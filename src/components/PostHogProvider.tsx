@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, Suspense } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
 import posthog from "posthog-js";
@@ -16,16 +16,29 @@ import { analyticsAllowed, onConsentChange } from "@/lib/consent";
 // accepts analytics in the cookie banner. The banner calls setConsent(), which
 // fires an event we listen for below to opt the visitor in or out live —
 // no page reload needed, and a "Reject optional" choice keeps analytics fully off.
-if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_POSTHOG_KEY && !(posthog as unknown as { __loaded?: boolean }).__loaded) {
-  posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
-    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
-    capture_pageview: false,   // App Router: we send $pageview manually on route change
-    capture_pageleave: true,   // needed for accurate time-on-page / retention
-    autocapture: true,         // click tracking out of the box
-    persistence: "localStorage+cookie",
-    opt_out_capturing_by_default: true, // никакой аналитики без явного согласия
-    loaded: (ph) => { if (analyticsAllowed()) ph.opt_in_capturing(); },
-  });
+// Инициализация в try/catch и не на верхнем уровне модуля по одной причине:
+// этот провайдер оборачивает всё приложение. Исключение при загрузке модуля
+// (кривой ключ, заблокированный домен, недоступный localStorage в приватном
+// режиме) не логируется в интерфейсе никак — просто перестаёт работать весь
+// клиентский JavaScript, и пользователь видит отрисованную страницу, на которой
+// не нажимается ни одна кнопка. Аналитика такого права не имеет.
+function initPostHog(): void {
+  if (typeof window === "undefined") return;
+  if (!process.env.NEXT_PUBLIC_POSTHOG_KEY) return;
+  if ((posthog as unknown as { __loaded?: boolean }).__loaded) return;
+  try {
+    posthog.init(process.env.NEXT_PUBLIC_POSTHOG_KEY, {
+      api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com",
+      capture_pageview: false,   // App Router: we send $pageview manually on route change
+      capture_pageleave: true,   // needed for accurate time-on-page / retention
+      autocapture: true,         // click tracking out of the box
+      persistence: "localStorage+cookie",
+      opt_out_capturing_by_default: true, // никакой аналитики без явного согласия
+      loaded: (ph) => { try { if (analyticsAllowed()) ph.opt_in_capturing(); } catch { /* no-op */ } },
+    });
+  } catch (err) {
+    console.warn("[analytics] PostHog не инициализирован, продолжаем без аналитики", err);
+  }
 }
 
 // Параметры, которые нельзя отправлять в аналитику ни при каком согласии:
@@ -37,23 +50,37 @@ const SENSITIVE_PARAMS = new Set(["token", "code", "secret", "key", "email", "ac
 
 function sanitizeQuery(qs: string | undefined): string {
   if (!qs) return "";
-  const params = new URLSearchParams(qs);
-  let touched = false;
-  for (const key of [...params.keys()]) {
-    if (SENSITIVE_PARAMS.has(key.toLowerCase())) { params.set(key, "[скрыто]"); touched = true; }
+  try {
+    const params = new URLSearchParams(qs);
+    for (const key of [...params.keys()]) {
+      if (SENSITIVE_PARAMS.has(key.toLowerCase())) params.set(key, "hidden");
+    }
+    const out = params.toString();
+    return out ? `?${out}` : "";
+  } catch {
+    // Разобрать строку запроса не удалось — в аналитику уйдёт путь без неё.
+    // Аналитика не имеет права ломать страницу, поэтому здесь только молчание.
+    return "";
   }
-  const out = params.toString();
-  return out ? `?${touched ? decodeURIComponent(out) : out}` : "";
 }
 
 // Manual $pageview on every App Router navigation (searchParams included).
-function PageviewTracker() {
+// `ready` приходит из родителя: инициализация теперь в его эффекте, а эффекты
+// детей React выполняет раньше родительских — без этого флага первый просмотр
+// страницы всегда терялся бы.
+function PageviewTracker({ ready }: { ready: boolean }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   useEffect(() => {
+    if (!ready) return;
     if (!(posthog as unknown as { __loaded?: boolean }).__loaded) return;
-    posthog.capture("$pageview", { $current_url: window.location.origin + pathname + sanitizeQuery(searchParams?.toString()) });
-  }, [pathname, searchParams]);
+    // Весь вызов в try/catch: этот компонент обёрнут вокруг всего приложения,
+    // и любое исключение здесь снимает интерактивность со всей страницы —
+    // кнопки перестают реагировать, хотя разметка отрисована.
+    try {
+      posthog.capture("$pageview", { $current_url: window.location.origin + pathname + sanitizeQuery(searchParams?.toString()) });
+    } catch { /* аналитика не должна ронять UX */ }
+  }, [ready, pathname, searchParams]);
   return null;
 }
 
@@ -85,10 +112,15 @@ function ConsentSync() {
 }
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
+  // Инициализируем после монтирования, а не при импорте модуля: так проблема с
+  // аналитикой не может помешать гидратации приложения.
+  const [ready, setReady] = useState(false);
+  useEffect(() => { initPostHog(); setReady(true); }, []);
+
   return (
     <PHProvider client={posthog}>
       <Suspense fallback={null}>
-        <PageviewTracker />
+        <PageviewTracker ready={ready} />
       </Suspense>
       <SessionIdentifier />
       <ConsentSync />
