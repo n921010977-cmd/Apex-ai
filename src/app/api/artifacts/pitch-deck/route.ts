@@ -66,7 +66,7 @@ export async function POST(req: NextRequest) {
   const limit = await reportLimiter(`pitch:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-  const plan = await getServerPlan();
+  const plan = await getServerPlan(session.user.id);
   const quota = await enforceUsage(session.user.id, plan, "pitchDecks");
   if (!quota.allowed) return quotaExceededResponse("pitchDecks", quota);
 

@@ -38,8 +38,23 @@ export default function BillingPage() {
 
   const choose = async (p: Plan) => {
     setBusy(p.id);
-    // Тут в будущем будет редирект на checkout LemonSqueezy. Ставим тариф и на
-    // клиенте (разблокировка вкладок), и на сервере (cookie для лимитов).
+    // Пробуем реальную оплату через крипто-шлюз (NOWPayments). Если он настроен —
+    // уводим на страницу оплаты. Если нет (нет ключа) — демо-активация: ставим
+    // тариф на клиенте (разблокировка вкладок) и cookie на сервере.
+    try {
+      const res = await fetch("/api/payments/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ plan: p.id }),
+      });
+      const data = await res.json();
+      if (data?.configured && data?.invoiceUrl) {
+        window.location.href = data.invoiceUrl; // → страница оплаты NOWPayments
+        return;
+      }
+    } catch { /* переходим на демо-путь ниже */ }
+
+    // Демо-путь (оплата не настроена)
     try {
       await fetch("/api/billing/select", {
         method: "POST",

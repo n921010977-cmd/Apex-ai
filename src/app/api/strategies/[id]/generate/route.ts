@@ -28,7 +28,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const limit = await reportLimiter(`strategy-gen:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-  const plan = await getServerPlan();
+  const plan = await getServerPlan(session.user.id);
   const quota = await enforceUsage(session.user.id, plan, "strategies");
   if (!quota.allowed) return quotaExceededResponse("strategies", quota);
 

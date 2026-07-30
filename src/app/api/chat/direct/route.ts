@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   // Месячная квота тарифа (защита от абьюза). Гость/без тарифа — бесплатный лимит.
-  const plan = await getServerPlan();
+  const plan = await getServerPlan(session.user.id);
   const quota = await enforceUsage(session.user.id, plan, "aiMessages");
   if (!quota.allowed) return quotaExceededResponse("aiMessages", quota);
 

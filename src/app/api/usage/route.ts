@@ -12,7 +12,7 @@ export async function GET() {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  const plan = await getServerPlan();
+  const plan = await getServerPlan(session.user.id);
   const [aiMessages, pitchDecks, strategies, boardMeetings, weeklyFocus] = await Promise.all([
     peekUsage(session.user.id, plan, "aiMessages"),
     peekUsage(session.user.id, plan, "pitchDecks"),
