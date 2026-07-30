@@ -35,19 +35,66 @@ const EXAMPLES = [
 
 import { PlanGate } from "@/components/dashboard/PlanGate";
 
+// Редактируемый текст: клик → правка, blur → сохранение в state.
+function Editable({ value, onSave, style }: { value: string; onSave: (v: string) => void; style?: React.CSSProperties }) {
+  return (
+    <span
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      onFocus={e => { e.currentTarget.style.background = "rgba(99,102,241,0.14)"; }}
+      onBlur={e => {
+        e.currentTarget.style.background = "transparent";
+        const t = e.currentTarget.innerText.trim();
+        if (t !== value) onSave(t);
+      }}
+      title="Нажмите, чтобы отредактировать"
+      style={{ outline: "none", borderRadius: 4, padding: "0 2px", cursor: "text", transition: "background .15s", ...style }}
+    >
+      {value}
+    </span>
+  );
+}
+
 export default function PitchDeckPage() {
   return <PlanGate feature="pitchDeck"><PitchDeckInner /></PlanGate>;
 }
 
+const STYLE_OPTS = [
+  { id: "classic",   label: "Классический", hint: "Сдержанно, по делу" },
+  { id: "visionary", label: "Визионерский", hint: "Дерзко, амбициозно" },
+  { id: "data",      label: "Data-driven",  hint: "Максимум цифр" },
+];
+
 function PitchDeckInner() {
   const [brief, setBrief] = useState("");
   const [industry, setIndustry] = useState("saas");
+  const [language, setLanguage] = useState<"ru" | "en">("ru");
+  const [style, setStyle] = useState("classic");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [deck, setDeck] = useState<Deck | null>(null);
   const [order, setOrder] = useState<SlideMeta[]>([]);
   const [research, setResearch] = useState(false);
   const [researched, setResearched] = useState(false);
+
+  // Инлайн-редактирование дека: правки сразу пишутся в state и попадают в экспорт.
+  const editSlide = (key: string, field: string, val: string, idx?: number) => {
+    setDeck(d => {
+      if (!d?.slides) return d;
+      const next = structuredClone(d) as Deck;
+      const s = (next.slides as Record<string, Record<string, unknown>>)[key];
+      if (!s) return d;
+      if (idx === undefined) s[field] = val;
+      else {
+        const arr = Array.isArray(s[field]) ? [...(s[field] as unknown[])] : [];
+        arr[idx] = val; s[field] = arr;
+      }
+      return next;
+    });
+  };
+  const editTop = (field: "company" | "tagline", val: string) =>
+    setDeck(d => (d ? { ...d, [field]: val } : d));
 
   const generate = async () => {
     if (brief.trim().length < 15) { setError("Опишите бизнес хотя бы одним предложением"); return; }
@@ -56,7 +103,7 @@ function PitchDeckInner() {
       const res = await fetch("/api/artifacts/pitch-deck", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ brief: brief.trim(), industry, research }),
+        body: JSON.stringify({ brief: brief.trim(), industry, research, language, style }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) { setError(data.error || "Не удалось собрать дек"); return; }
@@ -76,6 +123,18 @@ function PitchDeckInner() {
     a.download = `pitch-${(deck.company || "deck").toLowerCase().replace(/[^a-zа-я0-9]+/gi, "-")}.html`;
     a.click();
     URL.revokeObjectURL(url);
+  };
+
+  // Экспорт в PDF: открываем презентацию в новой вкладке и вызываем печать
+  // (в диалоге печати выбрать «Сохранить как PDF»). Слайды уже с page-break.
+  const exportPdf = () => {
+    if (!deck) return;
+    const html = buildDeckHtml(deck, order);
+    const w = window.open("", "_blank");
+    if (!w) { setError("Разрешите всплывающие окна для экспорта PDF"); return; }
+    w.document.write(html);
+    w.document.close();
+    w.onload = () => { w.focus(); setTimeout(() => w.print(), 300); };
   };
 
   return (
@@ -123,6 +182,37 @@ function PitchDeckInner() {
           })}
         </div>
 
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap", marginTop: 14 }}>
+          <div>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Язык</label>
+            <div style={{ display: "flex", gap: 6 }}>
+              {([["ru", "Русский"], ["en", "English"]] as const).map(([id, lbl]) => {
+                const sel = language === id;
+                return (
+                  <button key={id} onClick={() => setLanguage(id)} disabled={busy}
+                    style={{ padding: "7px 14px", borderRadius: 9, fontSize: 12.5, fontWeight: 650, cursor: "pointer", color: sel ? "#fff" : "rgba(255,255,255,0.55)", background: sel ? `rgba(${RGB},0.16)` : "rgba(255,255,255,0.03)", border: sel ? `1px solid rgba(${RGB},0.45)` : "1px solid rgba(255,255,255,0.08)" }}>
+                    {lbl}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div>
+            <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Стиль</label>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {STYLE_OPTS.map(o => {
+                const sel = style === o.id;
+                return (
+                  <button key={o.id} onClick={() => setStyle(o.id)} disabled={busy} title={o.hint}
+                    style={{ padding: "7px 12px", borderRadius: 9, fontSize: 12.5, fontWeight: 650, cursor: "pointer", color: sel ? "#fff" : "rgba(255,255,255,0.55)", background: sel ? `rgba(${RGB},0.16)` : "rgba(255,255,255,0.03)", border: sel ? `1px solid rgba(${RGB},0.45)` : "1px solid rgba(255,255,255,0.08)" }}>
+                    {o.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         <button onClick={() => setResearch(v => !v)} disabled={busy}
           style={{ display: "flex", alignItems: "center", gap: 9, marginTop: 14, padding: "9px 12px", borderRadius: 10, cursor: "pointer", width: "100%", textAlign: "left", background: research ? `rgba(${RGB},0.1)` : "rgba(255,255,255,0.03)", border: research ? `1px solid rgba(${RGB},0.4)` : "1px solid rgba(255,255,255,0.08)" }}>
           <Globe size={15} color={research ? "#a5b4fc" : "rgba(255,255,255,0.4)"} style={{ flexShrink: 0 }} />
@@ -142,10 +232,16 @@ function PitchDeckInner() {
             {busy ? "Собираю дек…" : deck ? "Пересобрать" : "Собрать питч-дек"}
           </button>
           {deck && !busy && (
-            <button onClick={download}
-              style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 18px", borderRadius: 12, fontSize: 13.5, fontWeight: 650, color: "#fff", cursor: "pointer", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)" }}>
-              <Download size={14} /> Скачать презентацию
-            </button>
+            <>
+              <button onClick={exportPdf}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 18px", borderRadius: 12, fontSize: 13.5, fontWeight: 650, color: "#fff", cursor: "pointer", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                <Download size={14} /> Скачать PDF
+              </button>
+              <button onClick={download}
+                style={{ display: "flex", alignItems: "center", gap: 8, padding: "11px 18px", borderRadius: 12, fontSize: 13.5, fontWeight: 650, color: "rgba(255,255,255,0.75)", cursor: "pointer", background: "transparent", border: "1px solid rgba(255,255,255,0.12)" }}>
+                HTML
+              </button>
+            </>
           )}
         </div>
         {error && <div style={{ marginTop: 12, fontSize: 13, color: "#fca5a5" }}>{error}</div>}
@@ -157,14 +253,16 @@ function PitchDeckInner() {
           {deck.company && (
             <div style={{ marginBottom: 14 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>{deck.company}</div>
+                <div style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}>
+                  <Editable value={deck.company ?? ""} onSave={v => editTop("company", v)} />
+                </div>
                 {researched && (
                   <span style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 11, fontWeight: 650, padding: "3px 9px", borderRadius: 999, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.3)", color: "#34d399" }}>
                     <Globe size={11} /> на свежих данных
                   </span>
                 )}
               </div>
-              {deck.tagline && <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 2 }}>{deck.tagline}</div>}
+              {deck.tagline && <div style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", marginTop: 2 }}><Editable value={deck.tagline} onSave={v => editTop("tagline", v)} /></div>}
             </div>
           )}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 14 }}>
@@ -174,8 +272,8 @@ function PitchDeckInner() {
               return (
                 <div key={meta.key} style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)", padding: 18, minHeight: 150 }}>
                   <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: `rgba(${RGB},0.85)`, marginBottom: 8 }}>{String(i + 1).padStart(2, "0")} · {meta.title}</div>
-                  {s.headline && <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 8, lineHeight: 1.35 }}>{s.headline}</div>}
-                  {s.sub && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 6 }}>{s.sub}</div>}
+                  {s.headline !== undefined && <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 8, lineHeight: 1.35 }}><Editable value={s.headline ?? ""} onSave={v => editSlide(meta.key, "headline", v)} /></div>}
+                  {s.sub !== undefined && <div style={{ fontSize: 13, color: "rgba(255,255,255,0.6)", marginBottom: 6 }}><Editable value={s.sub ?? ""} onSave={v => editSlide(meta.key, "sub", v)} /></div>}
                   {(s.tam || s.sam || s.som) && (
                     <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 6 }}>
                       {[["TAM", s.tam], ["SAM", s.sam], ["SOM", s.som]].filter(x => x[1]).map(([k, v]) => (
@@ -191,11 +289,12 @@ function PitchDeckInner() {
                     </div>
                   )}
                   {s.amount && <div style={{ fontSize: 20, fontWeight: 800, color: "#34d399", marginBottom: 6 }}>{s.amount}</div>}
-                  {[s.bullets, s.edge, s.use].map((list, li) => list && (
-                    <ul key={li} style={{ margin: "4px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 5 }}>
+                  {([["bullets", s.bullets], ["edge", s.edge], ["use", s.use]] as const).map(([field, list]) => list && (
+                    <ul key={field} style={{ margin: "4px 0 0", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 5 }}>
                       {list.map((b, j) => (
                         <li key={j} style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.5, display: "flex", gap: 7 }}>
-                          <span style={{ color: ACCENT, flexShrink: 0 }}>▸</span><span>{b}</span>
+                          <span style={{ color: ACCENT, flexShrink: 0 }}>▸</span>
+                          <Editable value={b} onSave={v => editSlide(meta.key, field, v, j)} style={{ flex: 1 }} />
                         </li>
                       ))}
                     </ul>
@@ -207,7 +306,7 @@ function PitchDeckInner() {
             })}
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 16, fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
-            <RotateCcw size={12} /> Дек — черновик от AI: проверьте цифры и адаптируйте под себя перед отправкой инвестору.
+            <RotateCcw size={12} /> Нажмите на любой текст, чтобы отредактировать. Правки сохранятся в экспорте (PDF/HTML). Проверьте цифры перед отправкой инвестору.
           </div>
         </div>
       )}

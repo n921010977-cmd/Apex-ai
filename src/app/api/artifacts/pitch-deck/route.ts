@@ -32,7 +32,16 @@ const SLIDES = [
   { key: "ask",        title: "Запрос инвестиций" },
 ];
 
-function buildPrompt(brief: string): string {
+const STYLES: Record<string, string> = {
+  classic:   "уверенный, классический инвесторский — сдержанно и по делу",
+  visionary: "дерзкий, визионерский — большие амбиции, смелые формулировки",
+  data:      "data-driven — максимум цифр, метрик и обоснований, минимум воды",
+};
+const LANGS: Record<string, string> = { ru: "русский", en: "английский (English)" };
+
+function buildPrompt(brief: string, language: string, style: string): string {
+  const tone = STYLES[style] ?? STYLES.classic;
+  const lang = LANGS[language] ?? LANGS.ru;
   return `Собери инвесторский питч-дек для стартапа на основе брифа основателя.
 
 Бриф: ${brief}
@@ -55,7 +64,7 @@ function buildPrompt(brief: string): string {
   }
 }
 
-Правила: цифры реалистичные и обоснованные (TAM/SAM/SOM, суммы), метрики трекшна — примеры, которые основателю нужно достичь, помечай их как цели. Тон — уверенный, инвесторский. Язык — русский. Только JSON.`;
+Правила: цифры реалистичные и обоснованные (TAM/SAM/SOM, суммы), метрики трекшна — примеры, которые основателю нужно достичь, помечай их как цели. Тон — ${tone}. Язык всего текста — ${lang}. Только JSON.`;
 }
 
 export async function POST(req: NextRequest) {
@@ -70,11 +79,13 @@ export async function POST(req: NextRequest) {
   const quota = await enforceUsage(session.user.id, plan, "pitchDecks");
   if (!quota.allowed) return quotaExceededResponse("pitchDecks", quota);
 
-  let body: { brief?: string; industry?: string; research?: boolean };
+  let body: { brief?: string; industry?: string; research?: boolean; language?: string; style?: string };
   try { body = await req.json(); } catch {
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
   const brief = body.brief?.trim();
+  const language = body.language === "en" ? "en" : "ru";
+  const style = ["classic", "visionary", "data"].includes(body.style ?? "") ? body.style! : "classic";
   if (!brief) return NextResponse.json({ success: false, error: "Опишите бизнес" }, { status: 422 });
   if (brief.length > MAX_BRIEF) {
     return NextResponse.json({ success: false, error: `Бриф не длиннее ${MAX_BRIEF} символов` }, { status: 422 });
@@ -104,7 +115,7 @@ export async function POST(req: NextRequest) {
   let raw: string;
   try {
     // Деку нужен весь JSON целиком — даём увеличенный потолок вывода.
-    const result = await directChat({ message: buildPrompt(brief) + webBlock, persona, maxTokens: Math.max(MAX_TOKENS_HEAVY, 3000) });
+    const result = await directChat({ message: buildPrompt(brief, language, style) + webBlock, persona, maxTokens: Math.max(MAX_TOKENS_HEAVY, 3000) });
     raw = result.content;
   } catch (err) {
     const msg = err instanceof Error ? err.message : "AI error";
