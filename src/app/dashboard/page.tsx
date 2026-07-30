@@ -11,6 +11,7 @@ import {
   CheckCircle, ExternalLink, MessageSquare,
 } from "lucide-react";
 import { EngagementPanel, markVisit } from "@/components/dashboard/EngagementPanel";
+import { UsageWidget } from "@/components/dashboard/UsageWidget";
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
 const ACCENT     = "#6366f1";
@@ -619,6 +620,9 @@ export default function DashboardPage() {
               <div style={{ position: "absolute", bottom: 10, right: 12, pointerEvents: "none", fontSize: 9.5, color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}>20 узлов · sync</div>
             </motion.div>
           </div>
+
+          {/* ── Живой виджет: расход лимитов + что делать дальше ── */}
+          <UsageWidget />
 
           {/* ── EXEC BOARD — прямо под hero, без скролла ── */}
           <div>

@@ -41,6 +41,97 @@ function progress(g: Goal): number {
   return Math.max(0, Math.min(100, Math.round(((g.current - g.start) / span) * 100)));
 }
 
+// ─── Умная аналитика прогресса (без AI, из истории чек-инов) ──────────────────
+const WEEK = 7 * 864e5;
+
+function isoWeekKey(ts: number): string {
+  const d = new Date(ts);
+  const day = (d.getUTCDay() + 6) % 7; // пн=0
+  d.setUTCDate(d.getUTCDate() - day);
+  return `${d.getUTCFullYear()}-${Math.floor(d.getTime() / WEEK)}`;
+}
+
+// Серия недель подряд, в которые был хотя бы один чек-ин (по всем целям).
+function computeStreak(goals: Goal[]): number {
+  const weeks = new Set<string>();
+  for (const g of goals) for (const c of g.checks) weeks.add(isoWeekKey(c.ts));
+  if (!weeks.size) return 0;
+  let streak = 0;
+  let cursor = Date.now();
+  // допускаем текущую или прошлую неделю как старт серии
+  if (!weeks.has(isoWeekKey(cursor)) && weeks.has(isoWeekKey(cursor - WEEK))) cursor -= WEEK;
+  while (weeks.has(isoWeekKey(cursor))) { streak++; cursor -= WEEK; }
+  return streak;
+}
+
+function lastCheckTs(goals: Goal[]): number {
+  let m = 0;
+  for (const g of goals) for (const c of g.checks) if (c.ts > m) m = c.ts;
+  return m;
+}
+
+function parseDeadline(s: string): number | null {
+  const m = s.match(/(\d{1,2})[.\-/](\d{1,2})[.\-/](\d{2,4})/);
+  if (!m) return null;
+  const [, d, mo, y] = m;
+  const year = y.length === 2 ? 2000 + Number(y) : Number(y);
+  const t = Date.UTC(year, Number(mo) - 1, Number(d));
+  return Number.isNaN(t) ? null : t;
+}
+
+function fmt(n: number): string {
+  const a = Math.abs(n);
+  if (a >= 1000) return (Math.round(n / 100) / 10) + "k";
+  return String(Math.round(n * 10) / 10);
+}
+
+type Analysis = { status: "nodata" | "done" | "stalled" | "ontrack" | "behind"; hint: string };
+
+function analyze(g: Goal): Analysis {
+  if (progress(g) >= 100) return { status: "done", hint: "Цель достигнута 🎉" };
+  const checks = g.checks;
+  if (checks.length < 2) return { status: "nodata", hint: "Обнови прогресс ещё раз — покажу темп" };
+  const first = checks[0], last = checks[checks.length - 1];
+  const weeksElapsed = Math.max(0.15, (last.ts - first.ts) / WEEK);
+  const vel = (last.value - first.value) / weeksElapsed; // за неделю
+  const remaining = g.target - g.current;
+  if (vel <= 0) return { status: "stalled", hint: "Прогресс стоит — нужен рывок на этой неделе" };
+
+  const dl = parseDeadline(g.deadline);
+  if (dl && dl > Date.now()) {
+    const weeksLeft = (dl - Date.now()) / WEEK;
+    const needed = remaining / weeksLeft;
+    if (vel >= needed) return { status: "ontrack", hint: `В графике: темп +${fmt(vel)}/нед` };
+    return { status: "behind", hint: `Отстаём: нужно +${fmt(needed)}/нед, сейчас +${fmt(vel)}` };
+  }
+  const weeksToTarget = Math.ceil(remaining / vel);
+  return { status: "ontrack", hint: `При темпе +${fmt(vel)}/нед — цель через ~${weeksToTarget} нед` };
+}
+
+// Мини-спарклайн истории чек-инов.
+function Sparkline({ checks }: { checks: Check[] }) {
+  if (checks.length < 2) return null;
+  const vals = checks.map(c => c.value);
+  const min = Math.min(...vals), max = Math.max(...vals);
+  const span = max - min || 1;
+  const w = 90, h = 22;
+  const pts = vals.map((v, i) => `${(i / (vals.length - 1)) * w},${h - ((v - min) / span) * h}`).join(" ");
+  return (
+    <svg width={w} height={h} style={{ display: "block", overflow: "visible" }} aria-hidden>
+      <polyline points={pts} fill="none" stroke={ACCENT} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={w} cy={h - ((vals[vals.length - 1] - min) / span) * h} r={2.4} fill="#a5b4fc" />
+    </svg>
+  );
+}
+
+const STATUS_STYLE: Record<Analysis["status"], { color: string; bg: string }> = {
+  ontrack: { color: "#34d399", bg: "rgba(16,185,129,0.12)" },
+  behind:  { color: "#fbbf24", bg: "rgba(245,158,11,0.12)" },
+  stalled: { color: "#fca5a5", bg: "rgba(239,68,68,0.12)" },
+  done:    { color: "#34d399", bg: "rgba(16,185,129,0.12)" },
+  nodata:  { color: "rgba(255,255,255,0.5)", bg: "rgba(255,255,255,0.05)" },
+};
+
 // ─── очень лёгкий markdown → JSX для фокуса ───────────────────────────────────
 function FocusView({ text }: { text: string }) {
   const blocks = useMemo(() => {
@@ -90,6 +181,16 @@ function GoalsPageInner() {
 
   useEffect(() => { setGoals(load()); }, []);
   const save = (next: Goal[]) => { setGoals(next); persist(next); };
+
+  const streak = useMemo(() => computeStreak(goals), [goals]);
+  const daysStale = useMemo(() => {
+    const last = lastCheckTs(goals);
+    return last ? Math.floor((Date.now() - last) / 864e5) : -1;
+  }, [goals]);
+  const avgProgress = useMemo(
+    () => (goals.length ? Math.round(goals.reduce((s, g) => s + progress(g), 0) / goals.length) : 0),
+    [goals],
+  );
 
   const addGoal = () => {
     if (!draft.title.trim()) { setError("Укажите название цели"); return; }
@@ -143,6 +244,36 @@ function GoalsPageInner() {
           <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Отслеживай прогресс и получай от AI фокус на неделю</div>
         </div>
       </div>
+
+      {/* Умная сводка: серия недель, средний прогресс, активные цели */}
+      {goals.length > 0 && (
+        <div style={{ display: "flex", gap: 10, marginTop: 18, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 14px", borderRadius: 12, background: streak > 0 ? "rgba(245,158,11,0.1)" : "rgba(255,255,255,0.03)", border: streak > 0 ? "1px solid rgba(245,158,11,0.28)" : "1px solid rgba(255,255,255,0.08)" }}>
+            <span style={{ fontSize: 18 }}>🔥</span>
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: streak > 0 ? "#fbbf24" : "rgba(255,255,255,0.5)", lineHeight: 1 }}>{streak}</div>
+              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>недель подряд</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+            <TrendingUp size={16} style={{ color: "#a5b4fc" }} />
+            <div>
+              <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{avgProgress}%</div>
+              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>средний прогресс</div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Умное напоминание при застое */}
+      {daysStale >= 7 && (
+        <div style={{ display: "flex", alignItems: "center", gap: 11, marginTop: 14, padding: "12px 15px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)" }}>
+          <CalendarClock size={17} style={{ color: "#fbbf24", flexShrink: 0 }} />
+          <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.45 }}>
+            Ты не обновлял прогресс <b style={{ color: "#fff" }}>{daysStale} дн.</b> {streak > 0 ? "— обнови хотя бы одну цель, чтобы не потерять серию 🔥" : "— зайди и отметь движение по целям."}
+          </div>
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1.3fr) minmax(0,1fr)", gap: 20, marginTop: 22, alignItems: "start" }}>
         {/* Левая колонка — цели */}
@@ -198,6 +329,17 @@ function GoalsPageInner() {
                       style={{ width: 90, ...inp, padding: "6px 9px", fontSize: 12.5 }} />
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{p}% · {g.checks.length} чек-инов</span>
                   </div>
+                  {/* Умный авто-анализ: темп + спарклайн истории */}
+                  {(() => {
+                    const a = analyze(g);
+                    const st = STATUS_STYLE[a.status];
+                    return (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginTop: 11, paddingTop: 11, borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 600, padding: "4px 9px", borderRadius: 8, color: st.color, background: st.bg }}>{a.hint}</span>
+                        <Sparkline checks={g.checks} />
+                      </div>
+                    );
+                  })()}
                 </div>
               );
             })}
