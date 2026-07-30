@@ -143,6 +143,110 @@ function saveHistory(items: HistoryItem[]) {
   try { localStorage.setItem(HISTORY_KEY, JSON.stringify(items.slice(0, 10))); } catch { /* noop */ }
 }
 
+// ─── Интерактивный чек-лист выполнения ───────────────────────────────────────────
+// Превращаем шаги плана (раздел «План 30/60/90») в отмечаемые задачи с прогрессом.
+// План перестаёт быть просто текстом — по нему можно работать и видеть движение.
+const CHECKS_KEY = "vertlix_plan_checks";
+
+type Task = { id: string; text: string; phase: string };
+
+function hashStr(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) { h = (h << 5) - h + s.charCodeAt(i); h |= 0; }
+  return Math.abs(h).toString(36);
+}
+
+function extractTasks(md: string): Task[] {
+  const lines = md.split("\n");
+  let h2 = "", h3 = "";
+  const inPlan: Task[] = [];
+  const all: Task[] = [];
+  for (const raw of lines) {
+    const l = raw.trim();
+    const m2 = l.match(/^##\s+(.+)/); if (m2) { h2 = m2[1].replace(/\*\*/g, ""); h3 = ""; continue; }
+    const m3 = l.match(/^###\s+(.+)/); if (m3) { h3 = m3[1].replace(/\*\*/g, ""); continue; }
+    const mi = l.match(/^(?:[-*•]|\d+[.)])\s+(.+)/);
+    if (!mi) continue;
+    const text = mi[1].replace(/\*\*/g, "").trim();
+    if (!text) continue;
+    const phase = h3 || h2 || "Шаги";
+    const task = { id: hashStr(phase + "|" + text), text, phase };
+    all.push(task);
+    if (/план|30\/60\/90|дн[ия]/i.test(h2 + " " + h3)) inPlan.push(task);
+  }
+  return inPlan.length ? inPlan : all;
+}
+
+function loadChecks(briefKey: string): Set<string> {
+  try { const all = JSON.parse(localStorage.getItem(CHECKS_KEY) || "{}"); return new Set(all[briefKey] || []); }
+  catch { return new Set(); }
+}
+function saveChecks(briefKey: string, ids: Set<string>) {
+  try {
+    const all = JSON.parse(localStorage.getItem(CHECKS_KEY) || "{}");
+    all[briefKey] = [...ids];
+    localStorage.setItem(CHECKS_KEY, JSON.stringify(all));
+  } catch { /* noop */ }
+}
+
+function Checklist({ md, briefKey }: { md: string; briefKey: string }) {
+  const tasks = useMemo(() => extractTasks(md), [md]);
+  const [checked, setChecked] = useState<Set<string>>(new Set());
+  useEffect(() => { setChecked(loadChecks(briefKey)); }, [briefKey, md]);
+  if (!tasks.length) return null;
+
+  const toggle = (id: string) => setChecked(prev => {
+    const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id);
+    saveChecks(briefKey, n);
+    return n;
+  });
+
+  const doneCount = tasks.filter(t => checked.has(t.id)).length;
+  const pct = Math.round((doneCount / tasks.length) * 100);
+  const phases: string[] = [];
+  for (const t of tasks) if (!phases.includes(t.phase)) phases.push(t.phase);
+
+  return (
+    <div style={{ marginTop: 16, borderRadius: 14, background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.08)", padding: 16 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Check size={15} style={{ color: ACCENT }} />
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Чек-лист выполнения</span>
+        </div>
+        <span style={{ fontSize: 12, fontWeight: 700, color: pct === 100 ? "#34d399" : "rgba(255,255,255,0.6)", fontVariantNumeric: "tabular-nums" }}>
+          {doneCount} / {tasks.length} · {pct}%
+        </span>
+      </div>
+      <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.07)", overflow: "hidden", marginBottom: 14 }}>
+        <div style={{ height: "100%", width: `${pct}%`, borderRadius: 99, background: pct === 100 ? "linear-gradient(90deg,#34d399,#10b981)" : `linear-gradient(90deg,${ACCENT},#818cf8)`, transition: "width .4s cubic-bezier(0.22,1,0.36,1)" }} />
+      </div>
+      {phases.map(phase => (
+        <div key={phase} style={{ marginBottom: 10 }}>
+          <div style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", margin: "6px 0 6px" }}>{phase}</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            {tasks.filter(t => t.phase === phase).map(t => {
+              const on = checked.has(t.id);
+              return (
+                <button key={t.id} onClick={() => toggle(t.id)}
+                  style={{ display: "flex", alignItems: "flex-start", gap: 10, textAlign: "left", padding: "7px 8px", borderRadius: 9, cursor: "pointer", background: "transparent", border: "none", width: "100%" }}
+                  onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
+                  onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
+                  <span style={{ width: 18, height: 18, borderRadius: 6, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center",
+                    background: on ? `linear-gradient(135deg,${ACCENT},#4f46e5)` : "rgba(255,255,255,0.04)",
+                    border: on ? "none" : "1px solid rgba(255,255,255,0.18)" }}>
+                    {on && <Check size={12} color="#fff" />}
+                  </span>
+                  <span style={{ fontSize: 13, lineHeight: 1.5, color: on ? "rgba(255,255,255,0.4)" : "rgba(255,255,255,0.82)", textDecoration: on ? "line-through" : "none" }}>{t.text}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 // ─── Страница ───────────────────────────────────────────────────────────────────
 import { PlanGate } from "@/components/dashboard/PlanGate";
 
@@ -509,6 +613,7 @@ function GoalsPlanStudioInner() {
             )}
             {out && <Markdown text={out} />}
             {busy && out && <span style={{ display: "inline-block", width: 7, height: 15, background: ACCENT, marginLeft: 1, verticalAlign: "text-bottom", animation: "gpblink 0.9s step-start infinite" }} />}
+            {done && out && !busy && <Checklist md={out} briefKey={brief.trim()} />}
           </div>
 
           {/* Уточнение плана */}
