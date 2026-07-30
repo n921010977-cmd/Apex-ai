@@ -12,7 +12,7 @@ import {
   Lock, Download, FileText, Cookie, LogOut,
 } from "lucide-react";
 import { startRegistration } from "@simplewebauthn/browser";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 import { getConsent, setConsent } from "@/lib/consent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -67,7 +67,6 @@ const NAV = [
   { id: "notifications", label: "Уведомления",   icon: Bell,    group: "Система" },
   { id: "security",      label: "Безопасность",  icon: Shield,  group: "Система" },
   { id: "privacy",       label: "Приватность и данные", icon: Lock, group: "Система" },
-  { id: "language",      label: "Язык и регион", icon: Globe,   group: "Настройки" },
   { id: "appearance",    label: "Внешний вид",   icon: Palette, group: "Настройки" },
 ];
 
@@ -77,7 +76,6 @@ const DESCRIPTIONS: Record<string, string> = {
   notifications: "Контролируй как и когда ты получаешь уведомления",
   security:      "Двухфакторная аутентификация и защита аккаунта",
   privacy:       "Ваши данные, согласия и удаление аккаунта",
-  language:      "Язык интерфейса, регион и форматы",
   appearance:    "Тема, цвета и визуальные настройки",
 };
 
@@ -237,6 +235,7 @@ function resizeToDataUrl(file: File, size = 256): Promise<string> {
 }
 
 function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"error") => void }) {
+  const { update: updateSession } = useSession();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({ firstName: "Founder", lastName: "", email: "" });
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -281,12 +280,17 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
   };
 
   const save = async () => {
+    const name = `${form.firstName} ${form.lastName}`.trim();
+    if (!name) { showToast("Укажите имя", "error"); return; }
     setLoading(true);
     try {
-      const r = await fetch("/api/user", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: `${form.firstName} ${form.lastName}`.trim() }) });
+      const r = await fetch("/api/user", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
       const d = await r.json();
-      if (d.success) showToast("Профиль сохранён", "success");
-      else showToast(d.error || "Ошибка сохранения", "error");
+      if (d.success) {
+        // Обновляем сессию — имя сразу меняется в шапке, сайдбаре и у AI-команды.
+        await updateSession({ name });
+        showToast("Профиль сохранён", "success");
+      } else showToast(d.error || "Ошибка сохранения", "error");
     } catch { showToast("Ошибка сети", "error"); }
     finally { setLoading(false); }
   };
@@ -841,43 +845,6 @@ const SECURITY_EVENT_META: Record<string, { label: string; color: string; Icon: 
   "security.login":            { label: "Вход в аккаунт",       color: "#3b82f6", Icon: CheckCircle2 },
 };
 
-function LanguagePanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
-  const [lang, setLang] = useState(settings.language || "ru");
-  const [tz, setTz] = useState(settings.timezone || "Europe/Moscow");
-  const [aiLang, setAiLang] = useState("Русский");
-  const [dateFormat, setDateFormat] = useState("ДД.ММ.ГГГГ");
-  const [currency, setCurrency] = useState("RUB (₽)");
-  const [weekStart, setWeekStart] = useState("Понедельник");
-  const [loading, setLoading] = useState(false);
-
-  const save = async () => {
-    setLoading(true);
-    try {
-      const r = await fetch("/api/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ language: lang, timezone: tz }) });
-      const d = await r.json();
-      if (d.success) { onUpdate({ language: lang, timezone: tz }); showToast("Язык и регион сохранены", "success"); }
-      else showToast(d.error || "Ошибка", "error");
-    } catch { showToast("Ошибка сети", "error"); }
-    finally { setLoading(false); }
-  };
-
-  return (
-    <div>
-      <Section title="Язык и регион" accent="#6366f1">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <FieldSelect label="Язык интерфейса" value={lang} onChange={setLang} options={["ru","en","zh","es","de"]} />
-          <FieldSelect label="Язык AI-ответов" value={aiLang} onChange={setAiLang} options={["Русский","English","中文"]} />
-          <FieldSelect label="Формат даты" value={dateFormat} onChange={setDateFormat} options={["ДД.ММ.ГГГГ","MM/DD/YYYY","YYYY-MM-DD"]} />
-          <FieldSelect label="Часовой пояс" value={tz} onChange={setTz} options={["Europe/Moscow","UTC","America/New_York","Europe/London","Asia/Tokyo"]} />
-          <FieldSelect label="Валюта" value={currency} onChange={setCurrency} options={["RUB (₽)","USD ($)","EUR (€)","GBP (£)"]} />
-          <FieldSelect label="Первый день недели" value={weekStart} onChange={setWeekStart} options={["Понедельник","Воскресенье"]} />
-        </div>
-      </Section>
-      <SaveBar onSave={save} loading={loading} />
-    </div>
-  );
-}
-
 // ─── Приватность и данные ─────────────────────────────────────────────────────
 // Классический для любого сервиса раздел: что мы храним, экспорт своей копии
 // (право на переносимость), управление согласием на аналитику и удаление
@@ -1132,7 +1099,7 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
   );
 }
 
-const VALID_TABS = new Set(["profile", "ai", "notifications", "security", "privacy", "language", "appearance"]);
+const VALID_TABS = new Set(["profile", "ai", "notifications", "security", "privacy", "appearance"]);
 
 function SettingsPageInner() {
   const router = useRouter();
@@ -1192,7 +1159,6 @@ function SettingsPageInner() {
       case "notifications": return <NotificationsPanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
       case "security":      return <SecurityPanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
       case "privacy":       return <PrivacyPanel showToast={showToast} />;
-      case "language":      return <LanguagePanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
       case "appearance":    return <AppearancePanel settings={settings} onUpdate={updateSettings} showToast={showToast} />;
       default:              return null;
     }

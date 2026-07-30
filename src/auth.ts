@@ -300,11 +300,17 @@ const config: NextAuthConfig = {
 
   callbacks: {
     // ── jwt: enrich token with custom fields on sign-in ───────────────────
-    async jwt({ token, user, account }) {
+    async jwt({ token, user, account, trigger, session }) {
       if (user) {
         token.id   = user.id;
         token.role = (user as { role?: string }).role ?? "FREE";
         token.tier = (user as { tier?: string }).tier ?? "FREE";
+      }
+
+      // Client-initiated session.update({ name }) — persist the new display
+      // name into the token (works even without a database, e.g. demo/guest).
+      if (trigger === "update" && session && typeof (session as { name?: unknown }).name === "string") {
+        token.name = (session as { name: string }).name;
       }
 
       // On OAuth sign-in, upsert the user into Supabase + fetch role/tier
@@ -360,6 +366,7 @@ const config: NextAuthConfig = {
         session.user.id   = (token.id  ?? token.sub) as string;
         session.user.role = (token.role as string) ?? "FREE";
         session.user.tier = (token.tier as string) ?? "FREE";
+        if (typeof token.name === "string") session.user.name = token.name;
       }
       return session;
     },

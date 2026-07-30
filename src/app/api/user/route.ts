@@ -42,23 +42,36 @@ export async function PATCH(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
 
+  // Имя профиля обрабатываем отдельно — оно живёт в таблице users, а не в
+  // user_settings. В демо-режиме (без Supabase) сервер его не хранит: клиент
+  // сохраняет имя в сессию через session.update(), и оно живёт в cookie-токене.
+  const rawName = (rawBody as { name?: unknown })?.name;
+  const name = typeof rawName === "string" ? rawName.trim().slice(0, 80) : undefined;
+
   const { data, error } = validateBody(UpdateSettingsSchema, rawBody);
   if (error) return NextResponse.json({ success: false, error }, { status: 422 });
 
   try {
-    const supabase = await createClient();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const db = supabase as any;
+    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
+      const supabase = await createClient();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const db = supabase as any;
 
-    await db.from("user_settings").upsert({
-      user_id: session.user.id,
-      ...data,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" });
-
-    return NextResponse.json({ success: true, data });
+      if (name) {
+        await db.from("users").update({ name }).eq("id", session.user.id);
+      }
+      if (data && Object.keys(data).length) {
+        await db.from("user_settings").upsert({
+          user_id: session.user.id,
+          ...data,
+          updated_at: new Date().toISOString(),
+        }, { onConflict: "user_id" });
+      }
+    }
+    return NextResponse.json({ success: true, data, name });
   } catch {
-    return NextResponse.json({ success: true, data });
+    // Демо-режим или сбой БД — не блокируем: клиент отразит имя в сессии.
+    return NextResponse.json({ success: true, data, name });
   }
 }
 
