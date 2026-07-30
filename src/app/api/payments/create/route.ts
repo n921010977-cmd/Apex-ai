@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { PLAN_BY_ID, type PlanId } from "@/lib/plans";
-import { createInvoice, buildOrderId, nowpaymentsConfigured } from "@/lib/payments/nowpayments";
+import { createPayment, buildOrderId, oxapayConfigured } from "@/lib/payments/oxapay";
 
-// POST /api/payments/create — создаёт крипто-счёт и возвращает ссылку на оплату.
-// Если NOWPayments не настроен (нет ключа) — отвечаем configured:false, и фронт
-// откатывается на демо-активацию (без реальной оплаты).
+// POST /api/payments/create — создаёт крипто-счёт (OxaPay) и возвращает ссылку
+// на оплату. Если OxaPay не настроен (нет ключа) — отвечаем configured:false, и
+// фронт откатывается на демо-активацию (без реальной оплаты).
 
 function baseUrl(req: NextRequest): string {
   const env = process.env.NEXT_PUBLIC_APP_URL?.trim();
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!nowpaymentsConfigured()) {
+  if (!oxapayConfigured()) {
     // Оплата не настроена — фронт включит демо-режим.
     return NextResponse.json({ success: true, configured: false });
   }
@@ -36,15 +36,14 @@ export async function POST(req: NextRequest) {
 
   const base = baseUrl(req);
   try {
-    const invoice = await createInvoice({
+    const payment = await createPayment({
       amountUsd: planObj.priceMonthly,
       orderId: buildOrderId(session.user.id, plan),
       description: `Vertlix ${planObj.name} — подписка на месяц`,
-      ipnUrl: `${base}/api/payments/webhook`,
-      successUrl: `${base}/dashboard/billing?paid=1`,
-      cancelUrl: `${base}/dashboard/billing?canceled=1`,
+      callbackUrl: `${base}/api/payments/webhook`,
+      returnUrl: `${base}/dashboard/billing?paid=1`,
     });
-    return NextResponse.json({ success: true, configured: true, invoiceUrl: invoice.invoice_url });
+    return NextResponse.json({ success: true, configured: true, invoiceUrl: payment.payLink });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "payment error";
     return NextResponse.json({ success: false, error: msg }, { status: 502 });
