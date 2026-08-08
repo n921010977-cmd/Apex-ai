@@ -6,6 +6,7 @@ import { Check, Minus, Sparkles, ShieldCheck, Loader2, AlertTriangle, TrendingUp
 import { PLANS, PLAN_BY_ID, type Plan, type PlanFeatures, type PlanId } from "@/lib/plans";
 import { usePlan } from "@/lib/use-plan";
 import { useToast } from "@/components/ui/Toast";
+import { PaymentFlowNote } from "@/components/dashboard/PaymentFlowNote";
 
 // ─── Тарифы и подписка внутри приложения ──────────────────────────────────────
 // Умная страница биллинга: выбор тарифа (оплата криптой через OxaPay или демо),
@@ -310,6 +311,9 @@ export default function BillingPage() {
           </table>
         </div>
       </div>
+
+      {/* Как проходит оплата */}
+      <PaymentFlowNote />
 
       <p style={{ textAlign: "center", marginTop: 20, fontSize: 12.5, color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
         <Sparkles size={13} /> Отмена в любой момент. Лимиты обновляются каждый месяц.
