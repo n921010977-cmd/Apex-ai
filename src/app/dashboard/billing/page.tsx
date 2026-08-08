@@ -129,10 +129,26 @@ export default function BillingPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: p.id }),
       });
-      const data = await res.json();
-      if (data?.configured && data?.invoiceUrl) { window.location.href = data.invoiceUrl; return; }
-    } catch { /* демо-путь ниже */ }
+      const data = await res.json().catch(() => ({}));
 
+      // Оплата настроена и счёт создан → уводим на страницу оплаты OxaPay.
+      if (data?.configured && data?.invoiceUrl) { window.location.href = data.invoiceUrl; return; }
+
+      // Оплата настроена, но счёт не создался (неверный ключ, мерчант не одобрен,
+      // нет NEXT_PUBLIC_APP_URL) — показываем причину, НЕ включаем демо молча.
+      if (data?.configured) {
+        setBusy(null);
+        toast(data?.error || "Не удалось открыть оплату. Проверьте OXAPAY_MERCHANT_KEY и одобрение мерчанта.", "error");
+        return;
+      }
+      // data.configured === false → OxaPay не настроен: демо-разблокировка ниже.
+    } catch {
+      setBusy(null);
+      toast("Сеть недоступна — попробуйте ещё раз", "error");
+      return;
+    }
+
+    // Демо-путь: OxaPay не подключён (ключа нет). Открываем тариф локально.
     try {
       await fetch("/api/billing/select", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -142,7 +158,7 @@ export default function BillingPage() {
     setPlan(p.id);
     await loadUsage();
     setBusy(null);
-    toast(`Тариф ${p.name} активирован — вкладки разблокированы`, "success");
+    toast(`Демо-режим: тариф ${p.name} открыт (оплата OxaPay не подключена)`, "success");
   };
 
   // Умная подсказка апгрейда: на тарифе (не Max) и какая-то квота ≥ 80%.
