@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>stage</title>
+<style>
+  @font-face { font-family: 'Montserrat'; font-weight: 600; src: url('assets/fonts/Montserrat-600.ttf'); }
+  @font-face { font-family: 'Montserrat'; font-weight: 700; src: url('assets/fonts/Montserrat-700.ttf'); }
+  @font-face { font-family: 'Montserrat'; font-weight: 800; src: url('assets/fonts/Montserrat-800.ttf'); }
+  @font-face { font-family: 'Montserrat'; font-weight: 900; src: url('assets/fonts/Montserrat-900.ttf'); }
+  @font-face { font-family: 'Inter'; font-weight: 400; src: url('assets/fonts/Inter-400.ttf'); }
+  @font-face { font-family: 'Inter'; font-weight: 500; src: url('assets/fonts/Inter-500.ttf'); }
+  @font-face { font-family: 'Inter'; font-weight: 600; src: url('assets/fonts/Inter-600.ttf'); }
+  @font-face { font-family: 'Inter'; font-weight: 700; src: url('assets/fonts/Inter-700.ttf'); }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 720px; height: 1280px; overflow: hidden; background: #fff; }
+  #stage {
+    position: relative; width: 720px; height: 1280px; overflow: hidden;
+    background: linear-gradient(180deg, #ffffff 0%, #fafbfc 55%, #f1f3f6 100%);
+    font-family: 'Inter', sans-serif;
+  }
+
+  /* ---------- perspective grid floor ---------- */
+  #floor {
+    position: absolute; left: -360px; bottom: -60px; width: 1440px; height: 900px;
+    transform: perspective(700px) rotateX(58deg);
+    transform-origin: 50% 100%;
+    background:
+      repeating-linear-gradient(0deg,  rgba(172,181,196,.85) 0 2.5px, transparent 2.5px 72px),
+      repeating-linear-gradient(90deg, rgba(172,181,196,.85) 0 2.5px, transparent 2.5px 72px);
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.8) 42%, #000 100%);
+  }
+  #floor-fade {
+    position: absolute; left: 0; bottom: 380px; width: 720px; height: 260px;
+    background: linear-gradient(180deg, #fafbfc 0%, transparent 100%);
+  }
+
+  /* ---------- caption ---------- */
+  #caption {
+    position: absolute; left: 40px; top: 556px; width: 640px; height: 190px;
+    display: flex; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  #caption .inner {
+    font-family: 'Montserrat'; font-weight: 900; font-size: 56px; line-height: 1.16;
+    color: #17191d; text-transform: uppercase; letter-spacing: -0.5px;
+  }
+  #caption .w {
+    display: inline-block; white-space: nowrap; visibility: hidden;
+    transform-origin: 50% 80%;
+  }
+  /* highlighted words always reserve their padded box so the layout
+     doesn't jump when the yellow marker pops in */
+  #caption .w.hl { padding: 2px 12px 4px; border-radius: 10px; }
+  #caption .w.on { visibility: visible; }
+  #caption .w.hl.on {
+    background: #ffd83b;
+    box-shadow: 0 4px 14px rgba(255, 200, 0, .35);
+  }
+
+  /* ---------- scene layer (stickers / cards) ---------- */
+  #scene { position: absolute; left: 0; top: 0; width: 720px; height: 560px; }
+  .abs { position: absolute; }
+
+  .sticker {
+    display: flex; align-items: center; justify-content: center;
+    background: #ffffff; border-radius: 32px;
+    box-shadow: 0 14px 40px rgba(30, 40, 60, .14), 0 2px 8px rgba(30, 40, 60, .08);
+  }
+  .sticker .emoji { font-family: 'Noto Color Emoji'; }
+
+  .pill {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #2f9bff; color: #fff; font-family: 'Inter'; font-weight: 600;
+    border-radius: 999px; white-space: nowrap;
+    box-shadow: 0 8px 22px rgba(47, 155, 255, .35);
+  }
+  .pill.dark { background: #17191d; box-shadow: 0 8px 22px rgba(0,0,0,.22); }
+  .pill.red  { background: #ff4b55; box-shadow: 0 8px 22px rgba(255,75,85,.35); }
+  .pill.green{ background: #22b573; box-shadow: 0 8px 22px rgba(34,181,115,.35); }
+
+  .badge {
+    position: absolute; display: flex; align-items: center; justify-content: center;
+    border-radius: 50%; background: #ff4b55; color: #fff;
+    font-family: 'Montserrat'; font-weight: 900;
+    box-shadow: 0 8px 20px rgba(255, 75, 85, .4);
+  }
+  .badge.ok { background: #22b573; box-shadow: 0 8px 20px rgba(34,181,115,.4); }
+
+  .card {
+    background: #fff; border-radius: 28px;
+    box-shadow: 0 18px 50px rgba(30, 40, 60, .16), 0 2px 10px rgba(30,40,60,.07);
+    font-family: 'Inter';
+  }
+  .card .title { font-weight: 700; font-size: 30px; color: #17191d; }
+  .card .sub { font-weight: 500; font-size: 21px; color: #9aa2ad; }
+  .row { display: flex; align-items: center; }
+  .row .ric {
+    width: 52px; height: 52px; border-radius: 14px; margin-right: 18px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Noto Color Emoji'; font-size: 30px;
+  }
+  .row .rtx { font-weight: 600; font-size: 27px; color: #26292e; flex: 1; }
+  .check {
+    width: 40px; height: 40px; flex: none;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .stepchip {
+    display: inline-flex; align-items: center; justify-content: center;
+    background: #17191d; color: #fff; font-family: 'Montserrat'; font-weight: 800;
+    font-size: 30px; letter-spacing: 2px; border-radius: 20px; padding: 14px 34px;
+    box-shadow: 0 12px 30px rgba(0,0,0,.22);
+    text-transform: uppercase;
+  }
+  .quote-mark { font-family: 'Montserrat'; font-weight: 900; color: #dfe4ea; font-size: 90px; line-height: .6; }
+
+  /* ---------- presenter ---------- */
+  #actor { position: absolute; left: 50%; bottom: -6px; width: 470px; margin-left: -235px; }
+  #actor svg { display: block; width: 100%; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="floor"></div>
+  <div id="floor-fade"></div>
+  <div id="scene"></div>
+  <div id="caption"><div class="inner"></div></div>
+  <div id="actor"></div>
+</div>
+
+<script>
+/* =====================================================================
+   Deterministic renderer: window.seek(t) paints the exact state for
+   time t (seconds). No rAF, no CSS animations — pure function of t so
+   frames can be captured one by one.
+   ===================================================================== */
+
+let TL = null;               // timeline data injected by render.js
+const $ = s => document.querySelector(s);
+
+window.initTimeline = data => { TL = data; buildActor(); };
+
+/* ---------------- easing ---------------- */
+const clamp01 = x => Math.max(0, Math.min(1, x));
+// overshooting spring-like pop for entrances
+function popIn(t) {
+  const x = clamp01(t);
+  const c1 = 1.6, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
+}
+const easeOut = t => 1 - Math.pow(1 - clamp01(t), 3);
+const easeIn  = t => Math.pow(clamp01(t), 2);
+
+/* =====================================================================
+   PRESENTER — flat-vector cartoon guy, several poses.
+   Shared head/face; arms + brows switch per pose; mouth/eyes animated.
+   ===================================================================== */
+const SKIN = '#F6C9A0', SKIN_SH = '#E9B489', HAIR = '#463527', BEARD = '#57422F';
+const TEE = '#3D4249', SHIRT = '#CDB99B', SHIRT_SH = '#BCA787', SHIRT_LN = '#B29D7D';
+
+function armsFor(pose) {
+  // Arms are drawn over the torso. Coordinate space: 400x460 viewBox.
+  switch (pose) {
+    case 'open': return `
+      <g>
+        <path d="M118,290 C90,310 62,344 50,392 C46,408 52,420 66,424 C82,428 96,420 102,404 C112,376 128,346 148,326 Z" fill="${SHIRT}"/>
+        <path d="M118,290 C104,300 90,314 79,332 C92,340 106,342 118,338 C128,320 140,306 150,298 Z" fill="${SHIRT_SH}" opacity=".55"/>
+        <g transform="translate(58,418) rotate(18)">
+          <ellipse cx="0" cy="0" rx="30" ry="22" fill="${SKIN}"/>
+          <path d="M-26,-8 C-14,-20 12,-22 26,-10" fill="none" stroke="${SKIN_SH}" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <path d="M282,290 C310,310 338,344 350,392 C354,408 348,420 334,424 C318,428 304,420 298,404 C288,376 272,346 252,326 Z" fill="${SHIRT}"/>
+        <path d="M282,290 C296,300 310,314 321,332 C308,340 294,342 282,338 C272,320 260,306 250,298 Z" fill="${SHIRT_SH}" opacity=".55"/>
+        <g transform="translate(342,418) rotate(-18)">
+          <ellipse cx="0" cy="0" rx="30" ry="22" fill="${SKIN}"/>
+          <path d="M-26,-10 C-12,-22 14,-20 26,-8" fill="none" stroke="${SKIN_SH}" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </g>`;
+    case 'point': return `
+      <g>
+        <path d="M118,290 C96,318 82,352 76,402 C74,418 82,428 96,430 C110,432 122,424 124,408 C128,372 136,342 150,322 Z" fill="${SHIRT}"/>
+        <g transform="translate(102,428)">
+          <ellipse cx="0" cy="0" rx="26" ry="20" fill="${SKIN}"/>
+        </g>
+        <path d="M254,286 C288,280 314,262 330,232 L306,208 C292,234 272,252 246,260 Z" fill="${SHIRT}"/>
+        <path d="M330,232 C334,224 336,216 336,208 L306,208 L302,226 Z" fill="${SHIRT}"/>
+        <circle cx="321" cy="220" r="21" fill="${SKIN}"/>
+        <path d="M310,226 C306,220 306,212 310,208" fill="none" stroke="${SKIN_SH}" stroke-width="3" stroke-linecap="round"/>
+        <rect x="313" y="158" width="15" height="56" rx="7.5" fill="${SKIN}"/>
+      </g>`;
+    case 'think': return `
+      <g>
+        <path d="M118,290 C96,318 84,352 78,400 C76,416 84,426 98,428 C112,430 122,422 124,406 C128,372 136,342 150,322 Z" fill="${SHIRT}"/>
+        <g transform="translate(104,426)"><ellipse cx="0" cy="0" rx="26" ry="20" fill="${SKIN}"/></g>
+        <path d="M272,300 C292,320 302,344 306,374 L272,382 C268,352 258,330 244,316 Z" fill="${SHIRT}"/>
+        <path d="M306,372 C304,334 288,300 258,276 L234,294 C258,314 270,340 272,376 Z" fill="${SHIRT}"/>
+        <circle cx="248" cy="282" r="19" fill="${SKIN}"/>
+        <rect x="228" y="258" width="13" height="30" rx="6.5" transform="rotate(18 234 273)" fill="${SKIN}"/>
+      </g>`;
+    case 'fists': return `
+      <g>
+        <path d="M118,292 C92,286 68,266 52,232 C44,216 48,202 62,196 C76,190 88,198 94,212 C106,240 122,260 146,272 Z" fill="${SHIRT}"/>
+        <g transform="translate(64,204)">
+          <circle cx="0" cy="0" r="24" fill="${SKIN}"/>
+          <path d="M-16,-8 C-8,-16 8,-16 16,-8" fill="none" stroke="${SKIN_SH}" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+        <path d="M282,292 C308,286 332,266 348,232 C356,216 352,202 338,196 C324,190 312,198 306,212 C294,240 278,260 254,272 Z" fill="${SHIRT}"/>
+        <g transform="translate(336,204)">
+          <circle cx="0" cy="0" r="24" fill="${SKIN}"/>
+          <path d="M-16,-8 C-8,-16 8,-16 16,-8" fill="none" stroke="${SKIN_SH}" stroke-width="3.5" stroke-linecap="round"/>
+        </g>
+      </g>`;
+    case 'wave': return `
+      <g>
+        <path d="M118,290 C96,318 82,352 76,402 C74,418 82,428 96,430 C110,432 122,424 124,408 C128,372 136,342 150,322 Z" fill="${SHIRT}"/>
+        <g transform="translate(102,428)"><ellipse cx="0" cy="0" rx="26" ry="20" fill="${SKIN}"/></g>
+        <path d="M282,292 C314,282 340,254 354,214 C360,198 354,184 340,180 C326,176 314,184 310,198 C300,228 286,252 264,266 Z" fill="${SHIRT}"/>
+        <g transform="translate(342,178)">
+          <ellipse cx="0" cy="-6" rx="22" ry="26" fill="${SKIN}"/>
+          <path d="M-14,-26 L-11,-38 M-4,-30 L-3,-44 M5,-30 L7,-43 M14,-25 L18,-36" stroke="${SKIN}" stroke-width="9" stroke-linecap="round"/>
+        </g>
+      </g>`;
+    case 'shrug': return `
+      <g>
+        <path d="M118,292 C92,290 66,276 48,248 C40,234 44,220 58,214 C72,208 84,214 90,228 C100,250 118,264 142,270 Z" fill="${SHIRT}"/>
+        <g transform="translate(58,224) rotate(10)">
+          <ellipse cx="0" cy="0" rx="27" ry="21" fill="${SKIN}"/>
+          <path d="M-22,-8 C-10,-18 12,-18 22,-6" fill="none" stroke="${SKIN_SH}" stroke-width="3" stroke-linecap="round"/>
+        </g>
+        <path d="M282,292 C308,290 334,276 352,248 C360,234 356,220 342,214 C328,208 316,214 310,228 C300,250 282,264 258,270 Z" fill="${SHIRT}"/>
+        <g transform="translate(342,224) rotate(-10)">
+          <ellipse cx="0" cy="0" rx="27" ry="21" fill="${SKIN}"/>
+          <path d="M-22,-6 C-12,-18 10,-18 22,-8" fill="none" stroke="${SKIN_SH}" stroke-width="3" stroke-linecap="round"/>
+        </g>
+      </g>`;
+  }
+  return '';
+}
+
+const POSES = ['open', 'point', 'think', 'fists', 'wave', 'shrug'];
+
+function buildActor() {
+  const arms = POSES.map(p => `<g id="pose-${p}" style="display:none">${armsFor(p)}</g>`).join('');
+  $('#actor').innerHTML = `
+  <svg viewBox="0 0 400 470" xmlns="http://www.w3.org/2000/svg">
+    <g id="actor-root">
+      <!-- torso -->
+      <path d="M128,300 C132,276 158,260 200,260 C242,260 268,276 272,300 L288,470 L112,470 Z" fill="${SHIRT}"/>
+      <path d="M163,272 L200,470 L163,470 C158,404 158,336 163,272 Z" fill="${SHIRT_SH}" opacity="0"/>
+      <!-- tee under shirt -->
+      <path d="M168,266 C178,262 222,262 232,266 L238,470 L162,470 Z" fill="${TEE}"/>
+      <!-- shirt open front edges -->
+      <path d="M168,266 C160,330 158,400 160,470 L178,470 C172,400 172,330 176,268 Z" fill="${SHIRT_SH}"/>
+      <path d="M232,266 C240,330 242,400 240,470 L222,470 C228,400 228,330 224,268 Z" fill="${SHIRT_SH}"/>
+      <!-- collar -->
+      <path d="M168,264 L200,292 L152,300 C154,282 160,270 168,264 Z" fill="${SHIRT_LN}"/>
+      <path d="M232,264 L200,292 L248,300 C246,282 240,270 232,264 Z" fill="${SHIRT_LN}"/>
+      <!-- pockets -->
+      <rect x="130" y="376" width="34" height="40" rx="8" fill="${SHIRT_SH}" opacity=".7"/>
+      <rect x="236" y="376" width="34" height="40" rx="8" fill="${SHIRT_SH}" opacity=".7"/>
+      <!-- arms (pose dependent) -->
+      ${arms}
+      <!-- neck -->
+      <path d="M182,218 L218,218 L216,268 C205,274 195,274 184,268 Z" fill="${SKIN}"/>
+      <path d="M182,218 L218,218 L217,240 C205,248 195,248 183,240 Z" fill="${SKIN_SH}"/>
+      <!-- head group -->
+      <g id="head">
+        <!-- ears -->
+        <ellipse cx="128" cy="152" rx="14" ry="20" fill="${SKIN}"/>
+        <ellipse cx="272" cy="152" rx="14" ry="20" fill="${SKIN}"/>
+        <!-- face -->
+        <path d="M200,42 C247,42 276,80 276,138 C276,196 243,232 200,232 C157,232 124,196 124,138 C124,80 153,42 200,42 Z" fill="${SKIN}"/>
+        <!-- beard: trimmed jaw crescent + light mustache -->
+        <path d="M131,170 C137,210 163,232 200,232 C237,232 263,210 269,170 C272,218 250,256 200,256 C150,256 128,218 131,170 Z" fill="${BEARD}" opacity=".95"/>
+        <path d="M177,181 C185,174 215,174 223,181 C215,186 185,186 177,181 Z" fill="${BEARD}" opacity=".8"/>
+        <!-- mouth (animated) -->
+        <g id="mouth"></g>
+        <!-- nose -->
+        <path d="M196,152 C194,162 194,168 198,172 C202,175 206,174 208,171" fill="none" stroke="${SKIN_SH}" stroke-width="4.5" stroke-linecap="round"/>
+        <!-- eyes -->
+        <g id="eye-l"><g class="ball">
+          <ellipse cx="168" cy="140" rx="15" ry="16" fill="#fff"/>
+          <circle cx="170" cy="142" r="8.5" fill="#4A3628"/>
+          <circle cx="172.5" cy="139" r="2.8" fill="#fff"/>
+        </g><path class="lid" d="M153,140 C158,148 178,148 183,140" stroke="${SKIN_SH}" stroke-width="4" fill="none" stroke-linecap="round" style="display:none"/></g>
+        <g id="eye-r"><g class="ball">
+          <ellipse cx="232" cy="140" rx="15" ry="16" fill="#fff"/>
+          <circle cx="230" cy="142" r="8.5" fill="#4A3628"/>
+          <circle cx="232.5" cy="139" r="2.8" fill="#fff"/>
+        </g><path class="lid" d="M217,140 C222,148 242,148 247,140" stroke="${SKIN_SH}" stroke-width="4" fill="none" stroke-linecap="round" style="display:none"/></g>
+        <!-- brows -->
+        <g id="brows">
+          <path id="brow-l" d="M150,118 C158,111 174,110 184,115" stroke="${HAIR}" stroke-width="9" fill="none" stroke-linecap="round"/>
+          <path id="brow-r" d="M216,115 C226,110 242,111 250,118" stroke="${HAIR}" stroke-width="9" fill="none" stroke-linecap="round"/>
+        </g>
+        <!-- hair -->
+        <path d="M124,140 C120,96 138,44 196,38 C242,34 272,64 277,112 C278,124 277,132 276,140 C272,118 264,104 252,98 C256,106 258,114 257,122 C244,96 216,84 188,88 C160,92 138,110 132,140 C129,148 125,148 124,140 Z" fill="${HAIR}"/>
+        <path d="M196,38 C230,36 256,52 268,80 C250,60 224,52 196,54 C168,56 146,70 136,92 C144,60 164,40 196,38 Z" fill="#382A1E"/>
+      </g>
+    </g>
+  </svg>`;
+}
+
+function setMouth(open, smileBig) {
+  const m = $('#mouth');
+  if (!m) return;
+  if (open > 0.12) {
+    const h = 8 + open * 16;
+    m.innerHTML = `<ellipse cx="200" cy="196" rx="${13 + open * 6}" ry="${h}" fill="#5E2B26"/>
+      <path d="M${186 - open*4},${190} C192,${186} 208,${186} ${214 + open*4},${190} L${212},${193} C205,${190.5} 195,${190.5} ${188},${193} Z" fill="#fff"/>
+      <ellipse cx="200" cy="${200 + h * 0.35}" rx="${8 + open * 4}" ry="${4 + open * 5}" fill="#C4574E"/>`;
+  } else if (smileBig) {
+    m.innerHTML = `<path d="M182,192 C190,202 210,202 218,192 L214,190 C207,197 193,197 186,190 Z" fill="#5E2B26"/>
+      <path d="M184,191 C192,199 208,199 216,191" fill="none" stroke="#5E2B26" stroke-width="5" stroke-linecap="round"/>`;
+  } else {
+    m.innerHTML = `<path d="M186,194 C193,200 207,200 214,194" fill="none" stroke="#5E2B26" stroke-width="5.5" stroke-linecap="round"/>`;
+  }
+}
+
+function setEyes(blink) {
+  for (const side of ['l', 'r']) {
+    const g = $(`#eye-${side}`);
+    g.querySelector('.ball').style.display = blink ? 'none' : '';
+    g.querySelector('.lid').style.display = blink ? '' : 'none';
+  }
+}
+
+function setBrows(mood) {
+  const l = $('#brow-l'), r = $('#brow-r');
+  const map = {
+    normal: ['M150,118 C158,111 174,110 184,115', 'M216,115 C226,110 242,111 250,118'],
+    raised: ['M150,112 C158,104 174,103 184,109', 'M216,109 C226,103 242,104 250,112'],
+    knit:   ['M152,116 C162,112 176,113 184,119', 'M216,119 C224,113 238,112 248,116'],
+  };
+  const [pl, pr] = map[mood] || map.normal;
+  l.setAttribute('d', pl); r.setAttribute('d', pr);
+}
+
+/* =====================================================================
+   SCENE WIDGETS — built from the segment's scene spec.
+   Every widget element gets data-at / data-exit for reveal timing.
+   ===================================================================== */
+function svgCheck(sz, color) {
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="${color || '#22b573'}"/><path d="M11,20.5 L17.5,27 L29,14.5" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function svgCross(sz) {
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#ff4b55"/><path d="M13,13 L27,27 M27,13 L13,27" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>`;
+}
+
+function el(html) {
+  const d = document.createElement('div');
+  d.innerHTML = html.trim();
+  return d.firstChild;
+}
+
+function buildScene(spec) {
+  const scene = $('#scene');
+  scene.innerHTML = '';
+  if (!spec) return;
+  const add = (html, at, opts) => {
+    const n = el(html);
+    n.classList.add('abs');
+    n.dataset.at = at || 0;
+    if (opts && opts.rot) n.dataset.rot = opts.rot;
+    if (opts && opts.drift) n.dataset.drift = opts.drift;
+    scene.appendChild(n);
+    return n;
+  };
+
+  const stickerHtml = (emoji, size, extra) =>
+    `<div class="sticker" style="width:${size}px;height:${size}px">
+       <div class="emoji" style="font-size:${Math.round(size * .58)}px">${emoji}</div>${extra || ''}
+     </div>`;
+
+  switch (spec.type) {
+    case 'sticker': {
+      const s = spec.size || 210;
+      const x = spec.x != null ? spec.x : (360 - s / 2);
+      const y = spec.y != null ? spec.y : 130;
+      const badge = spec.no ? `<div class="badge" style="width:64px;height:64px;right:-14px;top:-14px">${svgCross(64)}</div>`
+                  : spec.ok ? `<div class="badge ok" style="width:64px;height:64px;right:-14px;top:-14px">${svgCheck(64)}</div>` : '';
+      add(`<div style="left:${x}px;top:${y}px">${stickerHtml(spec.emoji, s, badge)}</div>`, 0, { rot: spec.rot || -4, drift: 1 });
+      if (spec.label)
+        add(`<div style="left:0;top:${y + s + 28}px;width:720px;text-align:center">
+               <div class="pill ${spec.labelStyle || ''}" style="font-size:26px;padding:12px 30px">${spec.label}</div>
+             </div>`, spec.labelAt != null ? spec.labelAt : .25);
+      if (spec.step)
+        add(`<div style="left:0;top:${y - 86}px;width:720px;text-align:center">
+               <div class="stepchip">${spec.step}</div>
+             </div>`, 0, {});
+      break;
+    }
+    case 'quote': {
+      const y = spec.y || 150;
+      add(`<div class="card" style="left:70px;top:${y}px;width:580px;padding:44px 46px 40px">
+             <div style="display:flex;gap:22px;align-items:flex-start">
+               <div class="quote-mark">&ldquo;</div>
+               <div style="flex:1">
+                 <div class="title" style="font-size:34px;line-height:1.3">${spec.text}</div>
+                 ${spec.sub ? `<div class="sub" style="margin-top:12px">${spec.sub}</div>` : ''}
+               </div>
+             </div>
+             <div class="badge ${spec.ok ? 'ok' : ''}" style="width:72px;height:72px;right:-18px;top:-18px">${spec.ok ? svgCheck(72) : svgCross(72)}</div>
+           </div>`, 0, { rot: spec.ok ? 2 : -2 });
+      if (spec.emoji)
+        add(`<div style="left:0;top:${y + 220}px;width:720px;display:flex;justify-content:center">${stickerHtml(spec.emoji, 150)}</div>`, .3, { rot: 5, drift: 1 });
+      break;
+    }
+    case 'compare': {
+      const y = spec.y || 140;
+      add(`<div style="left:70px;top:${y}px">${stickerHtml('💰', 180)}</div>`, 0, { rot: -5, drift: 1 });
+      add(`<div style="left:470px;top:${y}px">${stickerHtml('🪙', 180)}</div>`, .18, { rot: 5, drift: 1 });
+      add(`<div style="left:280px;top:${y + 40}px;width:160px;text-align:center;font-family:Montserrat;font-weight:900;font-size:92px;color:#ff4b55">&ne;</div>`, .4);
+      add(`<div style="left:70px;top:${y + 198}px;width:180px;text-align:center"><div class="pill dark" style="font-size:24px;padding:10px 24px">выручка</div></div>`, .12);
+      add(`<div style="left:470px;top:${y + 198}px;width:180px;text-align:center"><div class="pill green" style="font-size:24px;padding:10px 24px">прибыль</div></div>`, .3);
+      break;
+    }
+    case 'checklist': {
+      const rows = spec.rows.map((r, i) => `
+        <div class="row" style="margin-top:${i ? 24 : 0}px" data-row-at="${.28 + i * spec.rowGap}">
+          <div class="ric" style="background:${r.bg}">${r.icon}</div>
+          <div class="rtx">${r.text}</div>
+          <div class="check">${svgCheck(40)}</div>
+        </div>`).join('');
+      add(`<div class="card" style="left:80px;top:${spec.y || 120}px;width:560px;padding:38px 40px">
+             <div style="display:flex;align-items:center;margin-bottom:28px">
+               <div class="ric" style="background:#17191d;margin-right:18px"><span style="font-size:28px">🧮</span></div>
+               <div>
+                 <div class="title">${spec.title}</div>
+                 <div class="sub">${spec.sub || ''}</div>
+               </div>
+             </div>
+             ${rows}
+           </div>`, 0, { rot: 0 });
+      break;
+    }
+    case 'cycle': {
+      const items = spec.items; // [{emoji,label}]
+      const cx = [128, 360, 592], y = spec.y || 170, s = 168;
+      const ats = spec.itemAt || items.map((_, i) => i * .3);
+      items.forEach((it, i) => {
+        add(`<div style="left:${cx[i] - s / 2}px;top:${y}px">${stickerHtml(it.emoji, s)}</div>`, ats[i], { rot: i % 2 ? 4 : -4, drift: 1 });
+        add(`<div style="left:${cx[i] - 110}px;top:${y + s + 22}px;width:220px;text-align:center">
+               <div class="pill" style="font-size:22px;padding:9px 22px">${it.label}</div>
+             </div>`, ats[i] + .12);
+        if (i < 2)
+          add(`<div style="left:${cx[i] + s / 2 - 12}px;top:${y + s / 2 - 26}px;font-size:44px;font-weight:900;font-family:Montserrat;color:#17191d">&rarr;</div>`, ats[i] + .22);
+      });
+      break;
+    }
+    case 'duo': {
+      const y = spec.y || 140, s = 190;
+      add(`<div style="left:${160 - s / 2}px;top:${y}px">${stickerHtml(spec.a.emoji, s)}</div>`, 0, { rot: -5, drift: 1 });
+      add(`<div style="left:${160 - 130}px;top:${y + s + 24}px;width:260px;text-align:center"><div class="pill red" style="font-size:23px;padding:10px 24px">${spec.a.label}</div></div>`, .12);
+      add(`<div style="left:${560 - s / 2}px;top:${y}px">${stickerHtml(spec.b.emoji, s)}</div>`, .28, { rot: 5, drift: 1 });
+      add(`<div style="left:${560 - 130}px;top:${y + s + 24}px;width:260px;text-align:center"><div class="pill green" style="font-size:23px;padding:10px 24px">${spec.b.label}</div></div>`, .4);
+      add(`<div style="left:330px;top:${y + 62}px;font-family:Montserrat;font-weight:900;font-size:44px;color:#c3cad4">VS</div>`, .2);
+      break;
+    }
+    case 'chain': {
+      const steps = spec.steps; // [{text, at}]
+      const y0 = spec.y || 84, gap = 88;
+      steps.forEach((st, i) => {
+        add(`<div style="left:0;top:${y0 + i * gap}px;width:720px;text-align:center">
+               <div class="pill ${i === steps.length - 1 ? 'green' : 'dark'}" style="font-size:30px;padding:13px 40px;font-family:Montserrat;font-weight:800">${st.text}</div>
+             </div>`, st.at);
+        if (i < steps.length - 1)
+          add(`<div style="left:0;top:${y0 + i * gap + 56}px;width:720px;text-align:center;font-size:30px;font-weight:900;color:#b8c0cb;line-height:1">&darr;</div>`, st.at + .06);
+      });
+      break;
+    }
+  }
+}
+
+/* =====================================================================
+   SEEK — paint state for absolute time t
+   ===================================================================== */
+let curSegIdx = -1, curPhraseKey = '';
+
+window.seek = function (t) {
+  if (!TL) return;
+
+  // ---- find active segment (the latest one whose window opened wins,
+  // so an incoming scene's entrance always plays from its beginning)
+  let seg = null, idx = -1;
+  for (let i = 0; i < TL.segments.length; i++) {
+    const s = TL.segments[i];
+    if (t >= s.start - s.lead && t < s.end + s.tail) { seg = s; idx = i; }
+  }
+
+  // ---- scene ----
+  if (idx !== curSegIdx) {
+    curSegIdx = idx;
+    buildScene(seg ? seg.scene : null);
+  }
+  if (seg && seg.scene) {
+    const local = t - (seg.start - seg.lead);
+    const totalVis = (seg.end + seg.tail) - (seg.start - seg.lead);
+    for (const n of $('#scene').children) {
+      const at = parseFloat(n.dataset.at) * (seg.durFactor || 1);
+      const enterP = (local - at) / .5;
+      const exitP = (local - (totalVis - .28)) / .28;
+      let sc, op, dy;
+      if (exitP > 0) { sc = 1 - easeIn(exitP) * .25; op = 1 - easeIn(exitP); dy = 0; }
+      else { const p = popIn(enterP); sc = .5 + .5 * p; op = clamp01(enterP * 2.2); dy = (1 - easeOut(enterP)) * 26; }
+      const rot = parseFloat(n.dataset.rot || 0);
+      const wob = n.dataset.drift ? Math.sin(t * 1.5 + at * 7) * 3 : 0;
+      n.style.opacity = op;
+      n.style.transform = `translateY(${dy + wob}px) scale(${sc}) rotate(${rot}deg)`;
+      // inner rows (checklist) reveal
+      n.querySelectorAll('[data-row-at]').forEach(row => {
+        const rp = (local - parseFloat(row.dataset.rowAt) * (seg.durFactor || 1)) / .4;
+        row.style.opacity = clamp01(rp * 1.8);
+        row.style.transform = `translateX(${(1 - easeOut(rp)) * 30}px)`;
+      });
+    }
+  }
+
+  // ---- caption ----
+  const cap = $('#caption .inner');
+  let phrase = null;
+  if (seg) for (const ph of seg.phrases) { if (t >= ph.start - .05 && t < ph.end + seg.tail) { phrase = ph; break; } }
+  const key = seg && phrase ? `${idx}:${phrase.key}` : '';
+  if (key !== curPhraseKey) {
+    curPhraseKey = key;
+    cap.innerHTML = phrase ? phrase.words.map((w, i) =>
+      `<span class="w ${w.hl ? 'hl' : ''}" data-t="${w.t}">${w.text}</span>${w.br ? '<br>' : ' '}`
+    ).join('') : '';
+    if (phrase && phrase.fs) cap.style.fontSize = phrase.fs + 'px'; else cap.style.fontSize = '56px';
+  }
+  if (phrase) {
+    cap.querySelectorAll('.w').forEach(w => {
+      const wt = parseFloat(w.dataset.t);
+      const p = (t - wt) / .16;
+      if (p > 0) {
+        w.classList.add('on');
+        const s = .82 + .18 * popIn(p);
+        w.style.transform = `scale(${Math.min(s, 1.12)})`;
+        w.style.opacity = clamp01(p * 2);
+      } else {
+        w.classList.remove('on');
+      }
+    });
+  }
+
+  // ---- presenter ----
+  const last = TL.segments[TL.segments.length - 1];
+  const outro = !seg && t > last.end;
+  const pose = outro ? 'wave' : (seg ? seg.pose : 'open');
+  POSES.forEach(p => { const g = $(`#pose-${p}`); if (g) g.style.display = p === pose ? '' : 'none'; });
+  setBrows(outro ? 'raised' : (seg ? seg.brows || 'normal' : 'normal'));
+  if (outro) {
+    const wg = $('#pose-wave');
+    if (wg) { wg.style.transformOrigin = '300px 290px'; wg.style.transform = `rotate(${Math.sin(t * 7) * 5}deg)`; }
+  }
+
+  // speech activity: is t inside any word of the active segment?
+  let speaking = false;
+  if (seg) for (const ph of seg.phrases) for (const w of ph.words) {
+    if (t >= w.t && t < w.t + w.d) { speaking = true; break; }
+  }
+  const mouthOpen = speaking ? (.35 + .65 * Math.abs(Math.sin(t * 11.5 + Math.sin(t * 5.3) * 2))) : 0;
+  setMouth(mouthOpen, seg ? seg.smile : outro);
+
+  // blink: deterministic schedule
+  const bt = (t + 1.15) % 3.3;
+  setEyes(bt < .13);
+
+  // idle bob + sway
+  const root = $('#actor');
+  const bob = Math.sin(t * 2 * Math.PI / 2.6) * 5;
+  const sway = Math.sin(t * 2 * Math.PI / 5.2) * .8;
+  root.style.transform = `translateY(${bob}px) rotate(${sway}deg)`;
+
+  // head tilt for 'think'
+  const head = $('#head');
+  if (head) head.style.transform = pose === 'think' ? 'rotate(-3deg)' : (pose === 'point' ? 'rotate(2deg)' : '');
+  if (head) head.style.transformOrigin = '200px 210px';
+};
+</script>
+</body>
+</html>
