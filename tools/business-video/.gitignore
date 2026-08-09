@@ -1,6 +1,12 @@
 # промежуточные артефакты сборки — в репо едет только готовый ролик
+# каждого профиля (out/output.mp4, out/<профиль>/output.mp4)
 out/*
 !out/output.mp4
+!out/*/
+out/*/*
+!out/*/output.mp4
 # голосовая модель Piper качается отдельно (см. README)
 *.onnx
 *.onnx.json
+__pycache__/
+*.pyc

@@ -13,6 +13,14 @@
   @font-face { font-family: 'Inter'; font-weight: 600; src: url('assets/fonts/Inter-600.ttf'); }
   @font-face { font-family: 'Inter'; font-weight: 700; src: url('assets/fonts/Inter-700.ttf'); }
 
+  :root {
+    --accent: #2f9bff;        --accent-shadow: rgba(47,155,255,.35);
+    --danger: #ff4b55;        --danger-shadow: rgba(255,75,85,.35);   --danger-badge-shadow: rgba(255,75,85,.4);
+    --safe: #22b573;          --safe-shadow: rgba(34,181,115,.35);    --safe-badge-shadow: rgba(34,181,115,.4);
+    --highlight: #ffd83b;     --highlight-shadow: rgba(255,200,0,.35);
+    --grid-color: rgba(172,181,196,.85);
+    --ink: #17191d;
+  }
   * { margin: 0; padding: 0; box-sizing: border-box; }
   html, body { width: 720px; height: 1280px; overflow: hidden; background: #fff; }
   #stage {
@@ -27,8 +35,8 @@
     transform: perspective(700px) rotateX(58deg);
     transform-origin: 50% 100%;
     background:
-      repeating-linear-gradient(0deg,  rgba(172,181,196,.85) 0 2.5px, transparent 2.5px 72px),
-      repeating-linear-gradient(90deg, rgba(172,181,196,.85) 0 2.5px, transparent 2.5px 72px);
+      repeating-linear-gradient(0deg,  var(--grid-color) 0 2.5px, transparent 2.5px 72px),
+      repeating-linear-gradient(90deg, var(--grid-color) 0 2.5px, transparent 2.5px 72px);
     -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0,0,0,.8) 42%, #000 100%);
   }
   #floor-fade {
@@ -55,8 +63,8 @@
   #caption .w.hl { padding: 2px 12px 4px; border-radius: 10px; }
   #caption .w.on { visibility: visible; }
   #caption .w.hl.on {
-    background: #ffd83b;
-    box-shadow: 0 4px 14px rgba(255, 200, 0, .35);
+    background: var(--highlight);
+    box-shadow: 0 4px 14px var(--highlight-shadow);
   }
 
   /* ---------- scene layer (stickers / cards) ---------- */
@@ -72,21 +80,21 @@
 
   .pill {
     display: inline-flex; align-items: center; justify-content: center;
-    background: #2f9bff; color: #fff; font-family: 'Inter'; font-weight: 600;
+    background: var(--accent); color: #fff; font-family: 'Inter'; font-weight: 600;
     border-radius: 999px; white-space: nowrap;
-    box-shadow: 0 8px 22px rgba(47, 155, 255, .35);
+    box-shadow: 0 8px 22px var(--accent-shadow);
   }
-  .pill.dark { background: #17191d; box-shadow: 0 8px 22px rgba(0,0,0,.22); }
-  .pill.red  { background: #ff4b55; box-shadow: 0 8px 22px rgba(255,75,85,.35); }
-  .pill.green{ background: #22b573; box-shadow: 0 8px 22px rgba(34,181,115,.35); }
+  .pill.dark { background: var(--ink); box-shadow: 0 8px 22px rgba(0,0,0,.22); }
+  .pill.red  { background: var(--danger); box-shadow: 0 8px 22px var(--danger-shadow); }
+  .pill.green{ background: var(--safe); box-shadow: 0 8px 22px var(--safe-shadow); }
 
   .badge {
     position: absolute; display: flex; align-items: center; justify-content: center;
-    border-radius: 50%; background: #ff4b55; color: #fff;
+    border-radius: 50%; background: var(--danger); color: #fff;
     font-family: 'Montserrat'; font-weight: 900;
-    box-shadow: 0 8px 20px rgba(255, 75, 85, .4);
+    box-shadow: 0 8px 20px var(--danger-badge-shadow);
   }
-  .badge.ok { background: #22b573; box-shadow: 0 8px 20px rgba(34,181,115,.4); }
+  .badge.ok { background: var(--safe); box-shadow: 0 8px 20px var(--safe-badge-shadow); }
 
   .card {
     background: #fff; border-radius: 28px;
@@ -139,7 +147,32 @@
 let TL = null;               // timeline data injected by render.js
 const $ = s => document.querySelector(s);
 
-window.initTimeline = data => { TL = data; buildActor(); };
+window.initTimeline = data => { TL = data; applyProfile(data.profile || {}); buildActor(); };
+
+function applyProfile(p) {
+  const root = document.documentElement.style;
+  root.setProperty('--accent', p.accent || '#2f9bff');
+  root.setProperty('--accent-shadow', p.accentShadow || 'rgba(47,155,255,.35)');
+  root.setProperty('--danger', p.danger || '#ff4b55');
+  root.setProperty('--danger-shadow', p.dangerShadow || 'rgba(255,75,85,.35)');
+  root.setProperty('--danger-badge-shadow', p.dangerBadgeShadow || 'rgba(255,75,85,.4)');
+  root.setProperty('--safe', p.safe || '#22b573');
+  root.setProperty('--safe-shadow', p.safeShadow || 'rgba(34,181,115,.35)');
+  root.setProperty('--safe-badge-shadow', p.safeBadgeShadow || 'rgba(34,181,115,.4)');
+  root.setProperty('--highlight', p.highlight || '#ffd83b');
+  root.setProperty('--highlight-shadow', p.highlightShadow || 'rgba(255,200,0,.35)');
+  root.setProperty('--grid-color', p.gridColor || 'rgba(172,181,196,.85)');
+
+  SKIN = p.skin || SKIN_DEFAULT; SKIN_SH = p.skinSh || SKIN_SH_DEFAULT;
+  HAIR = p.hair || HAIR_DEFAULT; BEARD = p.beardColor || BEARD_DEFAULT;
+  TEE = p.tee || TEE_DEFAULT;
+  SHIRT = p.shirt || SHIRT_DEFAULT; SHIRT_SH = p.shirtSh || SHIRT_SH_DEFAULT; SHIRT_LN = p.shirtLn || SHIRT_LN_DEFAULT;
+  HAIR_STYLE = p.hairStyle || 'tousled';
+  BEARD_ON = p.beard !== false;
+  GLASSES = !!p.glasses;
+  GREY = p.grey || null;
+  TIE = p.tie ? { color: p.tie, dark: p.tieDark || p.tie } : null;
+}
 
 /* ---------------- easing ---------------- */
 const clamp01 = x => Math.max(0, Math.min(1, x));
@@ -156,8 +189,12 @@ const easeIn  = t => Math.pow(clamp01(t), 2);
    PRESENTER — flat-vector cartoon guy, several poses.
    Shared head/face; arms + brows switch per pose; mouth/eyes animated.
    ===================================================================== */
-const SKIN = '#F6C9A0', SKIN_SH = '#E9B489', HAIR = '#463527', BEARD = '#57422F';
-const TEE = '#3D4249', SHIRT = '#CDB99B', SHIRT_SH = '#BCA787', SHIRT_LN = '#B29D7D';
+const SKIN_DEFAULT = '#F6C9A0', SKIN_SH_DEFAULT = '#E9B489', HAIR_DEFAULT = '#463527', BEARD_DEFAULT = '#57422F';
+const TEE_DEFAULT = '#3D4249', SHIRT_DEFAULT = '#CDB99B', SHIRT_SH_DEFAULT = '#BCA787', SHIRT_LN_DEFAULT = '#B29D7D';
+// mutable "current character" palette — reassigned per profile by applyProfile()
+let SKIN = SKIN_DEFAULT, SKIN_SH = SKIN_SH_DEFAULT, HAIR = HAIR_DEFAULT, BEARD = BEARD_DEFAULT;
+let TEE = TEE_DEFAULT, SHIRT = SHIRT_DEFAULT, SHIRT_SH = SHIRT_SH_DEFAULT, SHIRT_LN = SHIRT_LN_DEFAULT;
+let HAIR_STYLE = 'tousled', BEARD_ON = true, GLASSES = false, GREY = null, TIE = null;
 
 function armsFor(pose) {
   // Arms are drawn over the torso. Coordinate space: 400x460 viewBox.
@@ -259,6 +296,10 @@ function buildActor() {
       <!-- pockets -->
       <rect x="130" y="376" width="34" height="40" rx="8" fill="${SHIRT_SH}" opacity=".7"/>
       <rect x="236" y="376" width="34" height="40" rx="8" fill="${SHIRT_SH}" opacity=".7"/>
+      <!-- tie -->
+      ${TIE ? `<path d="M188,290 L212,290 L206,308 L194,308 Z" fill="${TIE.dark}"/>
+               <path d="M194,308 L206,308 L215,394 L200,412 L185,394 Z" fill="${TIE.color}"/>
+               <path d="M194,308 L206,308 L204,320 L196,320 Z" fill="#fff" opacity=".18"/>` : ''}
       <!-- arms (pose dependent) -->
       ${arms}
       <!-- neck -->
@@ -272,8 +313,9 @@ function buildActor() {
         <!-- face -->
         <path d="M200,42 C247,42 276,80 276,138 C276,196 243,232 200,232 C157,232 124,196 124,138 C124,80 153,42 200,42 Z" fill="${SKIN}"/>
         <!-- beard: trimmed jaw crescent + light mustache -->
+        ${BEARD_ON ? `
         <path d="M131,170 C137,210 163,232 200,232 C237,232 263,210 269,170 C272,218 250,256 200,256 C150,256 128,218 131,170 Z" fill="${BEARD}" opacity=".95"/>
-        <path d="M177,181 C185,174 215,174 223,181 C215,186 185,186 177,181 Z" fill="${BEARD}" opacity=".8"/>
+        <path d="M177,181 C185,174 215,174 223,181 C215,186 185,186 177,181 Z" fill="${BEARD}" opacity=".8"/>` : ''}
         <!-- mouth (animated) -->
         <g id="mouth"></g>
         <!-- nose -->
@@ -294,9 +336,24 @@ function buildActor() {
           <path id="brow-l" d="M150,118 C158,111 174,110 184,115" stroke="${HAIR}" stroke-width="9" fill="none" stroke-linecap="round"/>
           <path id="brow-r" d="M216,115 C226,110 242,111 250,118" stroke="${HAIR}" stroke-width="9" fill="none" stroke-linecap="round"/>
         </g>
+        <!-- glasses -->
+        ${GLASSES ? `
+        <g stroke="${HAIR}" stroke-width="3.5" fill="rgba(210,225,235,.16)">
+          <rect x="146" y="123" width="46" height="35" rx="14"/>
+          <rect x="208" y="123" width="46" height="35" rx="14"/>
+          <path d="M192,138 L208,138" stroke-width="3.5"/>
+          <path d="M146,136 L130,144" stroke-width="3.5" stroke-linecap="round"/>
+          <path d="M254,136 L270,144" stroke-width="3.5" stroke-linecap="round"/>
+        </g>` : ''}
         <!-- hair -->
+        ${HAIR_STYLE === 'short' ? `
+        <path d="M126,134 C124,90 148,50 200,48 C252,50 276,90 274,134 C273,112 266,98 254,92 C258,102 258,114 254,124 C246,100 224,86 200,86 C176,86 154,100 146,124 C142,114 142,102 146,92 C134,98 127,112 126,134 Z" fill="${HAIR}"/>
+        <path d="M200,48 C176,50 158,60 148,78 C168,64 184,58 200,58 C216,58 232,64 252,78 C242,60 224,50 200,48 Z" fill="#000" opacity=".14"/>
+        ${GREY ? `
+        <path d="M140,108 C136,118 135,128 138,138" stroke="${GREY}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".85"/>
+        <path d="M260,108 C264,118 265,128 262,138" stroke="${GREY}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".85"/>` : ''}` : `
         <path d="M124,140 C120,96 138,44 196,38 C242,34 272,64 277,112 C278,124 277,132 276,140 C272,118 264,104 252,98 C256,106 258,114 257,122 C244,96 216,84 188,88 C160,92 138,110 132,140 C129,148 125,148 124,140 Z" fill="${HAIR}"/>
-        <path d="M196,38 C230,36 256,52 268,80 C250,60 224,52 196,54 C168,56 146,70 136,92 C144,60 164,40 196,38 Z" fill="#382A1E"/>
+        <path d="M196,38 C230,36 256,52 268,80 C250,60 224,52 196,54 C168,56 146,70 136,92 C144,60 164,40 196,38 Z" fill="#382A1E"/>`}
       </g>
     </g>
   </svg>`;
@@ -342,10 +399,10 @@ function setBrows(mood) {
    Every widget element gets data-at / data-exit for reveal timing.
    ===================================================================== */
 function svgCheck(sz, color) {
-  return `<svg width="${sz}" height="${sz}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="${color || '#22b573'}"/><path d="M11,20.5 L17.5,27 L29,14.5" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="${color || 'var(--safe)'}"/><path d="M11,20.5 L17.5,27 L29,14.5" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
 function svgCross(sz) {
-  return `<svg width="${sz}" height="${sz}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="#ff4b55"/><path d="M13,13 L27,27 M27,13 L13,27" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>`;
+  return `<svg width="${sz}" height="${sz}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="19" fill="var(--danger)"/><path d="M13,13 L27,27 M27,13 L13,27" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>`;
 }
 
 function el(html) {
@@ -409,23 +466,28 @@ function buildScene(spec) {
     }
     case 'compare': {
       const y = spec.y || 140;
-      add(`<div style="left:70px;top:${y}px">${stickerHtml('💰', 180)}</div>`, 0, { rot: -5, drift: 1 });
-      add(`<div style="left:470px;top:${y}px">${stickerHtml('🪙', 180)}</div>`, .18, { rot: 5, drift: 1 });
-      add(`<div style="left:280px;top:${y + 40}px;width:160px;text-align:center;font-family:Montserrat;font-weight:900;font-size:92px;color:#ff4b55">&ne;</div>`, .4);
-      add(`<div style="left:70px;top:${y + 198}px;width:180px;text-align:center"><div class="pill dark" style="font-size:24px;padding:10px 24px">выручка</div></div>`, .12);
-      add(`<div style="left:470px;top:${y + 198}px;width:180px;text-align:center"><div class="pill green" style="font-size:24px;padding:10px 24px">прибыль</div></div>`, .3);
+      const a = Object.assign({ emoji: '💰', label: 'выручка', pillClass: 'dark' }, spec.a || {});
+      const b = Object.assign({ emoji: '🪙', label: 'прибыль', pillClass: 'green' }, spec.b || {});
+      const longLabel = a.label.length > 10 || b.label.length > 10;
+      const pw = longLabel ? 240 : 180, pfs = longLabel ? 20 : 24;
+      add(`<div style="left:70px;top:${y}px">${stickerHtml(a.emoji, 180)}</div>`, 0, { rot: -5, drift: 1 });
+      add(`<div style="left:470px;top:${y}px">${stickerHtml(b.emoji, 180)}</div>`, .18, { rot: 5, drift: 1 });
+      add(`<div style="left:280px;top:${y + 40}px;width:160px;text-align:center;font-family:Montserrat;font-weight:900;font-size:92px;color:var(--danger)">&ne;</div>`, .4);
+      add(`<div style="left:${160 - pw / 2}px;top:${y + 198}px;width:${pw}px;text-align:center"><div class="pill ${a.pillClass}" style="font-size:${pfs}px;padding:10px 20px">${a.label}</div></div>`, .12);
+      add(`<div style="left:${560 - pw / 2}px;top:${y + 198}px;width:${pw}px;text-align:center"><div class="pill ${b.pillClass}" style="font-size:${pfs}px;padding:10px 20px">${b.label}</div></div>`, .3);
       break;
     }
     case 'checklist': {
+      const rowAts = spec.rowAt || spec.rows.map((_, i) => .28 + i * spec.rowGap);
       const rows = spec.rows.map((r, i) => `
-        <div class="row" style="margin-top:${i ? 24 : 0}px" data-row-at="${.28 + i * spec.rowGap}">
+        <div class="row" style="margin-top:${i ? 24 : 0}px" data-row-at="${rowAts[i]}">
           <div class="ric" style="background:${r.bg}">${r.icon}</div>
           <div class="rtx">${r.text}</div>
-          <div class="check">${svgCheck(40)}</div>
+          <div class="check">${r.bad ? svgCross(40) : svgCheck(40)}</div>
         </div>`).join('');
       add(`<div class="card" style="left:80px;top:${spec.y || 120}px;width:560px;padding:38px 40px">
              <div style="display:flex;align-items:center;margin-bottom:28px">
-               <div class="ric" style="background:#17191d;margin-right:18px"><span style="font-size:28px">🧮</span></div>
+               <div class="ric" style="background:var(--ink);margin-right:18px"><span style="font-size:28px">${spec.headIcon || '🧮'}</span></div>
                <div>
                  <div class="title">${spec.title}</div>
                  <div class="sub">${spec.sub || ''}</div>

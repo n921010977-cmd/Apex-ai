@@ -16,7 +16,9 @@ const { chromium } = require('playwright');
 const FPS = 30;
 
 async function main() {
-  const timeline = JSON.parse(fs.readFileSync(path.join(OUT, 'timeline.json'), 'utf8'));
+  const outArg = process.argv.indexOf('--out');
+  const outDir = outArg > -1 ? path.resolve(process.argv[outArg + 1]) : OUT;
+  const timeline = JSON.parse(fs.readFileSync(path.join(outDir, 'timeline.json'), 'utf8'));
   const previewArg = process.argv.indexOf('--preview');
   const previewTimes = previewArg > -1
     ? process.argv[previewArg + 1].split(',').map(Number) : null;
@@ -30,7 +32,7 @@ async function main() {
   if (previewTimes) {
     for (const t of previewTimes) {
       await page.evaluate(tt => window.seek(tt), t);
-      const file = path.join(OUT, `preview_${t.toFixed(2)}.png`);
+      const file = path.join(outDir, `preview_${t.toFixed(2)}.png`);
       await page.screenshot({ path: file });
       console.log('wrote', file);
     }
@@ -44,7 +46,7 @@ async function main() {
     '-f', 'image2pipe', '-framerate', String(FPS), '-i', '-',
     '-c:v', 'libx264', '-preset', 'medium', '-crf', '19',
     '-pix_fmt', 'yuv420p',
-    path.join(OUT, 'video_noaudio.mp4'),
+    path.join(outDir, 'video_noaudio.mp4'),
   ], { stdio: ['pipe', 'inherit', 'inherit'] });
 
   const t0 = Date.now();
