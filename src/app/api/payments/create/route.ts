@@ -46,6 +46,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, configured: true, invoiceUrl: payment.payLink });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "payment error";
-    return NextResponse.json({ success: false, error: msg }, { status: 502 });
+    // configured:true — оплата настроена, но шлюз отклонил счёт. Фронт покажет
+    // причину (чаще всего: мерчант не одобрен или ключ из «Сервиса выплат»).
+    return NextResponse.json({ success: false, configured: true, error: `OxaPay: ${msg}` }, { status: 502 });
   }
 }
