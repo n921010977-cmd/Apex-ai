@@ -129,19 +129,28 @@ export default function BillingPage() {
         method: "POST", headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: p.id }),
       });
+
+      // Сессия устарела (например, после обновления сайта) — раньше этот случай
+      // молча уходил в демо. Теперь честно просим войти заново.
+      if (res.status === 401) {
+        setBusy(null);
+        toast("Сессия устарела — войди в аккаунт заново", "error");
+        setTimeout(() => { window.location.href = "/login?callbackUrl=/dashboard/billing"; }, 900);
+        return;
+      }
+
       const data = await res.json().catch(() => ({}));
 
       // Оплата настроена и счёт создан → уводим на страницу оплаты OxaPay.
       if (data?.configured && data?.invoiceUrl) { window.location.href = data.invoiceUrl; return; }
 
-      // Оплата настроена, но счёт не создался (неверный ключ, мерчант не одобрен,
-      // нет NEXT_PUBLIC_APP_URL) — показываем причину, НЕ включаем демо молча.
-      if (data?.configured) {
+      // Демо-разблокировка ниже — ТОЛЬКО когда сервер явно сказал, что OxaPay
+      // не настроен. Любой другой ответ — это ошибка, показываем причину.
+      if (data?.configured !== false) {
         setBusy(null);
-        toast(data?.error || "Не удалось открыть оплату. Проверьте OXAPAY_MERCHANT_KEY и одобрение мерчанта.", "error");
+        toast(data?.error || "Не удалось открыть оплату. Проверь ключ OxaPay и одобрение мерчанта.", "error");
         return;
       }
-      // data.configured === false → OxaPay не настроен: демо-разблокировка ниже.
     } catch {
       setBusy(null);
       toast("Сеть недоступна — попробуйте ещё раз", "error");
