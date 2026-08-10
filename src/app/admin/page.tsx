@@ -155,6 +155,70 @@ function ago(iso: string) {
 const formatTime = (s: number) => s < 60 ? `${s}с` : `${Math.floor(s / 60)}м ${s % 60}с`;
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+// ─── Выдать тариф вручную ──────────────────────────────────────────────────────
+// Для оплат по статичной платёжной ссылке OxaPay: клиент платит по ссылке и
+// называет email — админ включает ему тариф здесь. Ходит в /api/admin/grant.
+function GrantPlanCard() {
+  const [email, setEmail] = useState("");
+  const [plan, setPlan] = useState("pro");
+  const [months, setMonths] = useState("1");
+  const [busy, setBusy] = useState(false);
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
+
+  const grant = async () => {
+    if (!email.trim()) { setResult({ ok: false, msg: "Укажи email клиента" }); return; }
+    setBusy(true); setResult(null);
+    try {
+      const r = await fetch("/api/admin/grant", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: email.trim(), plan, months: Number(months) || 1 }),
+      });
+      const d = await r.json();
+      setResult(d.success
+        ? { ok: true, msg: `Готово: ${plan.toUpperCase()} на ${months} мес → ${email.trim()}` }
+        : { ok: false, msg: d.error || "Не получилось" });
+      if (d.success) setEmail("");
+    } catch { setResult({ ok: false, msg: "Ошибка сети" }); }
+    finally { setBusy(false); }
+  };
+
+  const inp: React.CSSProperties = {
+    height: 38, borderRadius: 9, padding: "0 11px", fontSize: 13, color: "#fff",
+    background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`, outline: "none", boxSizing: "border-box",
+  };
+
+  return (
+    <div style={{ background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "18px 20px", marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+        <Zap size={15} style={{ color: ACCENT }} />
+        <span style={{ fontSize: 14, fontWeight: 700, color: TP }}>Выдать тариф вручную</span>
+      </div>
+      <div style={{ fontSize: 12, color: TS, marginBottom: 12 }}>
+        Клиент оплатил по платёжной ссылке OxaPay → введи его email и включи тариф.
+      </div>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email клиента" style={{ ...inp, flex: "1 1 220px" }} />
+        <select value={plan} onChange={e => setPlan(e.target.value)} style={{ ...inp, width: 120 }}>
+          <option value="starter">Starter $29</option>
+          <option value="pro">Pro $39</option>
+          <option value="max">Max $49</option>
+        </select>
+        <select value={months} onChange={e => setMonths(e.target.value)} style={{ ...inp, width: 92 }}>
+          {[1, 2, 3, 6, 12].map(m => <option key={m} value={m}>{m} мес</option>)}
+        </select>
+        <button onClick={grant} disabled={busy}
+          style={{ height: 38, padding: "0 18px", borderRadius: 9, border: "none", cursor: busy ? "default" : "pointer",
+            fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, opacity: busy ? 0.7 : 1 }}>
+          {busy ? "Включаю…" : "Включить"}
+        </button>
+      </div>
+      {result && (
+        <div style={{ marginTop: 10, fontSize: 12.5, color: result.ok ? "#34d399" : "#fca5a5" }}>{result.msg}</div>
+      )}
+    </div>
+  );
+}
+
 export default function AdminPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -259,6 +323,9 @@ export default function AdminPage() {
           <KpiCard label="Сессий сегодня"        value={stats.activity.sessions_today} sub={`Среднее: ${stats.activity.avg_session_min}мин`} icon={Clock} color={WARN}    trend={-4}  delay={0.14} sparkData={sessionNums} />
           <KpiCard label="AI-запросов сегодня"   value={stats.ai_usage.messages_today} sub={`${stats.ai_usage.messages_week} за неделю`} icon={MessageSquare} color="#a855f7" trend={31} delay={0.21} />
         </div>
+
+        {/* ── Выдать тариф (оплаты по платёжной ссылке) ── */}
+        <GrantPlanCard />
 
         {/* ── Charts row ── */}
         <div className="adm-grid2" style={{ marginBottom: 28 }}>

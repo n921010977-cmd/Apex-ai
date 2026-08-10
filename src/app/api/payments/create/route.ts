@@ -3,9 +3,14 @@ import { auth } from "@/auth";
 import { PLAN_BY_ID, type PlanId } from "@/lib/plans";
 import { createPayment, buildOrderId, oxapayConfigured } from "@/lib/payments/oxapay";
 
-// POST /api/payments/create — создаёт крипто-счёт (OxaPay) и возвращает ссылку
-// на оплату. Если OxaPay не настроен (нет ключа) — отвечаем configured:false, и
-// фронт откатывается на демо-активацию (без реальной оплаты).
+// POST /api/payments/create — открывает оплату тарифа. Два пути, по приоритету:
+//
+//  1. API-счёт OxaPay (merchant key) — автоматическая активация по webhook.
+//  2. Статичная платёжная ссылка OxaPay («Ссылка на оплату» из кабинета,
+//     NEXT_PUBLIC_PAYLINK_*) — работает сразу, без одобрения мерчанта;
+//     тариф в этом случае выдаёт админ через /api/admin/grant.
+//
+// Если не настроено ничего — configured:false, фронт включает демо-режим.
 
 function baseUrl(req: NextRequest): string {
   const env = process.env.NEXT_PUBLIC_APP_URL?.trim();
@@ -16,15 +21,21 @@ function baseUrl(req: NextRequest): string {
   return host ? `https://${host}` : "";
 }
 
+/** Статичная платёжная ссылка для тарифа (если задана в окружении). */
+function staticLinkFor(plan: PlanId): string | null {
+  const map: Record<PlanId, string | undefined> = {
+    starter: process.env.NEXT_PUBLIC_PAYLINK_STARTER,
+    pro:     process.env.NEXT_PUBLIC_PAYLINK_PRO,
+    max:     process.env.NEXT_PUBLIC_PAYLINK_MAX,
+  };
+  const v = map[plan]?.trim();
+  return v && /^https:\/\//i.test(v) ? v : null;
+}
+
 export async function POST(req: NextRequest) {
   const session = await auth();
   if (!session?.user?.id) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  }
-
-  if (!oxapayConfigured()) {
-    // Оплата не настроена — фронт включит демо-режим.
-    return NextResponse.json({ success: true, configured: false });
   }
 
   let body: { plan?: string };
@@ -34,20 +45,36 @@ export async function POST(req: NextRequest) {
   const planObj = plan && PLAN_BY_ID[plan];
   if (!planObj) return NextResponse.json({ success: false, error: "Invalid plan" }, { status: 422 });
 
-  const base = baseUrl(req);
-  try {
-    const payment = await createPayment({
-      amountUsd: planObj.priceMonthly,
-      orderId: buildOrderId(session.user.id, plan),
-      description: `Vertlix ${planObj.name} — подписка на месяц`,
-      callbackUrl: `${base}/api/payments/webhook`,
-      returnUrl: `${base}/dashboard/billing?paid=1`,
-    });
-    return NextResponse.json({ success: true, configured: true, invoiceUrl: payment.payLink });
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : "payment error";
-    // configured:true — оплата настроена, но шлюз отклонил счёт. Фронт покажет
-    // причину (чаще всего: мерчант не одобрен или ключ из «Сервиса выплат»).
-    return NextResponse.json({ success: false, configured: true, error: `OxaPay: ${msg}` }, { status: 502 });
+  const link = staticLinkFor(plan);
+
+  // Ничего не настроено → демо-режим на фронте.
+  if (!oxapayConfigured() && !link) {
+    return NextResponse.json({ success: true, configured: false });
   }
+
+  // Путь 1: API-счёт (автоактивация по webhook).
+  if (oxapayConfigured()) {
+    const base = baseUrl(req);
+    try {
+      const payment = await createPayment({
+        amountUsd: planObj.priceMonthly,
+        orderId: buildOrderId(session.user.id, plan),
+        description: `Vertlix ${planObj.name} — подписка на месяц`,
+        callbackUrl: `${base}/api/payments/webhook`,
+        returnUrl: `${base}/dashboard/billing?paid=1`,
+      });
+      return NextResponse.json({ success: true, configured: true, mode: "invoice", invoiceUrl: payment.payLink });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "payment error";
+      // API отклонил (мерчант не одобрен и т.п.) — если есть статичная ссылка,
+      // не роняем оплату, а уводим на неё.
+      if (link) {
+        return NextResponse.json({ success: true, configured: true, mode: "static", invoiceUrl: link });
+      }
+      return NextResponse.json({ success: false, configured: true, error: `OxaPay: ${msg}` }, { status: 502 });
+    }
+  }
+
+  // Путь 2: только статичная ссылка.
+  return NextResponse.json({ success: true, configured: true, mode: "static", invoiceUrl: link });
 }
