@@ -5,6 +5,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
 import { getServerPlan } from "@/lib/server/plan";
+import { logAiRequest } from "@/lib/analytics/server";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 
 export const maxDuration = 120;
@@ -355,6 +356,8 @@ Respond in JSON:
       completed_at: new Date().toISOString(),
     }).eq("id", id);
 
+    void logAiRequest({ userId: session.user.id, feature: "board_meeting", model: MODEL_HEAVY, status: "ok", tokensUsed: totalTokens });
+
     // Fetch full result
     const [{ data: finalSpeeches }, { data: finalVotes }, { data: finalDecisions }] = await Promise.all([
       db.from("board_speeches").select("*").eq("meeting_id", id).order("created_at"),
@@ -380,6 +383,7 @@ Respond in JSON:
   } catch (err) {
     await db.from("board_meetings").update({ status: "failed" }).eq("id", id);
     const msg = err instanceof Error ? err.message : "AI error";
+    void logAiRequest({ userId: session.user.id, feature: "board_meeting", model: MODEL_HEAVY, status: "error", tokensUsed: totalTokens, errorMessage: msg });
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 }

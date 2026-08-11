@@ -26,6 +26,7 @@ const EASE   = [0.22, 1, 0.36, 1] as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 interface Stats {
+  overview?: { revenue_total?: number; revenue_month?: number; paying_users?: number; ai_total?: number; plan_distribution?: Record<string, number> } | null;
   demo: boolean;
   users: { total: number; new_today: number; new_week: number; new_month: number };
   activity: { active_today: number; active_week: number; sessions_today: number; avg_session_min: number; page_views_today: number; bounce_rate: number };
@@ -301,6 +302,10 @@ export default function AdminPage() {
             </div>
           </div>
           <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={() => router.push("/admin/users")}
+              style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, background: "transparent", border: `1px solid ${BORD}`, color: "#a5b4fc", fontSize: 12, cursor: "pointer" }}>
+              <Users size={13} /> Пользователи
+            </button>
             <button onClick={() => router.push("/dashboard")}
               style={{ display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, background: "transparent", border: `1px solid ${BORD}`, color: TS, fontSize: 12, cursor: "pointer" }}>
               ← Дашборд
@@ -326,6 +331,28 @@ export default function AdminPage() {
 
         {/* ── Выдать тариф (оплаты по платёжной ссылке) ── */}
         <GrantPlanCard />
+
+        {/* ── Выручка и тарифы (реальные данные из RPC admin_overview) ── */}
+        {stats.overview && (
+          <div style={{ display: "flex", gap: 14, flexWrap: "wrap", marginBottom: 28 }}>
+            <div style={{ flex: "1 1 180px", background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "16px 18px" }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: "#34d399", fontVariantNumeric: "tabular-nums" }}>${Number(stats.overview.revenue_total ?? 0).toFixed(0)}</div>
+              <div style={{ fontSize: 11, color: TM, marginTop: 3 }}>Выручка всего · ${Number(stats.overview.revenue_month ?? 0).toFixed(0)} за месяц</div>
+            </div>
+            <div style={{ flex: "1 1 180px", background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "16px 18px" }}>
+              <div style={{ fontSize: 22, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums" }}>{stats.overview.paying_users ?? 0}</div>
+              <div style={{ fontSize: 11, color: TM, marginTop: 3 }}>Платящих пользователей</div>
+            </div>
+            <div style={{ flex: "2 1 320px", background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "16px 18px" }}>
+              <div style={{ fontSize: 11, color: TM, marginBottom: 8 }}>Распределение тарифов</div>
+              <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+                {Object.entries(stats.overview.plan_distribution ?? {}).map(([pl, n]) => (
+                  <div key={pl}><span style={{ fontSize: 16, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums" }}>{n}</span> <span style={{ fontSize: 11, color: TM }}>{pl}</span></div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── Charts row ── */}
         <div className="adm-grid2" style={{ marginBottom: 28 }}>

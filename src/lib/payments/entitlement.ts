@@ -36,6 +36,23 @@ async function upstash(commands: unknown[][]): Promise<Array<{ result: string | 
 /** Записать оплаченный тариф на N месяцев вперёд. */
 export async function setEntitlement(userId: string, plan: PlanId, months = 1): Promise<void> {
   const ttlMs = months * 31 * 24 * 60 * 60 * 1000;
+
+  // Зеркалим тариф в users (аналитика/админка): plan + даты начала и конца.
+  // Best-effort: без Supabase молча пропускаем.
+  void (async () => {
+    try {
+      const { createClient, isSupabaseConfigured } = await import("@/lib/supabase/server");
+      if (!isSupabaseConfigured()) return;
+      const supabase = await createClient();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from("users").update({
+        plan,
+        plan_started_at: new Date().toISOString(),
+        plan_expires_at: new Date(Date.now() + ttlMs).toISOString(),
+      }).eq("id", userId);
+    } catch { /* no-op */ }
+  })();
+
   if (upstashConfigured()) {
     try { await upstash([["SET", key(userId), plan, "PX", ttlMs]]); return; }
     catch { /* fallback */ }

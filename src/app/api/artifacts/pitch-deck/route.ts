@@ -4,6 +4,7 @@ import { directChat } from "@/lib/orchestrator";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
 import { getServerPlan } from "@/lib/server/plan";
+import { logAiRequest } from "@/lib/analytics/server";
 import { industryPromptBlock, matchIndustry } from "@/lib/industries";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { webResearch, webContextBlock, webResearchConfigured } from "@/lib/web-research";
@@ -113,12 +114,15 @@ export async function POST(req: NextRequest) {
   }
 
   let raw: string;
+  const t0 = Date.now();
   try {
     // Деку нужен весь JSON целиком — даём увеличенный потолок вывода.
     const result = await directChat({ message: buildPrompt(brief, language, style) + webBlock, persona, maxTokens: Math.max(MAX_TOKENS_HEAVY, 3000) });
     raw = result.content;
+    void logAiRequest({ userId: session.user.id, feature: "pitch_deck", model: MODEL_HEAVY, status: "ok", responseTimeMs: Date.now() - t0 });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "AI error";
+    void logAiRequest({ userId: session.user.id, feature: "pitch_deck", model: MODEL_HEAVY, status: "error", responseTimeMs: Date.now() - t0, errorMessage: msg });
     // Провайдеры не настроены / недоступны — понятная ошибка, не 500-заглушка.
     const status = /not configured|не настроен/i.test(msg) ? 503 : 500;
     return NextResponse.json({ success: false, error: msg }, { status });

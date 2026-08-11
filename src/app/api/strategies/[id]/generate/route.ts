@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
 import { getServerPlan } from "@/lib/server/plan";
+import { logAiRequest } from "@/lib/analytics/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { industryPromptBlock } from "@/lib/industries";
@@ -103,9 +104,11 @@ ${qFormatted}
       if (block.type === "text") rawJson += block.text;
     }
     tokensUsed = (response.usage.input_tokens ?? 0) + (response.usage.output_tokens ?? 0);
+    void logAiRequest({ userId: session.user.id, feature: "strategy", model: MODEL_HEAVY, status: "ok", tokensUsed });
   } catch (err) {
     await db.from("strategies").update({ status: "draft" }).eq("id", id).eq("user_id", session.user.id);
     const msg = err instanceof Error ? err.message : "AI error";
+    void logAiRequest({ userId: session.user.id, feature: "strategy", model: MODEL_HEAVY, status: "error", errorMessage: msg });
     return NextResponse.json({ success: false, error: msg }, { status: 500 });
   }
 

@@ -4,6 +4,7 @@ import { directChat } from "@/lib/orchestrator";
 import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
 import { getServerPlan } from "@/lib/server/plan";
+import { logAiRequest } from "@/lib/analytics/server";
 import { industryPromptBlock } from "@/lib/industries";
 
 export const maxDuration = 60;
@@ -75,14 +76,17 @@ export async function POST(req: NextRequest) {
   }
 
   try {
+    const t0 = Date.now();
     const { content } = await directChat({
       message: buildPrompt(goals, body.industry),
       persona: "Ты — операционный директор, который держит основателя в фокусе. Конкретика без воды.",
       maxTokens: 1200,
     });
+    void logAiRequest({ userId: session.user.id, feature: "weekly_focus", status: "ok", responseTimeMs: Date.now() - t0 });
     return NextResponse.json({ success: true, focus: content });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "AI error";
+    void logAiRequest({ userId: session.user.id, feature: "weekly_focus", status: "error", errorMessage: msg });
     const status = /not configured|не настроен/i.test(msg) ? 503 : 500;
     return NextResponse.json({ success: false, error: msg }, { status });
   }

@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/dashboard/Sidebar";
 import { TopNav } from "@/components/dashboard/TopNav";
 import { ToastProvider } from "@/components/ui/Toast";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
+import { AnalyticsPing } from "@/components/AnalyticsPing";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -41,6 +42,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
         {/* Global command palette ⌘K */}
         <CommandPalette />
+
+        {/* Пинг активности (сессии/просмотры) — невидимый */}
+        <AnalyticsPing />
       </div>
     </ToastProvider>
   );

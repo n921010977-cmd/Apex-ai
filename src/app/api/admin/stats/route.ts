@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { requireAdmin } from "@/lib/server/admin";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
-
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "n921010977@gmail.com";
 
 // ─── Demo data (no Supabase) ──────────────────────────────────────────────────
 function demoStats() {
@@ -58,11 +56,8 @@ function demoStats() {
 }
 
 export async function GET() {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const email = session.user.email ?? "";
-  if (email !== ADMIN_EMAIL) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  const admin = await requireAdmin();
+  if (!admin.ok) return NextResponse.json({ error: "Forbidden" }, { status: admin.status });
 
   if (!isSupabaseConfigured()) {
     return NextResponse.json({ success: true, data: demoStats() });
@@ -127,6 +122,26 @@ export async function GET() {
     return { date, users: cumulative, new: n };
   });
 
+  // Сводка из ai_requests / user_sessions / payments одним RPC (миграция 012).
+  // Если миграция ещё не применена — просто не будет overview-блока.
+  let overview: Record<string, unknown> | null = null;
+  try {
+    const { data } = await db.rpc("admin_overview");
+    if (data && typeof data === "object") overview = data as Record<string, unknown>;
+  } catch { /* RPC ещё не создан */ }
+
+  // Живые страницы из page_views (топ за 7 дней).
+  let top_pages_live: { page: string; views: number; avg_time_sec: number }[] | null = null;
+  try {
+    const { data: pv } = await db.from("page_views").select("path").gte("created_at", weekAgo).limit(5000);
+    if (Array.isArray(pv) && pv.length) {
+      const counts: Record<string, number> = {};
+      for (const r of pv as { path: string }[]) counts[r.path] = (counts[r.path] ?? 0) + 1;
+      top_pages_live = Object.entries(counts).sort((a, b) => b[1] - a[1]).slice(0, 6)
+        .map(([page, views]) => ({ page, views, avg_time_sec: 0 }));
+    }
+  } catch { /* нет таблицы — пропускаем */ }
+
   return NextResponse.json({
     success: true,
     data: {
@@ -146,19 +161,22 @@ export async function GET() {
         bounce_rate: 24,
       },
       ai_usage: {
-        messages_today: msgsToday,
-        messages_week:  totalMsgs,
+        messages_today: Number(overview?.ai_today ?? msgsToday),
+        messages_week:  Number(overview?.ai_week ?? totalMsgs),
         agent_runs_today: runsToday,
         top_agents: ["CEO", "CFO", "CMO", "CTO", "Growth"],
       },
       retention: { d1: 65, d7: 38, d30: 21 },
       growth_chart,
-      top_pages: [
+      top_pages: top_pages_live ?? [
         { page: "/dashboard", views: 0, avg_time_sec: 90 },
         { page: "/dashboard/executives", views: 0, avg_time_sec: 180 },
         { page: "/dashboard/new", views: 0, avg_time_sec: 300 },
       ],
       recent_users: [],
+      // Реальная сводка (RPC admin_overview из миграции 012): выручка, тарифы,
+      // AI по дням и т.д. Страница показывает этот блок, когда он есть.
+      overview,
     },
   });
 }

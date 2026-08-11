@@ -5,6 +5,7 @@ import { validateBody, SendMessageSchema } from "@/lib/validators";
 import { chatLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
 import { getServerPlan } from "@/lib/server/plan";
+import { logAiRequest } from "@/lib/analytics/server";
 import { geminiConfigured } from "@/lib/ai/gemini";
 import { grokConfigured } from "@/lib/ai/grok";
 
@@ -47,6 +48,8 @@ export async function POST(req: NextRequest) {
   const { message, agentId, persona, history, image } = data;
 
   const encoder = new TextEncoder();
+  const userId = session.user.id;
+  const t0 = Date.now();
   const stream = new ReadableStream({
     async start(controller) {
       const send = (event: object) =>
@@ -62,9 +65,11 @@ export async function POST(req: NextRequest) {
           onToken: (token) => send({ type: "token", token }),
         });
         send({ type: "done" });
+        void logAiRequest({ userId, feature: "chat", status: "ok", responseTimeMs: Date.now() - t0 });
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         send({ type: "error", message: msg });
+        void logAiRequest({ userId, feature: "chat", status: "error", responseTimeMs: Date.now() - t0, errorMessage: msg });
       } finally {
         controller.close();
       }

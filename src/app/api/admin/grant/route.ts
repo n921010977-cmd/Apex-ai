@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { requireAdmin } from "@/lib/server/admin";
 import { setEntitlement } from "@/lib/payments/entitlement";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { PlanId } from "@/lib/plans";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "n921010977@gmail.com";
 const VALID_PLANS = new Set(["starter", "pro", "max"]);
 
 // POST /api/admin/grant — админ выдаёт тариф пользователю вручную.
@@ -13,11 +12,8 @@ const VALID_PLANS = new Set(["starter", "pro", "max"]);
 // { email?: string, userId?: string, plan: "starter"|"pro"|"max", months?: number }
 
 export async function POST(req: NextRequest) {
-  const session = await auth();
-  if (!session?.user) return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
-  if (session.user.email !== ADMIN_EMAIL) {
-    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
-  }
+  const admin = await requireAdmin();
+  if (!admin.ok) return NextResponse.json({ success: false, error: "Forbidden" }, { status: admin.status });
 
   let body: { email?: string; userId?: string; plan?: string; months?: number };
   try { body = await req.json(); } catch { return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 }); }
