@@ -14,6 +14,8 @@ import { checkSupabaseConnection } from "@/lib/supabase/server";
  * browser: approved merchant → ok:true; rejected key/merchant → the exact
  * OxaPay message.
  */
+export const dynamic = "force-dynamic"; // health всегда живой, никогда не пререндеренный
+
 export async function GET(req: Request) {
   const has = (v?: string) => Boolean(v && v.trim().length > 0);
 
