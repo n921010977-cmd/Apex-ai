@@ -100,3 +100,47 @@ export async function createServiceClient() {
     }
   );
 }
+
+// ─── Живая проверка соединения (для /api/health) ──────────────────────────────
+// Не «env задан → true», а реальный запрос к PostgREST: HEAD-count по users.
+// Секреты не логируются и наружу не отдаются — только безопасная причина.
+
+export type SupabaseHealth =
+  | { configured: false; connected: false; reason: "no_env" }
+  | { configured: true; connected: true; latencyMs: number }
+  | { configured: true; connected: false; reason: "no_tables" | "auth_failed" | "unreachable" | "error" };
+
+export async function checkSupabaseConnection(): Promise<SupabaseHealth> {
+  if (!isSupabaseConfigured()) return { configured: false, connected: false, reason: "no_env" };
+
+  const t0 = Date.now();
+  try {
+    const supabase = await createClient();
+    // GET (не HEAD): у ошибочного HEAD-ответа нет тела, и SDK не может отдать
+    // причину — а нам нужна честная диагностика (no_tables / auth_failed / ...).
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const query = (supabase as any).from("users").select("id").limit(1);
+    const timeout = new Promise<{ error: { message: string; code?: string } }>(resolve =>
+      setTimeout(() => resolve({ error: { message: "timeout after 4000ms" } }), 4000),
+    );
+    const { error } = await Promise.race([query, timeout]);
+
+    if (!error) return { configured: true, connected: true, latencyMs: Date.now() - t0 };
+
+    const msg = `${error.code ?? ""} ${error.message ?? ""}`.trim();
+    console.error("[health] Supabase query failed:", msg); // причина — в серверные логи, без ключей
+    if (/42P01|does not exist|could not find the table|schema cache/i.test(msg)) {
+      return { configured: true, connected: false, reason: "no_tables" };
+    }
+    if (/invalid api key|jwt|401|permission denied|42501/i.test(msg)) {
+      return { configured: true, connected: false, reason: "auth_failed" };
+    }
+    if (/timeout|fetch failed|enotfound|econn|network/i.test(msg)) {
+      return { configured: true, connected: false, reason: "unreachable" };
+    }
+    return { configured: true, connected: false, reason: "error" };
+  } catch (e) {
+    console.error("[health] Supabase connection error:", e instanceof Error ? e.message : String(e));
+    return { configured: true, connected: false, reason: "unreachable" };
+  }
+}

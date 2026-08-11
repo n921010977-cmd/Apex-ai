@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createPayment, oxapayConfigured } from "@/lib/payments/oxapay";
+import { checkSupabaseConnection } from "@/lib/supabase/server";
 
 /**
  * GET /api/health
@@ -16,10 +17,13 @@ import { createPayment, oxapayConfigured } from "@/lib/payments/oxapay";
 export async function GET(req: Request) {
   const has = (v?: string) => Boolean(v && v.trim().length > 0);
 
+  // Supabase: не «env задан», а реальный запрос к базе (см. checkSupabaseConnection).
+  const supa = await checkSupabaseConnection();
+
   const integrations = {
     anthropic:  has(process.env.ANTHROPIC_API_KEY),
     gemini:     has(process.env.GEMINI_API_KEY),
-    supabase:   has(process.env.NEXT_PUBLIC_SUPABASE_URL) && has(process.env.SUPABASE_SERVICE_ROLE_KEY),
+    supabase:   supa.connected,
     nextauth:   has(process.env.NEXTAUTH_SECRET),
     oxapay:     has(process.env.OXAPAY_MERCHANT_KEY),
     appUrl:     has(process.env.NEXT_PUBLIC_APP_URL),
@@ -67,6 +71,10 @@ export async function GET(req: Request) {
     mode: integrations.supabase ? "production" : "demo",
     coreReady,
     integrations,
+    // Детали по Supabase (без секретов): configured=env заданы, connected=живой
+    // запрос прошёл; reason подсказывает, что чинить (no_env / no_tables /
+    // auth_failed / unreachable).
+    supabaseDetail: supa,
     // Какой код реально задеплоен (Vercel проставляет эти переменные сам)
     deploy: {
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,

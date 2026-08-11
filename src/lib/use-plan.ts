@@ -39,6 +39,23 @@ export function setActivePlan(plan: ActivePlan) {
 export function usePlan() {
   const plan = useSyncExternalStore(subscribe, read, () => "none" as ActivePlan);
 
+  // Правда о тарифе живёт на сервере (оплаченный entitlement). Локальное
+  // значение — только кэш для мгновенного UI: при монтировании сверяемся с
+  // /api/usage, чтобы вкладки отражали реальный оплаченный тариф, а ручная
+  // правка localStorage ничего не давала (API и так проверяют сервер).
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/usage", { cache: "no-store" })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => {
+        if (!alive || !d?.success) return;
+        const p = d.plan === "starter" || d.plan === "pro" || d.plan === "max" ? d.plan : "none";
+        if (p !== read()) setActivePlan(p);
+      })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
+
   const allows = useCallback(
     (feature: keyof PlanFeatures) => (plan === "none" ? false : planAllows(plan, feature)),
     [plan],

@@ -122,6 +122,9 @@ export default function BillingPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Клик по тарифу НИКОГДА не активирует его. Единственный сценарий:
+  // создать платёж на сервере → уйти на страницу оплаты OxaPay. Тариф включит
+  // только webhook подтверждённой оплаты (или админ вручную).
   const choose = async (p: Plan) => {
     setBusy(p.id);
     try {
@@ -130,8 +133,7 @@ export default function BillingPage() {
         body: JSON.stringify({ plan: p.id }),
       });
 
-      // Сессия устарела (например, после обновления сайта) — раньше этот случай
-      // молча уходил в демо. Теперь честно просим войти заново.
+      // Сессия устарела — просим войти заново (без каких-либо активаций).
       if (res.status === 401) {
         setBusy(null);
         toast("Сессия устарела — войди в аккаунт заново", "error");
@@ -141,33 +143,22 @@ export default function BillingPage() {
 
       const data = await res.json().catch(() => ({}));
 
-      // Оплата настроена и счёт создан → уводим на страницу оплаты OxaPay.
-      if (data?.configured && data?.invoiceUrl) { window.location.href = data.invoiceUrl; return; }
+      // Счёт создан → на страницу оплаты OxaPay.
+      if (data?.invoiceUrl) { window.location.href = data.invoiceUrl; return; }
 
-      // Демо-разблокировка ниже — ТОЛЬКО когда сервер явно сказал, что OxaPay
-      // не настроен. Любой другой ответ — это ошибка, показываем причину.
-      if (data?.configured !== false) {
-        setBusy(null);
-        toast(data?.error || "Не удалось открыть оплату. Проверь ключ OxaPay и одобрение мерчанта.", "error");
-        return;
-      }
+      // Счёт не создался (оплата не настроена / шлюз отклонил) — показываем
+      // причину. Тариф НЕ активируем ни при каком ответе.
+      setBusy(null);
+      toast(
+        data?.configured === false
+          ? "Оплата временно недоступна — платёжный шлюз не подключён. Напиши в поддержку."
+          : data?.error || "Не удалось открыть оплату — попробуй ещё раз или напиши в поддержку.",
+        "error",
+      );
     } catch {
       setBusy(null);
       toast("Сеть недоступна — попробуйте ещё раз", "error");
-      return;
     }
-
-    // Демо-путь: OxaPay не подключён (ключа нет). Открываем тариф локально.
-    try {
-      await fetch("/api/billing/select", {
-        method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: p.id }),
-      });
-    } catch { /* cookie не критична */ }
-    setPlan(p.id);
-    await loadUsage();
-    setBusy(null);
-    toast(`Демо-режим: тариф ${p.name} открыт (оплата OxaPay не подключена)`, "success");
   };
 
   // Умная подсказка апгрейда: на тарифе (не Max) и какая-то квота ≥ 80%.
