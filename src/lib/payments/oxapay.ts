@@ -1,11 +1,16 @@
-// ─── OxaPay — крипто-приём оплаты (USDT и др.), без KYC ───────────────────────
-// Некастодиальный шлюз: клиент платит на странице OxaPay, деньги идут на твой
-// кошелёк (адрес вывода — Trust Wallet — настраивается в кабинете OxaPay, в коде
-// его нет). Мы создаём счёт и проверяем webhook по подписи HMAC.
+// ─── OxaPay — крипто-приём оплаты (USDT и др.) ────────────────────────────────
+// Актуальный Payment API v1 (docs.oxapay.com/api-reference/payment/generate-invoice):
+//   POST https://api.oxapay.com/v1/payment/invoice
+//   auth: заголовок `merchant_api_key`
+//   body: amount, currency, lifetime, callback_url, return_url, order_id, ...
+//   resp: data.track_id, data.payment_url
 //
-// Ключ задаётся в окружении (НЕ в коде):
-//   OXAPAY_MERCHANT_KEY — merchant API key (им же OxaPay подписывает webhook)
-//   NEXT_PUBLIC_APP_URL — базовый URL сайта (для callback/return)
+// Webhook (docs.oxapay.com/webhook): OxaPay шлёт POST на callback_url и кладёт в
+// заголовок `HMAC` подпись sha512 от СЫРОГО тела, посчитанную на MERCHANT API
+// KEY (отдельного webhook-секрета у OxaPay нет).
+//
+// Ключ задаётся только в окружении сервера (НЕ во frontend):
+//   OXAPAY_MERCHANT_KEY — merchant API key (им же проверяется подпись webhook)
 
 import crypto from "crypto";
 
@@ -20,7 +25,7 @@ export interface CreatedPayment {
   payLink: string;
 }
 
-/** Создаёт счёт и возвращает ссылку на оплату (payLink). */
+/** Создаёт счёт (invoice) и возвращает ссылку на оплату + track_id. */
 export async function createPayment(params: {
   amountUsd: number;
   orderId: string;
@@ -31,38 +36,42 @@ export async function createPayment(params: {
   const key = process.env.OXAPAY_MERCHANT_KEY?.trim();
   if (!key) throw new Error("OXAPAY_MERCHANT_KEY не задан");
 
-  const res = await fetch(`${API_BASE}/merchants/request`, {
+  const res = await fetch(`${API_BASE}/v1/payment/invoice`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { merchant_api_key: key, "Content-Type": "application/json" },
     body: JSON.stringify({
-      merchant: key,
       amount: params.amountUsd,
       currency: "USD",
-      lifeTime: 60,          // минут на оплату
-      feePaidByPayer: 1,     // комиссию сети платит покупатель
-      callbackUrl: params.callbackUrl,
-      returnUrl: params.returnUrl,
+      lifetime: 60,            // минут на оплату (docs: 15–2880)
+      fee_paid_by_payer: 1,    // комиссию сети платит покупатель
+      callback_url: params.callbackUrl,
+      return_url: params.returnUrl,
       description: params.description,
-      orderId: params.orderId,
+      order_id: params.orderId,
     }),
     cache: "no-store",
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`OxaPay ${res.status}: ${text.slice(0, 200)}`);
+  const text = await res.text().catch(() => "");
+  let json: { data?: Record<string, unknown>; message?: string } & Record<string, unknown> = {};
+  try { json = JSON.parse(text); } catch { /* ниже отдадим текст ошибки */ }
+
+  // Ответ v1 приходит в конверте { data: {...}, message, status }; на всякий
+  // случай поддерживаем и плоскую форму (легаси-совместимость).
+  const data = (json.data ?? json) as Record<string, unknown>;
+  const payLink = (data.payment_url ?? data.payLink) as string | undefined;
+  const trackId = (data.track_id ?? data.trackId) as string | number | undefined;
+
+  if (!res.ok || !payLink) {
+    const reason = (json.message as string) || text.slice(0, 200) || `HTTP ${res.status}`;
+    throw new Error(`OxaPay ${res.status}: ${reason}`);
   }
-  const data = (await res.json()) as { result: number; message?: string; trackId?: number | string; payLink?: string };
-  if (data.result !== 100 || !data.payLink) {
-    throw new Error(`OxaPay отклонил счёт: ${data.message ?? "unknown"}`);
-  }
-  return { trackId: String(data.trackId ?? ""), payLink: data.payLink };
+  return { trackId: String(trackId ?? ""), payLink };
 }
 
 /**
- * Проверяет подпись webhook OxaPay.
- * OxaPay считает HMAC-SHA512 от СЫРОГО тела запроса на merchant-ключе и кладёт
- * результат (hex) в заголовок `HMAC`. Сравнение — constant-time.
+ * Проверяет подпись webhook OxaPay: HMAC-SHA512 от сырого тела на merchant-ключе,
+ * значение приходит в заголовке `HMAC`. Сравнение — constant-time.
  */
 export function verifyCallbackSignature(rawBody: string, hmacHeader: string | null): boolean {
   const key = process.env.OXAPAY_MERCHANT_KEY?.trim();

@@ -1,0 +1,105 @@
+"use client";
+
+import { useState, useEffect, useRef } from "react";
+import Link from "next/link";
+import { CheckCircle2, Loader2, Clock, ArrowRight } from "lucide-react";
+import { PLAN_BY_ID, type PlanId } from "@/lib/plans";
+
+// ─── /payment/success — возврат с OxaPay после оплаты ─────────────────────────
+// ВАЖНО: сам факт возврата сюда успехом НЕ считается. Страница опрашивает
+// сервер (/api/usage) и объявляет успех только когда webhook реально включил
+// тариф. До этого показывает «подтверждаем в сети».
+
+const ACCENT = "#6366f1";
+const RGB = "99,102,241";
+
+type State = "checking" | "active" | "slow" | "unauthed";
+
+export default function PaymentSuccessPage() {
+  const [state, setState] = useState<State>("checking");
+  const [plan, setPlan] = useState<PlanId | null>(null);
+  const tries = useRef(0);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null;
+    const poll = async () => {
+      tries.current++;
+      try {
+        const r = await fetch("/api/usage", { cache: "no-store" });
+        if (r.status === 401) { setState("unauthed"); if (timer) clearInterval(timer); return; }
+        const d = await r.json();
+        if (d?.success && d.plan && d.plan !== "none") {
+          setPlan(d.plan); setState("active");
+          if (timer) clearInterval(timer);
+          return;
+        }
+      } catch { /* сеть мигнула — продолжаем опрашивать */ }
+      if (tries.current >= 40) { setState("slow"); if (timer) clearInterval(timer); } // ~2 минуты
+    };
+    poll();
+    timer = setInterval(poll, 3000);
+    return () => { if (timer) clearInterval(timer); };
+  }, []);
+
+  return (
+    <main style={{ minHeight: "100dvh", background: "#05060A", color: "#E5E7EB", display: "flex", alignItems: "center", justifyContent: "center", padding: 24, fontFamily: "inherit" }}>
+      <div style={{ maxWidth: 460, width: "100%", borderRadius: 22, padding: "40px 32px", textAlign: "center", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}>
+
+        {state === "checking" && (
+          <>
+            <div style={{ width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", background: `rgba(${RGB},0.12)`, border: `1px solid rgba(${RGB},0.3)` }}>
+              <Loader2 size={28} style={{ color: "#a5b4fc", animation: "spin 1s linear infinite" }} />
+            </div>
+            <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Подтверждаем оплату…</h1>
+            <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: 0 }}>
+              Крипто-платёж подтверждается сетью 1–3 минуты. Тариф включится автоматически — страницу можно не обновлять.
+            </p>
+          </>
+        )}
+
+        {state === "active" && (
+          <>
+            <div style={{ width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.35)" }}>
+              <CheckCircle2 size={30} style={{ color: "#34d399" }} />
+            </div>
+            <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>
+              Оплата прошла — тариф {plan ? PLAN_BY_ID[plan].name : ""} активен 🎉
+            </h1>
+            <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 24px" }}>
+              Все возможности тарифа уже открыты. Спасибо, что с нами!
+            </p>
+            <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 48, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 8px 24px rgba(${RGB},0.4)` }}>
+              В дашборд <ArrowRight size={16} />
+            </Link>
+          </>
+        )}
+
+        {state === "slow" && (
+          <>
+            <div style={{ width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)" }}>
+              <Clock size={28} style={{ color: "#fbbf24" }} />
+            </div>
+            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Платёж ещё подтверждается</h1>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 20px" }}>
+              Сеть бывает медленной — иногда подтверждение занимает до 30 минут. Тариф включится сам, как только платёж будет подтверждён. Загляни в тарифы чуть позже.
+            </p>
+            <Link href="/payment/pending" style={{ fontSize: 13.5, fontWeight: 600, color: "#a5b4fc" }}>Что происходит с платежом →</Link>
+          </>
+        )}
+
+        {state === "unauthed" && (
+          <>
+            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Войди, чтобы увидеть статус</h1>
+            <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 20px" }}>
+              Оплата обрабатывается на сервере независимо от входа. Войди в аккаунт, с которого оформлял тариф, — и увидишь его активным.
+            </p>
+            <Link href="/login?callbackUrl=/payment/success" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 24px", borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)` }}>
+              Войти
+            </Link>
+          </>
+        )}
+      </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+    </main>
+  );
+}

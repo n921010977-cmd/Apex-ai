@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { PLAN_BY_ID, type PlanId } from "@/lib/plans";
 import { createPayment, buildOrderId, oxapayConfigured } from "@/lib/payments/oxapay";
+import { recordPaymentCreated } from "@/lib/payments/records";
 
 // POST /api/payments/create — открывает оплату тарифа. Два пути, по приоритету:
 //
@@ -55,13 +56,26 @@ export async function POST(req: NextRequest) {
   // Путь 1: API-счёт (автоактивация по webhook).
   if (oxapayConfigured()) {
     const base = baseUrl(req);
+    // Цена берётся ТОЛЬКО из серверного справочника тарифов (PLAN_BY_ID) —
+    // что бы клиент ни прислал в теле запроса, на сумму это не влияет.
+    const orderId = buildOrderId(session.user.id, plan);
     try {
       const payment = await createPayment({
         amountUsd: planObj.priceMonthly,
-        orderId: buildOrderId(session.user.id, plan),
+        orderId,
         description: `Vertlix ${planObj.name} — подписка на месяц`,
-        callbackUrl: `${base}/api/payments/webhook`,
-        returnUrl: `${base}/dashboard/billing?paid=1`,
+        callbackUrl: `${base}/api/payments/oxapay/webhook`,
+        returnUrl: `${base}/payment/success`,
+      });
+      // Журнал платежа (PENDING) — по нему webhook сверит сумму и не даст
+      // зачислить один платёж дважды. Best-effort: без БД не блокирует оплату.
+      await recordPaymentCreated({
+        user_id: session.user.id,
+        track_id: payment.trackId,
+        order_id: orderId,
+        plan,
+        amount: planObj.priceMonthly,
+        currency: "USD",
       });
       return NextResponse.json({ success: true, configured: true, mode: "invoice", invoiceUrl: payment.payLink });
     } catch (err) {
