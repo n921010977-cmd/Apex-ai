@@ -12,6 +12,7 @@ import { verifyCallbackSignature, parseOrderId } from "@/lib/payments/oxapay";
 import { setEntitlement } from "@/lib/payments/entitlement";
 import { getPaymentByTrackId, markPaymentStatus, type PaymentStatus } from "@/lib/payments/records";
 import { matchIntent, consumeIntent } from "@/lib/payments/intents";
+import { logEvent } from "@/lib/analytics/server";
 import type { PlanId } from "@/lib/plans";
 
 const VALID_PLANS = new Set(["starter", "pro", "max"]);
@@ -62,6 +63,7 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
   // 3. Терминальные неуспехи — фиксируем в журнале, тариф не трогаем.
   if (status !== "PAID") {
     if (trackId) await markPaymentStatus(trackId, status);
+    void logEvent("payment_failed", null, { track_id: trackId, status });
     return NextResponse.json({ success: true, ack: status.toLowerCase() });
   }
 
@@ -89,6 +91,8 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
       await setEntitlement(record.user_id, record.plan as PlanId, 1,
         { paymentId: trackId, amount: record.amount, currency: record.currency });
       await consumeIntent(record.user_id);
+      void logEvent("payment_success", record.user_id, { plan: record.plan, amount: record.amount, track_id: trackId });
+      void logEvent("subscription_started", record.user_id, { plan: record.plan });
     }
     return NextResponse.json({ success: true, ack: "activated" });
   }
@@ -100,6 +104,8 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
     await setEntitlement(parsed.userId, parsed.plan as PlanId, 1,
       { paymentId: trackId, amount: Number(p.amount) || undefined, currency: p.currency });
     await consumeIntent(parsed.userId);
+    void logEvent("payment_success", parsed.userId, { plan: parsed.plan, amount: Number(p.amount) || null, track_id: trackId });
+    void logEvent("subscription_started", parsed.userId, { plan: parsed.plan });
     return NextResponse.json({ success: true, ack: "activated" });
   }
 
@@ -112,6 +118,8 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
     await setEntitlement(intent.userId, intent.plan, 1,
       { paymentId: trackId, amount: intent.amount, currency: "USD" });
     await consumeIntent(intent.userId);
+    void logEvent("payment_success", intent.userId, { plan: intent.plan, amount: intent.amount, track_id: trackId, matched: reason });
+    void logEvent("subscription_started", intent.userId, { plan: intent.plan });
     console.log(`[payments] paid track=${trackId} user=${intent.userId} plan=${intent.plan} matched=${reason} at=${new Date().toISOString()}`);
     return NextResponse.json({ success: true, ack: "activated", matchedBy: reason });
   }

@@ -5,6 +5,7 @@ import { createPayment, buildOrderId, oxapayConfigured } from "@/lib/payments/ox
 import { recordPaymentCreated } from "@/lib/payments/records";
 import { PAYLINKS } from "@/lib/payments/paylinks";
 import { rememberIntent } from "@/lib/payments/intents";
+import { logEvent } from "@/lib/analytics/server";
 
 // POST /api/payments/create — открывает оплату тарифа. Два пути, по приоритету:
 //
@@ -47,6 +48,8 @@ export async function POST(req: NextRequest) {
   const plan = body.plan as PlanId;
   const planObj = plan && PLAN_BY_ID[plan];
   if (!planObj) return NextResponse.json({ success: false, error: "Invalid plan" }, { status: 422 });
+
+  void logEvent("checkout_started", session.user.id, { plan, amount: planObj.priceMonthly });
 
   const link = staticLinkFor(plan);
 

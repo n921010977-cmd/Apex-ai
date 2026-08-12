@@ -2,56 +2,28 @@ import { NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/server/admin";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 
-// ─── Demo data (no Supabase) ──────────────────────────────────────────────────
-function demoStats() {
+// ─── Нет Supabase → честные нули ──────────────────────────────────────────────
+// Никаких выдуманных цифр: если хранилище не подключено, админка показывает
+// пустую статистику и предупреждение, а не правдоподобный вымысел.
+function emptyStats() {
   const now = Date.now();
   const dayMs = 86400000;
   return {
     demo: true,
-    users: {
-      total: 47,
-      new_today: 3,
-      new_week: 14,
-      new_month: 38,
-    },
+    users: { total: 0, new_today: 0, new_week: 0, new_month: 0 },
     activity: {
-      active_today: 12,
-      active_week: 29,
-      sessions_today: 34,
-      avg_session_min: 8.4,
-      page_views_today: 183,
-      bounce_rate: 22,
+      active_today: 0, active_week: 0, sessions_today: 0,
+      avg_session_min: 0, page_views_today: 0, bounce_rate: 0,
     },
-    top_pages: [
-      { page: "/dashboard", views: 58, avg_time_sec: 94 },
-      { page: "/dashboard/executives", views: 41, avg_time_sec: 187 },
-      { page: "/dashboard/new", views: 37, avg_time_sec: 312 },
-      { page: "/dashboard/reports", views: 29, avg_time_sec: 145 },
-      { page: "/dashboard/vault", views: 18, avg_time_sec: 203 },
-    ],
-    ai_usage: {
-      messages_today: 89,
-      messages_week: 421,
-      agent_runs_today: 23,
-      top_agents: ["CEO", "CFO", "CMO", "CTO", "Growth"],
-    },
-    retention: {
-      d1: 68,
-      d7: 41,
-      d30: 24,
-    },
+    top_pages: [] as { page: string; views: number; avg_time_sec: number }[],
+    ai_usage: { messages_today: 0, messages_week: 0, agent_runs_today: 0, top_agents: [] as string[] },
+    retention: { d1: 0, d7: 0, d30: 0 },
     growth_chart: Array.from({ length: 30 }, (_, i) => ({
       date: new Date(now - (29 - i) * dayMs).toISOString().slice(0, 10),
-      users: Math.round(20 + i * 0.9 + Math.sin(i * 0.7) * 4),
-      sessions: Math.round(30 + i * 1.4 + Math.cos(i * 0.5) * 6),
+      users: 0,
+      sessions: 0,
     })),
-    recent_users: [
-      { name: "Алексей М.",    email: "al***@gmail.com", plan: "Starter", joined: new Date(now - 1.2 * 3600000).toISOString(), activity: "Создал проект" },
-      { name: "Marina K.",     email: "ma***@yandex.ru", plan: "Pro",     joined: new Date(now - 3.5 * 3600000).toISOString(), activity: "Запросил отчёт" },
-      { name: "Ivan S.",       email: "iv***@mail.ru",   plan: "Starter", joined: new Date(now - 8 * 3600000).toISOString(),   activity: "Спросил CEO" },
-      { name: "Olga P.",       email: "ol***@gmail.com", plan: "Starter", joined: new Date(now - 18 * 3600000).toISOString(),  activity: "Просмотр дашборда" },
-      { name: "Dmitriy V.",    email: "dm***@inbox.ru",  plan: "Starter", joined: new Date(now - 26 * 3600000).toISOString(),  activity: "Новый анализ" },
-    ],
+    recent_users: [] as { name: string; email: string; plan: string; joined: string; activity: string }[],
   };
 }
 
@@ -60,7 +32,7 @@ export async function GET() {
   if (!admin.ok) return NextResponse.json({ error: "Forbidden" }, { status: admin.status });
 
   if (!isSupabaseConfigured()) {
-    return NextResponse.json({ success: true, data: demoStats() });
+    return NextResponse.json({ success: true, data: emptyStats() });
   }
 
   const supabase = await createClient();
@@ -142,6 +114,49 @@ export async function GET() {
     }
   } catch { /* нет таблицы — пропускаем */ }
 
+  // Реальное удержание и вовлечённость (RPC из миграции 014). Пока миграция не
+  // применена — оставляем нули, но НИКОГДА не подставляем правдоподобные цифры.
+  let retention: { d1: number | null; d7: number | null; d30: number | null } = { d1: null, d7: null, d30: null };
+  try {
+    const { data } = await db.rpc("retention_rates");
+    if (data && typeof data === "object") retention = { d1: data.d1 ?? null, d7: data.d7 ?? null, d30: data.d30 ?? null };
+  } catch { /* нет RPC — покажем «—» */ }
+
+  let engagement: Record<string, number> = {};
+  try {
+    const { data } = await db.rpc("engagement_stats");
+    if (data && typeof data === "object") engagement = data as Record<string, number>;
+  } catch { /* нет RPC */ }
+
+  // Топ функций AI — из реальных запросов, а не фиксированный список агентов.
+  let top_agents: string[] = [];
+  try {
+    const { data: ai } = await db.from("ai_requests").select("feature").gte("created_at", weekAgo).limit(5000);
+    if (Array.isArray(ai) && ai.length) {
+      const c: Record<string, number> = {};
+      for (const r of ai as { feature: string }[]) c[r.feature] = (c[r.feature] ?? 0) + 1;
+      top_agents = Object.entries(c).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([f]) => f);
+    }
+  } catch { /* нет таблицы */ }
+
+  // Последние регистрации — реальные пользователи, email маскируем.
+  let recent_users: { name: string; email: string; plan: string; joined: string; activity: string }[] = [];
+  try {
+    const { data: ru } = await db.from("users")
+      .select("name, email, plan, created_at, last_login_at")
+      .order("created_at", { ascending: false }).limit(8);
+    if (Array.isArray(ru)) {
+      recent_users = (ru as { name?: string; email?: string; plan?: string; created_at: string; last_login_at?: string }[])
+        .map(u => ({
+          name: u.name || "—",
+          email: (u.email ?? "").replace(/^(.{2}).*(@.*)$/, "$1***$2"),
+          plan: u.plan && u.plan !== "none" ? u.plan : "free",
+          joined: u.created_at,
+          activity: u.last_login_at ? `Вход ${new Date(u.last_login_at).toLocaleDateString("ru")}` : "—",
+        }));
+    }
+  } catch { /* нет таблицы */ }
+
   return NextResponse.json({
     success: true,
     data: {
@@ -155,25 +170,21 @@ export async function GET() {
       activity: {
         active_today: safe(actToday).count ?? 0,
         active_week:  safe(actWeek).count ?? 0,
-        sessions_today: safe(actToday).count ?? 0,
-        avg_session_min: 7.2,
-        page_views_today: (safe(actToday).count ?? 0) * 5,
-        bounce_rate: 24,
+        sessions_today: Number(engagement.sessions_today ?? 0),
+        avg_session_min: Number(engagement.avg_session_min ?? 0),
+        page_views_today: Number(engagement.page_views_today ?? 0),
+        bounce_rate: Number(engagement.bounce_rate ?? 0),
       },
       ai_usage: {
         messages_today: Number(overview?.ai_today ?? msgsToday),
         messages_week:  Number(overview?.ai_week ?? totalMsgs),
         agent_runs_today: runsToday,
-        top_agents: ["CEO", "CFO", "CMO", "CTO", "Growth"],
+        top_agents,
       },
-      retention: { d1: 65, d7: 38, d30: 21 },
+      retention,
       growth_chart,
-      top_pages: top_pages_live ?? [
-        { page: "/dashboard", views: 0, avg_time_sec: 90 },
-        { page: "/dashboard/executives", views: 0, avg_time_sec: 180 },
-        { page: "/dashboard/new", views: 0, avg_time_sec: 300 },
-      ],
-      recent_users: [],
+      top_pages: top_pages_live ?? [],
+      recent_users,
       // Реальная сводка (RPC admin_overview из миграции 012): выручка, тарифы,
       // AI по дням и т.д. Страница показывает этот блок, когда он есть.
       overview,

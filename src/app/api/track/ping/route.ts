@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
-import { trackPing } from "@/lib/analytics/server";
+import { trackPing, saveAcquisition, logEvent } from "@/lib/analytics/server";
+import { cookies } from "next/headers";
 import { apiLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
 // POST /api/track/ping { path } — пинг активности из клиента.
@@ -19,5 +20,18 @@ export async function POST(req: NextRequest) {
   if (!path.startsWith("/")) path = "";
 
   await trackPing(session.user.id, path, req.headers.get("user-agent") ?? "");
+
+  // Переносим источник первого касания из cookie в профиль (однократно —
+  // saveAcquisition не перезаписывает уже сохранённый источник).
+  const acqRaw = (await cookies()).get("vertlix_acq")?.value;
+  if (acqRaw) {
+    try { void saveAcquisition(session.user.id, JSON.parse(decodeURIComponent(acqRaw))); } catch { /* игнор */ }
+  }
+
+  // Просмотр страницы тарифов — шаг воронки перед оплатой.
+  if (path.includes("/billing") || path === "/pricing") {
+    void logEvent("pricing_view", session.user.id, { path });
+  }
+
   return NextResponse.json({ success: true });
 }

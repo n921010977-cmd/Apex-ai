@@ -32,7 +32,7 @@ interface Stats {
   activity: { active_today: number; active_week: number; sessions_today: number; avg_session_min: number; page_views_today: number; bounce_rate: number };
   top_pages: { page: string; views: number; avg_time_sec: number }[];
   ai_usage: { messages_today: number; messages_week: number; agent_runs_today: number; top_agents: string[] };
-  retention: { d1: number; d7: number; d30: number };
+  retention: { d1: number | null; d7: number | null; d30: number | null };
   growth_chart: { date: string; users: number; new?: number; sessions?: number }[];
   recent_users: { name: string; email: string; plan: string; joined: string; activity: string }[];
 }
@@ -89,12 +89,12 @@ function Sparkline({ data, color, w = 120, h = 40 }: { data: number[]; color: st
 }
 
 // ─── Retention bar ────────────────────────────────────────────────────────────
-function RetBar({ label, val, color }: { label: string; val: number; color: string }) {
+function RetBar({ label, val, color }: { label: string; val: number | null; color: string }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    el.animate([{ width: "0%" }, { width: `${val}%` }], { duration: 1000, easing: "cubic-bezier(0.22,1,0.36,1)", fill: "forwards", delay: 200 });
+    el.animate([{ width: "0%" }, { width: `${val ?? 0}%` }], { duration: 1000, easing: "cubic-bezier(0.22,1,0.36,1)", fill: "forwards", delay: 200 });
   }, [val]);
   return (
     <div style={{ display: "grid", gridTemplateColumns: "36px 1fr 40px", alignItems: "center", gap: 10 }}>
@@ -102,14 +102,21 @@ function RetBar({ label, val, color }: { label: string; val: number; color: stri
       <div style={{ height: 6, borderRadius: 99, background: "rgba(255,255,255,0.05)", overflow: "hidden" }}>
         <div ref={ref} style={{ height: "100%", borderRadius: 99, background: color, width: "0%" }} />
       </div>
-      <span style={{ fontSize: 12, fontWeight: 800, color, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{val}%</span>
+      <span style={{ fontSize: 12, fontWeight: 800, color, textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{val == null ? "—" : `${val}%`}</span>
     </div>
   );
 }
 
+// Доля в процентах — считается из реальных данных. Если базы нет (0), бейдж не
+// показываем вовсе: выдуманных «+31%» в админке быть не должно.
+function share(part: number, whole: number): number | null {
+  if (!whole || whole <= 0 || !part) return null;
+  return Math.round((part / whole) * 100);
+}
+
 // ─── KPI card ─────────────────────────────────────────────────────────────────
 function KpiCard({ label, value, sub, icon: Icon, color, trend, delay, sparkData }:
-  { label: string; value: number; sub: string; icon: typeof Users; color: string; trend?: number; delay: number; sparkData?: number[] }) {
+  { label: string; value: number; sub: string; icon: typeof Users; color: string; trend?: number | null; delay: number; sparkData?: number[] }) {
   const [ready, setReady] = useState(false);
   useEffect(() => { setTimeout(() => setReady(true), delay * 1000 + 100); }, [delay]);
   const n = useCountUp(value, ready);
@@ -156,6 +163,147 @@ function ago(iso: string) {
 const formatTime = (s: number) => s < 60 ? `${s}с` : `${Math.floor(s / 60)}м ${s % 60}с`;
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+// ─── Воронка, источники и период ───────────────────────────────────────────────
+// Всё из RPC analytics_overview (миграция 014): один запрос на весь блок.
+
+interface Analytics {
+  funnel: { visitors: number; signups: number; checkouts: number; payments: number };
+  sources: { source: string; n: number; paid: number }[];
+  ai: { total: number; failed: number; users: number; by_feature: Record<string, number>; by_model: Record<string, number> };
+  revenue: { total: number; period: number; today: number; by_plan: Record<string, number> };
+}
+
+function pct(a: number, b: number): string {
+  if (!b) return "0%";
+  return `${Math.round((a / b) * 1000) / 10}%`;
+}
+
+function AnalyticsSection() {
+  const [days, setDays] = useState(30);
+  const [data, setData] = useState<Analytics | null>(null);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true); setErr("");
+    fetch(`/api/admin/analytics?days=${days}`, { cache: "no-store" })
+      .then(r => r.json())
+      .then(d => {
+        if (!alive) return;
+        if (d.success && d.data) setData(d.data as Analytics);
+        else if (d.success && !d.configured) setErr("Подключите Supabase — тогда появятся реальные данные");
+        else setErr(d.error || "Нет данных");
+      })
+      .catch(() => alive && setErr("Ошибка сети"))
+      .finally(() => alive && setLoading(false));
+    return () => { alive = false; };
+  }, [days]);
+
+  const f = data?.funnel;
+  const steps = f ? [
+    { label: "Посетители", value: f.visitors, conv: null as string | null },
+    { label: "Регистрации", value: f.signups, conv: pct(f.signups, f.visitors) },
+    { label: "Начали оплату", value: f.checkouts, conv: pct(f.checkouts, f.signups) },
+    { label: "Оплатили", value: f.payments, conv: pct(f.payments, f.checkouts) },
+  ] : [];
+  const maxV = f ? Math.max(f.visitors, 1) : 1;
+
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <TrendingUp size={15} style={{ color: ACCENT }} />
+          <span style={{ fontSize: 14, fontWeight: 700, color: TP }}>Воронка и источники</span>
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {[7, 30, 90].map(d => (
+            <button key={d} onClick={() => setDays(d)}
+              style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                color: days === d ? "#fff" : TS,
+                background: days === d ? `rgba(99,102,241,0.16)` : "transparent",
+                border: `1px solid ${days === d ? "rgba(99,102,241,0.45)" : BORD}` }}>
+              {d} дней
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading && <div style={{ fontSize: 12.5, color: TM }}>Загружаем аналитику…</div>}
+      {err && !loading && <div style={{ fontSize: 12.5, color: WARN, padding: "10px 12px", borderRadius: 10, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)" }}>{err}</div>}
+
+      {data && !loading && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14 }}>
+          {/* Воронка */}
+          <div style={{ background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "18px 20px" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, marginBottom: 14 }}>Конверсия</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {steps.map(st => (
+                <div key={st.label}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                    <span style={{ fontSize: 12.5, color: TS }}>{st.label}</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: TP, fontVariantNumeric: "tabular-nums" }}>
+                      {st.value}{st.conv ? <span style={{ color: SUC, fontWeight: 600 }}> · {st.conv}</span> : null}
+                    </span>
+                  </div>
+                  <div style={{ height: 8, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${Math.max(2, (st.value / maxV) * 100)}%`, borderRadius: 99, background: `linear-gradient(90deg,${ACCENT},#818cf8)`, transition: "width .6s cubic-bezier(0.22,1,0.36,1)" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {f && (
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BORD}`, fontSize: 12, color: TM }}>
+                Общая конверсия посетитель → оплата: <b style={{ color: SUC }}>{pct(f.payments, f.visitors)}</b>
+              </div>
+            )}
+          </div>
+
+          {/* Источники */}
+          <div style={{ background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "18px 20px" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, marginBottom: 14 }}>Откуда приходят</div>
+            {data.sources.length === 0 && <div style={{ fontSize: 12.5, color: TM }}>Пока нет данных за период</div>}
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+              {data.sources.map(src => (
+                <div key={src.source} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 12.5, color: TP, flex: "1 1 auto" }}>{src.source}</span>
+                  <span style={{ fontSize: 12, color: TS, fontVariantNumeric: "tabular-nums" }}>{src.n} рег.</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: src.paid > 0 ? SUC : TM, minWidth: 62, textAlign: "right" }}>
+                    {src.paid} платят
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* AI и выручка */}
+          <div style={{ background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "18px 20px" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, marginBottom: 14 }}>AI и деньги за период</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+              <div><div style={{ fontSize: 19, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums" }}>{data.ai.total}</div><div style={{ fontSize: 11, color: TM }}>AI-запросов</div></div>
+              <div><div style={{ fontSize: 19, fontWeight: 800, color: data.ai.failed > 0 ? DNG : TP, fontVariantNumeric: "tabular-nums" }}>{data.ai.failed}</div><div style={{ fontSize: 11, color: TM }}>с ошибкой</div></div>
+              <div><div style={{ fontSize: 19, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums" }}>{data.ai.users}</div><div style={{ fontSize: 11, color: TM }}>пользуются AI</div></div>
+              <div><div style={{ fontSize: 19, fontWeight: 800, color: SUC, fontVariantNumeric: "tabular-nums" }}>${Number(data.revenue.period).toFixed(0)}</div><div style={{ fontSize: 11, color: TM }}>выручка</div></div>
+            </div>
+            {Object.keys(data.ai.by_feature).length > 0 && (
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BORD}` }}>
+                <div style={{ fontSize: 11, color: TM, marginBottom: 6 }}>Популярные функции</div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  {Object.entries(data.ai.by_feature).map(([k, v]) => (
+                    <span key={k} style={{ fontSize: 11.5, padding: "4px 9px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: `1px solid ${BORD}`, color: TS }}>
+                      {k} · <b style={{ color: TP }}>{v}</b>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Оплаты и выдача тарифов ───────────────────────────────────────────────────
 // Тянет реальные платежи из OxaPay: видно, кто заплатил, сколько и за какой
 // тариф. Оплаты через наш API активируются сами (webhook) — они помечены
@@ -298,13 +446,16 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
 
-  const ADMIN_EMAIL = "n921010977@gmail.com";
-
+  // Доступ решает СЕРВЕР (requireAdmin: роль users.is_admin или ADMIN_EMAIL).
+  // Клиент лишь реагирует на его вердикт — хардкод email в браузере убран.
   useEffect(() => {
     if (status === "unauthenticated") { router.push("/login"); return; }
-    if (status === "authenticated" && session?.user?.email !== ADMIN_EMAIL) {
-      router.push("/dashboard");
-    }
+    if (status !== "authenticated") return;
+    let alive = true;
+    fetch("/api/admin/stats", { cache: "no-store" })
+      .then(r => { if (alive && (r.status === 401 || r.status === 403)) router.push("/dashboard"); })
+      .catch(() => {});
+    return () => { alive = false; };
   }, [status, session, router]);
 
   const load = async () => {
@@ -367,7 +518,7 @@ export default function AdminPage() {
             <div>
               <div style={{ fontSize: 19, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>Admin · Vertlix AI</div>
               <div style={{ fontSize: 11, color: TM, marginTop: 1 }}>
-                {stats.demo ? "⚠ Demo-режим · без Supabase" : "Live · Supabase"}
+                {stats.demo ? "⚠ Supabase не подключён · данных нет" : "Live · Supabase"}
                 {lastUpdate && ` · обновлено ${lastUpdate.toLocaleTimeString("ru")}`}
               </div>
             </div>
@@ -394,13 +545,16 @@ export default function AdminPage() {
 
         {/* ── KPI Grid ── */}
         <div className="adm-grid4" style={{ marginBottom: 28 }}>
-          <KpiCard label="Всего пользователей"  value={stats.users.total}          sub={`+${stats.users.new_week} за неделю`}    icon={Users}          color={ACCENT}  trend={stats.users.new_today > 0 ? Math.round(stats.users.new_today / Math.max(1, stats.users.total - stats.users.new_month) * 100) : 12} delay={0}    sparkData={growthNums} />
-          <KpiCard label="Активны сегодня"      value={stats.activity.active_today} sub={`${stats.activity.active_week} за неделю`} icon={Activity}       color={SUC}     trend={18}  delay={0.07} />
-          <KpiCard label="Сессий сегодня"        value={stats.activity.sessions_today} sub={`Среднее: ${stats.activity.avg_session_min}мин`} icon={Clock} color={WARN}    trend={-4}  delay={0.14} sparkData={sessionNums} />
-          <KpiCard label="AI-запросов сегодня"   value={stats.ai_usage.messages_today} sub={`${stats.ai_usage.messages_week} за неделю`} icon={MessageSquare} color="#a855f7" trend={31} delay={0.21} />
+          <KpiCard label="Всего пользователей"  value={stats.users.total}          sub={`+${stats.users.new_week} за неделю`}    icon={Users}          color={ACCENT}  trend={share(stats.users.new_week, stats.users.total)} delay={0}    sparkData={growthNums} />
+          <KpiCard label="Активны сегодня"      value={stats.activity.active_today} sub={`${stats.activity.active_week} за неделю`} icon={Activity}       color={SUC}     trend={share(stats.activity.active_today, stats.users.total)}  delay={0.07} />
+          <KpiCard label="Сессий сегодня"        value={stats.activity.sessions_today} sub={`Среднее: ${stats.activity.avg_session_min}мин`} icon={Clock} color={WARN}    trend={null}  delay={0.14} sparkData={sessionNums} />
+          <KpiCard label="AI-запросов сегодня"   value={stats.ai_usage.messages_today} sub={`${stats.ai_usage.messages_week} за неделю`} icon={MessageSquare} color="#a855f7" trend={share(stats.ai_usage.messages_today, stats.ai_usage.messages_week)} delay={0.21} />
         </div>
 
-        {/* ── Выдать тариф (оплаты по платёжной ссылке) ── */}
+        {/* ── Воронка, источники, AI и выручка ── */}
+        <AnalyticsSection />
+
+        {/* ── Оплаты и выдача тарифов ── */}
         <GrantPlanCard />
 
         {/* ── Выручка и тарифы (реальные данные из RPC admin_overview) ── */}
@@ -577,7 +731,7 @@ export default function AdminPage() {
           ))}
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 8, height: 8, borderRadius: "50%", background: stats.demo ? WARN : SUC, boxShadow: `0 0 6px ${stats.demo ? WARN : SUC}` }} />
-            <span style={{ fontSize: 11, color: TM }}>{stats.demo ? "Demo-данные" : "Live Supabase"}</span>
+            <span style={{ fontSize: 11, color: TM }}>{stats.demo ? "Нет данных" : "Live Supabase"}</span>
           </div>
         </motion.div>
       </div>

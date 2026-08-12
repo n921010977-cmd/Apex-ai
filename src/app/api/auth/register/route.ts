@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { cookies } from "next/headers";
+import { logEvent, saveAcquisition } from "@/lib/analytics/server";
 import { createClient } from "@/lib/supabase/server";
 import { authLimiter, rateLimitResponse, clientIp } from "@/lib/middleware/rate-limit";
 import { validatePasswordStrength } from "@/lib/password";
@@ -46,7 +48,7 @@ export async function POST(req: Request) {
 
     const password_hash = await bcrypt.hash(password, 12);
 
-    const { error } = await db.from("users").insert({
+    const { data: created, error } = await db.from("users").insert({
       name: name.trim(),
       email: email.trim().toLowerCase(),
       password_hash,
@@ -54,11 +56,20 @@ export async function POST(req: Request) {
       tier: "FREE",
       max_reports_per_month: 3,
       reports_generated_month: 0,
-    });
+    }).select("id").maybeSingle();
 
     if (error) {
       console.error("[register]", error);
       return NextResponse.json({ error: "Ошибка сервера, попробуйте ещё раз" }, { status: 500 });
+    }
+
+    // Аналитика: событие регистрации + источник первого касания из cookie.
+    if (created?.id) {
+      const acqRaw = (await cookies()).get("vertlix_acq")?.value;
+      let acq: Record<string, string> = {};
+      if (acqRaw) { try { acq = JSON.parse(decodeURIComponent(acqRaw)); } catch { /* игнор */ } }
+      void saveAcquisition(created.id, acq);
+      void logEvent("signup", created.id, { source: acq.utm_source ?? "direct", landing: acq.landing_page ?? null });
     }
 
     // Send an email-verification link (best-effort — never block signup on it).

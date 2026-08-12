@@ -1,3 +1,4 @@
+import { AcquisitionCapture } from "@/components/AcquisitionCapture";
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
@@ -82,6 +83,7 @@ export default function RootLayout({
         </SessionProvider>
         <CookieBanner />
         <Analytics />
+        <AcquisitionCapture />
       </body>
     </html>
   );
