@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { MODEL_HEAVY } from "@/lib/ai/model-config";
+import { dbErrorResponse } from "@/lib/errors";
 
 const DEFAULTS = {
   language: "ru",
@@ -28,7 +29,7 @@ export async function GET() {
     .eq("user_id", session.user.id)
     .maybeSingle();
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/settings");
 
   // Return defaults merged with stored settings
   return NextResponse.json({ success: true, data: { ...DEFAULTS, ...(data ?? {}), user_id: session.user.id } });
@@ -61,6 +62,6 @@ export async function PATCH(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/settings");
   return NextResponse.json({ success: true, data });
 }

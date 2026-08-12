@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { safeSearchTerm } from "@/lib/search-filter";
+import { dbErrorResponse } from "@/lib/errors";
 
 // Границы для одной заметки. Без них принималась запись любого размера —
 // это раздувание базы и оплата чужого «хранилища» за наш счёт.
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
   if (search) query = query.or(`title.ilike.%${search}%,content.ilike.%${search}%`);
 
   const { data, error, count } = await query;
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/notepad");
 
   return NextResponse.json({ success: true, data: data ?? [], total: count ?? 0 });
 }
@@ -89,6 +90,6 @@ export async function POST(req: NextRequest) {
     word_count: wordCount,
   }).select().single();
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/notepad");
   return NextResponse.json({ success: true, data }, { status: 201 });
 }

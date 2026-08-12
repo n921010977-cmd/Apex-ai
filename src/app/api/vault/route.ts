@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { safeSearchTerm } from "@/lib/search-filter";
+import { dbErrorResponse } from "@/lib/errors";
 
 // GET /api/vault — list the signed-in user's custom vault items.
 export async function GET(req: NextRequest) {
@@ -22,7 +23,7 @@ export async function GET(req: NextRequest) {
   if (safeQ) query = query.or(`title.ilike.%${safeQ}%,content.ilike.%${safeQ}%`);
 
   const { data, error } = await query;
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/vault");
   return NextResponse.json({ success: true, data: data ?? [] });
 }
 
@@ -48,6 +49,6 @@ export async function POST(req: NextRequest) {
     source: body.source ?? "Добавлено вручную",
   }).select().single();
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/vault");
   return NextResponse.json({ success: true, data });
 }

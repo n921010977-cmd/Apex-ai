@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 // GET /api/security/log — the signed-in user's security events, newest first.
 export async function GET() {
@@ -18,6 +19,6 @@ export async function GET() {
     .order("created_at", { ascending: false })
     .limit(30);
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/security/log");
   return NextResponse.json({ success: true, data: data ?? [] });
 }

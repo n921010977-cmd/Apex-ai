@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -29,7 +30,7 @@ export async function GET(req: NextRequest) {
   if (verdict) query = query.eq("verdict", verdict);
 
   const { data, error, count } = await query;
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/board/decisions");
 
   return NextResponse.json({ success: true, data: data ?? [], total: count ?? 0 });
 }

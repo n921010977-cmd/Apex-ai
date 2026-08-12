@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LEGAL_ENTITY, LEGAL_JURISDICTION, LEGAL_ADDRESS, LEGAL_LAW, LEGAL_VENUE } from "@/lib/legal-entity";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 
 // ─── СОГЛАСИЕ НА ОБРАБОТКУ ПЕРСОНАЛЬНЫХ ДАННЫХ VERTLIX AI ────────────────────────
@@ -8,7 +9,7 @@ import { LEGAL_ENTITY, LEGAL_JURISDICTION, LEGAL_ADDRESS, LEGAL_LAW, LEGAL_VENUE
 // обрабатываемые данные: email, имя, технические данные, запросы к AI.
 // Реквизиты оператора — из src/lib/legal-entity.ts (переменные окружения).
 
-const CONTACT_EMAIL = "n921010977@gmail.com";
+
 
 type Block =
   | { kind: "p"; text: string }

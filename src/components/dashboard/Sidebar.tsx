@@ -14,8 +14,6 @@ import {
 import { usePlan } from "@/lib/use-plan";
 import { PLAN_BY_ID, type PlanFeatures } from "@/lib/plans";
 
-const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL ?? "n921010977@gmail.com";
-
 // Pulse dot for live items
 function PulseDot() {
   return (
@@ -92,6 +90,10 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
   const [collapsed, setCollapsed] = useState(false);
   const [usage, setUsage] = useState<{ used: number; limit: number | null } | null>(null);
+  // Роль администратора решает сервер: email админа не зашит в бандл, а
+  // видимость пункта меню всё равно ничего не открывает — /admin и /api/admin/*
+  // проверяют права заново на сервере.
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Persist collapse
   useEffect(() => {
@@ -111,6 +113,16 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
       .then(d => { if (d.success) setUsage({ used: d.usage.aiMessages.used, limit: d.usage.aiMessages.limit }); })
       .catch(() => setUsage(null));
   }, [plan]);
+
+  // Права администратора — только со стороны сервера.
+  useEffect(() => {
+    let alive = true;
+    fetch("/api/admin/whoami", { cache: "no-store" })
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (alive && d?.admin) setIsAdmin(true); })
+      .catch(() => {});
+    return () => { alive = false; };
+  }, []);
 
   // Hotkeys: ⌘/Ctrl+B collapse · digits 1–9 navigate
   useEffect(() => {
@@ -330,7 +342,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <HelpCircle size={13} /> Поддержка
             </Link>
-            {session?.user?.email === ADMIN_EMAIL && (
+            {isAdmin && (
               <Link href="/admin" onClick={onClose} title="Аналитика (админ)"
                 className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
                 style={{ height: 30, padding: "0 8px", color: "rgba(129,140,248,0.85)", fontSize: 11.5 }}

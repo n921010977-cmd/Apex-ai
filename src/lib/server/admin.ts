@@ -5,13 +5,15 @@
 // входом для первичной настройки и демо-режима без БД.
 
 import { auth } from "@/auth";
+import { headers } from "next/headers";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { apiLimiter, clientIp } from "@/lib/middleware/rate-limit";
 
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "n921010977@gmail.com";
 
 export interface AdminCheck {
   ok: boolean;
-  status: 401 | 403 | 200;
+  status: 401 | 403 | 429 | 200;
   userId?: string;
   email?: string;
 }
@@ -19,6 +21,14 @@ export interface AdminCheck {
 export async function requireAdmin(): Promise<AdminCheck> {
   const session = await auth();
   if (!session?.user?.id) return { ok: false, status: 401 };
+
+  // Ограничение частоты для всей админской зоны: перебирать её эндпоинты
+  // (в том числе с валидной сессией обычного пользователя) не получится.
+  try {
+    const h = await headers();
+    const rl = await apiLimiter(`admin:${session.user.id}:${clientIp({ headers: h })}`);
+    if (!rl.allowed) return { ok: false, status: 429 };
+  } catch { /* нет контекста запроса — пропускаем ограничение */ }
 
   const email = session.user.email ?? "";
 

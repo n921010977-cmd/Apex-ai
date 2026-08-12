@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { requireFeature, denyResponse } from "@/lib/server/access";
 import Anthropic from "@anthropic-ai/sdk";
+import { safeErrorResponse, dbErrorResponse } from "@/lib/errors";
 
 export const maxDuration = 60;
 
@@ -59,7 +60,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
       .join("");
   } catch (err) {
     const msg = err instanceof Error ? err.message : "AI error";
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return safeErrorResponse(err, { endpoint: "/api/notepad/summarize", userId: session.user.id, publicMessage: "Не удалось составить пересказ." });
   }
 
   const { data, error } = await db
@@ -69,6 +70,6 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .select()
     .single();
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/notepad/[id]/summarize");
   return NextResponse.json({ success: true, data });
 }

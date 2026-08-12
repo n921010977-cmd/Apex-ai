@@ -6,6 +6,7 @@ import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "@/components/SessionProvider";
 import { PostHogProvider } from "@/components/PostHogProvider";
 import { CookieBanner } from "@/components/CookieBanner";
+import { siteUrl, SITE_NAME } from "@/lib/site";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,13 +21,19 @@ const geistMono = Geist_Mono({
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  // Масштабирование НЕ блокируем: запрет зума ломает доступность для людей со
+  // слабым зрением (WCAG 1.4.4).
+  maximumScale: 5,
+  userScalable: true,
   themeColor: "#05060A",
   viewportFit: "cover",
 };
 
 export const metadata: Metadata = {
+  // Базовый адрес — из него Next строит абсолютные canonical и og:url.
+  metadataBase: new URL(siteUrl()),
+  alternates: { canonical: "/" },
+  applicationName: SITE_NAME,
   title: {
     default: "Vertlix AI — Your AI Executive Board",
     template: "%s | Vertlix AI",
@@ -50,6 +57,8 @@ export const metadata: Metadata = {
     description: "Замените консалтинг AI-советом директоров. McKinsey meets AI.",
     type: "website",
     locale: "ru_RU",
+    url: "/",
+    siteName: SITE_NAME,
   },
   twitter: {
     card: "summary_large_image",

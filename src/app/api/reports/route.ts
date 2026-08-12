@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { validateBody, CreateReportSchema } from "@/lib/validators";
 import { reportLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { dbErrorResponse } from "@/lib/errors";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   const db = supabase as any;
 
   const { data, error } = await db.from("reports").select("*").eq("user_id", session.user.id).order("created_at", { ascending: false });
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/reports");
 
   return NextResponse.json({ success: true, data: data ?? [] });
 }

@@ -4,6 +4,7 @@ import { logSecurityEvent } from "@/lib/security-log";
 import { createClient } from "@/lib/supabase/server";
 import { verifyTotpCode, generateBackupCodes } from "@/lib/two-factor";
 import { authLimiter, rateLimitResponse, clientIp } from "@/lib/middleware/rate-limit";
+import { dbErrorResponse } from "@/lib/errors";
 
 // POST /api/auth/2fa/verify  { code }
 // Confirms the 6-digit code from the user's authenticator app matches the
@@ -42,7 +43,7 @@ export async function POST(req: Request) {
     two_fa_verified_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   }).eq("user_id", session.user.id);
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/auth/2fa/verify");
 
   await logSecurityEvent(session.user.id, "2fa_enabled");
   return NextResponse.json({ success: true, backupCodes: plain });

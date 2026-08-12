@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 // ─── Lemon Squeezy webhook ────────────────────────────────────────────────────
 // Flips an organization's plan when a subscription is created/updated/cancelled.
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
     .eq("owner_id", userRow.id);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return dbErrorResponse(error, "/api/webhooks/lemonsqueezy");
   }
 
   return NextResponse.json({ ok: true, event: eventName, plan });

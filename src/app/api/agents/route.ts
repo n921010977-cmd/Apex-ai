@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 // GET /api/agents — list org's agents
 export async function GET() {
@@ -21,7 +22,7 @@ export async function GET() {
     .eq("organization_id", membership.organization_id)
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/agents");
   return NextResponse.json({ agents: data });
 }
 
@@ -59,6 +60,6 @@ export async function POST(req: NextRequest) {
     is_active:       true,
   }).select().single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/agents");
   return NextResponse.json({ agent: data });
 }

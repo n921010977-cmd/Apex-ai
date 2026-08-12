@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 // GET /api/agents/favorites — the user's favorited agent ids.
 export async function GET() {
@@ -35,7 +36,7 @@ export async function PUT(req: Request) {
     { user_id: session.user.id, fav_agents: favorites, updated_at: new Date().toISOString() },
     { onConflict: "user_id" },
   );
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/agents/favorites");
 
   return NextResponse.json({ success: true, favorites });
 }

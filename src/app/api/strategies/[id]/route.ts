@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 async function getStrategy(db: any, id: string, userId: string) { // eslint-disable-line @typescript-eslint/no-explicit-any
   const { data, error } = await db.from("strategies").select("*").eq("id", id).eq("user_id", userId).maybeSingle();
@@ -48,7 +49,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   }
 
   const { data, error } = await db.from("strategies").update(update).eq("id", id).eq("user_id", session.user.id).select().single();
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/strategies/[id]");
 
   return NextResponse.json({ success: true, data });
 }
@@ -63,7 +64,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const db = supabase as any;
 
   const { error } = await db.from("strategies").delete().eq("id", id).eq("user_id", session.user.id);
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/strategies/[id]");
 
   return NextResponse.json({ success: true });
 }

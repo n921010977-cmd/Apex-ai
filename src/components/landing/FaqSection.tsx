@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 const RGB = "99,102,241";
 
@@ -120,7 +121,7 @@ export function FaqSection() {
               </div>
             </div>
             <div className="term-mono" style={{ padding: "10px 18px", borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 10, letterSpacing: "0.08em", color: "rgba(255,255,255,0.25)" }}>
-              не нашли ответ? → <a href="mailto:n921010977@gmail.com" style={{ color: "#818cf8", textDecoration: "none" }}>поддержка</a> · или спросите в <a href="/chat" style={{ color: "#818cf8", textDecoration: "none" }}>чате Vertlix</a>
+              не нашли ответ? → <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#818cf8", textDecoration: "none" }}>поддержка</a> · или спросите в <a href="/chat" style={{ color: "#818cf8", textDecoration: "none" }}>чате Vertlix</a>
             </div>
           </div>
         </motion.div>

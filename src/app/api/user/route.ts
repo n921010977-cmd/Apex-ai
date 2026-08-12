@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { validateBody, UpdateSettingsSchema } from "@/lib/validators";
+import { safeErrorResponse, dbErrorResponse } from "@/lib/errors";
 
 export async function GET() {
   const session = await auth();
@@ -101,11 +102,11 @@ export async function DELETE() {
       );
     }
     const { error } = await db.from("users").delete().eq("id", uid);
-    if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse(error, "/api/user");
 
     return NextResponse.json({ success: true, deleted: true });
   } catch (e) {
     const msg = e instanceof Error ? e.message : "Ошибка удаления";
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return safeErrorResponse(e, { endpoint: "/api/user", publicMessage: "Не удалось выполнить операцию с профилем." });
   }
 }

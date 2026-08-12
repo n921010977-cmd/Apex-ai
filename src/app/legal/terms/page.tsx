@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { LEGAL_ENTITY, LEGAL_JURISDICTION, LEGAL_ADDRESS, LEGAL_LAW, LEGAL_VENUE } from "@/lib/legal-entity";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 
 // ─── ПОЛЬЗОВАТЕЛЬСКОЕ СОГЛАШЕНИЕ VERTLIX AI ─────────────────────────────────────
@@ -7,7 +8,7 @@ import { LEGAL_ENTITY, LEGAL_JURISDICTION, LEGAL_ADDRESS, LEGAL_LAW, LEGAL_VENUE
 // тарифы отключены, AI-обработка в Anthropic. Реквизиты оператора и применимое
 // право подставляются из src/lib/legal-entity.ts (переменные окружения).
 
-const CONTACT_EMAIL = "n921010977@gmail.com";
+
 
 type Block =
   | { kind: "p"; text: string }

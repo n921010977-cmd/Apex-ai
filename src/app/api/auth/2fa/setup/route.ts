@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { generateTwoFactorSetup, encryptSecret } from "@/lib/two-factor";
+import { dbErrorResponse } from "@/lib/errors";
 
 // POST /api/auth/2fa/setup — generate a new TOTP secret + QR code.
 // Stores the encrypted secret but does NOT enable 2FA yet — that only
@@ -34,7 +35,7 @@ export async function POST() {
     { user_id: session.user.id, two_fa_secret_enc: secretEnc, two_fa: false, updated_at: new Date().toISOString() },
     { onConflict: "user_id" }
   );
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/auth/2fa/setup");
 
   return NextResponse.json({ success: true, qrDataUrl: setup.qrDataUrl, secret: setup.secret });
 }

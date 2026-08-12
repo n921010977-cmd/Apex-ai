@@ -7,6 +7,7 @@ import { logAiRequest } from "@/lib/analytics/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { industryPromptBlock } from "@/lib/industries";
+import { safeErrorResponse } from "@/lib/errors";
 
 export const maxDuration = 120;
 
@@ -107,7 +108,7 @@ ${qFormatted}
     await db.from("strategies").update({ status: "draft" }).eq("id", id).eq("user_id", session.user.id);
     const msg = err instanceof Error ? err.message : "AI error";
     void logAiRequest({ userId: session.user.id, feature: "strategy", model: MODEL_HEAVY, status: "error", errorMessage: msg });
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return safeErrorResponse(err, { endpoint: "/api/strategies/generate", userId: session.user.id, publicMessage: "Не удалось сгенерировать стратегию." });
   }
 
   let parsed: Record<string, unknown>;

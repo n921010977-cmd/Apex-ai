@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 export async function GET(
   _req: NextRequest,
@@ -64,7 +65,7 @@ export async function DELETE(
     .eq("user_id", session.user.id);
 
   if (error) {
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return dbErrorResponse(error, "/api/reports/[id]");
   }
 
   return NextResponse.json({ success: true });

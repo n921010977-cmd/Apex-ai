@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 // ─── ПУБЛИЧНАЯ ОФЕРТА VERTLIX AI ────────────────────────────────────────────────
 // Договор-оферта на безвозмездное предоставление доступа к платформе. Платные
@@ -6,7 +7,7 @@ import Link from "next/link";
 // регистрационные реквизиты исполнителя не публикуются. При запуске платных
 // тарифов сюда нужно вернуть раздел оплаты и полные реквизиты.
 
-const CONTACT_EMAIL = "n921010977@gmail.com";
+
 const link = { color: "#a5b4fc", textDecoration: "none" } as const;
 
 type Block =

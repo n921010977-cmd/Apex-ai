@@ -56,7 +56,9 @@ function Price({ value }: { value: number }) {
   );
 }
 
-export function PricingCards() {
+// asPageHeading — блок используется и как отдельная страница /pricing (тогда его
+// заголовок главный, H1), и как секция лендинга (там H1 уже занят героем).
+export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolean } = {}) {
   const reduce = useReducedMotion();
   const gridRef = useRef<HTMLDivElement>(null);
   const gridInView = useInView(gridRef, { once: true, margin: "-80px" });
@@ -70,9 +72,14 @@ export function PricingCards() {
         transition={{ duration: 0.6, ease: EASE }}
         style={{ textAlign: "center", marginBottom: 44 }}
       >
-        <h1 style={{ fontSize: "clamp(30px,5vw,46px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px", textWrap: "balance" }}>
-          Простые тарифы, честные лимиты
-        </h1>
+        {(() => {
+          const H = asPageHeading ? "h1" : "h2";
+          return (
+            <H style={{ fontSize: "clamp(30px,5vw,46px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px", textWrap: "balance" }}>
+              Простые тарифы, честные лимиты
+            </H>
+          );
+        })()}
         <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", maxWidth: 560, margin: "0 auto", lineHeight: 1.6 }}>
           На Starter открыт весь продукт, кроме трёх премиум-инструментов. Pro открывает их, Max — те же функции с лимитами в разы больше.
         </p>

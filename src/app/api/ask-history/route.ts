@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 // GET /api/ask-history — list the user's saved dialogues (newest first)
 export async function GET() {
@@ -17,7 +18,7 @@ export async function GET() {
     .order("created_at", { ascending: false })
     .limit(200);
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/ask-history");
 
   // Map DB rows back to the client AskEntry shape.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -66,6 +67,6 @@ export async function POST(req: NextRequest) {
       created_at: body.date ? new Date(body.date).toISOString() : new Date().toISOString(),
     }, { onConflict: "user_id,client_id" });
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/ask-history");
   return NextResponse.json({ success: true });
 }

@@ -37,7 +37,9 @@ export const SendMessageSchema = z.object({
   persona: z.string().max(4000).optional(),
   history: z.array(z.object({
     role: z.enum(["user", "assistant"]),
-    content: z.string(),
+    // Каждое сообщение истории ограничено: 50 реплик без потолка длины
+    // складывались бы в промпт на миллионы токенов и в счёт за AI.
+    content: z.string().max(10_000),
   })).max(50).default([]),
   image: z.object({
     data: z.string().max(9_000_000),

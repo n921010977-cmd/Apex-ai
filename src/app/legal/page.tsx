@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 const SECTIONS = [
   {
@@ -81,7 +82,7 @@ export default function LegalPage() {
         </div>
 
         <div style={{ marginTop: 48, paddingTop: 24, borderTop: "1px solid rgba(255,255,255,0.07)", fontSize: 13, color: "rgba(255,255,255,0.4)" }}>
-          Вопросы? Напишите на <a href="mailto:n921010977@gmail.com" style={{ color: "#a5b4fc" }}>n921010977@gmail.com</a>
+          Вопросы? Напишите на <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#a5b4fc" }}>{CONTACT_EMAIL}</a>
         </div>
       </div>
     </div>

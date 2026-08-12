@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { dbErrorResponse } from "@/lib/errors";
 
 export const maxDuration = 60;
 
@@ -53,7 +54,7 @@ export async function GET(req: NextRequest) {
   if (category) query = query.eq("category", category);
 
   const { data, error, count } = await query;
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/support/tickets");
 
   return NextResponse.json({ success: true, data: data ?? [], total: count ?? 0 });
 }
@@ -134,6 +135,6 @@ export async function POST(req: NextRequest) {
     ai_response: aiResponse,
   }).select().single();
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/support/tickets");
   return NextResponse.json({ success: true, data }, { status: 201 });
 }

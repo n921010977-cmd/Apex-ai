@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { directChat } from "@/lib/orchestrator";
 import { validateBody, SendMessageSchema } from "@/lib/validators";
+import { log, describeError } from "@/lib/logger";
 import { chatLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
@@ -66,8 +67,11 @@ export async function POST(req: NextRequest) {
         send({ type: "done" });
         void logAiRequest({ userId, feature: "chat", status: "ok", responseTimeMs: Date.now() - t0 });
       } catch (err) {
-        const msg = err instanceof Error ? err.message : String(err);
-        send({ type: "error", message: msg });
+        // Наружу — общая формулировка: текст ошибки провайдера может содержать
+        // внутренние пути, идентификаторы и части конфигурации.
+        const { message: msg } = describeError(err);
+        log.error({ event: "ai_error", endpoint: "/api/chat/direct", userId, message: msg });
+        send({ type: "error", message: "Не удалось получить ответ. Попробуйте ещё раз." });
         void logAiRequest({ userId, feature: "chat", status: "error", responseTimeMs: Date.now() - t0, errorMessage: msg });
       } finally {
         controller.close();

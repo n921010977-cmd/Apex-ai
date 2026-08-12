@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { validateBody, CreateTaskSchema, PaginationSchema } from "@/lib/validators";
+import { dbErrorResponse } from "@/lib/errors";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -25,7 +26,7 @@ export async function GET(req: NextRequest) {
   if (pagination.search) query = query.ilike("title", `%${pagination.search}%`);
 
   const { data, error } = await query.range((page - 1) * limit, page * limit - 1);
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/tasks");
 
   const { count } = await db.from("tasks").select("id", { count: "exact" }).eq("user_id", userId);
   return NextResponse.json({ success: true, data: data ?? [], total: count ?? 0, page, limit });

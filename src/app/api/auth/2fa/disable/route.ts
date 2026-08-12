@@ -5,6 +5,7 @@ import { logSecurityEvent } from "@/lib/security-log";
 import { createClient } from "@/lib/supabase/server";
 import { verifyTotpCode } from "@/lib/two-factor";
 import { authLimiter, rateLimitResponse, clientIp } from "@/lib/middleware/rate-limit";
+import { dbErrorResponse } from "@/lib/errors";
 
 // POST /api/auth/2fa/disable  { password?, code? }
 // Requires re-authentication (current password OR a valid 6-digit TOTP code)
@@ -43,7 +44,7 @@ export async function POST(req: Request) {
     two_fa: false, two_fa_secret_enc: null, two_fa_backup_codes: [], two_fa_verified_at: null,
     updated_at: new Date().toISOString(),
   }).eq("user_id", session.user.id);
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/auth/2fa/disable");
 
   await logSecurityEvent(session.user.id, "2fa_disabled");
   return NextResponse.json({ success: true });

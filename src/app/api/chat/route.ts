@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 // GET /api/chat — list conversations
 export async function GET() {
@@ -23,7 +24,7 @@ export async function GET() {
     .order("updated_at", { ascending: false })
     .limit(50);
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/chat");
   return NextResponse.json({ conversations: data });
 }
 
@@ -58,6 +59,6 @@ export async function POST(req: NextRequest) {
     status:          "active",
   }).select().single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/chat");
   return NextResponse.json({ conversation: data });
 }

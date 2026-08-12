@@ -5,6 +5,7 @@ import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import { industryPromptBlock } from "@/lib/industries";
+import { safeErrorResponse } from "@/lib/errors";
 
 export const maxDuration = 60;
 
@@ -85,7 +86,6 @@ export async function POST(req: NextRequest) {
   } catch (err) {
     const msg = err instanceof Error ? err.message : "AI error";
     void logAiRequest({ userId: session.user.id, feature: "weekly_focus", status: "error", errorMessage: msg });
-    const status = /not configured|не настроен/i.test(msg) ? 503 : 500;
-    return NextResponse.json({ success: false, error: msg }, { status });
+    return safeErrorResponse(err, { endpoint: "/api/artifacts/weekly-focus", userId: session.user.id, publicMessage: "Не удалось собрать фокус недели." });
   }
 }

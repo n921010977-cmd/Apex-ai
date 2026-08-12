@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { CONTACT_EMAIL } from "@/lib/site";
 
 // ─── COOKIE POLICY VERTLIX AI ───────────────────────────────────────────────────
 // Описывает фактически используемые cookies: необходимые (сессия NextAuth),
@@ -6,7 +7,7 @@ import Link from "next/link";
 // согласия; Vercel Analytics — бескуковый). Управление согласием реализовано в
 // src/components/CookieBanner.tsx + src/lib/consent.ts.
 
-const CONTACT_EMAIL = "n921010977@gmail.com";
+
 
 type Block =
   | { kind: "p"; text: string }

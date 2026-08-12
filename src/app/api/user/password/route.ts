@@ -5,6 +5,7 @@ import { logSecurityEvent } from "@/lib/security-log";
 import { createClient } from "@/lib/supabase/server";
 import { authLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { validatePasswordStrength } from "@/lib/password";
+import { dbErrorResponse } from "@/lib/errors";
 
 // POST /api/user/password  { currentPassword?, newPassword }
 // Changes the signed-in user's password. If the account has an existing
@@ -40,7 +41,7 @@ export async function POST(req: Request) {
 
   const password_hash = await bcrypt.hash(newPassword, 12);
   const { error } = await db.from("users").update({ password_hash }).eq("id", session.user.id);
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/user/password");
 
   await logSecurityEvent(session.user.id, "password_changed");
   return NextResponse.json({ success: true });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -31,7 +32,7 @@ export async function GET(req: NextRequest) {
   if (type) query = query.eq("type", type);
 
   const { data, error, count } = await query;
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/notifications");
 
   // Also return unread count
   const { count: unreadCount } = await db
@@ -69,7 +70,7 @@ export async function PATCH(req: NextRequest) {
       .eq("user_id", session.user.id)
       .eq("is_read", false);
 
-    if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    if (error) return dbErrorResponse(error, "/api/notifications");
     return NextResponse.json({ success: true, updated: "all" });
   }
 
@@ -83,7 +84,7 @@ export async function PATCH(req: NextRequest) {
     .in("id", body.ids)
     .eq("user_id", session.user.id);
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/notifications");
   return NextResponse.json({ success: true, updated: body.ids.length });
 }
 
@@ -102,7 +103,7 @@ export async function DELETE(req: NextRequest) {
   if (read_only) query = query.eq("is_read", true);
 
   const { error } = await query;
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/notifications");
 
   return NextResponse.json({ success: true });
 }

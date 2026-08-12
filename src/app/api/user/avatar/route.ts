@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { authLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { dbErrorResponse } from "@/lib/errors";
 
 // The client resizes avatars to 256×256 JPEG before upload, so a valid payload
 // is a few tens of KB. We store it as a data URL in users.avatar_url. The cap
@@ -31,7 +32,7 @@ export async function POST(req: Request) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
   const { error } = await db.from("users").update({ avatar_url: dataUrl }).eq("id", session.user.id);
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/user/avatar");
 
   return NextResponse.json({ success: true, avatarUrl: dataUrl });
 }

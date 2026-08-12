@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -75,7 +76,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   // рефакторинге и от гонки между проверкой и записью.
   const { data, error } = await db.from("notes").update(update)
     .eq("id", id).eq("user_id", session.user.id).select().single();
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/notepad/[id]");
 
   return NextResponse.json({ success: true, data });
 }
@@ -96,7 +97,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     .eq("id", id)
     .eq("user_id", session.user.id);
 
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/notepad/[id]");
   return NextResponse.json({ success: true });
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { auth } from "@/auth";
+import { dbErrorResponse } from "@/lib/errors";
 
 // GET /api/projects — list user's projects
 export async function GET() {
@@ -17,7 +18,7 @@ export async function GET() {
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/projects");
   return NextResponse.json({ projects: data });
 }
 
@@ -99,7 +100,7 @@ export async function POST(req: NextRequest) {
     .select()
     .single();
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/projects");
 
   await db.from("activity_logs").insert({
     organization_id: orgId,

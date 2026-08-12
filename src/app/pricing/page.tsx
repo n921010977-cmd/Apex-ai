@@ -3,8 +3,10 @@ import Link from "next/link";
 import { PricingCards } from "@/components/landing/PricingCards";
 
 export const metadata: Metadata = {
-  title: "Тарифы — Vertlix AI",
+  // Шаблон корневого layout сам добавит « | Vertlix AI» — дублировать не нужно.
+  title: "Тарифы и цены",
   description: "Три тарифа Vertlix AI: Starter $29, Pro $39, Max $49. Прозрачные лимиты, отмена в любой момент.",
+  alternates: { canonical: "/pricing" },
 };
 
 export default async function PricingPage({ searchParams }: { searchParams: Promise<{ limit?: string }> }) {
@@ -27,7 +29,7 @@ export default async function PricingPage({ searchParams }: { searchParams: Prom
           ← В дашборд
         </Link>
       </header>
-      <PricingCards />
+      <PricingCards asPageHeading />
     </main>
   );
 }

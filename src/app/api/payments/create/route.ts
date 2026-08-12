@@ -6,6 +6,7 @@ import { recordPaymentCreated } from "@/lib/payments/records";
 import { PAYLINKS } from "@/lib/payments/paylinks";
 import { rememberIntent } from "@/lib/payments/intents";
 import { logEvent } from "@/lib/analytics/server";
+import { reportLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
 
 // POST /api/payments/create — открывает оплату тарифа. Два пути, по приоритету:
 //
@@ -41,6 +42,10 @@ export async function POST(req: NextRequest) {
   if (!session?.user?.id) {
     return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
   }
+
+  // Создание счёта — дорогая операция у платёжного шлюза: не даём спамить.
+  const limit = await reportLimiter(getIdentifier(req, session.user.id));
+  if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   let body: { plan?: string };
   try { body = await req.json(); } catch { return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 }); }

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
+import { dbErrorResponse } from "@/lib/errors";
 
 // GET /api/agents/custom — the signed-in user's custom / cloned agents.
 export async function GET() {
@@ -44,7 +45,7 @@ export async function POST(req: Request) {
     { id: String(agent.id), user_id: session.user.id, data: agent, updated_at: new Date().toISOString() },
     { onConflict: "user_id,id" },
   );
-  if (error) return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  if (error) return dbErrorResponse(error, "/api/agents/custom");
 
   return NextResponse.json({ success: true });
 }

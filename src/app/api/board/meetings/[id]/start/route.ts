@@ -6,6 +6,7 @@ import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
 import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
+import { safeErrorResponse } from "@/lib/errors";
 
 export const maxDuration = 120;
 
@@ -382,6 +383,6 @@ Respond in JSON:
     await db.from("board_meetings").update({ status: "failed" }).eq("id", id);
     const msg = err instanceof Error ? err.message : "AI error";
     void logAiRequest({ userId: session.user.id, feature: "board_meeting", model: MODEL_HEAVY, status: "error", tokensUsed: totalTokens, errorMessage: msg });
-    return NextResponse.json({ success: false, error: msg }, { status: 500 });
+    return safeErrorResponse(err, { endpoint: "/api/board/meetings/start", userId: session.user.id, publicMessage: "Не удалось провести заседание. Попробуйте ещё раз." });
   }
 }
