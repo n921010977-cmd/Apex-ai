@@ -3,6 +3,7 @@ import { auth } from "@/auth";
 import { PLAN_BY_ID, type PlanId } from "@/lib/plans";
 import { createPayment, buildOrderId, oxapayConfigured } from "@/lib/payments/oxapay";
 import { recordPaymentCreated } from "@/lib/payments/records";
+import { PAYLINKS } from "@/lib/payments/paylinks";
 
 // POST /api/payments/create — открывает оплату тарифа. Два пути, по приоритету:
 //
