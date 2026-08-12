@@ -22,14 +22,14 @@ function baseUrl(req: NextRequest): string {
   return host ? `https://${host}` : "";
 }
 
-/** Статичная платёжная ссылка для тарифа (если задана в окружении). */
+/** Статичная платёжная ссылка: env-переменная, иначе — вшитая в код (paylinks.ts). */
 function staticLinkFor(plan: PlanId): string | null {
   const map: Record<PlanId, string | undefined> = {
     starter: process.env.NEXT_PUBLIC_PAYLINK_STARTER,
     pro:     process.env.NEXT_PUBLIC_PAYLINK_PRO,
     max:     process.env.NEXT_PUBLIC_PAYLINK_MAX,
   };
-  const v = map[plan]?.trim();
+  const v = (map[plan]?.trim() || PAYLINKS[plan]?.trim()) ?? "";
   return v && /^https:\/\//i.test(v) ? v : null;
 }
 
