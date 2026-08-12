@@ -25,14 +25,26 @@ const METERS: { key: string; label: string }[] = [
 
 type Step = { label: string; href: string; icon: typeof Target; tone?: "accent" | "warn" };
 
+interface SubResp { plan: string; planName: string | null; status: string; expiresAt: string | null; active: boolean }
+
 export function UsageWidget() {
   const [data, setData] = useState<UsageResp | null>(null);
+  const [sub, setSub] = useState<SubResp | null>(null);
 
+  // Периодически перечитываем — подписка, активированная webhook'ом, появится
+  // в интерфейсе сама, без перезагрузки страницы.
   useEffect(() => {
-    fetch("/api/usage", { cache: "no-store" })
-      .then(r => r.json())
-      .then(d => { if (d.success) setData(d); })
-      .catch(() => {});
+    const load = () => {
+      fetch("/api/usage", { cache: "no-store" })
+        .then(r => r.json()).then(d => { if (d.success) setData(d); }).catch(() => {});
+      fetch("/api/subscription/status", { cache: "no-store" })
+        .then(r => (r.ok ? r.json() : null)).then(d => { if (d?.success) setSub(d); }).catch(() => {});
+    };
+    load();
+    const t = setInterval(load, 20000);
+    const onFocus = () => load();
+    window.addEventListener("focus", onFocus);
+    return () => { clearInterval(t); window.removeEventListener("focus", onFocus); };
   }, []);
 
   const plan = data?.plan ?? "none";
@@ -70,7 +82,10 @@ export function UsageWidget() {
             <Gauge size={15} style={{ color: "#a5b4fc" }} />
             <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Расход за месяц</span>
           </div>
-          <span style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 999, color: plan === "none" ? "rgba(255,255,255,0.5)" : "#c7d2fe", background: plan === "none" ? "rgba(255,255,255,0.05)" : `rgba(${RGB},0.14)`, border: plan === "none" ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(${RGB},0.3)` }}>{planName}</span>
+          <span title={sub?.expiresAt ? `Действует до ${new Date(sub.expiresAt).toLocaleDateString("ru-RU")}` : undefined}
+            style={{ fontSize: 11, fontWeight: 700, padding: "3px 9px", borderRadius: 999, color: plan === "none" ? "rgba(255,255,255,0.5)" : "#c7d2fe", background: plan === "none" ? "rgba(255,255,255,0.05)" : `rgba(${RGB},0.14)`, border: plan === "none" ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(${RGB},0.3)` }}>
+            {planName}{sub?.active && sub.expiresAt ? ` · до ${new Date(sub.expiresAt).toLocaleDateString("ru-RU")}` : ""}
+          </span>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 18px" }}>
           {METERS.map(m => {

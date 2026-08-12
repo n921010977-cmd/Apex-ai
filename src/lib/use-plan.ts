@@ -45,15 +45,22 @@ export function usePlan() {
   // правка localStorage ничего не давала (API и так проверяют сервер).
   useEffect(() => {
     let alive = true;
-    fetch("/api/usage", { cache: "no-store" })
-      .then(r => (r.ok ? r.json() : null))
-      .then(d => {
-        if (!alive || !d?.success) return;
-        const p = d.plan === "starter" || d.plan === "pro" || d.plan === "max" ? d.plan : "none";
-        if (p !== read()) setActivePlan(p);
-      })
-      .catch(() => {});
-    return () => { alive = false; };
+    const sync = () => {
+      fetch("/api/subscription/status", { cache: "no-store" })
+        .then(r => (r.ok ? r.json() : null))
+        .then(d => {
+          if (!alive || !d?.success) return;
+          const p = d.plan === "starter" || d.plan === "pro" || d.plan === "max" ? d.plan : "none";
+          if (p !== read()) setActivePlan(p);
+        })
+        .catch(() => {});
+    };
+    sync();
+    // Подписка, включённая webhook'ом, подхватится сама — без F5.
+    const t = setInterval(sync, 20000);
+    const onFocus = () => sync();
+    window.addEventListener("focus", onFocus);
+    return () => { alive = false; clearInterval(t); window.removeEventListener("focus", onFocus); };
   }, []);
 
   const allows = useCallback(

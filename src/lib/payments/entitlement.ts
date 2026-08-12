@@ -1,10 +1,22 @@
-// ─── Оплаченный тариф пользователя (серверный источник правды) ────────────────
-// Webhook об оплате приходит от NOWPayments (сервер-сервер), а не из браузера,
-// поэтому активировать тариф через cookie нельзя — нужен стор по userId.
-// Храним в Upstash Redis (durable) при наличии; иначе in-memory fallback.
-// Значение живёт 1 месяц (подписка); дальше нужно оплатить снова.
+// ─── Оплаченная подписка пользователя ─────────────────────────────────────────
+// Источник правды по приоритету:
+//   1) таблица subscriptions в Supabase — переживает редеплой, хранит срок;
+//   2) Upstash Redis — если БД не настроена;
+//   3) память процесса — последний fallback (демо/локально).
+//
+// Пишется ТОЛЬКО с сервера: webhook подтверждённой оплаты или админ.
+// Из браузера подписку изменить нельзя (RLS запрещает anon доступ к таблице).
 
 import type { PlanId } from "@/lib/plans";
+import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+
+export type SubscriptionStatus = "active" | "expired" | "canceled" | "pending" | "none";
+
+export interface SubscriptionInfo {
+  plan: PlanId | null;
+  status: SubscriptionStatus;
+  expiresAt: string | null;
+}
 
 const store = new Map<string, { plan: PlanId; expiresAt: number }>();
 
@@ -33,43 +45,102 @@ async function upstash(commands: unknown[][]): Promise<Array<{ result: string | 
   return res.json();
 }
 
-/** Записать оплаченный тариф на N месяцев вперёд. */
-export async function setEntitlement(userId: string, plan: PlanId, months = 1): Promise<void> {
-  const ttlMs = months * 31 * 24 * 60 * 60 * 1000;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function db(): Promise<any | null> {
+  if (!isSupabaseConfigured()) return null;
+  try { return await createClient(); } catch { return null; }
+}
 
-  // Зеркалим тариф в users (аналитика/админка): plan + даты начала и конца.
-  // Best-effort: без Supabase молча пропускаем.
-  void (async () => {
+/**
+ * Активировать/продлить подписку на N месяцев.
+ * В БД продление НЕ обнуляет остаток (RPC activate_subscription прибавляет срок
+ * к текущей дате окончания). В fallback-хранилищах — та же логика вручную.
+ */
+export async function setEntitlement(
+  userId: string,
+  plan: PlanId,
+  months = 1,
+  meta?: { paymentId?: string; amount?: number; currency?: string },
+): Promise<void> {
+  const client = await db();
+
+  if (client) {
     try {
-      const { createClient, isSupabaseConfigured } = await import("@/lib/supabase/server");
-      if (!isSupabaseConfigured()) return;
-      const supabase = await createClient();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await (supabase as any).from("users").update({
-        plan,
-        plan_started_at: new Date().toISOString(),
-        plan_expires_at: new Date(Date.now() + ttlMs).toISOString(),
-      }).eq("id", userId);
-    } catch { /* no-op */ }
-  })();
+      const { error } = await client.rpc("activate_subscription", {
+        p_user_id: userId,
+        p_plan: plan,
+        p_months: months,
+        p_payment_id: meta?.paymentId ?? null,
+        p_amount: meta?.amount ?? null,
+        p_currency: meta?.currency ?? "USD",
+      });
+      if (!error) return; // подписка сохранена в БД — этого достаточно
+      console.error("[subscriptions] activate_subscription failed:", error.message);
+    } catch (e) {
+      console.error("[subscriptions] activate error:", e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  // Fallback: Upstash / память. Продлеваем от остатка, а не от «сейчас».
+  const current = await readFallback(userId);
+  const base = current && current.expiresAt > Date.now() ? current.expiresAt : Date.now();
+  const expiresAt = base + months * 31 * 24 * 60 * 60 * 1000;
+  const ttlMs = Math.max(60_000, expiresAt - Date.now());
 
   if (upstashConfigured()) {
     try { await upstash([["SET", key(userId), plan, "PX", ttlMs]]); return; }
-    catch { /* fallback */ }
+    catch { /* память ниже */ }
   }
-  store.set(key(userId), { plan, expiresAt: Date.now() + ttlMs });
+  store.set(key(userId), { plan, expiresAt });
 }
 
-/** Прочитать активный оплаченный тариф (или null). */
-export async function getEntitlement(userId: string): Promise<PlanId | null> {
+async function readFallback(userId: string): Promise<{ plan: PlanId; expiresAt: number } | null> {
   if (upstashConfigured()) {
     try {
-      const r = await upstash([["GET", key(userId)]]);
+      const r = await upstash([["GET", key(userId)], ["PTTL", key(userId)]]);
       const v = r[0]?.result;
-      return v === "starter" || v === "pro" || v === "max" ? v : null;
-    } catch { /* fallback */ }
+      if (v === "starter" || v === "pro" || v === "max") {
+        const pttl = Number(r[1]?.result ?? 0);
+        return { plan: v, expiresAt: Date.now() + (pttl > 0 ? pttl : 0) };
+      }
+      return null;
+    } catch { /* память ниже */ }
   }
-  const v = store.get(key(userId));
-  if (!v || v.expiresAt < Date.now()) return null;
-  return v.plan;
+  const m = store.get(key(userId));
+  if (!m || m.expiresAt < Date.now()) return null;
+  return m;
+}
+
+/** Полные данные подписки (для /api/subscription/status и админки). */
+export async function getSubscription(userId: string): Promise<SubscriptionInfo> {
+  const client = await db();
+  if (client) {
+    try {
+      const { data } = await client
+        .from("subscriptions")
+        .select("plan, status, expires_at")
+        .eq("user_id", userId)
+        .maybeSingle();
+      if (data) {
+        const expired = data.expires_at ? new Date(data.expires_at).getTime() < Date.now() : false;
+        const active = data.status === "active" && !expired;
+        return {
+          plan: active ? (data.plan as PlanId) : null,
+          status: expired ? "expired" : (data.status as SubscriptionStatus),
+          expiresAt: data.expires_at ?? null,
+        };
+      }
+      return { plan: null, status: "none", expiresAt: null };
+    } catch { /* fallback ниже */ }
+  }
+
+  const f = await readFallback(userId);
+  if (!f) return { plan: null, status: "none", expiresAt: null };
+  return { plan: f.plan, status: "active", expiresAt: new Date(f.expiresAt).toISOString() };
+}
+
+/** Активный оплаченный тариф (или null). Используется гейтами и лимитами. */
+export async function getEntitlement(userId: string): Promise<PlanId | null> {
+  const sub = await getSubscription(userId);
+  return sub.status === "active" ? sub.plan : null;
 }

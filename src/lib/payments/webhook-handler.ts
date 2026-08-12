@@ -86,7 +86,8 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
     if (!updated) return NextResponse.json({ success: true, ack: "duplicate" });
 
     if (VALID_PLANS.has(record.plan)) {
-      await setEntitlement(record.user_id, record.plan as PlanId, 1);
+      await setEntitlement(record.user_id, record.plan as PlanId, 1,
+        { paymentId: trackId, amount: record.amount, currency: record.currency });
       await consumeIntent(record.user_id);
     }
     return NextResponse.json({ success: true, ack: "activated" });
@@ -96,7 +97,8 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
   //    счёта (userId::plan::ts). Подпись уже проверена.
   const parsed = orderId ? parseOrderId(orderId) : null;
   if (parsed && VALID_PLANS.has(parsed.plan)) {
-    await setEntitlement(parsed.userId, parsed.plan as PlanId, 1);
+    await setEntitlement(parsed.userId, parsed.plan as PlanId, 1,
+      { paymentId: trackId, amount: Number(p.amount) || undefined, currency: p.currency });
     await consumeIntent(parsed.userId);
     return NextResponse.json({ success: true, ack: "activated" });
   }
@@ -107,9 +109,10 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
   const paidAmount = Number(p.amount);
   const { intent, reason } = await matchIntent(payerEmail, paidAmount);
   if (intent) {
-    await setEntitlement(intent.userId, intent.plan, 1);
+    await setEntitlement(intent.userId, intent.plan, 1,
+      { paymentId: trackId, amount: intent.amount, currency: "USD" });
     await consumeIntent(intent.userId);
-    console.log(`[payments] link payment matched by ${reason} → plan ${intent.plan} activated`);
+    console.log(`[payments] paid track=${trackId} user=${intent.userId} plan=${intent.plan} matched=${reason} at=${new Date().toISOString()}`);
     return NextResponse.json({ success: true, ack: "activated", matchedBy: reason });
   }
 
