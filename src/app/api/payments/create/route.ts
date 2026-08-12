@@ -4,6 +4,7 @@ import { PLAN_BY_ID, type PlanId } from "@/lib/plans";
 import { createPayment, buildOrderId, oxapayConfigured } from "@/lib/payments/oxapay";
 import { recordPaymentCreated } from "@/lib/payments/records";
 import { PAYLINKS } from "@/lib/payments/paylinks";
+import { rememberIntent } from "@/lib/payments/intents";
 
 // POST /api/payments/create — открывает оплату тарифа. Два пути, по приоритету:
 //
@@ -84,6 +85,9 @@ export async function POST(req: NextRequest) {
       // API отклонил (мерчант не одобрен и т.п.) — если есть статичная ссылка,
       // не роняем оплату, а уводим на неё.
       if (link) {
+        // У ссылки нет order_id — запоминаем, кто пошёл платить, чтобы webhook
+        // смог сопоставить оплату с пользователем и выдать тариф автоматически.
+        await rememberIntent({ userId: session.user.id, email: session.user.email ?? undefined, plan, amount: planObj.priceMonthly });
         return NextResponse.json({ success: true, configured: true, mode: "static", invoiceUrl: link });
       }
       return NextResponse.json({ success: false, configured: true, error: `OxaPay: ${msg}` }, { status: 502 });
@@ -91,5 +95,6 @@ export async function POST(req: NextRequest) {
   }
 
   // Путь 2: только статичная ссылка.
+  await rememberIntent({ userId: session.user.id, email: session.user.email ?? undefined, plan, amount: planObj.priceMonthly });
   return NextResponse.json({ success: true, configured: true, mode: "static", invoiceUrl: link });
 }

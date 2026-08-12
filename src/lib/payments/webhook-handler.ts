@@ -11,6 +11,7 @@ import { NextResponse } from "next/server";
 import { verifyCallbackSignature, parseOrderId } from "@/lib/payments/oxapay";
 import { setEntitlement } from "@/lib/payments/entitlement";
 import { getPaymentByTrackId, markPaymentStatus, type PaymentStatus } from "@/lib/payments/records";
+import { matchIntent, consumeIntent } from "@/lib/payments/intents";
 import type { PlanId } from "@/lib/plans";
 
 const VALID_PLANS = new Set(["starter", "pro", "max"]);
@@ -29,6 +30,7 @@ function mapStatus(s: string): PaymentStatus | "PENDING" {
 
 interface WebhookPayload {
   status?: string;
+  email?: string;
   type?: string;
   track_id?: string | number;
   trackId?: string | number;   // легаси-формат
@@ -85,17 +87,34 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
 
     if (VALID_PLANS.has(record.plan)) {
       await setEntitlement(record.user_id, record.plan as PlanId, 1);
+      await consumeIntent(record.user_id);
     }
     return NextResponse.json({ success: true, ack: "activated" });
   }
 
-  // 5. Журнала нет (демо-режим без БД) — активируем по order_id, который мы же
-  //    зашили при создании счёта (userId::plan::ts). Подпись уже проверена.
+  // 5. Журнала нет — активируем по order_id, который мы же зашили при создании
+  //    счёта (userId::plan::ts). Подпись уже проверена.
   const parsed = orderId ? parseOrderId(orderId) : null;
   if (parsed && VALID_PLANS.has(parsed.plan)) {
     await setEntitlement(parsed.userId, parsed.plan as PlanId, 1);
+    await consumeIntent(parsed.userId);
     return NextResponse.json({ success: true, ack: "activated" });
   }
 
-  return NextResponse.json({ success: true, ack: "ignored" });
+  // 6. Оплата по СТАТИЧНОЙ ссылке: order_id нет. Сопоставляем с намерением,
+  //    записанным при клике по тарифу — по email плательщика или по сумме.
+  const payerEmail = typeof p.email === "string" ? p.email : undefined;
+  const paidAmount = Number(p.amount);
+  const { intent, reason } = await matchIntent(payerEmail, paidAmount);
+  if (intent) {
+    await setEntitlement(intent.userId, intent.plan, 1);
+    await consumeIntent(intent.userId);
+    console.log(`[payments] link payment matched by ${reason} → plan ${intent.plan} activated`);
+    return NextResponse.json({ success: true, ack: "activated", matchedBy: reason });
+  }
+
+  // Не смогли определить плательщика (нет намерения или несколько совпадений) —
+  // тариф выдаётся вручную через /admin. Причина — в логи, без персональных данных.
+  console.warn(`[payments] paid link payment not matched (${reason}) — grant manually in /admin`);
+  return NextResponse.json({ success: true, ack: "unmatched", reason });
 }
