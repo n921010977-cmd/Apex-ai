@@ -95,3 +95,47 @@ export function parseOrderId(orderId: string): { userId: string; plan: string } 
   if (parts.length < 2) return null;
   return { userId: parts[0], plan: parts[1] };
 }
+
+// ─── История платежей (docs.oxapay.com/api-reference/payment/payment-history2) ──
+// GET /v1/payment, заголовок merchant_api_key, пагинация page/size.
+// Нужна админке: показать реальные оплаты и выдать по ним тариф в один клик.
+
+export interface OxaPayment {
+  trackId: string;
+  amount: number;
+  currency: string;
+  status: string;
+  email?: string;
+  orderId?: string;
+  date?: string;
+  description?: string;
+}
+
+export async function listPayments(size = 30): Promise<OxaPayment[]> {
+  const key = process.env.OXAPAY_MERCHANT_KEY?.trim();
+  if (!key) throw new Error("OXAPAY_MERCHANT_KEY не задан");
+
+  const res = await fetch(`${API_BASE}/v1/payment?page=1&size=${Math.min(100, Math.max(1, size))}`, {
+    headers: { merchant_api_key: key },
+    cache: "no-store",
+  });
+  const text = await res.text().catch(() => "");
+  if (!res.ok) throw new Error(`OxaPay ${res.status}: ${text.slice(0, 200)}`);
+
+  let json: Record<string, unknown> = {};
+  try { json = JSON.parse(text); } catch { throw new Error("OxaPay вернул не-JSON"); }
+
+  const data = (json.data ?? json) as Record<string, unknown>;
+  const rawList = (data.list ?? data.payments ?? []) as Record<string, unknown>[];
+
+  return rawList.map(p => ({
+    trackId: String(p.track_id ?? p.trackId ?? ""),
+    amount: Number(p.amount ?? 0),
+    currency: String(p.currency ?? "USD"),
+    status: String(p.status ?? ""),
+    email: typeof p.email === "string" ? p.email : undefined,
+    orderId: typeof p.order_id === "string" ? p.order_id : (typeof p.orderId === "string" ? p.orderId : undefined),
+    date: String(p.date ?? p.created_at ?? ""),
+    description: typeof p.description === "string" ? p.description : undefined,
+  }));
+}

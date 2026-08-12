@@ -156,66 +156,137 @@ function ago(iso: string) {
 const formatTime = (s: number) => s < 60 ? `${s}с` : `${Math.floor(s / 60)}м ${s % 60}с`;
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
-// ─── Выдать тариф вручную ──────────────────────────────────────────────────────
-// Для оплат по статичной платёжной ссылке OxaPay: клиент платит по ссылке и
-// называет email — админ включает ему тариф здесь. Ходит в /api/admin/grant.
+// ─── Оплаты и выдача тарифов ───────────────────────────────────────────────────
+// Тянет реальные платежи из OxaPay: видно, кто заплатил, сколько и за какой
+// тариф. Оплаты через наш API активируются сами (webhook) — они помечены
+// «авто». Для оплат по платёжной ссылке достаточно нажать «Выдать» и указать
+// email клиента. Ниже — форма ручной выдачи на любой случай.
+
+interface OxaPay {
+  trackId: string; amount: number; currency: string; status: string;
+  email: string | null; date: string | null; description: string | null;
+  guessedPlan: string | null; viaApi: boolean; userIdFromOrder: string | null;
+}
+
+const inpS: React.CSSProperties = {
+  height: 36, borderRadius: 9, padding: "0 10px", fontSize: 13, color: TP,
+  background: "rgba(255,255,255,0.04)", border: `1px solid ${BORD}`, outline: "none", boxSizing: "border-box",
+};
+
 function GrantPlanCard() {
+  const [pays, setPays] = useState<OxaPay[] | null>(null);
+  const [payErr, setPayErr] = useState("");
+  const [loadingPays, setLoadingPays] = useState(true);
+
   const [email, setEmail] = useState("");
   const [plan, setPlan] = useState("pro");
   const [months, setMonths] = useState("1");
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null);
 
-  const grant = async () => {
-    if (!email.trim()) { setResult({ ok: false, msg: "Укажи email клиента" }); return; }
+  const loadPays = async () => {
+    setLoadingPays(true); setPayErr("");
+    try {
+      const r = await fetch("/api/admin/payments", { cache: "no-store" });
+      const d = await r.json();
+      if (d.success) setPays(d.payments ?? []);
+      else setPayErr(d.error || "Не удалось получить оплаты");
+    } catch { setPayErr("Ошибка сети"); }
+    finally { setLoadingPays(false); }
+  };
+  useEffect(() => { loadPays(); }, []);
+
+  const grant = async (targetEmail?: string, targetPlan?: string) => {
+    const em = (targetEmail ?? email).trim();
+    const pl = targetPlan ?? plan;
+    if (!em) { setResult({ ok: false, msg: "Укажи email клиента" }); return; }
     setBusy(true); setResult(null);
     try {
       const r = await fetch("/api/admin/grant", {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: email.trim(), plan, months: Number(months) || 1 }),
+        body: JSON.stringify({ email: em, plan: pl, months: Number(months) || 1 }),
       });
       const d = await r.json();
       setResult(d.success
-        ? { ok: true, msg: `Готово: ${plan.toUpperCase()} на ${months} мес → ${email.trim()}` }
+        ? { ok: true, msg: `Готово: ${String(pl).toUpperCase()} на ${months} мес → ${em}` }
         : { ok: false, msg: d.error || "Не получилось" });
-      if (d.success) setEmail("");
+      if (d.success && !targetEmail) setEmail("");
     } catch { setResult({ ok: false, msg: "Ошибка сети" }); }
     finally { setBusy(false); }
   };
 
-  const inp: React.CSSProperties = {
-    height: 38, borderRadius: 9, padding: "0 11px", fontSize: 13, color: "#fff",
-    background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`, outline: "none", boxSizing: "border-box",
-  };
+  const paidOnly = (pays ?? []).filter(p => /paid|confirm|complete/i.test(p.status));
 
   return (
     <div style={{ background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "18px 20px", marginBottom: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-        <Zap size={15} style={{ color: ACCENT }} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: TP }}>Выдать тариф вручную</span>
-      </div>
-      <div style={{ fontSize: 12, color: TS, marginBottom: 12 }}>
-        Клиент оплатил по платёжной ссылке OxaPay → введи его email и включи тариф.
-      </div>
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email клиента" style={{ ...inp, flex: "1 1 220px" }} />
-        <select value={plan} onChange={e => setPlan(e.target.value)} style={{ ...inp, width: 120 }}>
-          <option value="starter">Starter $29</option>
-          <option value="pro">Pro $39</option>
-          <option value="max">Max $49</option>
-        </select>
-        <select value={months} onChange={e => setMonths(e.target.value)} style={{ ...inp, width: 92 }}>
-          {[1, 2, 3, 6, 12].map(m => <option key={m} value={m}>{m} мес</option>)}
-        </select>
-        <button onClick={grant} disabled={busy}
-          style={{ height: 38, padding: "0 18px", borderRadius: 9, border: "none", cursor: busy ? "default" : "pointer",
-            fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, opacity: busy ? 0.7 : 1 }}>
-          {busy ? "Включаю…" : "Включить"}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 4 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Zap size={15} style={{ color: ACCENT }} />
+          <span style={{ fontSize: 14, fontWeight: 700, color: TP }}>Оплаты и выдача тарифов</span>
+        </div>
+        <button onClick={loadPays} disabled={loadingPays}
+          style={{ display: "flex", alignItems: "center", gap: 6, padding: "6px 12px", borderRadius: 9, background: "transparent", border: `1px solid ${BORD}`, color: TS, fontSize: 12, cursor: "pointer" }}>
+          <RefreshCw size={12} style={{ animation: loadingPays ? "spin 1s linear infinite" : "none" }} /> Обновить
         </button>
       </div>
-      {result && (
-        <div style={{ marginTop: 10, fontSize: 12.5, color: result.ok ? "#34d399" : "#fca5a5" }}>{result.msg}</div>
+      <div style={{ fontSize: 12, color: TS, marginBottom: 14 }}>
+        Платежи тянутся напрямую из OxaPay. Оплаты через сайт активируются автоматически;
+        для оплат по платёжной ссылке нажми «Выдать» и укажи email клиента.
+      </div>
+
+      {/* Реальные платежи */}
+      {loadingPays && <div style={{ fontSize: 12.5, color: TM, padding: "10px 0" }}>Загружаем платежи из OxaPay…</div>}
+      {payErr && <div style={{ fontSize: 12.5, color: "#fca5a5", padding: "8px 0" }}>{payErr}</div>}
+      {!loadingPays && !payErr && paidOnly.length === 0 && (
+        <div style={{ fontSize: 12.5, color: TM, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.02)", border: `1px dashed ${BORD}` }}>
+          Оплат пока нет. Как только клиент оплатит — платёж появится здесь.
+        </div>
       )}
+      {paidOnly.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+          {paidOnly.map(p => (
+            <div key={p.trackId} style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap", padding: "10px 12px", borderRadius: 11, background: "rgba(255,255,255,0.03)", border: `1px solid ${BORD}` }}>
+              <span style={{ fontSize: 15, fontWeight: 800, color: SUC, fontVariantNumeric: "tabular-nums", minWidth: 64 }}>${p.amount}</span>
+              <span style={{ fontSize: 12, color: TP, minWidth: 70 }}>{p.guessedPlan ? p.guessedPlan.toUpperCase() : "—"}</span>
+              <span style={{ fontSize: 12, color: TS, flex: "1 1 160px" }}>{p.email ?? "email не указан"}</span>
+              <span style={{ fontSize: 11, color: TM }}>{p.date ?? ""}</span>
+              {p.viaApi ? (
+                <span style={{ fontSize: 11, fontWeight: 700, color: SUC, padding: "4px 10px", borderRadius: 999, background: "rgba(16,185,129,0.12)", border: "1px solid rgba(16,185,129,0.3)" }}>
+                  авто — тариф выдан
+                </span>
+              ) : (
+                <button
+                  onClick={() => { if (p.email) grant(p.email, p.guessedPlan ?? plan); else { setEmail(""); setPlan(p.guessedPlan ?? plan); setResult({ ok: false, msg: "У платежа нет email — впиши его в форме ниже и нажми «Включить»" }); } }}
+                  disabled={busy}
+                  style={{ height: 32, padding: "0 14px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)` }}>
+                  Выдать
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Ручная выдача */}
+      <div style={{ paddingTop: 14, borderTop: `1px solid ${BORD}` }}>
+        <div style={{ fontSize: 12, color: TM, marginBottom: 8 }}>Выдать вручную (например, клиент написал в поддержку):</div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+          <input value={email} onChange={e => setEmail(e.target.value)} placeholder="email клиента" style={{ ...inpS, flex: "1 1 220px" }} />
+          <select value={plan} onChange={e => setPlan(e.target.value)} style={{ ...inpS, width: 130 }}>
+            <option value="starter">Starter $29</option>
+            <option value="pro">Pro $39</option>
+            <option value="max">Max $49</option>
+          </select>
+          <select value={months} onChange={e => setMonths(e.target.value)} style={{ ...inpS, width: 92 }}>
+            {[1, 2, 3, 6, 12].map(m => <option key={m} value={m}>{m} мес</option>)}
+          </select>
+          <button onClick={() => grant()} disabled={busy}
+            style={{ height: 36, padding: "0 18px", borderRadius: 9, border: "none", cursor: busy ? "default" : "pointer", fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, opacity: busy ? 0.7 : 1 }}>
+            {busy ? "Включаю…" : "Включить"}
+          </button>
+        </div>
+        {result && <div style={{ marginTop: 10, fontSize: 12.5, color: result.ok ? SUC : "#fca5a5" }}>{result.msg}</div>}
+      </div>
     </div>
   );
 }
