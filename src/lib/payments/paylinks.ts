@@ -13,7 +13,7 @@
 import type { PlanId } from "@/lib/plans";
 
 export const PAYLINKS: Record<PlanId, string> = {
-  starter: "", // ← сюда ссылку на оплату $29
-  pro:     "", // ← сюда ссылку на оплату $39
-  max:     "", // ← сюда ссылку на оплату $49
+  starter: "https://pay.oxapay.com/16728329", // Vertlix Starter — $29
+  pro:     "https://pay.oxapay.com/13847766", // Vertlix Pro — $39
+  max:     "https://pay.oxapay.com/16314539", // Vertlix Max — $49
 };
