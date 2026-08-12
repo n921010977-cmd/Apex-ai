@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { directChat } from "@/lib/orchestrator";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
-import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
-import { getServerPlan } from "@/lib/server/plan";
+import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import { industryPromptBlock, matchIndustry } from "@/lib/industries";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
@@ -76,9 +75,9 @@ export async function POST(req: NextRequest) {
   const limit = await reportLimiter(`pitch:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-  const plan = await getServerPlan(session.user.id);
-  const quota = await enforceUsage(session.user.id, plan, "pitchDecks");
-  if (!quota.allowed) return quotaExceededResponse("pitchDecks", quota);
+  // Единая серверная проверка: тариф открывает функцию + месячная квота.
+  const access = await requireFeature("pitchDeck", "pitchDecks");
+  if (!access.allowed) return denyResponse(access);
 
   let body: { brief?: string; industry?: string; research?: boolean; language?: string; style?: string };
   try { body = await req.json(); } catch {

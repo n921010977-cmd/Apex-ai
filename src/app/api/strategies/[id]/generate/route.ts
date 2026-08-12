@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { reportLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
-import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
-import { getServerPlan } from "@/lib/server/plan";
+import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
@@ -29,9 +28,8 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
   const limit = await reportLimiter(`strategy-gen:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-  const plan = await getServerPlan(session.user.id);
-  const quota = await enforceUsage(session.user.id, plan, "strategies");
-  if (!quota.allowed) return quotaExceededResponse("strategies", quota);
+  const access = await requireFeature("strategies", "strategies");
+  if (!access.allowed) return denyResponse(access);
 
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

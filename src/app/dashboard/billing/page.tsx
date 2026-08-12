@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Check, Minus, Sparkles, ShieldCheck, Loader2, AlertTriangle, TrendingUp, X } from "lucide-react";
 import { PLANS, PLAN_BY_ID, type Plan, type PlanFeatures, type PlanId } from "@/lib/plans";
 import { usePlan } from "@/lib/use-plan";
+import { trackEvent } from "@/lib/track-client";
 import { useToast } from "@/components/ui/Toast";
 import { PaymentFlowNote } from "@/components/dashboard/PaymentFlowNote";
 
@@ -127,6 +128,7 @@ export default function BillingPage() {
   // только webhook подтверждённой оплаты (или админ вручную).
   const choose = async (p: Plan) => {
     setBusy(p.id);
+    trackEvent("upgrade_started", { plan: p.id, from: active });
     try {
       const res = await fetch("/api/payments/create", {
         method: "POST", headers: { "Content-Type": "application/json" },
@@ -263,11 +265,11 @@ export default function BillingPage() {
                 <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-0.02em", color: "#fff" }}>${plan.priceMonthly}</span>
                 <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/мес</span>
               </div>
-              <button onClick={() => choose(plan)} disabled={isCurrent || busy !== null}
-                style={{ width: "100%", height: 46, borderRadius: 12, border: "none", cursor: isCurrent ? "default" : "pointer", fontSize: 14, fontWeight: 700, color: "#fff",
+              <button onClick={() => choose(plan)} disabled={busy !== null}
+                style={{ width: "100%", height: 46, borderRadius: 12, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#fff",
                   background: isCurrent ? "rgba(52,211,153,0.15)" : hot ? `linear-gradient(135deg,${ACCENT},#4f46e5)` : "rgba(255,255,255,0.08)",
                   boxShadow: hot && !isCurrent ? `0 6px 20px rgba(${RGB},0.35)` : "none", opacity: busy && busy !== plan.id ? 0.5 : 1 }}>
-                {isCurrent ? "Текущий тариф" : busy === plan.id ? "Открываем оплату…" : `Выбрать ${plan.name}`}
+                {busy === plan.id ? "Открываем оплату…" : isCurrent ? "Продлить · текущий тариф" : `Выбрать ${plan.name}`}
               </button>
               <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 10 }}>
                 {plan.perks.map((perk, j) => (

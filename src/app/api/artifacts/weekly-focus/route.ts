@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { directChat } from "@/lib/orchestrator";
 import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
-import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
-import { getServerPlan } from "@/lib/server/plan";
+import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import { industryPromptBlock } from "@/lib/industries";
 
@@ -62,9 +61,8 @@ export async function POST(req: NextRequest) {
   const limit = await chatLimiter(`weekly-focus:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-  const plan = await getServerPlan(session.user.id);
-  const quota = await enforceUsage(session.user.id, plan, "weeklyFocus");
-  if (!quota.allowed) return quotaExceededResponse("weeklyFocus", quota);
+  const access = await requireFeature("weeklyFocus", "weeklyFocus");
+  if (!access.allowed) return denyResponse(access);
 
   let body: { goals?: Goal[]; industry?: string };
   try { body = await req.json(); } catch {

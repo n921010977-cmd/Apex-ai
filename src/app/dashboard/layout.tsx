@@ -7,6 +7,7 @@ import { TopNav } from "@/components/dashboard/TopNav";
 import { ToastProvider } from "@/components/ui/Toast";
 import { CommandPalette } from "@/components/dashboard/CommandPalette";
 import { AnalyticsPing } from "@/components/AnalyticsPing";
+import { LimitNotice } from "@/components/dashboard/LimitNotice";
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -39,6 +40,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </div>
           </main>
         </div>
+
+        {/* Объяснение при упоре в лимит/закрытую функцию — на весь дашборд */}
+        <LimitNotice />
 
         {/* Global command palette ⌘K */}
         <CommandPalette />

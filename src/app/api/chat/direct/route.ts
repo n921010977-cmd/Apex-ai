@@ -3,8 +3,7 @@ import { auth } from "@/auth";
 import { directChat } from "@/lib/orchestrator";
 import { validateBody, SendMessageSchema } from "@/lib/validators";
 import { chatLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
-import { enforceUsage, quotaExceededResponse } from "@/lib/middleware/usage-limit";
-import { getServerPlan } from "@/lib/server/plan";
+import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import { geminiConfigured } from "@/lib/ai/gemini";
 import { grokConfigured } from "@/lib/ai/grok";
@@ -31,9 +30,9 @@ export async function POST(req: NextRequest) {
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
   // Месячная квота тарифа (защита от абьюза). Гость/без тарифа — бесплатный лимит.
-  const plan = await getServerPlan(session.user.id);
-  const quota = await enforceUsage(session.user.id, plan, "aiMessages");
-  if (!quota.allowed) return quotaExceededResponse("aiMessages", quota);
+  // Чат доступен и без тарифа (бесплатная квота), но лимит списывается всегда.
+  const access = await requireFeature(null, "aiMessages");
+  if (!access.allowed) return denyResponse(access);
 
   let rawBody: unknown;
   try {

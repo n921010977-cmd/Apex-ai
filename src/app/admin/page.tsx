@@ -58,7 +58,6 @@ function useCountUp(to: number, active: boolean) {
 function Sparkline({ data, color, w = 120, h = 40 }: { data: number[]; color: string; w?: number; h?: number }) {
   const ref = useRef<SVGPathElement>(null);
   const n = data.length;
-  if (n < 2) return null;
   const min = Math.min(...data), range = Math.max(...data) - min || 1;
   const pts = data.map((v, i) => ({ x: (i / (n - 1)) * w, y: h - ((v - min) / range) * (h - 4) - 2 }));
   const d = pts.map((p, i) => `${i ? "L" : "M"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
@@ -72,6 +71,9 @@ function Sparkline({ data, color, w = 120, h = 40 }: { data: number[]; color: st
     el.style.strokeDashoffset = `${len}`;
     el.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 1200, easing: "cubic-bezier(0.22,1,0.36,1)", fill: "forwards" });
   }, [data]);
+
+  // Ранний выход только ПОСЛЕ хуков — иначе ломается порядок вызовов React.
+  if (n < 2) return null;
 
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: "visible" }}>
@@ -743,10 +745,10 @@ export default function AdminPage() {
 function GrowthChart({ data }: { data: { date: string; users: number; sessions?: number }[] }) {
   const W = 600, H = 160, PX = 0, PY = 8;
   const n = data.length;
-  if (n < 2) return null;
 
   const users    = data.map(d => d.users);
-  const sessions = data.map(d => d.sessions ?? Math.round(d.users * 2.2));
+  // Сессии берём как есть: домысливать «примерно ×2.2» нельзя.
+  const sessions = data.map(d => d.sessions ?? 0);
 
   const allVals = [...users, ...sessions];
   const maxV = Math.max(...allVals) || 1;
@@ -769,6 +771,9 @@ function GrowthChart({ data }: { data: { date: string; users: number; sessions?:
       el.animate([{ strokeDashoffset: len }, { strokeDashoffset: 0 }], { duration: 1600, easing: "cubic-bezier(0.22,1,0.36,1)", fill: "forwards", delay: 300 });
     });
   }, [data]);
+
+  // Ранний выход после хуков — порядок вызовов React должен быть постоянным.
+  if (n < 2) return null;
 
   // Show every 7th label
   const labels = data.filter((_, i) => i === 0 || i === n - 1 || i % 7 === 0);

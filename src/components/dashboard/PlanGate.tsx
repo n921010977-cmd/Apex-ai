@@ -5,6 +5,7 @@ import { Lock, Sparkles, Check } from "lucide-react";
 import { motion } from "framer-motion";
 import { usePlan } from "@/lib/use-plan";
 import { PLANS, type PlanFeatures } from "@/lib/plans";
+import { trackEvent } from "@/lib/track-client";
 
 // ─── Замок на премиум-инструмент ──────────────────────────────────────────────
 // Оборачивает страницу премиум-функции. Если тариф её не открывает (или не
@@ -89,6 +90,7 @@ export function PlanGate({
 
         <Link
           href="/dashboard/billing"
+          onClick={() => trackEvent("upgrade_clicked", { feature, required: needed.id })}
           style={{
             display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
             height: 50, padding: "0 28px", borderRadius: 13,

@@ -17,6 +17,8 @@ interface Row {
   user_id: string; email: string; name: string | null; plan: string;
   created_at: string; last_visit: string | null;
   requests_total: number; requests_today: number; sessions_count: number; revenue: number;
+  usage_month?: number; limit_month?: number | null; remaining_month?: number | null;
+  sub_status?: string; expires_at?: string | null;
 }
 
 const PLAN_COLORS: Record<string, string> = { none: TM, starter: "#a5b4fc", pro: "#34d399", max: "#fbbf24" };
@@ -128,14 +130,14 @@ export default function AdminUsersPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 860 }}>
                 <thead><tr style={{ borderBottom: `1px solid ${BORD}` }}>
-                  {th("Пользователь", "email")}{th("Тариф")}{th("Запросы", "requests_total")}{th("Сегодня")}{th("Сессии", "sessions_count")}{th("Последний визит", "last_visit")}{th("Выручка", "revenue")}{th("Регистрация", "created_at")}
+                  {th("Пользователь", "email")}{th("Тариф")}{th("Статус")}{th("Расход за месяц", "usage_month")}{th("Остаток")}{th("Действует до", "expires_at")}{th("Запросы", "requests_total")}{th("Сессии", "sessions_count")}{th("Последний визит", "last_visit")}{th("Выручка", "revenue")}{th("Регистрация", "created_at")}
                 </tr></thead>
                 <tbody>
                   {loading && rows.length === 0 && (
-                    <tr><td colSpan={8} style={{ padding: 28, textAlign: "center", color: TM, fontSize: 13 }}>Загружаем…</td></tr>
+                    <tr><td colSpan={11} style={{ padding: 28, textAlign: "center", color: TM, fontSize: 13 }}>Загружаем…</td></tr>
                   )}
                   {!loading && rows.length === 0 && (
-                    <tr><td colSpan={8} style={{ padding: 28, textAlign: "center", color: TM, fontSize: 13 }}>
+                    <tr><td colSpan={11} style={{ padding: 28, textAlign: "center", color: TM, fontSize: 13 }}>
                       {demo ? "Подключи Supabase и выполни миграции — здесь появятся реальные пользователи." : "Никого не найдено."}
                     </td></tr>
                   )}
@@ -151,8 +153,19 @@ export default function AdminUsersPage() {
                       <td style={{ padding: "12px 14px" }}>
                         <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: PLAN_COLORS[r.plan] ?? TS, padding: "3px 9px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: `1px solid ${BORD}` }}>{r.plan}</span>
                       </td>
+                      <td style={{ padding: "12px 14px" }}>
+                        <span style={{ fontSize: 11.5, fontWeight: 600, color: r.sub_status === "active" ? "#34d399" : r.sub_status === "expired" ? "#f59e0b" : TM }}>
+                          {r.sub_status === "active" ? "активна" : r.sub_status === "expired" ? "истекла" : "—"}
+                        </span>
+                      </td>
+                      <td style={{ padding: "12px 14px", fontSize: 13, fontVariantNumeric: "tabular-nums" }}>
+                        {r.usage_month ?? 0} / {r.limit_month === null ? "∞" : r.limit_month ?? "—"}
+                      </td>
+                      <td style={{ padding: "12px 14px", fontSize: 13, fontVariantNumeric: "tabular-nums", color: r.remaining_month === 0 ? "#f59e0b" : TS }}>
+                        {r.remaining_month === null ? "∞" : r.remaining_month ?? "—"}
+                      </td>
+                      <td style={{ padding: "12px 14px", fontSize: 12.5, color: TS }}>{fmtDate(r.expires_at ?? null)}</td>
                       <td style={{ padding: "12px 14px", fontSize: 13, fontVariantNumeric: "tabular-nums" }}>{r.requests_total}</td>
-                      <td style={{ padding: "12px 14px", fontSize: 13, fontVariantNumeric: "tabular-nums", color: r.requests_today > 0 ? "#34d399" : TM }}>{r.requests_today}</td>
                       <td style={{ padding: "12px 14px", fontSize: 13, fontVariantNumeric: "tabular-nums" }}>{r.sessions_count}</td>
                       <td style={{ padding: "12px 14px", fontSize: 12.5, color: TS }}>{fmtDate(r.last_visit)}</td>
                       <td style={{ padding: "12px 14px", fontSize: 13, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: r.revenue > 0 ? "#34d399" : TM }}>${Number(r.revenue).toFixed(0)}</td>

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { chatLimiter, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { requireFeature, denyResponse } from "@/lib/server/access";
 import Anthropic from "@anthropic-ai/sdk";
 
 export const maxDuration = 60;
@@ -13,6 +14,10 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
 
   const limit = await chatLimiter(`note-summary:${session.user.id}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
+  // Пересказ заметки — обычный AI-запрос: тратит месячную квоту сообщений.
+  const access = await requireFeature(null, "aiMessages");
+  if (!access.allowed) return denyResponse(access);
 
   const supabase = await createClient();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any

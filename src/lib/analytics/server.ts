@@ -121,7 +121,8 @@ export type ProductEvent =
   | "pricing_view" | "checkout_started"
   | "payment_success" | "payment_failed"
   | "ai_request" | "ai_request_failed"
-  | "subscription_started" | "subscription_expired";
+  | "subscription_started" | "subscription_activated" | "subscription_expired"
+  | "limit_reached" | "feature_blocked" | "upgrade_clicked" | "upgrade_started";
 
 export interface Acquisition {
   utm_source?: string; utm_medium?: string; utm_campaign?: string;

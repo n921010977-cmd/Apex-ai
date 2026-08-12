@@ -3,6 +3,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { AGENT_PROMPTS, AGENT_META, ProjectBrief, AgentResult } from "@/lib/agents";
 import { auth } from "@/auth";
 import { reportLimiter, getIdentifier, rateLimitResponse } from "@/lib/middleware/rate-limit";
+import { requireFeature, denyResponse } from "@/lib/server/access";
 import { industryPromptBlock } from "@/lib/industries";
 
 export const maxDuration = 120;
@@ -154,6 +155,10 @@ export async function POST(req: NextRequest) {
 
   const limit = await reportLimiter(getIdentifier(req, session.user.id));
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
+
+  // Разбор проекта прогоняет несколько агентов — списываем месячную квоту AI.
+  const access = await requireFeature("agents", "aiMessages");
+  if (!access.allowed) return denyResponse(access);
 
   const brief: ProjectBrief = await req.json();
 

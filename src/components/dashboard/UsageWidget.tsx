@@ -25,7 +25,10 @@ const METERS: { key: string; label: string }[] = [
 
 type Step = { label: string; href: string; icon: typeof Target; tone?: "accent" | "warn" };
 
-interface SubResp { plan: string; planName: string | null; status: string; expiresAt: string | null; active: boolean }
+interface SubResp {
+  plan: string; planName: string | null; status: string; expiresAt: string | null; active: boolean;
+  usage?: number; limit?: number | null; remaining?: number | null;
+}
 
 export function UsageWidget() {
   const [data, setData] = useState<UsageResp | null>(null);
@@ -87,6 +90,19 @@ export function UsageWidget() {
             {planName}{sub?.active && sub.expiresAt ? ` · до ${new Date(sub.expiresAt).toLocaleDateString("ru-RU")}` : ""}
           </span>
         </div>
+        {/* Строка состояния: сколько израсходовано и сколько осталось — цифры
+            приходят с сервера (/api/subscription/status), а не считаются здесь. */}
+        {sub && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginBottom: 14, fontSize: 11.5, color: "rgba(255,255,255,0.55)" }}>
+            <span>Статус: <b style={{ color: sub.active ? "#34d399" : "rgba(255,255,255,0.75)" }}>{sub.active ? "активен" : "без тарифа"}</b></span>
+            <span>·</span>
+            <span style={{ fontVariantNumeric: "tabular-nums" }}>
+              Запросы: <b style={{ color: "rgba(255,255,255,0.85)" }}>{sub.usage ?? 0} / {sub.limit === null ? "∞" : sub.limit ?? 0}</b>
+            </span>
+            {sub.remaining != null && (<><span>·</span><span style={{ fontVariantNumeric: "tabular-nums" }}>осталось <b style={{ color: sub.remaining === 0 ? "#fbbf24" : "rgba(255,255,255,0.85)" }}>{sub.remaining}</b></span></>)}
+            {sub.expiresAt && (<><span>·</span><span>до {new Date(sub.expiresAt).toLocaleDateString("ru-RU")}</span></>)}
+          </div>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px 18px" }}>
           {METERS.map(m => {
             const q = data?.usage[m.key];

@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/server/admin";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
+import { limitsFor, type PlanId } from "@/lib/plans";
 
 // GET /api/admin/users — таблица пользователей для админки.
 // Данные из view admin_user_stats (агрегаты считает Postgres, не мы в цикле).
-// ?search= &plan= &active=7d &sort=created_at|last_visit|requests_total|revenue
+// ?search= &plan= &active=7d &sort=created_at|last_visit|requests_total|usage_month|revenue|expires_at
 // &order=asc|desc &page=1 &limit=25
 
-const SORTS = new Set(["created_at", "last_visit", "requests_total", "revenue", "sessions_count", "email"]);
+// Сортировки: по расходу, выручке, дате окончания подписки и т.д.
+const SORTS = new Set(["created_at", "last_visit", "requests_total", "usage_month", "revenue", "sessions_count", "expires_at", "email"]);
 
 export async function GET(req: NextRequest) {
   const admin = await requireAdmin();
@@ -45,5 +47,21 @@ export async function GET(req: NextRequest) {
     .range((page - 1) * limit, page * limit - 1);
 
   if (error) return NextResponse.json({ success: false, error: "Ошибка запроса" }, { status: 500 });
-  return NextResponse.json({ success: true, rows: data ?? [], total: count ?? 0, page, limit });
+
+  // Лимит и остаток считаем на сервере из того же конфига тарифов, что и API.
+  type Row = { plan?: string; usage_month?: number; expires_at?: string | null; sub_status?: string };
+  const rows = ((data ?? []) as Row[]).map(r => {
+    const plan = (["starter", "pro", "max"].includes(r.plan ?? "") ? r.plan : "none") as PlanId | "none";
+    const monthly = limitsFor(plan).aiMessages;
+    const used = Number(r.usage_month ?? 0);
+    const expired = r.expires_at ? new Date(r.expires_at).getTime() < Date.now() : false;
+    return {
+      ...r,
+      limit_month: monthly,
+      remaining_month: monthly === null ? null : Math.max(0, monthly - used),
+      sub_status: expired ? "expired" : (r.sub_status ?? "none"),
+    };
+  });
+
+  return NextResponse.json({ success: true, rows, total: count ?? 0, page, limit });
 }
