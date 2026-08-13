@@ -180,6 +180,136 @@ function pct(a: number, b: number): string {
   return `${Math.round((a / b) * 1000) / 10}%`;
 }
 
+// ─── Growth: полная воронка, деньги, когорты ──────────────────────────────────
+// Все цифры приходят из RPC growth_metrics / cohort_metrics. Если показатель
+// нельзя посчитать честно (нет активных подписок для ARPU, нет завершившихся
+// для оттока) — RPC вернёт null, и здесь будет «—», а не выдуманное число.
+interface Growth {
+  funnel: { visitors: number; signups: number; activated: number; pricing_views: number; checkouts: number; paid: number };
+  revenue: { mrr: number; total: number; period: number; paid_users: number; arpu: number | null; churned: number; churn_rate: number | null };
+}
+interface Cohort { cohort: string; signups: number; activated: number; paid: number }
+
+function GrowthSection() {
+  const [days, setDays] = useState(30);
+  const [data, setData] = useState<Growth | null>(null);
+  const [cohorts, setCohorts] = useState<Cohort[]>([]);
+  const [err, setErr] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let alive = true;
+    setLoading(true); setErr("");
+    fetch(`/api/admin/growth?days=${days}`, { cache: "no-store" })
+      .then(r => r.json())
+      .then(d => {
+        if (!alive) return;
+        if (d.success && d.data) { setData(d.data as Growth); setCohorts((d.cohorts ?? []) as Cohort[]); }
+        else if (d.success && !d.configured) setErr("Подключите Supabase — тогда появятся реальные данные");
+        else setErr(d.error || "Нет данных");
+      })
+      .catch(() => alive && setErr("Ошибка сети"))
+      .finally(() => alive && setLoading(false));
+    return () => { alive = false; };
+  }, [days]);
+
+  const f = data?.funnel;
+  const steps = f ? [
+    { label: "Посетители",       value: f.visitors,      conv: null as string | null },
+    { label: "Регистрации",      value: f.signups,       conv: pct(f.signups, f.visitors) },
+    { label: "Активация",        value: f.activated,     conv: pct(f.activated, f.signups) },
+    { label: "Смотрели тарифы",  value: f.pricing_views, conv: pct(f.pricing_views, f.activated) },
+    { label: "Начали оплату",    value: f.checkouts,     conv: pct(f.checkouts, f.pricing_views) },
+    { label: "Оплатили",         value: f.paid,          conv: pct(f.paid, f.checkouts) },
+  ] : [];
+  const maxV = f ? Math.max(f.visitors, f.signups, 1) : 1;
+  const money = data?.revenue;
+  const dash = (v: number | null | undefined, prefix = "", suffix = "") =>
+    v === null || v === undefined ? "—" : `${prefix}${v}${suffix}`;
+
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Zap size={15} style={{ color: SUC }} />
+          <span style={{ fontSize: 14, fontWeight: 700, color: TP }}>Growth</span>
+        </div>
+        <div style={{ display: "flex", gap: 6 }}>
+          {[7, 30, 90].map(d => (
+            <button key={d} onClick={() => setDays(d)}
+              style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
+                color: days === d ? "#fff" : TS,
+                background: days === d ? "rgba(16,185,129,0.16)" : "transparent",
+                border: `1px solid ${days === d ? "rgba(16,185,129,0.45)" : BORD}` }}>
+              {d} дней
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {loading && <div style={{ fontSize: 12.5, color: TM }}>Считаем метрики роста…</div>}
+      {err && !loading && <div style={{ fontSize: 12.5, color: WARN, padding: "10px 12px", borderRadius: 10, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)" }}>{err}</div>}
+
+      {data && !loading && (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))", gap: 14 }}>
+          <div style={{ background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "18px 20px" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, marginBottom: 14 }}>Путь пользователя</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
+              {steps.map(st => (
+                <div key={st.label}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
+                    <span style={{ fontSize: 12.5, color: TS }}>{st.label}</span>
+                    <span style={{ fontSize: 12.5, fontWeight: 700, color: TP, fontVariantNumeric: "tabular-nums" }}>
+                      {st.value}{st.conv ? <span style={{ color: SUC, fontWeight: 600 }}> · {st.conv}</span> : null}
+                    </span>
+                  </div>
+                  <div style={{ height: 8, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
+                    <div style={{ height: "100%", width: `${Math.max(2, (st.value / maxV) * 100)}%`, borderRadius: 99, background: `linear-gradient(90deg,${SUC},#6ee7b7)`, transition: "width .6s cubic-bezier(0.22,1,0.36,1)" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
+            {f && (
+              <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BORD}`, fontSize: 12, color: TM }}>
+                Посетитель → оплата: <b style={{ color: SUC }}>{pct(f.paid, f.visitors)}</b>
+              </div>
+            )}
+          </div>
+
+          <div style={{ background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "18px 20px" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, marginBottom: 14 }}>Деньги</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <div><div style={{ fontSize: 21, fontWeight: 800, color: SUC, fontVariantNumeric: "tabular-nums" }}>${money?.mrr ?? 0}</div><div style={{ fontSize: 11, color: TM }}>MRR</div></div>
+              <div><div style={{ fontSize: 21, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums" }}>{money?.paid_users ?? 0}</div><div style={{ fontSize: 11, color: TM }}>платящих</div></div>
+              <div><div style={{ fontSize: 21, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums" }}>{dash(money?.arpu ?? null, "$")}</div><div style={{ fontSize: 11, color: TM }}>ARPU</div></div>
+              <div><div style={{ fontSize: 21, fontWeight: 800, color: (money?.churn_rate ?? 0) > 0 ? WARN : TP, fontVariantNumeric: "tabular-nums" }}>{dash(money?.churn_rate ?? null, "", "%")}</div><div style={{ fontSize: 11, color: TM }}>отток</div></div>
+            </div>
+            <div style={{ marginTop: 14, paddingTop: 12, borderTop: `1px solid ${BORD}`, display: "flex", justifyContent: "space-between", fontSize: 12, color: TM }}>
+              <span>За период: <b style={{ color: TP }}>${Number(money?.period ?? 0).toFixed(0)}</b></span>
+              <span>Всего: <b style={{ color: TP }}>${Number(money?.total ?? 0).toFixed(0)}</b></span>
+            </div>
+          </div>
+
+          <div style={{ background: SURF, border: `1px solid ${BORD}`, borderRadius: 16, padding: "18px 20px" }}>
+            <div style={{ fontSize: 12.5, fontWeight: 700, color: TP, marginBottom: 14 }}>Когорты по месяцу регистрации</div>
+            {cohorts.length === 0 && <div style={{ fontSize: 12.5, color: TM }}>Пока нет зарегистрированных пользователей</div>}
+            <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
+              {cohorts.map(c => (
+                <div key={c.cohort} style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <span style={{ fontSize: 12, color: TP, minWidth: 58, fontFamily: "monospace" }}>{c.cohort}</span>
+                  <span style={{ fontSize: 12, color: TS, flex: 1 }}>{c.signups} рег.</span>
+                  <span style={{ fontSize: 11.5, color: TS, minWidth: 92, textAlign: "right" }}>активация {pct(c.activated, c.signups)}</span>
+                  <span style={{ fontSize: 11.5, fontWeight: 700, color: c.paid > 0 ? SUC : TM, minWidth: 78, textAlign: "right" }}>оплата {pct(c.paid, c.signups)}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function AnalyticsSection() {
   const [days, setDays] = useState(30);
   const [data, setData] = useState<Analytics | null>(null);
@@ -554,7 +684,8 @@ export default function AdminPage() {
         </div>
 
         {/* ── Воронка, источники, AI и выручка ── */}
-        <AnalyticsSection />
+        <GrowthSection />
+          <AnalyticsSection />
 
         {/* ── Оплаты и выдача тарифов ── */}
         <GrantPlanCard />

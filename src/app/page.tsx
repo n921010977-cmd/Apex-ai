@@ -15,7 +15,7 @@ const ExecutivesSection = dynamic(() => import("@/components/landing/ExecutivesS
 const HowAgentsWork = dynamic(() => import("@/components/landing/HowAgentsWork").then(m => m.HowAgentsWork));
 const WhyNotChatGPT = dynamic(() => import("@/components/landing/WhyNotChatGPT").then(m => m.WhyNotChatGPT));
 const FeaturesSection = dynamic(() => import("@/components/landing/FeaturesSection").then(m => m.FeaturesSection));
-const TestimonialsSection = dynamic(() => import("@/components/landing/TestimonialsSection").then(m => m.TestimonialsSection));
+const ProofSection = dynamic(() => import("@/components/landing/ProofSection").then(m => m.ProofSection));
 const FaqSection = dynamic(() => import("@/components/landing/FaqSection").then(m => m.FaqSection));
 const CtaBanner = dynamic(() => import("@/components/landing/CtaBanner").then(m => m.CtaBanner));
 
@@ -32,7 +32,7 @@ export default function LandingPage() {
       <HowAgentsWork />
       <WhyNotChatGPT />
       <FeaturesSection />
-      <TestimonialsSection />
+      <ProofSection />
       <div id="pricing"><PricingCards /></div>
       <FaqSection />
       <CtaBanner />

@@ -8,6 +8,7 @@ import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import { geminiConfigured } from "@/lib/ai/gemini";
 import { grokConfigured } from "@/lib/ai/grok";
+import { markActivated } from "@/lib/analytics/growth";
 
 export const maxDuration = 120;
 
@@ -66,6 +67,7 @@ export async function POST(req: NextRequest) {
         });
         send({ type: "done" });
         void logAiRequest({ userId, feature: "chat", status: "ok", responseTimeMs: Date.now() - t0 });
+        void markActivated(userId, "chat");
       } catch (err) {
         // Наружу — общая формулировка: текст ошибки провайдера может содержать
         // внутренние пути, идентификаторы и части конфигурации.

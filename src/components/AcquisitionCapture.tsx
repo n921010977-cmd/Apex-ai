@@ -29,6 +29,9 @@ export function AcquisitionCapture() {
       utm_campaign: q.get("utm_campaign") ?? undefined,
       utm_content: q.get("utm_content") ?? undefined,
       utm_term: q.get("utm_term") ?? undefined,
+      // Реферальная ссылка вида /?ref=CODE — код попадает в тот же cookie
+      // первого касания и привязывается к профилю при регистрации.
+      ref: q.get("ref")?.slice(0, 16).toUpperCase() ?? undefined,
       landing_page: window.location.pathname,
       // Внешний реферер (переходы внутри сайта не считаем источником).
       referrer: document.referrer && !document.referrer.includes(window.location.host)
@@ -43,7 +46,12 @@ export function AcquisitionCapture() {
     fetch("/api/track/visit", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ path: window.location.pathname, hasUtm: hasAny }),
+      body: JSON.stringify({
+        path: window.location.pathname,
+        hasUtm: hasAny,
+        // На публичных страницах визит — это верх воронки (landing_view).
+        landing: window.location.pathname === "/" || window.location.pathname === "/pricing",
+      }),
       keepalive: true,
     }).catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps

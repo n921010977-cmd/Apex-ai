@@ -122,7 +122,13 @@ export type ProductEvent =
   | "payment_success" | "payment_failed"
   | "ai_request" | "ai_request_failed"
   | "subscription_started" | "subscription_activated" | "subscription_expired"
-  | "limit_reached" | "feature_blocked" | "upgrade_clicked" | "upgrade_started";
+  | "limit_reached" | "feature_blocked" | "upgrade_clicked" | "upgrade_started"
+  // Верх воронки и активация
+  | "landing_view" | "signup_started" | "activation" | "feature_used"
+  // События для будущих писем/уведомлений (пока только пишутся в ленту)
+  | "welcome" | "first_result"
+  | "usage_50_percent" | "usage_80_percent" | "usage_100_percent"
+  | "subscription_expiring";
 
 export interface Acquisition {
   utm_source?: string; utm_medium?: string; utm_campaign?: string;

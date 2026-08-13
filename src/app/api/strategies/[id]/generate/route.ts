@@ -8,6 +8,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { industryPromptBlock } from "@/lib/industries";
 import { safeErrorResponse } from "@/lib/errors";
+import { markActivated } from "@/lib/analytics/growth";
 
 export const maxDuration = 120;
 
@@ -104,6 +105,7 @@ ${qFormatted}
     }
     tokensUsed = (response.usage.input_tokens ?? 0) + (response.usage.output_tokens ?? 0);
     void logAiRequest({ userId: session.user.id, feature: "strategy", model: MODEL_HEAVY, status: "ok", tokensUsed });
+    void markActivated(session.user.id, "strategy");
   } catch (err) {
     await db.from("strategies").update({ status: "draft" }).eq("id", id).eq("user_id", session.user.id);
     const msg = err instanceof Error ? err.message : "AI error";

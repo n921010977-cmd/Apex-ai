@@ -7,6 +7,7 @@ import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { safeErrorResponse } from "@/lib/errors";
+import { markActivated } from "@/lib/analytics/growth";
 
 export const maxDuration = 120;
 
@@ -356,6 +357,7 @@ Respond in JSON:
     }).eq("id", id);
 
     void logAiRequest({ userId: session.user.id, feature: "board_meeting", model: MODEL_HEAVY, status: "ok", tokensUsed: totalTokens });
+    void markActivated(session.user.id, "board_meeting");
 
     // Fetch full result
     const [{ data: finalSpeeches }, { data: finalVotes }, { data: finalDecisions }] = await Promise.all([

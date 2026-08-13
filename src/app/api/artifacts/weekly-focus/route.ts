@@ -6,6 +6,7 @@ import { requireFeature, denyResponse } from "@/lib/server/access";
 import { logAiRequest } from "@/lib/analytics/server";
 import { industryPromptBlock } from "@/lib/industries";
 import { safeErrorResponse } from "@/lib/errors";
+import { markActivated } from "@/lib/analytics/growth";
 
 export const maxDuration = 60;
 
@@ -82,6 +83,7 @@ export async function POST(req: NextRequest) {
       maxTokens: 1200,
     });
     void logAiRequest({ userId: session.user.id, feature: "weekly_focus", status: "ok", responseTimeMs: Date.now() - t0 });
+    void markActivated(session.user.id, "weekly_focus");
     return NextResponse.json({ success: true, focus: content });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "AI error";

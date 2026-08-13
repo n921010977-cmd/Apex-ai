@@ -8,6 +8,8 @@ import { siteUrl } from "@/lib/site";
 const PUBLIC_PATHS: { path: string; priority: number; changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"] }[] = [
   { path: "/",               priority: 1.0, changeFrequency: "weekly"  },
   { path: "/pricing",        priority: 0.9, changeFrequency: "weekly"  },
+  { path: "/features",       priority: 0.8, changeFrequency: "monthly" },
+  { path: "/use-cases",      priority: 0.8, changeFrequency: "monthly" },
   { path: "/login",          priority: 0.4, changeFrequency: "yearly"  },
   { path: "/register",       priority: 0.6, changeFrequency: "yearly"  },
   { path: "/legal",          priority: 0.3, changeFrequency: "yearly"  },

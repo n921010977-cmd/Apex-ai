@@ -12,8 +12,12 @@ export async function POST(req: NextRequest) {
   const limit = await apiLimiter(`visit:${clientIp(req)}`);
   if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
-  let path = "";
-  try { path = String((await req.json())?.path ?? ""); } catch { /* без пути тоже ок */ }
+  let path = "", landing = false;
+  try {
+    const body = await req.json();
+    path = String(body?.path ?? "");
+    landing = Boolean(body?.landing);
+  } catch { /* без пути тоже ок */ }
   if (!path.startsWith("/")) path = "/";
 
   // Псевдоним посетителя: необратимый хеш, персональные данные не хранятся.
@@ -33,5 +37,7 @@ export async function POST(req: NextRequest) {
   } catch { /* остаётся direct */ }
 
   void logEvent("visit", null, { anon_id: anonId, path: path.slice(0, 200), source });
+  // Отдельное событие для публичных страниц — верх маркетинговой воронки.
+  if (landing) void logEvent("landing_view", null, { anon_id: anonId, path: path.slice(0, 200), source });
   return NextResponse.json({ success: true });
 }

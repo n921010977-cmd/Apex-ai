@@ -21,6 +21,22 @@ const WARNING    = "#f59e0b";
 const DANGER     = "#ef4444";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
+interface ActivityLog {
+  id?: string; action?: string; entity_type?: string | null; created_at?: string;
+}
+
+/** «5 минут назад» из точной даты — без выдуманных значений. */
+function fmtAgo(iso?: string): string {
+  if (!iso) return "";
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.round(diff / 60000);
+  if (m < 1) return "только что";
+  if (m < 60) return `${m}м назад`;
+  const h = Math.round(m / 60);
+  if (h < 24) return `${h}ч назад`;
+  return `${Math.round(h / 24)}д назад`;
+}
+
 interface Project {
   id: string; name: string; description: string | null;
   overall_score: number; status: string; created_at: string;
@@ -28,10 +44,8 @@ interface Project {
 }
 
 // ─── Static data ──────────────────────────────────────────────────────────────
-const DEMO_PROJECTS: Project[] = [
-  { id: "demo", name: "AI-Powered Fitness App", description: "Мобильное приложение с AI-персонализацией тренировок", overall_score: 87, status: "active", created_at: new Date(Date.now() - 7200000).toISOString(), target_revenue: "$2.4M", ai_results: [1,2,3] },
-  { id: "2",    name: "SaaS Invoice Platform",  description: "Автоматизированное выставление счетов для фрилансеров", overall_score: 91, status: "active", created_at: new Date(Date.now() - 86400000).toISOString(), target_revenue: "$1.8M", ai_results: [1,2,3] },
-];
+// Демо-проектов больше нет: показывать выдуманные «AI-Powered Fitness App» с
+// прогнозом $2.4M как чужой результат — обман. Пусто = пустое состояние с CTA.
 
 const EXECUTIVES = [
   { role: "CEO", name: "Sophia Rivers", title: "Chief Strategy AI", specialty: "Стратегия & Видение",    color: "#6366f1", rgb: "99,102,241",  confidence: 94, tasks: 12, icon: Brain,      slug: "ceo" },
@@ -41,20 +55,18 @@ const EXECUTIVES = [
   { role: "CTO", name: "Park Aiden",    title: "Technology AI",      specialty: "Технологии & Архитект.", color: "#8b5cf6", rgb: "139,92,246",  confidence: 92, tasks: 9,  icon: Cpu,        slug: "cto" },
 ];
 
-const AI_INSIGHTS = [
-  { type: "opportunity", icon: TrendingUp,    color: SUCCESS, title: "Новый рыночный сегмент",  desc: "Корпоративный B2B рынок показывает 340% рост спроса в вашей нише. Потенциал: $4.2M ARR.", prob: 84, impact: "Высокий", growth: "+$4.2M" },
-  { type: "threat",      icon: AlertTriangle, color: DANGER,  title: "Конкурент привлёк $15M",  desc: "FitAI Labs закрыла раунд Series A. Агрессивная экспансия в вашу целевую аудиторию.",        prob: 67, impact: "Средний", growth: "-12%" },
-  { type: "action",      icon: Lightbulb,     color: WARNING, title: "Повысьте цену на 23%",    desc: "Анализ рынка показывает недооценку продукта. Увеличение до $49/мес не снизит конверсию.",  prob: 78, impact: "Высокий", growth: "+$680K" },
-  { type: "opportunity", icon: Globe,         color: SUCCESS, title: "Выход на рынок EU",        desc: "GDPR-совместимая инфраструктура готова. Германия и Нидерланды — первые целевые рынки.",    prob: 71, impact: "Высокий", growth: "+$1.8M" },
+const NEXT_STEPS = [
+  { title: "Разобрать идею советом директоров", desc: "20 AI-ролей разберут проект каждый со своей стороны и дадут вердикт.", href: "/dashboard/executives", icon: Users },
+  { title: "Собрать стратегию",                 desc: "Позиционирование, рынок, конкуренты и приоритеты одним документом.", href: "/dashboard/strategy",   icon: FileText },
+  { title: "Сделать питч-дек",                  desc: "Слайды для инвестора с экспортом в PDF.",                             href: "/dashboard/pitch",      icon: Rocket },
+  { title: "Разложить цели на план 30/60/90",   desc: "Понятные шаги на ближайшие недели вместо общих слов.",               href: "/dashboard/tools",      icon: Target },
 ];
 
-const ACTIVITY = [
-  { icon: CheckCircle, color: SUCCESS, label: "Стратегический анализ завершён",   sub: "Fitness App · 94 балла",       time: "2м назад"  },
-  { icon: Globe,       color: ACCENT,  label: "Обнаружен новый конкурент",         sub: "FitAI Labs · $15M funding",    time: "18м назад" },
-  { icon: DollarSign,  color: ACCENT,  label: "Финансовая модель обновлена",       sub: "Q2 прогноз пересмотрен вверх", time: "1ч назад"  },
-  { icon: FileText,    color: ACCENT,  label: "Investor Report сформирован",       sub: "PDF · 48 страниц",             time: "3ч назад"  },
-  { icon: Brain,       color: ACCENT,  label: "Симуляция рынка завершена",         sub: "Точность 91% · 10K сценариев", time: "5ч назад"  },
-];
+// Секция «инсайты» раньше показывала придуманные факты о бизнесе
+// пользователя ($4.2M ARR, конкурент с раундом $15M). Заменена на реальные
+// действия продукта — см. NEXT_STEPS ниже.
+
+
 
 const QUICK_ACTIONS = [
   { label: "Новый анализ",  href: "/dashboard/new",        icon: Zap,      desc: "Запустить AI-команду" },
@@ -485,8 +497,8 @@ function EmptyProjects() {
 export default function DashboardPage() {
   const { data: session } = useSession();
   const [projects, setProjects] = useState<Project[]>([]);
-  const [isDemo,   setIsDemo]   = useState(false);
   const [loading,  setLoading]  = useState(true);
+  const [activity, setActivity] = useState<ActivityLog[]>([]);
   const [tab,      setTab]      = useState<"projects" | "insights">("projects");
   const reduce = useReducedMotion();
 
@@ -495,11 +507,16 @@ export default function DashboardPage() {
     fetch("/api/projects")
       .then(r => r.json())
       .then(d => {
-        if (d.projects?.length) { setProjects(d.projects); setIsDemo(false); }
-        else                    { setProjects(DEMO_PROJECTS); setIsDemo(true); }
+        setProjects(d.projects ?? []);
       })
-      .catch(() => { setProjects(DEMO_PROJECTS); setIsDemo(true); })
+      .catch(() => { setProjects([]); })
       .finally(() => setLoading(false));
+
+    // Журнал активности — реальные записи пользователя.
+    fetch("/api/activity")
+      .then(r => (r.ok ? r.json() : null))
+      .then(d => { if (Array.isArray(d?.data)) setActivity(d.data.slice(0, 5)); })
+      .catch(() => {});
   }, []);
 
   const hour     = new Date().getHours();
@@ -653,8 +670,8 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* ═══ ONBOARDING — first-value for users with no real projects ═══ */}
-      {isDemo && (
+      {/* ═══ ONBOARDING — путь к первому результату для новичка ═══ */}
+      {!loading && projects.length === 0 && (
         <motion.div className="page-section" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
           style={{ maxWidth: 1280, margin: "36px auto 0", padding: "0 32px" }}>
           <div style={{ borderRadius: 20, padding: "22px 24px", position: "relative", overflow: "hidden",
@@ -726,12 +743,6 @@ export default function DashboardPage() {
                   <EmptyProjects />
                 ) : (
                   <>
-                    {isDemo && (
-                      <div style={{ display: "inline-flex", alignItems: "center", gap: 6, marginBottom: 12, padding: "5px 12px", borderRadius: 8, background: `rgba(${ACCENT_RGB},0.08)`, border: `1px solid rgba(${ACCENT_RGB},0.2)` }}>
-                        <span style={{ fontSize: 11, fontWeight: 600, color: `rgba(${ACCENT_RGB},0.9)` }}>Демо-данные</span>
-                        <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)" }}>— создайте свой проект</span>
-                      </div>
-                    )}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {projects.slice(0, 4).map((p, i) => <ProjectCard key={p.id} p={p} i={i} />)}
                     </div>
@@ -751,35 +762,22 @@ export default function DashboardPage() {
               </motion.div>
             ) : (
               <motion.div key="insights" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.22 }} className="space-y-3">
-                {AI_INSIGHTS.map((ins, i) => (
-                  <motion.div key={i} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: i * 0.07 }}
-                    style={{ borderRadius: 16, padding: "16px 18px", background: "rgba(255,255,255,0.03)", border: `1px solid ${ins.color}22`, cursor: "pointer" }}
-                    className="group hover:-translate-y-0.5 transition-transform">
-                    <div className="flex items-start gap-3">
-                      <div className="size-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `${ins.color}12`, border: `1px solid ${ins.color}22`, color: ins.color }}>
-                        <ins.icon size={15} />
+                {/* Реальные шаги продукта вместо выдуманных «инсайтов» о бизнесе
+                    пользователя. Каждый пункт ведёт в работающий инструмент. */}
+                {NEXT_STEPS.map((st, i) => (
+                  <motion.div key={st.href} initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.4, delay: i * 0.07 }}>
+                    <Link href={st.href}
+                      style={{ display: "flex", gap: 12, alignItems: "flex-start", borderRadius: 16, padding: "16px 18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", textDecoration: "none" }}
+                      className="group hover:-translate-y-0.5 transition-transform">
+                      <div className="size-9 rounded-xl flex items-center justify-center flex-shrink-0" style={{ background: `rgba(${ACCENT_RGB},0.12)`, border: `1px solid rgba(${ACCENT_RGB},0.22)`, color: "#a5b4fc" }}>
+                        <st.icon size={15} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 3 }}>{ins.title}</div>
-                            <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.55 }}>{ins.desc}</p>
-                          </div>
-                          <div className="text-right flex-shrink-0">
-                            <div style={{ fontSize: 14, fontWeight: 800, color: ins.color }}>{ins.growth}</div>
-                            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>Эффект</div>
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3 mt-3">
-                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>
-                            <span style={{ color: ins.color, fontWeight: 700 }}>{ins.prob}%</span> вероятность
-                          </div>
-                          <div style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>·</div>
-                          <div style={{ fontSize: 10, color: ins.impact === "Высокий" ? SUCCESS : WARNING, fontWeight: 600 }}>{ins.impact} импакт</div>
-                          <ExternalLink size={10} className="ml-auto text-white/20 group-hover:text-indigo-400/50 transition-colors" />
-                        </div>
+                        <div style={{ fontSize: 13, fontWeight: 600, color: "#fff", marginBottom: 3 }}>{st.title}</div>
+                        <p style={{ fontSize: 12, color: "rgba(255,255,255,0.45)", lineHeight: 1.55, margin: 0 }}>{st.desc}</p>
                       </div>
-                    </div>
+                      <ChevronRight size={15} className="text-white/20 group-hover:text-indigo-400/60 transition-colors flex-shrink-0" />
+                    </Link>
                   </motion.div>
                 ))}
               </motion.div>
@@ -830,27 +828,36 @@ export default function DashboardPage() {
               </div>
             </div>
             <div className="space-y-0">
-              {ACTIVITY.map((ev, i) => (
-                <motion.div key={i}
+              {/* Реальная лента: последние действия пользователя из activity_logs.
+                  Пока их нет — честное пустое состояние с подсказкой. */}
+              {activity.length === 0 && (
+                <div style={{ padding: "14px 2px", fontSize: 11.5, color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>
+                  Здесь появятся ваши действия: анализы, стратегии, заседания совета.
+                  <Link href="/dashboard/new" style={{ color: "#a5b4fc", textDecoration: "none", marginLeft: 4 }}>Начать →</Link>
+                </div>
+              )}
+              {activity.map((ev, i) => (
+                <motion.div key={ev.id ?? i}
                   initial={{ opacity: 0, x: 10 }} whileInView={{ opacity: 1, x: 0 }} viewport={{ once: true }}
                   transition={{ duration: 0.35, delay: i * 0.06 }}
-                  className="flex items-start gap-3 py-2.5 group cursor-pointer"
-                  style={{ borderBottom: i < ACTIVITY.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
+                  className="flex items-start gap-3 py-2.5"
+                  style={{ borderBottom: i < activity.length - 1 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
                   <div className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5"
-                    style={{ background: `${ev.color}12`, border: `1px solid ${ev.color}20`, color: ev.color }}>
-                    <ev.icon size={12} />
+                    style={{ background: `rgba(${ACCENT_RGB},0.12)`, border: `1px solid rgba(${ACCENT_RGB},0.2)`, color: "#a5b4fc" }}>
+                    <Activity size={12} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(255,255,255,0.72)", lineHeight: 1.3 }}>{ev.label}</div>
-                    <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>{ev.sub}</div>
+                    <div style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(255,255,255,0.72)", lineHeight: 1.3 }}>{ev.action ?? "Действие"}</div>
+                    {ev.entity_type && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>{ev.entity_type}</div>}
                   </div>
-                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", flexShrink: 0, marginTop: 1 }}>{ev.time}</span>
+                  <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", flexShrink: 0, marginTop: 1 }}>{fmtAgo(ev.created_at)}</span>
                 </motion.div>
               ))}
             </div>
           </motion.div>
 
-          {/* Recommendation */}
+          {/* Главное действие: что создаём сегодня. Раньше здесь была
+              «рекомендация дня» с выдуманными цифрами про чужой рынок. */}
           <motion.div
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.12 }}
@@ -859,57 +866,54 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb size={13} style={{ color: ACCENT }} />
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: `rgba(${ACCENT_RGB},0.9)` }}>
-                Рекомендация дня
+                Что создаём сегодня
               </span>
             </div>
-            <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", lineHeight: 1.5, marginBottom: 8 }}>
-              Повысьте цену на 23% — рынок недооценивает продукт
+            <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", lineHeight: 1.5, marginBottom: 12 }}>
+              Опишите бизнес один раз — совет директоров разберёт его и даст вердикт.
             </p>
-            <p style={{ fontSize: 11, color: "rgba(255,255,255,0.38)", lineHeight: 1.55, marginBottom: 14 }}>
-              Анализ 340 конкурентов показывает медиану $49/мес. Текущая цена оставляет $680K в год на столе.
-            </p>
-            <div className="flex items-center gap-3 mb-4">
-              {[{ v: "78%", l: "Вероятность", c: SUCCESS }, { v: "+$680K", l: "Потенциал/год", c: WARNING }, { v: "High", l: "Импакт", c: ACCENT }].map((m, i) => (
-                <div key={i} className="text-center" style={{ flex: 1 }}>
-                  <div style={{ fontSize: 15, fontWeight: 800, color: m.c }}>{m.v}</div>
-                  <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 1 }}>{m.l}</div>
-                  {i < 2 && <div style={{ position: "absolute" }} />}
-                </div>
+            <div className="space-y-2 mb-3">
+              {NEXT_STEPS.slice(0, 3).map(st => (
+                <Link key={st.href} href={st.href}
+                  className="flex items-center gap-2.5 transition-colors"
+                  style={{ fontSize: 12, color: "rgba(255,255,255,0.62)", textDecoration: "none" }}>
+                  <st.icon size={13} style={{ color: "#a5b4fc", flexShrink: 0 }} />
+                  <span style={{ flex: 1 }}>{st.title}</span>
+                  <ChevronRight size={13} style={{ color: "rgba(255,255,255,0.25)" }} />
+                </Link>
               ))}
             </div>
             <Link href="/dashboard/new"
               className="flex items-center justify-center gap-2 font-semibold text-white transition-all hover:-translate-y-px"
-              style={{ height: 36, borderRadius: 10, fontSize: 12, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
-              <Zap size={12} /> Применить стратегию
+              style={{ height: 38, borderRadius: 10, fontSize: 12.5, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)", textDecoration: "none" }}>
+              <Zap size={13} /> Начать разбор
             </Link>
           </motion.div>
 
           {/* Engagement / Streak / Daily Insight */}
           <EngagementPanel />
 
-          {/* Market pulse */}
+          {/* Помощь. Раньше здесь был «Пульс рынка» с выдуманными трендами
+              (+340% AI Fitness и т.п.) — источника у этих цифр нет. */}
           <motion.div
             initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}
             transition={{ duration: 0.45, delay: 0.18 }}
             style={{ borderRadius: 16, padding: "18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 12 }}>
-              Пульс рынка
+              Нужна помощь
             </div>
             {[
-              { label: "B2B SaaS",      trend: "+18%",  positive: true },
-              { label: "AI Fitness",    trend: "+340%", positive: true },
-              { label: "FinTech Tools", trend: "+22%",  positive: true },
-              { label: "No-code Tools", trend: "-4%",   positive: false },
-            ].map((m, i) => (
-              <div key={i} className="flex items-center justify-between py-2"
-                style={{ borderBottom: i < 3 ? "1px solid rgba(255,255,255,0.04)" : "none" }}>
-                <div className="flex items-center gap-2">
-                  <Globe size={11} style={{ color: "rgba(255,255,255,0.22)" }} />
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>{m.label}</span>
-                </div>
-                <span style={{ fontSize: 12, fontWeight: 700, color: m.positive ? SUCCESS : DANGER }}>{m.trend}</span>
-              </div>
+              { label: "Как устроены тарифы и лимиты", href: "/dashboard/billing" },
+              { label: "Написать в поддержку",          href: "/dashboard/support" },
+              { label: "Условия и конфиденциальность",  href: "/legal" },
+            ].map((l, i) => (
+              <Link key={l.href} href={l.href}
+                className="flex items-center justify-between py-2 group"
+                style={{ borderBottom: i < 2 ? "1px solid rgba(255,255,255,0.04)" : "none", textDecoration: "none" }}>
+                <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>{l.label}</span>
+                <ChevronRight size={13} className="text-white/20 group-hover:text-indigo-400/60 transition-colors" />
+              </Link>
             ))}
           </motion.div>
 

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
 import { logEvent, saveAcquisition } from "@/lib/analytics/server";
+import { makeReferralCode } from "@/lib/analytics/growth";
 import { createClient } from "@/lib/supabase/server";
 import { authLimiter, rateLimitResponse, clientIp } from "@/lib/middleware/rate-limit";
 import { validatePasswordStrength } from "@/lib/password";
@@ -26,6 +27,10 @@ export async function POST(req: Request) {
     }
     const weak = validatePasswordStrength(password);
     if (weak) return NextResponse.json({ error: weak }, { status: 400 });
+
+    // Форма заполнена корректно и отправлена — шаг воронки перед регистрацией.
+    // Пишем анонимно: пользователя ещё не существует, email в аналитику не идёт.
+    void logEvent("signup_started", null, {});
 
     // Demo mode — no Supabase configured
     if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -70,6 +75,18 @@ export async function POST(req: Request) {
       if (acqRaw) { try { acq = JSON.parse(decodeURIComponent(acqRaw)); } catch { /* игнор */ } }
       void saveAcquisition(created.id, acq);
       void logEvent("signup", created.id, { source: acq.utm_source ?? "direct", landing: acq.landing_page ?? null });
+      // Приветственное событие — задел под письмо, когда подключим рассылку.
+      void logEvent("welcome", created.id, {});
+
+      // Реферальная связка: собственный код пользователя + код пригласившего
+      // (кладётся в ту же cookie первого касания при заходе по /?ref=CODE).
+      const ref = typeof acq.ref === "string" ? acq.ref.slice(0, 16).toUpperCase() : null;
+      try {
+        await db.from("users").update({
+          referral_code: makeReferralCode(created.id),
+          referred_by: ref,
+        }).eq("id", created.id);
+      } catch { /* колонок ещё нет — миграция 016 не применена */ }
     }
 
     // Send an email-verification link (best-effort — never block signup on it).

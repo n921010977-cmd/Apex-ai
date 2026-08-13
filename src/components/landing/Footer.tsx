@@ -8,9 +8,9 @@ const NAV_COLUMNS = [
   {
     heading: "Продукт",
     links: [
-      { label: "Возможности", href: "#product" },
+      { label: "Возможности", href: "/features" },
       { label: "AI команда", href: "#executives" },
-      { label: "Отзывы", href: "#testimonials" },
+      { label: "Сценарии использования", href: "/use-cases" },
       { label: "Тарифы", href: "/pricing" },
       { label: "AI Чат", href: "/chat" },
     ],

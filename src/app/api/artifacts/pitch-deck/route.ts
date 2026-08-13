@@ -8,6 +8,7 @@ import { industryPromptBlock, matchIndustry } from "@/lib/industries";
 import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { webResearch, webContextBlock, webResearchConfigured } from "@/lib/web-research";
 import { safeErrorResponse } from "@/lib/errors";
+import { markActivated } from "@/lib/analytics/growth";
 
 export const maxDuration = 120;
 
@@ -120,6 +121,7 @@ export async function POST(req: NextRequest) {
     const result = await directChat({ message: buildPrompt(brief, language, style) + webBlock, persona, maxTokens: Math.max(MAX_TOKENS_HEAVY, 3000) });
     raw = result.content;
     void logAiRequest({ userId: session.user.id, feature: "pitch_deck", model: MODEL_HEAVY, status: "ok", responseTimeMs: Date.now() - t0 });
+    void markActivated(session.user.id, "pitch_deck");
   } catch (err) {
     const msg = err instanceof Error ? err.message : "AI error";
     void logAiRequest({ userId: session.user.id, feature: "pitch_deck", model: MODEL_HEAVY, status: "error", responseTimeMs: Date.now() - t0, errorMessage: msg });

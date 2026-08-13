@@ -11,6 +11,7 @@ import { getSubscription } from "@/lib/payments/entitlement";
 import { PLAN_BY_ID, planAllows, limitsFor, type PlanId, type PlanFeatures } from "@/lib/plans";
 import { enforceUsage, type QuotaKey, type UsageResult } from "@/lib/middleware/usage-limit";
 import { logEvent } from "@/lib/analytics/server";
+import { checkUsageThresholds } from "@/lib/analytics/growth";
 
 export type Feature = keyof PlanFeatures;
 
@@ -107,6 +108,10 @@ export async function requireFeature(
   if (!quota) return { allowed: true, userId, plan };
 
   const usage = await enforceUsage(userId, plan, quota);
+
+  // Пороги 50/80/100 % — по одному событию за месяц на каждый порог.
+  void checkUsageThresholds(userId, quota, usage);
+
   if (!usage.allowed) {
     void logEvent("limit_reached", userId, { quota, plan, limit: usage.limit, used: usage.used });
     return {

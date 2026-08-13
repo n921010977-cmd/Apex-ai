@@ -63,6 +63,19 @@ export function UsageWidget() {
     const near = METERS.find(m => { const q = data.usage[m.key]; return q && q.limit && q.limit > 0 && q.used / q.limit >= 0.8; });
     if (near) steps.push({ label: `Лимит «${near.label}» почти исчерпан — обнови тариф`, href: "/dashboard/billing", icon: ArrowUpRight, tone: "warn" });
 
+    // Подписка заканчивается — напоминаем о продлении по реальной дате.
+    const daysLeft = sub?.expiresAt
+      ? Math.ceil((new Date(sub.expiresAt).getTime() - Date.now()) / 86_400_000)
+      : null;
+    if (sub?.active && daysLeft !== null && daysLeft <= 7) {
+      steps.unshift({
+        label: daysLeft <= 0
+          ? "Подписка закончилась — продлите, чтобы вернуть доступ"
+          : `Подписка заканчивается через ${daysLeft} дн. — продлить`,
+        href: "/dashboard/billing", icon: ArrowUpRight, tone: "warn",
+      });
+    }
+
     // контекстные действия
     const allows = (k: string) => plan !== "none" && PLAN_BY_ID[plan].features[k as keyof typeof PLAN_BY_ID.starter.features];
     if (allows("pitchDeck")) steps.push({ label: "Собери питч-дек для инвестора", href: "/dashboard/pitch", icon: Presentation });

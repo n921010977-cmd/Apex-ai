@@ -443,7 +443,7 @@ export function HeroSection() {
             >
               <span className="size-1.5 rounded-full bg-violet-400 animate-pulse" />
               <span className="text-[11px] font-semibold text-violet-300/90 tracking-wide">
-                2 300+ основателей уже проверили свои идеи
+                20 AI-директоров разберут вашу идею
               </span>
             </div>
           </motion.div>
@@ -525,54 +525,22 @@ export function HeroSection() {
             </a>
           </motion.div>
 
-          {/* Social proof */}
-          <motion.div variants={it} className="mt-8 flex items-center gap-3.5 justify-center lg:justify-start">
-            <div className="flex -space-x-2.5">
-              {([
-                ["А","#7c3aed","#a855f7"],
-                ["С","#3b82f6","#22d3ee"],
-                ["М","#10b981","#34d399"],
-                ["Д","#f59e0b","#fbbf24"],
-                ["Р","#ec4899","#f472b6"],
-              ] as const).map(([ch, c1, c2], i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, scale: 0.5, x: -8 }}
-                  animate={{ opacity: 1, scale: 1, x: 0 }}
-                  transition={{ delay: 0.6 + i * 0.08, type: "spring", stiffness: 320, damping: 18 }}
-                  whileHover={{ y: -4, scale: 1.12, zIndex: 10, transition: { type: "spring", stiffness: 400, damping: 15 } }}
-                  className="relative size-9 rounded-full flex items-center justify-center text-[11px] font-bold text-white"
-                  style={{
-                    background: `linear-gradient(135deg, ${c1}, ${c2})`,
-                    border: "2px solid #06060c",
-                    boxShadow: `0 4px 12px ${c1}66, inset 0 1px 0 rgba(255,255,255,0.35)`,
-                  }}
-                >
-                  <span style={{ textShadow: "0 1px 2px rgba(0,0,0,0.3)" }}>{ch}</span>
-                </motion.div>
-              ))}
-              {/* "+more" bubble */}
-              <motion.div
-                initial={{ opacity: 0, scale: 0.5 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1.0, type: "spring", stiffness: 320, damping: 18 }}
-                className="relative size-9 rounded-full flex items-center justify-center text-[9px] font-bold text-white/70"
-                style={{ background: "rgba(255,255,255,0.08)", border: "2px solid #06060c", backdropFilter: "blur(8px)" }}
-              >
-                +2K
-              </motion.div>
-            </div>
-            <div className="text-[12px] text-white/32 leading-tight">
-              <div className="flex items-center gap-1 mb-0.5">
-                {[0,1,2,3,4].map(i => (
-                  <svg key={i} viewBox="0 0 24 24" fill="#fbbf24" width="11" height="11">
-                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                  </svg>
-                ))}
-                <span className="text-white/60 font-semibold ml-1">4.9/5</span>
-              </div>
-              от 2 300+ основателей
-            </div>
+          {/* Условия входа — только проверяемые факты о бесплатном тарифе.
+              Раньше здесь стояли «2 300+ основателей» и «4.9/5», которых у
+              продукта нет: выдуманное социальное доказательство убрано. */}
+          <motion.div variants={it} className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 justify-center lg:justify-start">
+            {[
+              "Бесплатно: 20 AI-сообщений",
+              "Карта не нужна",
+              "Первый разбор — за пару минут",
+            ].map((t) => (
+              <span key={t} className="flex items-center gap-2 text-[12.5px] text-white/40">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                {t}
+              </span>
+            ))}
           </motion.div>
         </motion.div>
 
