@@ -17,6 +17,37 @@ import type { PlanId } from "@/lib/plans";
 
 const VALID_PLANS = new Set(["starter", "pro", "max"]);
 
+// ─── Идемпотентность без БД ───────────────────────────────────────────────────
+// В Supabase-режиме дубль webhook отсекает журнал платежей (`status = PAID`).
+// Когда БД не настроена, ту же гарантию даёт отметка «track_id уже обработан»:
+// Upstash (переживает рестарты и общий для инстансов) или память процесса.
+const seenTracks = new Set<string>();
+
+function upstashConfigured(): boolean {
+  return Boolean(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
+}
+
+/** true = первый раз видим этот track_id; false = дубль, начислять нельзя. */
+async function claimTrackId(trackId: string): Promise<boolean> {
+  if (!trackId) return true; // без track_id дедупить не по чему — пропускаем
+  if (upstashConfigured()) {
+    try {
+      const res = await fetch(`${process.env.UPSTASH_REDIS_REST_URL}/pipeline`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${process.env.UPSTASH_REDIS_REST_TOKEN}`, "Content-Type": "application/json" },
+        // SET NX — атомарно: только один вызов получит "OK". TTL 30 дней.
+        body: JSON.stringify([["SET", `oxapay:track:${trackId}`, "1", "NX", "PX", 30 * 864e5]]),
+        cache: "no-store",
+      });
+      const r = await res.json();
+      return r?.[0]?.result === "OK";
+    } catch { /* Redis недоступен — падаем в память ниже */ }
+  }
+  if (seenTracks.has(trackId)) return false;
+  seenTracks.add(trackId);
+  return true;
+}
+
 /** OxaPay-статус → внутренний. Неизвестные/промежуточные — PENDING (только ack). */
 function mapStatus(s: string): PaymentStatus | "PENDING" {
   switch (s.trim().toLowerCase()) {
@@ -98,7 +129,11 @@ export async function handleOxapayWebhook(req: Request): Promise<NextResponse> {
   }
 
   // 5. Журнала нет — активируем по order_id, который мы же зашили при создании
-  //    счёта (userId::plan::ts). Подпись уже проверена.
+  //    счёта (userId::plan::ts). Подпись уже проверена. Дубль webhook по тому же
+  //    track_id начислять нельзя — сначала занимаем отметку.
+  if (!(await claimTrackId(trackId))) {
+    return NextResponse.json({ success: true, ack: "duplicate" });
+  }
   const parsed = orderId ? parseOrderId(orderId) : null;
   if (parsed && VALID_PLANS.has(parsed.plan)) {
     await setEntitlement(parsed.userId, parsed.plan as PlanId, 1,
