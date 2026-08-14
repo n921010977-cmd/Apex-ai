@@ -57,7 +57,7 @@ const EXECUTIVES = [
 
 const NEXT_STEPS = [
   { title: "Разобрать идею советом директоров", desc: "20 AI-ролей разберут проект каждый со своей стороны и дадут вердикт.", href: "/dashboard/executives", icon: Users },
-  { title: "Собрать стратегию",                 desc: "Позиционирование, рынок, конкуренты и приоритеты одним документом.", href: "/dashboard/strategy",   icon: FileText },
+  { title: "Собрать стратегию",                 desc: "Позиционирование, рынок, конкуренты и приоритеты одним документом.", href: "/dashboard/new",        icon: FileText },
   { title: "Сделать питч-дек",                  desc: "Слайды для инвестора с экспортом в PDF.",                             href: "/dashboard/pitch",      icon: Rocket },
   { title: "Разложить цели на план 30/60/90",   desc: "Понятные шаги на ближайшие недели вместо общих слов.",               href: "/dashboard/tools",      icon: Target },
 ];
