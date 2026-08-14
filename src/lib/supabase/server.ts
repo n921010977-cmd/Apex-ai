@@ -110,6 +110,59 @@ export type SupabaseHealth =
   | { configured: true; connected: true; latencyMs: number }
   | { configured: true; connected: false; reason: "no_tables" | "auth_failed" | "unreachable" | "error" };
 
+// ─── Расширенная диагностика для /api/health ─────────────────────────────────
+// Отвечает на три вопроса, из-за которых «чтение работает, а запись падает»:
+//  1) какого РОДА ключ лежит в SUPABASE_SERVICE_ROLE_KEY (значение не выводим);
+//  2) применена ли миграция 018 (колонка users.role);
+//  3) проходит ли реальная ЗАПИСЬ (вставка+удаление пробного события).
+export interface SupabaseDeepCheck {
+  serviceKeyKind: "service_role" | "anon_key_by_mistake" | "publishable_by_mistake" | "secret" | "missing" | "unknown";
+  schema018: boolean | null;      // null = не удалось проверить
+  writeOk: boolean | null;
+  writeError?: string;            // только код ошибки Postgres, без текста
+}
+
+function classifyServiceKey(): SupabaseDeepCheck["serviceKeyKind"] {
+  const k = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!k) return "missing";
+  if (k.startsWith("sb_secret_")) return "secret";
+  if (k.startsWith("sb_publishable_")) return "publishable_by_mistake";
+  // Легаси-ключи — JWT: роль лежит в payload и не является секретом.
+  try {
+    const payload = JSON.parse(Buffer.from(k.split(".")[1], "base64url").toString());
+    if (payload?.role === "service_role") return "service_role";
+    if (payload?.role === "anon") return "anon_key_by_mistake";
+  } catch { /* не JWT */ }
+  return "unknown";
+}
+
+export async function deepCheckSupabase(): Promise<SupabaseDeepCheck> {
+  const out: SupabaseDeepCheck = { serviceKeyKind: classifyServiceKey(), schema018: null, writeOk: null };
+  if (!isSupabaseConfigured()) return out;
+  try {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any;
+
+    // Миграция 018: колонка users.role существует?
+    const { error: colErr } = await db.from("users").select("role").limit(1);
+    out.schema018 = !colErr;
+
+    // Живая запись: пробное событие в user_events (RLS без политик — пишет
+    // только service role), сразу удаляем. Персональных данных нет.
+    const probe = `health-probe-${Date.now()}`;
+    const { error: insErr } = await db.from("user_events").insert({ event_name: "health_write_probe", metadata: { probe } });
+    if (insErr) {
+      out.writeOk = false;
+      out.writeError = insErr.code ?? "unknown";
+    } else {
+      out.writeOk = true;
+      await db.from("user_events").delete().eq("event_name", "health_write_probe").catch(() => {});
+    }
+  } catch { /* сеть/прочее — оставляем null */ }
+  return out;
+}
+
 export async function checkSupabaseConnection(): Promise<SupabaseHealth> {
   if (!isSupabaseConfigured()) return { configured: false, connected: false, reason: "no_env" };
 

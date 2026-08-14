@@ -65,7 +65,9 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("[register]", error);
-      return NextResponse.json({ error: "Server error, please try again" }, { status: 500 });
+      // Код ошибки Postgres не секретен и позволяет диагностировать проблему
+      // по скриншоту: 42703 = не применена миграция, 42501 = не тот ключ (RLS).
+      return NextResponse.json({ error: `Server error, please try again (${error.code ?? "unknown"})` }, { status: 500 });
     }
 
     // Аналитика: событие регистрации + источник первого касания из cookie.

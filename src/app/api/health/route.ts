@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createPayment, oxapayConfigured } from "@/lib/payments/oxapay";
-import { checkSupabaseConnection } from "@/lib/supabase/server";
+import { checkSupabaseConnection, deepCheckSupabase } from "@/lib/supabase/server";
 
 /**
  * GET /api/health
@@ -21,6 +21,7 @@ export async function GET(req: Request) {
 
   // Supabase: не «env задан», а реальный запрос к базе (см. checkSupabaseConnection).
   const supa = await checkSupabaseConnection();
+  const supaDeep = await deepCheckSupabase();
 
   const integrations = {
     anthropic:  has(process.env.ANTHROPIC_API_KEY),
@@ -76,7 +77,7 @@ export async function GET(req: Request) {
     // Детали по Supabase (без секретов): configured=env заданы, connected=живой
     // запрос прошёл; reason подсказывает, что чинить (no_env / no_tables /
     // auth_failed / unreachable).
-    supabaseDetail: supa,
+    supabaseDetail: { ...supa, ...supaDeep },
     // Какой код реально задеплоен (Vercel проставляет эти переменные сам)
     deploy: {
       commit: process.env.VERCEL_GIT_COMMIT_SHA?.slice(0, 7) ?? null,
