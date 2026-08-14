@@ -2,12 +2,12 @@
 // Здесь живут события жизненного цикла, по которым видно, доводит ли продукт
 // пользователя до пользы и до оплаты. Всё пишется только с сервера.
 //
-// Событий для писем (welcome, usage_80_percent, subscription_expiring) пока
-// никто не рассылает — почтовый сервис не подключён. Они складываются в ленту
-// user_events, чтобы рассылку можно было включить позже без переделки продукта.
+// Пороги 80/100 % главной квоты дублируются письмом (см. lib/notifications) —
+// без RESEND_API_KEY письмо уходит в лог, продукт от почты не зависит.
 
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { logEvent } from "@/lib/analytics/server";
+import { notifyUsageThreshold } from "@/lib/notifications";
 import type { UsageResult } from "@/lib/middleware/usage-limit";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -56,6 +56,11 @@ export async function checkUsageThresholds(userId: string, quota: string, usage:
   const name = threshold === 100 ? "usage_100_percent"
     : threshold === 80 ? "usage_80_percent" : "usage_50_percent";
   void logEvent(name, userId, { quota, used: usage.used, limit: usage.limit });
+
+  // Письмо шлём на 80 и 100 % и только по главной квоте — на 50 % не спамим.
+  if (quota === "aiMessages" && (threshold === 80 || threshold === 100)) {
+    void notifyUsageThreshold(userId, threshold, usage.used, usage.limit);
+  }
 }
 
 /**
