@@ -16,14 +16,14 @@ export async function POST(req: Request) {
     if (!limit.allowed) return rateLimitResponse(limit.resetAt);
 
     let body: { name?: string; email?: string; password?: string };
-    try { body = await req.json(); } catch { return NextResponse.json({ error: "Некорректный запрос" }, { status: 400 }); }
+    try { body = await req.json(); } catch { return NextResponse.json({ error: "Invalid request" }, { status: 400 }); }
     const { name, email, password } = body;
 
     if (!name?.trim() || !email?.trim() || !password) {
-      return NextResponse.json({ error: "Заполните все поля" }, { status: 400 });
+      return NextResponse.json({ error: "Please fill in all fields" }, { status: 400 });
     }
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-      return NextResponse.json({ error: "Некорректный email" }, { status: 400 });
+      return NextResponse.json({ error: "Invalid email" }, { status: 400 });
     }
     const weak = validatePasswordStrength(password);
     if (weak) return NextResponse.json({ error: weak }, { status: 400 });
@@ -48,7 +48,7 @@ export async function POST(req: Request) {
       .maybeSingle();
 
     if (existing) {
-      return NextResponse.json({ error: "Email уже зарегистрирован" }, { status: 409 });
+      return NextResponse.json({ error: "This email is already registered" }, { status: 409 });
     }
 
     const password_hash = await bcrypt.hash(password, 12);
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
 
     if (error) {
       console.error("[register]", error);
-      return NextResponse.json({ error: "Ошибка сервера, попробуйте ещё раз" }, { status: 500 });
+      return NextResponse.json({ error: "Server error, please try again" }, { status: 500 });
     }
 
     // Аналитика: событие регистрации + источник первого касания из cookie.
@@ -96,7 +96,7 @@ export async function POST(req: Request) {
       const token = signVerifyToken(addr);
       const base = process.env.NEXTAUTH_URL || new URL(req.url).origin;
       const link = `${base}/verify-email?token=${encodeURIComponent(token)}`;
-      await sendEmail({ to: addr, subject: "Подтвердите email · Vertlix AI", html: verificationEmailHtml(link) });
+      await sendEmail({ to: addr, subject: "Confirm your email · Vertlix AI", html: verificationEmailHtml(link) });
     } catch (e) {
       console.error("[register] verification email", e);
     }
@@ -104,6 +104,6 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("[register]", err);
-    return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }

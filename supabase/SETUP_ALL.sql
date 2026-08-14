@@ -1,5 +1,5 @@
 -- ============================================================================
--- VERTLIX AI — ПОЛНАЯ УСТАНОВКА БАЗЫ (миграции 001–017 одним файлом)
+-- VERTLIX AI — ПОЛНАЯ УСТАНОВКА БАЗЫ (миграции 001–018 одним файлом)
 -- ============================================================================
 -- Как применить: Supabase → SQL Editor → New query → вставить ЦЕЛИКОМ → Run.
 -- Файл можно запускать повторно: уже созданные объекты пропускаются.
@@ -191,8 +191,7 @@ CREATE INDEX IF NOT EXISTS idx_tool_calls_agent ON tool_calls(agent_id);
 CREATE INDEX IF NOT EXISTS idx_tool_calls_conversation ON tool_calls(conversation_id);
 
 -- ─── SUBSCRIPTIONS ───────────────────────────────────────────────────────────
--- (legacy-таблица subscriptions из ранней Stripe-схемы удалена из установки;
---  настоящую таблицу subscriptions создаёт секция 013 ниже)
+-- (legacy-таблица subscriptions удалена из установки; настоящую создаёт секция 013)
 
 -- ─── INVOICES ────────────────────────────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS invoices (
@@ -1510,3 +1509,21 @@ left join lateral (
 ) p on true;
 
 alter view admin_user_stats set (security_invoker = true);
+
+
+-- ╔══════════════════════════════════════════════════════════════════════════╗
+-- ║ 018_users_app_columns.sql                                                 ║
+-- ╚══════════════════════════════════════════════════════════════════════════╝
+-- ============================================================================
+-- 018 — Недостающие колонки users, которые пишет приложение
+-- ============================================================================
+-- С подключением настоящей базы вскрылось: регистрация (role/tier/лимиты
+-- отчётов) и OAuth-вход (image) вставляют колонки, которых не было в схеме,
+-- и падали с «column does not exist» → пользователь видел «Ошибка сервера».
+
+alter table users add column if not exists role                    text not null default 'FREE';
+alter table users add column if not exists tier                    text not null default 'FREE';
+alter table users add column if not exists max_reports_per_month   integer not null default 3;
+alter table users add column if not exists reports_generated_month integer not null default 0;
+alter table users add column if not exists limit_reset_date        timestamptz;
+alter table users add column if not exists image                   text;   -- аватар из OAuth (Google/GitHub)
