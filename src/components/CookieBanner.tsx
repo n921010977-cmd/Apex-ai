@@ -37,7 +37,7 @@ export function CookieBanner() {
   return (
     <div
       role="dialog"
-      aria-label="Согласие на использование cookies"
+      aria-label="Cookie consent"
       aria-live="polite"
       style={{
         position: "fixed", left: 0, right: 0, bottom: 0, zIndex: 100000,
@@ -63,29 +63,29 @@ export function CookieBanner() {
           <div style={{ width: 30, height: 30, borderRadius: 9, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" width="15" height="15"><circle cx="12" cy="12" r="9" /><circle cx="9" cy="10" r="1" fill="#fff" /><circle cx="14" cy="14" r="1" fill="#fff" /><circle cx="15" cy="9" r="1" fill="#fff" /></svg>
           </div>
-          <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Cookies на Vertlix AI</span>
+          <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Cookies on Vertlix AI</span>
         </div>
 
         <p style={{ fontSize: 13.5, lineHeight: 1.6, color: "rgba(255,255,255,0.65)", margin: "0 0 4px" }}>
-          Мы используем cookies для работы сайта, безопасности и улучшения сервиса.
+          We use cookies to run the site, keep it secure and improve the service.
         </p>
         <p style={{ fontSize: 12.5, lineHeight: 1.55, color: "rgba(255,255,255,0.4)", margin: "0 0 16px" }}>
-          Подробнее — в <Link href="/legal/cookies" style={{ color: "#a5b4fc", textDecoration: "none" }}>Cookie Policy</Link>.
+          Learn more in the <Link href="/legal/cookies" style={{ color: "#a5b4fc", textDecoration: "none" }}>Cookie Policy</Link>.
         </p>
 
         {/* Панель настроек */}
         {expanded && (
           <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 16, padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
             <Row
-              title="Необходимые и безопасность"
-              desc="Вход в аккаунт, защита от атак, работа сайта. Всегда включены."
+              title="Essential & security"
+              desc="Sign-in, attack protection, core site functions. Always on."
               locked
               on
             />
             <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
             <Row
-              title="Аналитические"
-              desc="Помогают понять, как используется продукт, чтобы улучшать его."
+              title="Analytics"
+              desc="Help us understand how the product is used so we can improve it."
               on={analytics}
               onToggle={() => setAnalytics(a => !a)}
             />
@@ -96,14 +96,14 @@ export function CookieBanner() {
         <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
           {!expanded ? (
             <>
-              <button onClick={() => decide(true)} style={btnPrimary}>Принять</button>
-              <button onClick={() => setExpanded(true)} style={btnGhost}>Настроить</button>
-              <button onClick={() => decide(false)} style={btnGhost}>Отклонить необязательные</button>
+              <button onClick={() => decide(true)} style={btnPrimary}>Accept</button>
+              <button onClick={() => setExpanded(true)} style={btnGhost}>Customize</button>
+              <button onClick={() => decide(false)} style={btnGhost}>Reject non-essential</button>
             </>
           ) : (
             <>
-              <button onClick={() => decide(analytics)} style={btnPrimary}>Сохранить выбор</button>
-              <button onClick={() => decide(true)} style={btnGhost}>Принять все</button>
+              <button onClick={() => decide(analytics)} style={btnPrimary}>Save choices</button>
+              <button onClick={() => decide(true)} style={btnGhost}>Accept all</button>
             </>
           )}
         </div>
@@ -123,7 +123,7 @@ function Row({ title, desc, on, locked, onToggle }: { title: string; desc: strin
         onClick={onToggle}
         disabled={locked}
         aria-pressed={on}
-        aria-label={`${title}: ${on ? "включено" : "выключено"}`}
+        aria-label={`${title}: ${on ? "on" : "off"}`}
         style={{
           flexShrink: 0, width: 42, height: 24, borderRadius: 999, border: "none",
           background: on ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.14)",

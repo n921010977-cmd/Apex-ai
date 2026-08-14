@@ -200,7 +200,7 @@ const config: NextAuthConfig = {
               return {
                 id:    `guest-${short}`,
                 email: `guest-${short}@vertlix.local`,
-                name:  "Гость",
+                name:  "Guest",
                 image: null,
                 role:  "FREE",
                 tier:  "FREE",

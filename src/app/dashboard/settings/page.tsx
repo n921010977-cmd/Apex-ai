@@ -62,21 +62,21 @@ function Toast({ msg, type, onClose }: { msg: string; type: "success" | "error";
 // ─── Nav sections ─────────────────────────────────────────────────────────────
 
 const NAV = [
-  { id: "profile",       label: "Профиль",       icon: User,    group: "Аккаунт" },
-  { id: "ai",            label: "AI Ассистент",  icon: Bot,     group: "Аккаунт" },
-  { id: "notifications", label: "Уведомления",   icon: Bell,    group: "Система" },
-  { id: "security",      label: "Безопасность",  icon: Shield,  group: "Система" },
-  { id: "privacy",       label: "Приватность и данные", icon: Lock, group: "Система" },
-  { id: "appearance",    label: "Внешний вид",   icon: Palette, group: "Настройки" },
+  { id: "profile",       label: "Profile",       icon: User,    group: "Account" },
+  { id: "ai",            label: "AI Assistant",  icon: Bot,     group: "Account" },
+  { id: "notifications", label: "Notifications", icon: Bell,    group: "System" },
+  { id: "security",      label: "Security",      icon: Shield,  group: "System" },
+  { id: "privacy",       label: "Privacy & data", icon: Lock, group: "System" },
+  { id: "appearance",    label: "Appearance",    icon: Palette, group: "Settings" },
 ];
 
 const DESCRIPTIONS: Record<string, string> = {
-  profile:       "Ваше имя и данные аккаунта",
-  ai:            "Конфигурация AI-ассистента и 20 агентов совета директоров",
-  notifications: "Контролируй как и когда ты получаешь уведомления",
-  security:      "Двухфакторная аутентификация и защита аккаунта",
-  privacy:       "Ваши данные, согласия и удаление аккаунта",
-  appearance:    "Тема, цвета и визуальные настройки",
+  profile:       "Your name and account details",
+  ai:            "Configure the AI assistant and your 20 board agents",
+  notifications: "Control how and when you get notified",
+  security:      "Two-factor authentication and account protection",
+  privacy:       "Your data, consents and account deletion",
+  appearance:    "Theme, colors and visual preferences",
 };
 
 // ─── UI atoms ─────────────────────────────────────────────────────────────────
@@ -201,7 +201,7 @@ function SaveBar({ onSave, loading }: { onSave: () => void; loading: boolean }) 
         }}
       >
         {loading ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Check size={13} />}
-        {loading ? "Сохранение..." : "Сохранить изменения"}
+        {loading ? "Saving..." : "Save changes"}
       </button>
     </div>
   );
@@ -255,16 +255,16 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
     const file = e.target.files?.[0];
     e.target.value = ""; // allow re-picking the same file
     if (!file) return;
-    if (!file.type.startsWith("image/")) { showToast("Выберите изображение", "error"); return; }
-    if (file.size > 5 * 1024 * 1024) { showToast("Файл больше 5 МБ — выберите поменьше", "error"); return; }
+    if (!file.type.startsWith("image/")) { showToast("Please choose an image", "error"); return; }
+    if (file.size > 5 * 1024 * 1024) { showToast("File is over 5 MB — choose a smaller one", "error"); return; }
     setAvatarBusy(true);
     try {
       const dataUrl = await resizeToDataUrl(file, 256);
       const r = await fetch("/api/user/avatar", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ dataUrl }) });
       const d = await r.json();
-      if (d.success) { setAvatar(d.avatarUrl); showToast("Аватар обновлён", "success"); }
-      else showToast(d.error || "Не удалось загрузить", "error");
-    } catch { showToast("Не удалось обработать изображение", "error"); }
+      if (d.success) { setAvatar(d.avatarUrl); showToast("Avatar updated", "success"); }
+      else showToast(d.error || "Upload failed", "error");
+    } catch { showToast("Could not process the image", "error"); }
     finally { setAvatarBusy(false); }
   };
 
@@ -273,15 +273,15 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
     try {
       const r = await fetch("/api/user/avatar", { method: "DELETE" });
       const d = await r.json();
-      if (d.success) { setAvatar(null); showToast("Аватар удалён", "success"); }
-      else showToast(d.error || "Ошибка", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      if (d.success) { setAvatar(null); showToast("Avatar removed", "success"); }
+      else showToast(d.error || "Error", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setAvatarBusy(false); }
   };
 
   const save = async () => {
     const name = `${form.firstName} ${form.lastName}`.trim();
-    if (!name) { showToast("Укажите имя", "error"); return; }
+    if (!name) { showToast("Please enter a name", "error"); return; }
     setLoading(true);
     try {
       const r = await fetch("/api/user", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name }) });
@@ -289,9 +289,9 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
       if (d.success) {
         // Обновляем сессию — имя сразу меняется в шапке, сайдбаре и у AI-команды.
         await updateSession({ name });
-        showToast("Профиль сохранён", "success");
-      } else showToast(d.error || "Ошибка сохранения", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+        showToast("Profile saved", "success");
+      } else showToast(d.error || "Save failed", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setLoading(false); }
   };
 
@@ -299,13 +299,13 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
 
   return (
     <div>
-      <Section title="Профиль" desc="Имя, под которым вас видит AI-команда" accent="#6366f1">
+      <Section title="Profile" desc="The name your AI team sees" accent="#6366f1">
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 22, paddingBottom: 22, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-          <label title="Загрузить аватар"
+          <label title="Upload avatar"
             style={{ position: "relative", width: 68, height: 68, flexShrink: 0, borderRadius: 20, cursor: avatarBusy ? "default" : "pointer", overflow: "hidden", display: "block", boxShadow: "0 8px 24px rgba(99,102,241,0.4)" }}>
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={avatar} alt="Аватар" width={68} height={68} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+              <img src={avatar} alt="Avatar" width={68} height={68} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
               <span style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 800, color: "#fff" }}>
                 {form.firstName[0] || "F"}
@@ -320,28 +320,28 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
           </label>
           <div style={{ minWidth: 0 }}>
             <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginBottom: 2 }}>{form.firstName} {form.lastName}</div>
-            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>{form.email || "email не указан"}</div>
+            <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 8 }}>{form.email || "no email set"}</div>
             <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
               <label style={{ fontSize: 11.5, fontWeight: 600, color: "#a5b4fc", cursor: avatarBusy ? "default" : "pointer" }}>
-                {avatar ? "Изменить фото" : "Загрузить фото"}
+                {avatar ? "Change photo" : "Upload photo"}
                 <input type="file" accept="image/png,image/jpeg,image/webp" onChange={onPickAvatar} disabled={avatarBusy} style={{ display: "none" }} />
               </label>
               {avatar && (
                 <button onClick={removeAvatar} disabled={avatarBusy}
                   style={{ fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.4)", background: "none", border: "none", cursor: avatarBusy ? "default" : "pointer", padding: 0 }}>
-                  Удалить
+                  Remove
                 </button>
               )}
-              <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.28)" }}>PNG, JPG, WebP · до 5 МБ</span>
+              <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.28)" }}>PNG, JPG, WebP · up to 5 MB</span>
             </div>
           </div>
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <FieldInput label="Имя" value={form.firstName} onChange={upd("firstName")} placeholder="Имя" />
-          <FieldInput label="Фамилия" value={form.lastName} onChange={upd("lastName")} placeholder="Фамилия" />
+          <FieldInput label="First name" value={form.firstName} onChange={upd("firstName")} placeholder="First name" />
+          <FieldInput label="Last name" value={form.lastName} onChange={upd("lastName")} placeholder="Last name" />
         </div>
         <div style={{ marginTop: 12 }}>
-          <FieldInput label="Email" value={form.email} onChange={() => {}} disabled hint="Email привязан к аккаунту и не меняется здесь" />
+          <FieldInput label="Email" value={form.email} onChange={() => {}} disabled hint="Email is tied to your account and cannot be changed here" />
         </div>
       </Section>
       <SaveBar onSave={save} loading={loading} />
@@ -352,10 +352,10 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
 function AIPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
   const [model, setModel] = useState(settings.ai_model || "claude-sonnet-5");
   const [creativity, setCreativity] = useState(65);
-  const [tone, setTone] = useState("Нейтральный");
+  const [tone, setTone] = useState("Neutral");
   const [memory, setMemory] = useState(true);
   const [auto, setAuto] = useState(false);
-  const [instructions, setInstructions] = useState("Я основатель AI-стартапа. Фокус на growth, product-market fit и эффективности команды. Отвечай структурированно, используй цифры.");
+  const [instructions, setInstructions] = useState("I am the founder of an AI startup. Focus on growth, product-market fit and team efficiency. Answer in a structured way, use numbers.");
   const [loading, setLoading] = useState(false);
 
   const save = async () => {
@@ -363,21 +363,21 @@ function AIPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpda
     try {
       const r = await fetch("/api/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ai_model: model, preferences: { creativity, tone, memory, auto, instructions } }) });
       const d = await r.json();
-      if (d.success) { onUpdate({ ai_model: model }); showToast("Настройки AI сохранены", "success"); }
-      else showToast(d.error || "Ошибка", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      if (d.success) { onUpdate({ ai_model: model }); showToast("AI settings saved", "success"); }
+      else showToast(d.error || "Error", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setLoading(false); }
   };
 
   const MODELS = [
-    { id: "claude-sonnet-5", name: "Claude Sonnet 5", desc: "Баланс скорости и качества", badge: "Рекомендовано", color: "#6366f1" },
-    { id: "claude-opus-4-8", name: "Claude Opus 4.8", desc: "Максимальное качество",      badge: "Pro",           color: "#10b981" },
-    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", desc: "Максимальная скорость", badge: null, color: "#4f46e5" },
+    { id: "claude-sonnet-5", name: "Claude Sonnet 5", desc: "Balanced speed and quality", badge: "Recommended", color: "#6366f1" },
+    { id: "claude-opus-4-8", name: "Claude Opus 4.8", desc: "Highest quality",      badge: "Pro",           color: "#10b981" },
+    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", desc: "Fastest responses", badge: null, color: "#4f46e5" },
   ];
 
   return (
     <div>
-      <Section title="Модель AI" desc="Выберите мощность и скорость для агентов" accent="#8b5cf6">
+      <Section title="AI model" desc="Choose the power and speed for your agents" accent="#8b5cf6">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {MODELS.map(m => (
             <button key={m.id} onClick={() => setModel(m.id)} style={{ borderRadius: 14, padding: "16px 14px", background: model === m.id ? `rgba(${m.color === "#6366f1" ? "99,102,241" : m.color === "#10b981" ? "16,185,129" : "79,70,229"},0.12)` : "rgba(255,255,255,0.03)", border: `1.5px solid ${model === m.id ? m.color : "rgba(255,255,255,0.07)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s", position: "relative" }}>
@@ -397,39 +397,39 @@ function AIPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpda
         </div>
       </Section>
 
-      <Section title="Поведение" desc="Стиль и параметры ответов" accent="#6366f1">
-        <Row label="Уровень креативности" desc={`Температура: ${(creativity / 100).toFixed(2)}`}>
+      <Section title="Behavior" desc="Response style and parameters" accent="#6366f1">
+        <Row label="Creativity level" desc={`Temperature: ${(creativity / 100).toFixed(2)}`}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>Точный</span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>Precise</span>
             <input type="range" min={0} max={100} value={creativity} onChange={e => setCreativity(+e.target.value)} style={{ width: 120, accentColor: "#6366f1" }} />
-            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>Творческий</span>
+            <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>Creative</span>
           </div>
         </Row>
-        <Row label="Стиль общения" desc="Тон и манера ответов AI">
+        <Row label="Communication style" desc="Tone and manner of AI responses">
           <div style={{ display: "flex", gap: 6 }}>
-            {["Формальный","Нейтральный","Дружелюбный"].map(s => (
+            {["Formal","Neutral","Friendly"].map(s => (
               <button key={s} onClick={() => setTone(s)} style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: `1px solid ${tone === s ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.08)"}`, background: tone === s ? "rgba(99,102,241,0.12)" : "transparent", color: tone === s ? "#8b5cf6" : "rgba(255,255,255,0.4)", cursor: "pointer" }}>{s}</button>
             ))}
           </div>
         </Row>
-        <Row label="Память сессий" desc="AI помнит контекст между сессиями">
+        <Row label="Session memory" desc="AI remembers context between sessions">
           <Toggle on={memory} onChange={() => setMemory(m => !m)} />
         </Row>
-        <Row label="Автозапуск агентов" desc="Автоматически при создании нового проекта" last>
+        <Row label="Auto-start agents" desc="Automatically on every new project" last>
           <Toggle on={auto} onChange={() => setAuto(a => !a)} />
         </Row>
       </Section>
 
-      <Section title="Персональные инструкции" desc="Контекст применяется ко всем 20 AI-агентам" accent="#10b981">
+      <Section title="Personal instructions" desc="This context applies to all 20 AI agents" accent="#10b981">
         <textarea
           value={instructions}
           onChange={e => setInstructions(e.target.value)}
-          placeholder="Опиши себя, своё дело и как агенты должны отвечать..."
+          placeholder="Describe yourself, your business, and how agents should respond..."
           style={{ width: "100%", padding: "12px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.04)", color: "#fff", fontSize: 13, outline: "none", resize: "none", height: 100, boxSizing: "border-box", fontFamily: "inherit", lineHeight: 1.65 }}
         />
         <div style={{ marginTop: 8, fontSize: 10, color: "rgba(255,255,255,0.22)", display: "flex", alignItems: "center", gap: 6 }}>
           <div style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981", flexShrink: 0 }} />
-          {instructions.length} символов · применяется ко всем агентам
+          {instructions.length} characters · applies to all agents
         </div>
       </Section>
       <SaveBar onSave={save} loading={loading} />
@@ -449,36 +449,36 @@ function NotificationsPanel({ settings, onUpdate, showToast }: { settings: Setti
     try {
       const r = await fetch("/api/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email_notifs: emailOn, push_notifs: pushOn, preferences: { notif_details: states } }) });
       const d = await r.json();
-      if (d.success) { onUpdate({ email_notifs: emailOn, push_notifs: pushOn }); showToast("Уведомления сохранены", "success"); }
-      else showToast(d.error || "Ошибка", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      if (d.success) { onUpdate({ email_notifs: emailOn, push_notifs: pushOn }); showToast("Notification settings saved", "success"); }
+      else showToast(d.error || "Error", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setLoading(false); }
   };
 
   return (
     <div>
-      <Section title="Email-уведомления" desc="Контролируй что приходит на почту" accent="#6366f1">
-        <Row label="Email-уведомления" desc="Включить все уведомления на email">
+      <Section title="Email notifications" desc="Control what lands in your inbox" accent="#6366f1">
+        <Row label="Email notifications" desc="Enable all email notifications">
           <Toggle on={emailOn} onChange={() => setEmailOn(v => !v)} />
         </Row>
-        <Row label="Завершение AI-анализа" desc="Когда 20 агентов завершили отчёт">
+        <Row label="AI analysis complete" desc="When your 20 agents finish a report">
           <Toggle on={states.email_insights} onChange={() => tog("email_insights")} />
         </Row>
-        <Row label="Обновления продукта" desc="Новые функции и улучшения">
+        <Row label="Product updates" desc="New features and improvements">
           <Toggle on={states.email_product} onChange={() => tog("email_product")} />
         </Row>
-        <Row label="Ежедневный дайджест" desc="Сводка в 18:00" last>
+        <Row label="Daily digest" desc="Summary at 6:00 PM" last>
           <Toggle on={states.email_report} onChange={() => tog("email_report")} />
         </Row>
       </Section>
 
-      <Section title="Push и мессенджеры" accent="#8b5cf6">
+      <Section title="Push & messengers" accent="#8b5cf6">
         {([
-          { key: "push" as const,    label: "Push-уведомления", desc: "В браузере и мобильном", Icon: Bell },
+          { key: "push" as const,    label: "Push notifications", desc: "Browser and mobile", Icon: Bell },
           { key: "tg" as const,      label: "Telegram",          desc: "@VertlixAI_bot",             Icon: MessageSquare },
-          { key: "slack" as const,   label: "Slack",             desc: "Подключить workspace",    Icon: MessageSquare },
-          { key: "discord" as const, label: "Discord",           desc: "Подключить сервер",       Icon: MessageSquare },
-          { key: "sms" as const,     label: "SMS",               desc: "Критичные алерты",        Icon: Phone },
+          { key: "slack" as const,   label: "Slack",             desc: "Connect a workspace",    Icon: MessageSquare },
+          { key: "discord" as const, label: "Discord",           desc: "Connect a server",       Icon: MessageSquare },
+          { key: "sms" as const,     label: "SMS",               desc: "Critical alerts only",        Icon: Phone },
         ] as const).map(({ key, label, desc, Icon }, i, arr) => (
           <Row key={key} label={label} desc={desc} last={i === arr.length - 1}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -489,11 +489,11 @@ function NotificationsPanel({ settings, onUpdate, showToast }: { settings: Setti
         ))}
       </Section>
 
-      <Section title="Дайджесты" accent="#10b981">
-        <Row label="Еженедельный обзор" desc="Каждый понедельник в 9:00">
+      <Section title="Digests" accent="#10b981">
+        <Row label="Weekly review" desc="Every Monday at 9:00 AM">
           <Toggle on={states.weekly} onChange={() => tog("weekly")} />
         </Row>
-        <Row label="AI-алерты" desc="Срочные события требуют внимания" last>
+        <Row label="AI alerts" desc="Urgent events that need attention" last>
           <Toggle on={states.ai_alerts} onChange={() => tog("ai_alerts")} />
         </Row>
       </Section>
@@ -550,17 +550,17 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
     try {
       const optRes = await fetch("/api/auth/passkey/register/options", { method: "POST" });
       const optData = await optRes.json();
-      if (!optRes.ok || !optData.success) { showToast(optData.error || "Не удалось начать регистрацию passkey", "error"); return; }
-      const label = typeof navigator !== "undefined" ? navigator.platform || "Устройство" : "Устройство";
+      if (!optRes.ok || !optData.success) { showToast(optData.error || "Could not start passkey registration", "error"); return; }
+      const label = typeof navigator !== "undefined" ? navigator.platform || "Device" : "Device";
       const attestation = await startRegistration(optData.options);
       const verifyRes = await fetch("/api/auth/passkey/register/verify", {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ response: attestation, label }),
       });
       const verifyData = await verifyRes.json();
-      if (verifyData.success) { showToast("Passkey добавлен", "success"); loadPasskeys(); setLog([]); setLogLoaded(false); fetch("/api/security/log").then(r => r.ok ? r.json() : null).then(d => { if (d?.success && Array.isArray(d.data)) setLog(d.data); }).catch(() => {}).finally(() => setLogLoaded(true)); }
-      else showToast(verifyData.error || "Passkey не подтверждён", "error");
+      if (verifyData.success) { showToast("Passkey added", "success"); loadPasskeys(); setLog([]); setLogLoaded(false); fetch("/api/security/log").then(r => r.ok ? r.json() : null).then(d => { if (d?.success && Array.isArray(d.data)) setLog(d.data); }).catch(() => {}).finally(() => setLogLoaded(true)); }
+      else showToast(verifyData.error || "Passkey not confirmed", "error");
     } catch {
-      showToast("Регистрация passkey отменена", "error");
+      showToast("Passkey registration cancelled", "error");
     } finally {
       setPkAdding(false);
     }
@@ -570,22 +570,22 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
     try {
       const r = await fetch(`/api/auth/passkey/${encodeURIComponent(id)}`, { method: "DELETE" });
       const d = await r.json();
-      if (d.success) { showToast("Passkey удалён", "success"); setPasskeys(p => p.filter(k => k.id !== id)); }
-      else showToast(d.error || "Не удалось удалить passkey", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      if (d.success) { showToast("Passkey removed", "success"); setPasskeys(p => p.filter(k => k.id !== id)); }
+      else showToast(d.error || "Could not remove passkey", "error");
+    } catch { showToast("Network error", "error"); }
   };
 
   const changePassword = async () => {
-    if (newPw.length < 8) { showToast("Новый пароль минимум 8 символов", "error"); return; }
-    if (!/[a-zа-яё]/i.test(newPw) || !/[0-9]/.test(newPw)) { showToast("Пароль должен содержать буквы и цифры", "error"); return; }
-    if (newPw !== confPw) { showToast("Пароли не совпадают", "error"); return; }
+    if (newPw.length < 8) { showToast("New password must be at least 8 characters", "error"); return; }
+    if (!/[a-zа-яё]/i.test(newPw) || !/[0-9]/.test(newPw)) { showToast("Password must contain letters and digits", "error"); return; }
+    if (newPw !== confPw) { showToast("Passwords do not match", "error"); return; }
     setPwLoading(true);
     try {
       const r = await fetch("/api/user/password", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ currentPassword: curPw, newPassword: newPw }) });
       const d = await r.json();
-      if (d.success) { showToast("Пароль изменён", "success"); setCurPw(""); setNewPw(""); setConfPw(""); }
-      else showToast(d.error || "Не удалось изменить пароль", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      if (d.success) { showToast("Password changed", "success"); setCurPw(""); setNewPw(""); setConfPw(""); }
+      else showToast(d.error || "Could not change password", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setPwLoading(false); }
   };
 
@@ -595,13 +595,13 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
       const r = await fetch("/api/auth/2fa/setup", { method: "POST" });
       const d = await r.json();
       if (d.success) { setQrDataUrl(d.qrDataUrl); setManualSecret(d.secret); setPhase("enrolling"); }
-      else showToast(d.error || "Не удалось начать настройку 2FA", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      else showToast(d.error || "Could not start 2FA setup", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setEnrollLoading(false); }
   };
 
   const confirmEnroll = async () => {
-    if (!/^\d{6}$/.test(enrollCode)) { showToast("Введите 6-значный код из приложения", "error"); return; }
+    if (!/^\d{6}$/.test(enrollCode)) { showToast("Enter the 6-digit code from your app", "error"); return; }
     setEnrollLoading(true);
     try {
       const r = await fetch("/api/auth/2fa/verify", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ code: enrollCode }) });
@@ -611,56 +611,56 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
         setBackupCodes(d.backupCodes);
         setPhase("codes");
         setEnrollCode("");
-      } else showToast(d.error || "Неверный код", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      } else showToast(d.error || "Invalid code", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setEnrollLoading(false); }
   };
 
   const finishEnroll = () => {
     setPhase("idle"); setQrDataUrl(""); setManualSecret(""); setBackupCodes([]);
-    showToast("2FA включена — аккаунт защищён", "success");
+    showToast("2FA enabled — your account is protected", "success");
   };
 
   const confirmDisable = async () => {
-    if (!disablePw) { showToast("Введите текущий пароль", "error"); return; }
+    if (!disablePw) { showToast("Enter your current password", "error"); return; }
     setDisableLoading(true);
     try {
       const r = await fetch("/api/auth/2fa/disable", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password: disablePw }) });
       const d = await r.json();
-      if (d.success) { onUpdate({ two_fa: false }); setDisabling(false); setDisablePw(""); showToast("2FA отключена", "success"); }
-      else showToast(d.error || "Не удалось отключить 2FA", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      if (d.success) { onUpdate({ two_fa: false }); setDisabling(false); setDisablePw(""); showToast("2FA disabled", "success"); }
+      else showToast(d.error || "Could not disable 2FA", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setDisableLoading(false); }
   };
 
   const copyBackupCodes = () => {
-    navigator.clipboard?.writeText(backupCodes.join("\n")).then(() => showToast("Резервные коды скопированы", "success"));
+    navigator.clipboard?.writeText(backupCodes.join("\n")).then(() => showToast("Backup codes copied", "success"));
   };
 
   return (
     <div>
-      <Section title="Пароль" desc="Смените пароль от аккаунта" accent="#6366f1">
+      <Section title="Password" desc="Change your account password" accent="#6366f1">
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <FieldInput label="Текущий пароль" type="password" value={curPw} onChange={setCurPw} placeholder="••••••••" hint="Оставьте пустым, если входите только через Google/GitHub" />
-          <FieldInput label="Новый пароль" type="password" value={newPw} onChange={setNewPw} placeholder="Минимум 8 символов, буквы и цифры" />
-          <FieldInput label="Повторите новый пароль" type="password" value={confPw} onChange={setConfPw} placeholder="••••••••" />
+          <FieldInput label="Current password" type="password" value={curPw} onChange={setCurPw} placeholder="••••••••" hint="Leave empty if you only sign in with Google/GitHub" />
+          <FieldInput label="New password" type="password" value={newPw} onChange={setNewPw} placeholder="At least 8 characters, letters and digits" />
+          <FieldInput label="Repeat new password" type="password" value={confPw} onChange={setConfPw} placeholder="••••••••" />
           <div>
             <button onClick={changePassword} disabled={pwLoading || !newPw}
               style={{ height: 42, padding: "0 20px", borderRadius: 11, border: "none", cursor: pwLoading || !newPw ? "default" : "pointer", fontSize: 13, fontWeight: 700, color: "#fff",
                 background: pwLoading || !newPw ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#6366f1,#4f46e5)", display: "inline-flex", alignItems: "center", gap: 8 }}>
               {pwLoading && <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />}
-              {pwLoading ? "Сохранение…" : "Изменить пароль"}
+              {pwLoading ? "Saving…" : "Change password"}
             </button>
           </div>
         </div>
       </Section>
 
-      <Section title="Двухфакторная аутентификация" desc="Код из приложения-аутентификатора (Google Authenticator, Authy) при каждом входе" accent={twoFA ? "#10b981" : "#f59e0b"}>
+      <Section title="Two-factor authentication" desc="A code from your authenticator app (Google Authenticator, Authy) on every sign-in" accent={twoFA ? "#10b981" : "#f59e0b"}>
         {twoFA ? (
           <>
-            <Row label="2FA включена" desc="Вход требует код из приложения-аутентификатора" last={!disabling}>
+            <Row label="2FA enabled" desc="Sign-in requires a code from your authenticator app" last={!disabling}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: 12.5, fontWeight: 600 }}>
-                <ShieldCheck size={15} /> Активна
+                <ShieldCheck size={15} /> Active
               </div>
             </Row>
             {!disabling ? (
@@ -668,38 +668,38 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
                 <button onClick={() => setDisabling(true)}
                   style={{ height: 36, padding: "0 16px", borderRadius: 10, fontSize: 12, fontWeight: 700, cursor: "pointer",
                     background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.3)", color: "#f87171" }}>
-                  Отключить 2FA
+                  Disable 2FA
                 </button>
               </div>
             ) : (
               <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }}
                 style={{ marginTop: 12, padding: "14px 16px", borderRadius: 12, background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.2)" }}>
-                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 10 }}>Подтвердите текущий пароль, чтобы отключить 2FA</div>
+                <div style={{ fontSize: 12, color: "rgba(255,255,255,0.6)", marginBottom: 10 }}>Confirm your current password to disable 2FA</div>
                 <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
                   <div style={{ flex: 1, minWidth: 180 }}>
-                    <FieldInput label="Текущий пароль" type="password" value={disablePw} onChange={setDisablePw} placeholder="••••••••" />
+                    <FieldInput label="Current password" type="password" value={disablePw} onChange={setDisablePw} placeholder="••••••••" />
                   </div>
                   <button onClick={confirmDisable} disabled={disableLoading || !disablePw}
                     style={{ height: 42, padding: "0 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: disableLoading ? "default" : "pointer",
                       background: "linear-gradient(135deg,#ef4444,#b91c1c)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7 }}>
                     {disableLoading && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
-                    Отключить
+                    Disable
                   </button>
                   <button onClick={() => { setDisabling(false); setDisablePw(""); }}
                     style={{ height: 42, padding: "0 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: "pointer", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
-                    Отмена
+                    Cancel
                   </button>
                 </div>
               </motion.div>
             )}
           </>
         ) : phase === "idle" ? (
-          <Row label="2FA через приложение" desc="Google Authenticator, Authy" last>
+          <Row label="2FA via app" desc="Google Authenticator, Authy" last>
             <button onClick={startEnroll} disabled={enrollLoading}
               style={{ height: 38, padding: "0 18px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: enrollLoading ? "default" : "pointer",
                 background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
               {enrollLoading && <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />}
-              Включить 2FA
+              Enable 2FA
             </button>
           </Row>
         ) : phase === "enrolling" ? (
@@ -707,30 +707,30 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
             <div style={{ display: "flex", gap: 20, flexWrap: "wrap", alignItems: "flex-start" }}>
               {qrDataUrl && (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={qrDataUrl} alt="QR-код для двухфакторной аутентификации" width={160} height={160}
+                <img src={qrDataUrl} alt="QR code for two-factor authentication" width={160} height={160}
                   style={{ borderRadius: 12, border: "1px solid rgba(255,255,255,0.1)", background: "#fff", padding: 8 }} />
               )}
               <div style={{ flex: 1, minWidth: 220 }}>
                 <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.7)", lineHeight: 1.6, marginBottom: 10 }}>
-                  1. Отсканируйте QR-код в Google Authenticator или Authy.<br />
-                  2. Или введите секретный ключ вручную:
+                  1. Scan the QR code with Google Authenticator or Authy.<br />
+                  2. Or enter the secret key manually:
                 </div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 12px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 14, fontFamily: "monospace", fontSize: 12, color: "#a5b4fc", wordBreak: "break-all" }}>
                   <KeyRound size={13} style={{ flexShrink: 0 }} /> {manualSecret}
                 </div>
                 <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
                   <div style={{ width: 140 }}>
-                    <FieldInput label="Код из приложения" type="text" value={enrollCode} onChange={v => setEnrollCode(v.replace(/\D/g, "").slice(0, 6))} placeholder="000000" />
+                    <FieldInput label="Code from the app" type="text" value={enrollCode} onChange={v => setEnrollCode(v.replace(/\D/g, "").slice(0, 6))} placeholder="000000" />
                   </div>
                   <button onClick={confirmEnroll} disabled={enrollLoading || enrollCode.length !== 6}
                     style={{ height: 42, padding: "0 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: enrollLoading ? "default" : "pointer",
                       background: enrollCode.length === 6 ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.06)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7 }}>
                     {enrollLoading && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
-                    Подтвердить
+                    Confirm
                   </button>
                   <button onClick={() => setPhase("idle")}
                     style={{ height: 42, padding: "0 14px", borderRadius: 10, fontSize: 12.5, fontWeight: 600, cursor: "pointer", background: "transparent", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
-                    Отмена
+                    Cancel
                   </button>
                 </div>
               </div>
@@ -739,10 +739,10 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
         ) : (
           <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 8, color: "#10b981", fontSize: 13, fontWeight: 700, marginBottom: 8 }}>
-              <CheckCircle2 size={15} /> 2FA включена — сохраните резервные коды
+              <CheckCircle2 size={15} /> 2FA enabled — save your backup codes
             </div>
             <p style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginBottom: 12, lineHeight: 1.6 }}>
-              Каждый код можно использовать один раз вместо кода из приложения — если потеряете доступ к телефону. Сохраните их в надёжном месте, они больше не будут показаны.
+              Each code can be used once instead of the app code — in case you lose access to your phone. Store them somewhere safe; they will not be shown again.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 8, padding: 14, borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", marginBottom: 12 }}>
               {backupCodes.map(c => (
@@ -752,26 +752,26 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
             <div style={{ display: "flex", gap: 8 }}>
               <button onClick={copyBackupCodes}
                 style={{ height: 36, padding: "0 14px", borderRadius: 9, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.7)", display: "flex", alignItems: "center", gap: 6 }}>
-                <Copy size={12} /> Скопировать
+                <Copy size={12} /> Copy
               </button>
               <button onClick={finishEnroll}
                 style={{ height: 36, padding: "0 16px", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", color: "#fff" }}>
-                Готово
+                Done
               </button>
             </div>
           </motion.div>
         )}
       </Section>
 
-      <Section title="Passkeys" desc="Вход по отпечатку, Face ID или PIN устройства — без пароля" accent="#8b5cf6">
+      <Section title="Passkeys" desc="Sign in with fingerprint, Face ID or device PIN — no password" accent="#8b5cf6">
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {!pkLoaded ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.35)", fontSize: 12.5, padding: "8px 0" }}>
-              <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Загрузка…
+              <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Loading…
             </div>
           ) : passkeys.length === 0 ? (
             <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, padding: "2px 0" }}>
-              У вас пока нет passkey. Добавьте его, чтобы входить без пароля — быстрее и безопаснее.
+              You have no passkeys yet. Add one to sign in without a password — faster and safer.
             </div>
           ) : (
             passkeys.map(pk => (
@@ -782,11 +782,11 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, color: "#E5E7EB", fontWeight: 600 }}>{pk.device_label || "Passkey"}</div>
                   <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", fontVariantNumeric: "tabular-nums" }}>
-                    Добавлен {new Date(pk.created_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "short", year: "numeric" })}
-                    {pk.last_used_at && ` · вход ${new Date(pk.last_used_at).toLocaleDateString("ru-RU", { day: "2-digit", month: "short" })}`}
+                    Added {new Date(pk.created_at).toLocaleDateString("en-US", { day: "2-digit", month: "short", year: "numeric" })}
+                    {pk.last_used_at && ` · last used ${new Date(pk.last_used_at).toLocaleDateString("en-US", { day: "2-digit", month: "short" })}`}
                   </div>
                 </div>
-                <button onClick={() => removePasskey(pk.id)} title="Удалить passkey"
+                <button onClick={() => removePasskey(pk.id)} title="Remove passkey"
                   style={{ width: 34, height: 34, borderRadius: 9, flexShrink: 0, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.22)", color: "#f87171" }}>
                   <Trash2 size={14} />
                 </button>
@@ -798,20 +798,20 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
               style={{ height: 38, padding: "0 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: pkAdding ? "default" : "pointer",
                 background: pkAdding ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#8b5cf6,#6d28d9)", border: "none", color: "#fff", display: "inline-flex", alignItems: "center", gap: 8 }}>
               {pkAdding ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Plus size={14} />}
-              {pkAdding ? "Добавление…" : "Добавить passkey"}
+              {pkAdding ? "Adding…" : "Add passkey"}
             </button>
           </div>
         </div>
       </Section>
 
-      <Section title="Журнал безопасности" desc="Последние действия с вашим аккаунтом" accent="#6366f1">
+      <Section title="Security log" desc="Recent actions on your account" accent="#6366f1">
         {!logLoaded ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.35)", fontSize: 12.5, padding: "8px 0" }}>
-            <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Загрузка…
+            <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Loading…
           </div>
         ) : log.length === 0 ? (
           <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.35)", padding: "6px 0" }}>
-            Событий безопасности пока нет. Смена пароля, включение 2FA и добавление passkey будут отображаться здесь.
+            No security events yet. Password changes, 2FA activation and passkey additions will show up here.
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -837,12 +837,12 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
 }
 
 const SECURITY_EVENT_META: Record<string, { label: string; color: string; Icon: typeof Shield }> = {
-  "security.password_changed": { label: "Пароль изменён",       color: "#6366f1", Icon: KeyRound },
-  "security.2fa_enabled":      { label: "2FA включена",         color: "#10b981", Icon: ShieldCheck },
-  "security.2fa_disabled":     { label: "2FA отключена",        color: "#f59e0b", Icon: Shield },
-  "security.passkey_added":    { label: "Добавлен passkey",     color: "#8b5cf6", Icon: KeyRound },
-  "security.passkey_removed":  { label: "Passkey удалён",       color: "#f59e0b", Icon: KeyRound },
-  "security.login":            { label: "Вход в аккаунт",       color: "#3b82f6", Icon: CheckCircle2 },
+  "security.password_changed": { label: "Password changed",       color: "#6366f1", Icon: KeyRound },
+  "security.2fa_enabled":      { label: "2FA enabled",         color: "#10b981", Icon: ShieldCheck },
+  "security.2fa_disabled":     { label: "2FA disabled",        color: "#f59e0b", Icon: Shield },
+  "security.passkey_added":    { label: "Passkey added",     color: "#8b5cf6", Icon: KeyRound },
+  "security.passkey_removed":  { label: "Passkey removed",       color: "#f59e0b", Icon: KeyRound },
+  "security.login":            { label: "Account sign-in",       color: "#3b82f6", Icon: CheckCircle2 },
 };
 
 // ─── Приватность и данные ─────────────────────────────────────────────────────
@@ -851,11 +851,11 @@ const SECURITY_EVENT_META: Record<string, { label: string; color: string; Icon: 
 // аккаунта. Экспорт и удаление ходят в уже существующие /api/user/*.
 
 const LEGAL_DOCS = [
-  { href: "/legal/privacy", title: "Политика конфиденциальности", desc: "Какие данные собираем и зачем" },
-  { href: "/legal/terms",   title: "Пользовательское соглашение", desc: "Правила использования Сервиса" },
-  { href: "/legal/offer",   title: "Публичная оферта",            desc: "Условия предоставления доступа" },
-  { href: "/legal/cookies", title: "Политика cookies",            desc: "Какие cookies и для чего" },
-  { href: "/legal/consent", title: "Согласие на обработку данных", desc: "Текст согласия, которое вы дали" },
+  { href: "/legal/privacy", title: "Privacy Policy", desc: "What data we collect and why" },
+  { href: "/legal/terms",   title: "Terms of Service", desc: "Rules for using the Service" },
+  { href: "/legal/offer",   title: "Public Offer",                desc: "Terms of access" },
+  { href: "/legal/cookies", title: "Cookie Policy",               desc: "Which cookies and what for" },
+  { href: "/legal/consent", title: "Data Processing Consent",     desc: "The consent you gave" },
 ];
 
 function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"error") => void }) {
@@ -871,42 +871,42 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
     const next = !analytics;
     setAnalytics(next);
     setConsent(next);
-    showToast(next ? "Аналитика включена" : "Аналитика отключена", "success");
+    showToast(next ? "Analytics enabled" : "Analytics disabled", "success");
   };
 
   const exportData = async () => {
     setExporting(true);
     try {
       const r = await fetch("/api/user/export");
-      if (!r.ok) { showToast("Не удалось выгрузить данные", "error"); return; }
+      if (!r.ok) { showToast("Could not export your data", "error"); return; }
       const data = await r.json();
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `vertlix-данные-${new Date().toISOString().slice(0, 10)}.json`;
+      a.download = `vertlix-data-${new Date().toISOString().slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast("Архив данных скачан", "success");
-    } catch { showToast("Ошибка сети", "error"); }
+      showToast("Data archive downloaded", "success");
+    } catch { showToast("Network error", "error"); }
     finally { setExporting(false); }
   };
 
   const deleteAccount = async () => {
-    if (confirm !== "УДАЛИТЬ") return;
+    if (confirm !== "DELETE") return;
     setDeleting(true);
     try {
       const r = await fetch("/api/user", { method: "DELETE" });
       const d = await r.json();
-      if (d.success) { showToast("Аккаунт удалён", "success"); await signOut({ callbackUrl: "/" }); }
-      else { showToast(d.error || "Не удалось удалить аккаунт", "error"); setDeleting(false); }
-    } catch { showToast("Ошибка сети", "error"); setDeleting(false); }
+      if (d.success) { showToast("Account deleted", "success"); await signOut({ callbackUrl: "/" }); }
+      else { showToast(d.error || "Could not delete the account", "error"); setDeleting(false); }
+    } catch { showToast("Network error", "error"); setDeleting(false); }
   };
 
   return (
     <div>
-      <Section title="Ваши данные" desc="Полная копия всего, что хранится в вашем аккаунте" accent="#6366f1">
-        <Row label="Скачать архив данных" desc="Проекты, стратегии, отчёты, заметки, история — в формате JSON" last>
+      <Section title="Your data" desc="A full copy of everything stored in your account" accent="#6366f1">
+        <Row label="Download data archive" desc="Projects, strategies, reports, notes, history — as JSON" last>
           <button
             onClick={exportData}
             disabled={exporting}
@@ -918,24 +918,24 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
             }}
           >
             {exporting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Download size={13} />}
-            {exporting ? "Готовим…" : "Скачать"}
+            {exporting ? "Preparing…" : "Download"}
           </button>
         </Row>
       </Section>
 
-      <Section title="Согласия" desc="Что можно отключить без потери работы Сервиса" accent="#10b981">
-        <Row label="Аналитика использования" desc="Обезличенная статистика, помогает улучшать продукт. Содержимое проектов и запросов к AI не собирается.">
+      <Section title="Consents" desc="What you can turn off without breaking the Service" accent="#10b981">
+        <Row label="Usage analytics" desc="Anonymized statistics that help improve the product. Project content and AI requests are never collected.">
           <Toggle on={analytics} onChange={toggleAnalytics} />
         </Row>
-        <Row label="Необходимые cookies" desc="Вход, безопасность и защита от перебора — без них Сервис не работает, отключить нельзя" last>
+        <Row label="Essential cookies" desc="Sign-in, security and brute-force protection — the Service does not work without them" last>
           <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11.5, fontWeight: 600, color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>
             <Cookie size={13} style={{ color: "rgba(255,255,255,0.25)" }} />
-            Всегда включены
+            Always on
           </div>
         </Row>
       </Section>
 
-      <Section title="Правовые документы" desc="Актуальные редакции" accent="#8b5cf6">
+      <Section title="Legal documents" desc="Current versions" accent="#8b5cf6">
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {LEGAL_DOCS.map(doc => (
             <a
@@ -961,8 +961,8 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
         </div>
       </Section>
 
-      <Section title="Сессия" accent="#f59e0b">
-        <Row label="Выйти из аккаунта" desc="Завершить текущую сессию на этом устройстве" last>
+      <Section title="Session" accent="#f59e0b">
+        <Row label="Sign out" desc="End the current session on this device" last>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
             style={{
@@ -971,7 +971,7 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
               background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", flexShrink: 0,
             }}
           >
-            <LogOut size={13} /> Выйти
+            <LogOut size={13} /> Sign out
           </button>
         </Row>
       </Section>
@@ -981,24 +981,24 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
         <div style={{ padding: "16px 22px 14px", borderBottom: "1px solid rgba(239,68,68,0.12)", display: "flex", alignItems: "center", gap: 10 }}>
           <div style={{ width: 3, height: 20, borderRadius: 2, background: "#ef4444", flexShrink: 0 }} />
           <div>
-            <div style={{ fontSize: 14, fontWeight: 700, color: "#fca5a5" }}>Удаление аккаунта</div>
-            <div style={{ fontSize: 11, color: "rgba(252,165,165,0.5)", marginTop: 1 }}>Действие необратимо</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: "#fca5a5" }}>Delete account</div>
+            <div style={{ fontSize: 11, color: "rgba(252,165,165,0.5)", marginTop: 1 }}>This action is irreversible</div>
           </div>
         </div>
         <div style={{ padding: "18px 22px" }}>
           <p style={{ fontSize: 12.5, lineHeight: 1.65, color: "rgba(255,255,255,0.5)", margin: "0 0 16px" }}>
-            Будут безвозвратно удалены все ваши проекты, стратегии, отчёты, заметки, история запросов
-            и настройки. Восстановить их будет невозможно. Рекомендуем сначала скачать архив данных.
+            All your projects, strategies, reports, notes, request history and settings will be
+            permanently deleted. This cannot be undone. We recommend downloading your data archive first.
           </p>
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
             <div style={{ flex: 1, minWidth: 200 }}>
               <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.4)", marginBottom: 6 }}>
-                Введите <span style={{ color: "#fca5a5", fontWeight: 700 }}>УДАЛИТЬ</span> для подтверждения
+                Type <span style={{ color: "#fca5a5", fontWeight: 700 }}>DELETE</span> to confirm
               </label>
               <input
                 value={confirm}
                 onChange={e => setConfirm(e.target.value)}
-                placeholder="УДАЛИТЬ"
+                placeholder="DELETE"
                 style={{
                   width: "100%", height: 40, borderRadius: 10, padding: "0 13px", fontSize: 13,
                   background: "rgba(255,255,255,0.035)", border: "1px solid rgba(239,68,68,0.25)",
@@ -1008,18 +1008,18 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
             </div>
             <button
               onClick={deleteAccount}
-              disabled={confirm !== "УДАЛИТЬ" || deleting}
+              disabled={confirm !== "DELETE" || deleting}
               style={{
                 display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 18px", borderRadius: 10,
                 fontSize: 12.5, fontWeight: 700, border: "none", flexShrink: 0,
-                cursor: confirm === "УДАЛИТЬ" && !deleting ? "pointer" : "not-allowed",
-                background: confirm === "УДАЛИТЬ" ? "#ef4444" : "rgba(239,68,68,0.12)",
-                color: confirm === "УДАЛИТЬ" ? "#fff" : "rgba(252,165,165,0.4)",
+                cursor: confirm === "DELETE" && !deleting ? "pointer" : "not-allowed",
+                background: confirm === "DELETE" ? "#ef4444" : "rgba(239,68,68,0.12)",
+                color: confirm === "DELETE" ? "#fff" : "rgba(252,165,165,0.4)",
                 transition: "all 0.2s",
               }}
             >
               {deleting ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Trash2 size={13} />}
-              {deleting ? "Удаление…" : "Удалить аккаунт"}
+              {deleting ? "Deleting…" : "Delete account"}
             </button>
           </div>
         </div>
@@ -1040,20 +1040,20 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
     try {
       const r = await fetch("/api/settings", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ theme, preferences: { accent, compact, animations } }) });
       const d = await r.json();
-      if (d.success) { onUpdate({ theme }); showToast("Внешний вид сохранён", "success"); }
-      else showToast(d.error || "Ошибка", "error");
-    } catch { showToast("Ошибка сети", "error"); }
+      if (d.success) { onUpdate({ theme }); showToast("Appearance saved", "success"); }
+      else showToast(d.error || "Error", "error");
+    } catch { showToast("Network error", "error"); }
     finally { setLoading(false); }
   };
 
   return (
     <div>
-      <Section title="Тема оформления" accent="#6366f1">
+      <Section title="Theme" accent="#6366f1">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {[
-            { id: "dark",   label: "Тёмная",  Icon: Moon,    bg: "#0a0b0f" },
-            { id: "light",  label: "Светлая", Icon: Sun,     bg: "#f0f0f5" },
-            { id: "system", label: "Системная",Icon: Monitor, bg: "linear-gradient(135deg, #0a0b0f 50%, #f0f0f5 50%)" },
+            { id: "dark",   label: "Dark",    Icon: Moon,    bg: "#0a0b0f" },
+            { id: "light",  label: "Light",   Icon: Sun,     bg: "#f0f0f5" },
+            { id: "system", label: "System",  Icon: Monitor, bg: "linear-gradient(135deg, #0a0b0f 50%, #f0f0f5 50%)" },
           ].map(t => (
             <button key={t.id} onClick={() => setTheme(t.id)} style={{ borderRadius: 14, padding: "16px", background: theme === t.id ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.025)", border: `2px solid ${theme === t.id ? "#6366f1" : "rgba(255,255,255,0.06)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
               <div style={{ width: "100%", height: 52, borderRadius: 8, background: t.bg, marginBottom: 10 }} />
@@ -1067,7 +1067,7 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
         </div>
       </Section>
 
-      <Section title="Акцентный цвет" accent="#8b5cf6">
+      <Section title="Accent color" accent="#8b5cf6">
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {[
             { color: "#6366f1", name: "Indigo" },
@@ -1086,11 +1086,11 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
         </div>
       </Section>
 
-      <Section title="Интерфейс" accent="#10b981">
-        <Row label="Компактный режим" desc="Уменьшенные отступы и элементы">
+      <Section title="Interface" accent="#10b981">
+        <Row label="Compact mode" desc="Reduced spacing and element sizes">
           <Toggle on={compact} onChange={() => setCompact(v => !v)} />
         </Row>
-        <Row label="Анимации" desc="Плавные переходы и эффекты" last>
+        <Row label="Animations" desc="Smooth transitions and effects" last>
           <Toggle on={animations} onChange={() => setAnimations(v => !v)} />
         </Row>
       </Section>
@@ -1150,7 +1150,7 @@ function SettingsPageInner() {
     if (loadingSettings) return (
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: 200, gap: 10, color: "rgba(255,255,255,0.3)" }}>
         <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-        <span style={{ fontSize: 13 }}>Загрузка настроек...</span>
+        <span style={{ fontSize: 13 }}>Loading settings...</span>
       </div>
     );
     switch (active) {
@@ -1180,7 +1180,7 @@ function SettingsPageInner() {
       {/* Left Nav */}
       <aside style={{ width: 216, flexShrink: 0, padding: "28px 10px", borderRight: "1px solid rgba(255,255,255,0.05)", position: "sticky", top: 0, height: "100vh", overflowY: "auto", zIndex: 10 }}>
         <div style={{ marginBottom: 24, paddingLeft: 10 }}>
-          <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>Настройки</div>
+          <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", letterSpacing: "-0.3px" }}>Settings</div>
           <div style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>Vertlix AI Workspace</div>
         </div>
 
