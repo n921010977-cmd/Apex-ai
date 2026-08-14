@@ -3,7 +3,7 @@ import { z } from "zod";
 // Единый потолок длины пользовательского вопроса к AI. Ограничивает расход
 // токенов и стоимость одного запроса; применяется во ВСЕХ AI-маршрутах.
 export const MAX_QUESTION_LEN = 1000;
-export const QUESTION_TOO_LONG = `Вопрос слишком длинный — максимум ${MAX_QUESTION_LEN} символов`;
+export const QUESTION_TOO_LONG = `Question is too long — maximum ${MAX_QUESTION_LEN} characters`;
 
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 

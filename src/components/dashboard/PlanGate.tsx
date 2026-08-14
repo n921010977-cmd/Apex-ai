@@ -16,13 +16,13 @@ const ACCENT = "#6366f1";
 const RGB = "99,102,241";
 
 const FEATURE_TITLE: Record<keyof PlanFeatures, string> = {
-  pitchDeck: "Питч-дек для инвестора",
-  goalsPlan: "Студия «Цели и план»",
-  weeklyFocus: "Трекер целей и «Фокус недели»",
-  strategies: "Генерация стратегий",
-  boardMeetings: "Совет из 20 AI-директоров",
-  agents: "Библиотека AI-агентов",
-  webResearch: "Свежие данные с рынка",
+  pitchDeck: "Investor pitch deck",
+  goalsPlan: "Goals & Plan studio",
+  weeklyFocus: "Goal tracker & Weekly Focus",
+  strategies: "Strategy generation",
+  boardMeetings: "Board of 20 AI directors",
+  agents: "AI agent library",
+  webResearch: "Fresh market data",
 };
 
 /** Минимальный тариф, который открывает эту возможность. */
@@ -69,14 +69,14 @@ export function PlanGate({
         </div>
 
         <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(129,140,248,0.9)", marginBottom: 8 }}>
-          Премиум-инструмент
+          Premium tool
         </div>
         <h1 style={{ fontSize: "clamp(24px,4vw,32px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px", color: "#fff" }}>
           {title}
         </h1>
         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.55)", maxWidth: 480, margin: "0 auto 28px", lineHeight: 1.6 }}>
-          Этот инструмент открывается на тарифе <b style={{ color: "#fff" }}>{needed.name}</b> (${needed.priceMonthly}/мес).
-          Оформите тариф — и вкладка разблокируется.
+          This tool unlocks on the <b style={{ color: "#fff" }}>{needed.name}</b> plan (${needed.priceMonthly}/mo).
+          Get the plan and this tab opens up.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10, maxWidth: 340, margin: "0 auto 28px", textAlign: "left" }}>
@@ -99,7 +99,7 @@ export function PlanGate({
             boxShadow: `0 8px 24px rgba(${RGB},0.4), inset 0 1px 0 rgba(255,255,255,0.16)`,
           }}
         >
-          <Sparkles size={17} /> Открыть за ${needed.priceMonthly}/мес
+          <Sparkles size={17} /> Unlock for ${needed.priceMonthly}/mo
         </Link>
       </motion.div>
     </div>

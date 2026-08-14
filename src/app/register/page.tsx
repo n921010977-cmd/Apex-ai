@@ -11,10 +11,10 @@ const BOOT_LINES = [
   "> vertlix kernel v2.0 · initializing…",
   "> executive board · 20 AI agents ready",
   "> secure registration channel · open",
-  "> создайте аккаунт оператора_",
+  "> create operator account_",
 ];
 
-const STRENGTH_LABELS = ["", "Слабый", "Средний", "Хороший", "Сильный"];
+const STRENGTH_LABELS = ["", "Weak", "Fair", "Good", "Strong"];
 const STRENGTH_COLORS = ["", "#ef4444", "#f59e0b", "#6366f1", "#10b981"];
 
 function getStrength(p: string) {
@@ -54,23 +54,23 @@ export default function RegisterPage() {
     setError("");
 
     if (!name.trim() || !email.trim() || !password) {
-      setError("ACCESS DENIED · заполните все поля");
+      setError("ACCESS DENIED · fill in all fields");
       return;
     }
     if (password.length < 8) {
-      setError("ACCESS DENIED · пароль минимум 8 символов");
+      setError("ACCESS DENIED · password must be at least 8 characters");
       return;
     }
     if (!/[a-zа-яё]/i.test(password) || !/[0-9]/.test(password)) {
-      setError("ACCESS DENIED · пароль должен содержать буквы и цифры");
+      setError("ACCESS DENIED · password must contain letters and digits");
       return;
     }
     if (password !== confirm) {
-      setError("ACCESS DENIED · пароли не совпадают");
+      setError("ACCESS DENIED · passwords do not match");
       return;
     }
     if (!consent) {
-      setError("ACCESS DENIED · подтвердите согласие на обработку данных");
+      setError("ACCESS DENIED · please confirm consent to data processing");
       return;
     }
 
@@ -85,7 +85,7 @@ export default function RegisterPage() {
     const data = await res.json();
 
     if (!res.ok) {
-      setError(`ACCESS DENIED · ${data.error ?? "ошибка сервера"}`);
+      setError(`ACCESS DENIED · ${data.error ?? "server error"}`);
       setLoading(false);
       return;
     }
@@ -156,7 +156,7 @@ export default function RegisterPage() {
               <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", opacity: 0.7 }} />
             </span>
             <span style={{ marginLeft: 6, fontSize: 11, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — new operator</span>
-            <Link href="/" style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.3)", textDecoration: "none", letterSpacing: "0.1em" }}>[esc] на главную</Link>
+            <Link href="/" style={{ marginLeft: "auto", fontSize: 10, color: "rgba(255,255,255,0.3)", textDecoration: "none", letterSpacing: "0.1em" }}>[esc] home</Link>
           </div>
 
           {/* Boot log */}
@@ -189,9 +189,9 @@ export default function RegisterPage() {
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 </motion.div>
-                <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 8 }}>Аккаунт создан</div>
+                <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 8 }}>Account created</div>
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>
-                  Входим в систему…
+                  Signing you in…
                 </p>
                 <div style={{ marginTop: 16, width: 24, height: 24, border: "2px solid rgba(255,255,255,0.1)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.7s linear infinite", margin: "16px auto 0" }} />
               </motion.div>
@@ -209,7 +209,7 @@ export default function RegisterPage() {
                     &gt; OPERATOR
                   </label>
                   <input
-                    type="text" placeholder="никнейм"
+                    type="text" placeholder="nickname"
                     value={name} onChange={e => setName(e.target.value)}
                     style={fieldStyle} onFocus={onFocus} onBlur={onBlur}
                     autoComplete="username"
@@ -274,7 +274,7 @@ export default function RegisterPage() {
                   </label>
                   <div style={{ position: "relative" }}>
                     <input
-                      type={showPass ? "text" : "password"} placeholder="повторите пароль"
+                      type={showPass ? "text" : "password"} placeholder="repeat password"
                       value={confirm} onChange={e => setConfirm(e.target.value)}
                       style={{
                         ...fieldStyle,
@@ -307,10 +307,10 @@ export default function RegisterPage() {
                     style={{ marginTop: 2, width: 16, height: 16, accentColor: "#6366f1", cursor: "pointer", flexShrink: 0 }}
                   />
                   <span style={{ fontSize: 12, lineHeight: 1.55, color: "rgba(255,255,255,0.55)" }}>
-                    Я согласен на обработку персональных данных (email, технических данных и запросов к AI) для создания аккаунта и работы Сервиса и принимаю{" "}
-                    <Link href="/legal/consent" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Согласие</Link>,{" "}
-                    <Link href="/legal/terms" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Условия</Link> и{" "}
-                    <Link href="/legal/privacy" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Политику конфиденциальности</Link>.
+                    I consent to the processing of my personal data (email, technical data and AI requests) to create an account and operate the Service, and I accept the{" "}
+                    <Link href="/legal/consent" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Consent</Link>,{" "}
+                    <Link href="/legal/terms" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Terms</Link> and{" "}
+                    <Link href="/legal/privacy" target="_blank" style={{ color: "#a5b4fc", textDecoration: "none" }}>Privacy Policy</Link>.
                   </span>
                 </motion.label>
 
@@ -343,21 +343,21 @@ export default function RegisterPage() {
                 >
                   {loading
                     ? <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
-                    : <>▸ Создать аккаунт</>}
+                    : <>▸ Create account</>}
                 </motion.button>
 
                 {/* Divider */}
                 <div style={{ display: "flex", alignItems: "center", gap: 10, margin: "2px 0" }}>
                   <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
-                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em" }}>ИЛИ</span>
+                  <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)", letterSpacing: "0.1em" }}>OR</span>
                   <div style={{ flex: 1, height: 1, background: "rgba(255,255,255,0.06)" }} />
                 </div>
 
                 {/* Login link */}
                 <div style={{ textAlign: "center" }}>
-                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Уже есть аккаунт? </span>
+                  <span style={{ fontSize: 12, color: "rgba(255,255,255,0.35)" }}>Already have an account? </span>
                   <Link href="/login" style={{ fontSize: 12, color: "#818cf8", fontWeight: 600, textDecoration: "none" }}>
-                    Войти →
+                    Sign in →
                   </Link>
                 </div>
               </motion.form>

@@ -190,7 +190,7 @@ export function quotaExceededResponse(quota: QuotaKey, r: UsageResult): Response
   return new Response(
     JSON.stringify({
       success: false,
-      error: "Месячный лимит тарифа исчерпан. Обновите тариф или дождитесь начала месяца.",
+      error: "Monthly plan limit reached. Upgrade your plan or wait for the new month.",
       code: "QUOTA_EXCEEDED",
       quota,
       limit: r.limit,

@@ -77,7 +77,7 @@ export async function requireFeature(
   const session = await auth();
   const userId = session?.user?.id;
   if (!userId) {
-    return { allowed: false, userId: "", plan: "none", code: "UNAUTHORIZED", status: 401, reason: "Нужно войти в аккаунт" };
+    return { allowed: false, userId: "", plan: "none", code: "UNAUTHORIZED", status: 401, reason: "Please sign in" };
   }
 
   const sub = await getUserSubscription(userId);
@@ -91,7 +91,7 @@ export async function requireFeature(
         void logEvent("feature_blocked", userId, { feature, plan, required: minPlanFor(feature) });
         return {
           allowed: false, userId, plan, code: "PLAN_REQUIRED", status: 402,
-          reason: "Для этой функции нужен активный тариф",
+          reason: "This feature requires an active plan",
           requiredPlan: minPlanFor(feature),
         };
       }
@@ -99,7 +99,7 @@ export async function requireFeature(
       void logEvent("feature_blocked", userId, { feature, plan, required: minPlanFor(feature) });
       return {
         allowed: false, userId, plan, code: "FEATURE_LOCKED", status: 403,
-        reason: `Функция недоступна на тарифе ${PLAN_BY_ID[plan].name}`,
+        reason: `Not available on the ${PLAN_BY_ID[plan].name} plan`,
         requiredPlan: minPlanFor(feature),
       };
     }
@@ -116,7 +116,7 @@ export async function requireFeature(
     void logEvent("limit_reached", userId, { quota, plan, limit: usage.limit, used: usage.used });
     return {
       allowed: false, userId, plan, usage, code: "QUOTA_EXCEEDED", status: 429,
-      reason: "Месячный лимит исчерпан. Обновите тариф или дождитесь начала месяца.",
+      reason: "Monthly limit reached. Upgrade your plan or wait for the new month.",
       requiredPlan: plan === "max" ? null : plan === "pro" ? "max" : "pro",
     };
   }

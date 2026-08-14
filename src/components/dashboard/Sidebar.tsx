@@ -46,31 +46,31 @@ type NavSection = { title: string; items: NavItem[] };
 
 const SECTIONS: NavSection[] = [
   {
-    title: "Командный центр",
+    title: "Command center",
     items: [
       { key: "1", label: "Dashboard",        href: "/dashboard",            exact: true, icon: LayoutDashboard, live: true },
-      { key: "2", label: "Новая стратегия",  href: "/dashboard/new",        icon: Zap, accent: true },
-      { key: "3", label: "Мои проекты",      href: "/dashboard/projects",   icon: FolderOpen, badge: 2 },
-      { key: "4", label: "Отчёты",           href: "/dashboard/reports",    icon: FileText, badge: 1 },
-      { key: "5", label: "Задачи",           href: "/dashboard/tasks",      icon: CheckSquare },
+      { key: "2", label: "New strategy",  href: "/dashboard/new",        icon: Zap, accent: true },
+      { key: "3", label: "My projects",      href: "/dashboard/projects",   icon: FolderOpen, badge: 2 },
+      { key: "4", label: "Reports",           href: "/dashboard/reports",    icon: FileText, badge: 1 },
+      { key: "5", label: "Tasks",           href: "/dashboard/tasks",      icon: CheckSquare },
     ],
   },
   {
-    title: "AI система",
+    title: "AI system",
     items: [
-      { key: "6", label: "Исполн. совет",    href: "/dashboard/executives", icon: Users, live: true },
-      { key: "7", label: "История диалогов", href: "/dashboard/history",    icon: History },
+      { key: "6", label: "Executive board",    href: "/dashboard/executives", icon: Users, live: true },
+      { key: "7", label: "Chat history", href: "/dashboard/history",    icon: History },
     ],
   },
   {
-    title: "Инструменты",
+    title: "Tools",
     items: [
-      { key: "t", label: "Цели и план",      href: "/dashboard/tools",      icon: Target, accent: true, gate: "goalsPlan" },
-      { key: "p", label: "Питч-дек",         href: "/dashboard/pitch",      icon: Presentation, accent: true, gate: "pitchDeck" },
-      { key: "g", label: "Цели и фокус",     href: "/dashboard/goals",      icon: Flag, accent: true, gate: "weeklyFocus" },
-      { key: "8", label: "AI Агенты",        href: "/dashboard/agents",     icon: Bot },
+      { key: "t", label: "Goals & Plan",      href: "/dashboard/tools",      icon: Target, accent: true, gate: "goalsPlan" },
+      { key: "p", label: "Pitch deck",         href: "/dashboard/pitch",      icon: Presentation, accent: true, gate: "pitchDeck" },
+      { key: "g", label: "Goals & Focus",     href: "/dashboard/goals",      icon: Flag, accent: true, gate: "weeklyFocus" },
+      { key: "8", label: "AI Agents",        href: "/dashboard/agents",     icon: Bot },
       { key: "9", label: "Knowledge Vault",  href: "/dashboard/vault",      icon: Database, accent: true },
-      { key: "0", label: "Блокнот",          href: "/dashboard/notepad",    icon: BookOpen },
+      { key: "0", label: "Notepad",          href: "/dashboard/notepad",    icon: BookOpen },
     ],
   },
 ];
@@ -180,14 +180,14 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           )}
         </Link>
         <div className="flex items-center gap-1">
-          <button onClick={toggleCollapse} title={collapsed ? "Развернуть (⌘B)" : "Свернуть (⌘B)"}
+          <button onClick={toggleCollapse} title={collapsed ? "Expand (⌘B)" : "Collapse (⌘B)"}
             className="hidden lg:flex size-7 rounded-lg items-center justify-center transition-colors"
             style={{ color: "rgba(255,255,255,0.3)" }}
             onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.7)")}
             onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}>
             {collapsed ? <PanelLeft size={14} /> : <PanelLeftClose size={14} />}
           </button>
-          <button onClick={onClose} aria-label="Закрыть меню"
+          <button onClick={onClose} aria-label="Close menu"
             className="lg:hidden size-7 rounded-lg flex items-center justify-center"
             style={{ color: "rgba(255,255,255,0.35)", background: "rgba(255,255,255,0.05)" }}>
             <X size={14} />
@@ -302,7 +302,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           <div style={{ borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.055)", padding: 10 }}>
             {/* usage */}
             <div className="flex items-center justify-between mb-1.5">
-              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>AI-сообщения (мес)</span>
+              <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)" }}>AI messages (mo)</span>
               <span className="term-mono" style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>
                 {usage
                   ? `${usage.used} / ${usage.limit === null ? "∞" : usage.limit}`
@@ -320,35 +320,35 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
 
             {/* quick actions */}
             <div className="flex items-center gap-1 mb-2.5">
-              <Link href="/dashboard/settings" onClick={onClose} title="Настройки"
+              <Link href="/dashboard/settings" onClick={onClose} title="Settings"
                 className="flex-1 flex items-center gap-2 rounded-lg transition-colors"
                 style={{ height: 30, padding: "0 8px", color: "rgba(255,255,255,0.4)", fontSize: 11.5 }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                <Settings size={13} /> Настройки
+                <Settings size={13} /> Settings
               </Link>
             </div>
-            <Link href="/dashboard/billing" onClick={onClose} title="Тарифы и подписка"
+            <Link href="/dashboard/billing" onClick={onClose} title="Plans & billing"
               className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
               style={{ height: 30, padding: "0 8px", color: "rgba(129,140,248,0.85)", fontSize: 11.5 }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-              <CreditCard size={13} /> Тарифы
+              <CreditCard size={13} /> Billing
             </Link>
-            <Link href="/dashboard/support" onClick={onClose} title="Поддержка"
+            <Link href="/dashboard/support" onClick={onClose} title="Support"
               className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
               style={{ height: 30, padding: "0 8px", color: "rgba(255,255,255,0.4)", fontSize: 11.5 }}
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-              <HelpCircle size={13} /> Поддержка
+              <HelpCircle size={13} /> Support
             </Link>
             {isAdmin && (
-              <Link href="/admin" onClick={onClose} title="Аналитика (админ)"
+              <Link href="/admin" onClick={onClose} title="Analytics (admin)"
                 className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
                 style={{ height: 30, padding: "0 8px", color: "rgba(129,140,248,0.85)", fontSize: 11.5 }}
                 onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
-                <BarChart3 size={13} /> Аналитика
+                <BarChart3 size={13} /> Analytics
               </Link>
             )}
 
@@ -362,7 +362,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <div className="flex-1 min-w-0">
                 <div className="truncate" style={{ fontSize: 12, fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>{userName}</div>
                 <div className="term-mono" style={{ fontSize: 9, color: plan === "none" ? "rgba(255,255,255,0.3)" : "rgba(129,140,248,0.9)", letterSpacing: "0.08em" }}>
-                  {plan === "none" ? "БЕЗ ТАРИФА" : `${PLAN_BY_ID[plan].name.toUpperCase()} PLAN`}
+                  {plan === "none" ? "NO PLAN" : `${PLAN_BY_ID[plan].name.toUpperCase()} PLAN`}
                 </div>
               </div>
               <ChevronRight size={13} style={{ color: "rgba(255,255,255,0.25)" }} />
@@ -370,7 +370,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
           </div>
         ) : (
           <div className="flex flex-col items-center gap-1.5">
-            <Link href="/dashboard/settings" onClick={onClose} title="Настройки"
+            <Link href="/dashboard/settings" onClick={onClose} title="Settings"
               className="size-8 rounded-lg flex items-center justify-center" style={{ color: "rgba(255,255,255,0.35)" }}>
               <Settings size={14} />
             </Link>

@@ -15,15 +15,15 @@ export default function PaymentFailedPage() {
         <div style={{ width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(239,68,68,0.12)", border: "1px solid rgba(239,68,68,0.3)" }}>
           <XCircle size={30} style={{ color: "#f87171" }} />
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Оплата не прошла</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Payment failed</h1>
         <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, margin: "0 0 8px" }}>
-          Платёж отменён, истёк срок счёта или перевод не был завершён. Деньги не списаны — либо вернутся на твой кошелёк.
+          The payment was cancelled, the invoice expired or the transfer wasn\u2019t completed. No money was taken — or it will return to your wallet.
         </p>
         <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, margin: "0 0 24px" }}>
-          Попробуй ещё раз — счёт создаётся заново за пару секунд.
+          Try again — a new invoice takes a couple of seconds.
         </p>
         <Link href="/dashboard/billing" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 48, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 8px 24px rgba(${RGB},0.4)` }}>
-          <RotateCcw size={16} /> Попробовать снова
+          <RotateCcw size={16} /> Try again
         </Link>
       </div>
     </main>

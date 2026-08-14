@@ -43,13 +43,13 @@ function wrap(title: string, bodyHtml: string, ctaLabel?: string, ctaPath?: stri
     ${bodyHtml}
     ${cta}
     <p style="font-size:12px;line-height:1.6;color:#94a3b8">
-      Vertlix AI · это служебное письмо о вашем аккаунте.
+      Vertlix AI · a service email about your account.
     </p>
   </div>`;
 }
 
 const fmtDate = (iso?: string | null) =>
-  iso ? new Date(iso).toLocaleDateString("ru-RU", { day: "numeric", month: "long", year: "numeric" }) : null;
+  iso ? new Date(iso).toLocaleDateString("en-US", { day: "numeric", month: "long", year: "numeric" }) : null;
 
 /** Оплата подтверждена, тариф включён. Зовётся из webhook — через void. */
 export async function notifySubscriptionActivated(userId: string, plan: PlanId, expiresAt?: string | null): Promise<void> {
@@ -60,14 +60,14 @@ export async function notifySubscriptionActivated(userId: string, plan: PlanId, 
     const until = fmtDate(expiresAt);
     await sendEmail({
       to,
-      subject: `Тариф ${name} активирован · Vertlix AI`,
+      subject: `${name} plan activated · Vertlix AI`,
       html: wrap(
-        `Тариф ${name} активирован`,
+        `${name} plan activated`,
         `<p style="font-size:14px;line-height:1.6;color:#475569">
-           Оплата подтверждена, все возможности тарифа уже открыты${until ? ` — действует до ${until}` : ""}.
-           Лимиты и остаток видны в кабинете.
+           Payment confirmed — everything in your plan is unlocked${until ? ` and active until ${until}` : ""}.
+           Limits and remaining usage are visible in your dashboard.
          </p>`,
-        "Открыть кабинет", "/dashboard",
+        "Open dashboard", "/dashboard",
       ),
     });
   } catch { /* почта не должна ломать оплату */ }
@@ -81,14 +81,14 @@ export async function notifyUsageThreshold(userId: string, threshold: 80 | 100, 
     const full = threshold === 100;
     await sendEmail({
       to,
-      subject: full ? "Месячный лимит исчерпан · Vertlix AI" : "Использовано 80% лимита · Vertlix AI",
+      subject: full ? "Monthly limit reached · Vertlix AI" : "80% of your limit used · Vertlix AI",
       html: wrap(
-        full ? "Месячный лимит исчерпан" : "Использовано 80% месячного лимита",
+        full ? "Monthly limit reached" : "80% of your monthly limit used",
         `<p style="font-size:14px;line-height:1.6;color:#475569">
-           Израсходовано ${used} из ${limit} AI-запросов за месяц.
-           ${full ? "Чтобы продолжить без ожидания нового месяца, обновите тариф." : "Если темп сохранится, лимит закончится до конца месяца."}
+           You have used ${used} of ${limit} AI requests this month.
+           ${full ? "Upgrade your plan to continue without waiting for the new month." : "At this pace the limit will run out before the month ends."}
          </p>`,
-        full ? "Обновить тариф" : "Посмотреть тарифы", "/dashboard/billing",
+        full ? "Upgrade plan" : "View plans", "/dashboard/billing",
       ),
     });
   } catch { /* no-op */ }
@@ -100,14 +100,14 @@ export async function notifyExpiring(userId: string, to: string, plan: string, d
     const name = PLAN_BY_ID[plan as PlanId]?.name ?? plan;
     await sendEmail({
       to,
-      subject: `Тариф ${name} заканчивается ${daysLeft <= 1 ? "завтра" : `через ${daysLeft} дн.`} · Vertlix AI`,
+      subject: `Your ${name} plan ends ${daysLeft <= 1 ? "tomorrow" : `in ${daysLeft} days`} · Vertlix AI`,
       html: wrap(
-        `Тариф ${name} скоро закончится`,
+        `Your ${name} plan is ending soon`,
         `<p style="font-size:14px;line-height:1.6;color:#475569">
-           Подписка действует до ${fmtDate(expiresAt)}. Продлите её — оставшееся время не сгорит,
-           новый месяц прибавится к текущему сроку.
+           Your subscription is active until ${fmtDate(expiresAt)}. Renew it — remaining time is preserved,
+           the new month is added on top of the current term.
          </p>`,
-        "Продлить подписку", "/dashboard/billing",
+        "Renew subscription", "/dashboard/billing",
       ),
     });
     void logEvent("subscription_expiring", userId, { plan, days_left: daysLeft });

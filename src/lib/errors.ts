@@ -30,8 +30,8 @@ export function safeErrorResponse(err: unknown, opts: SafeErrorOptions): Respons
 
   const status = notConfigured ? 503 : (opts.status ?? 500);
   const publicMessage = notConfigured
-    ? "Сервис временно недоступен: не настроено подключение к AI-провайдеру."
-    : (opts.publicMessage ?? "Не удалось выполнить операцию. Попробуйте ещё раз.");
+    ? "Service temporarily unavailable: AI provider connection is not configured."
+    : (opts.publicMessage ?? "The operation failed. Please try again.");
 
   return new Response(JSON.stringify({ success: false, error: publicMessage }), {
     status,
@@ -45,7 +45,7 @@ export function safeErrorResponse(err: unknown, opts: SafeErrorOptions): Respons
  */
 export function dbErrorResponse(error: { message?: string; code?: string } | null, endpoint: string): Response {
   log.error({ event: "db_error", endpoint, code: error?.code, message: error?.message ?? "unknown" });
-  return new Response(JSON.stringify({ success: false, error: "Ошибка обращения к базе данных." }), {
+  return new Response(JSON.stringify({ success: false, error: "Database request failed." }), {
     status: 500,
     headers: { "Content-Type": "application/json" },
   });

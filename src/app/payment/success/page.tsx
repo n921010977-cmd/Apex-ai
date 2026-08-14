@@ -50,9 +50,9 @@ export default function PaymentSuccessPage() {
             <div style={{ width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", background: `rgba(${RGB},0.12)`, border: `1px solid rgba(${RGB},0.3)` }}>
               <Loader2 size={28} style={{ color: "#a5b4fc", animation: "spin 1s linear infinite" }} />
             </div>
-            <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Подтверждаем оплату…</h1>
+            <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Confirming your payment…</h1>
             <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: 0 }}>
-              Крипто-платёж подтверждается сетью 1–3 минуты. Тариф включится автоматически — страницу можно не обновлять.
+              Crypto payments take 1–3 minutes to confirm on-chain. Your plan will activate automatically — no need to refresh.
             </p>
           </>
         )}
@@ -63,13 +63,13 @@ export default function PaymentSuccessPage() {
               <CheckCircle2 size={30} style={{ color: "#34d399" }} />
             </div>
             <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>
-              Оплата прошла — тариф {plan ? PLAN_BY_ID[plan].name : ""} активен 🎉
+              Payment confirmed — {plan ? PLAN_BY_ID[plan].name : ""} plan is active 🎉
             </h1>
             <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 24px" }}>
-              Все возможности тарифа уже открыты. Спасибо, что с нами!
+              Everything in your plan is now unlocked. Thanks for being with us!
             </p>
             <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 48, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 8px 24px rgba(${RGB},0.4)` }}>
-              В дашборд <ArrowRight size={16} />
+              Go to dashboard <ArrowRight size={16} />
             </Link>
           </>
         )}
@@ -79,22 +79,22 @@ export default function PaymentSuccessPage() {
             <div style={{ width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)" }}>
               <Clock size={28} style={{ color: "#fbbf24" }} />
             </div>
-            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Платёж ещё подтверждается</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Payment is still confirming</h1>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 20px" }}>
-              Сеть бывает медленной — иногда подтверждение занимает до 30 минут. Тариф включится сам, как только платёж будет подтверждён. Загляни в тарифы чуть позже.
+              The network can be slow — confirmation sometimes takes up to 30 minutes. Your plan will activate on its own once the payment confirms. Check back shortly.
             </p>
-            <Link href="/payment/pending" style={{ fontSize: 13.5, fontWeight: 600, color: "#a5b4fc" }}>Что происходит с платежом →</Link>
+            <Link href="/payment/pending" style={{ fontSize: 13.5, fontWeight: 600, color: "#a5b4fc" }}>What\u2019s happening with my payment →</Link>
           </>
         )}
 
         {state === "unauthed" && (
           <>
-            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Войди, чтобы увидеть статус</h1>
+            <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Sign in to see the status</h1>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 20px" }}>
-              Оплата обрабатывается на сервере независимо от входа. Войди в аккаунт, с которого оформлял тариф, — и увидишь его активным.
+              Your payment is processed on the server regardless of sign-in. Sign in with the account you paid from and you\u2019ll see the plan active.
             </p>
             <Link href="/login?callbackUrl=/payment/success" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 24px", borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)` }}>
-              Войти
+              Sign in
             </Link>
           </>
         )}

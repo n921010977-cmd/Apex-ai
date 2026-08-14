@@ -37,8 +37,8 @@ export function LimitNotice() {
   }, []);
 
   const title = info?.code === "QUOTA_EXCEEDED"
-    ? "Месячный лимит исчерпан"
-    : "Функция закрыта на вашем тарифе";
+    ? "Monthly limit reached"
+    : "This feature is locked on your plan";
 
   return (
     <AnimatePresence>
@@ -58,7 +58,7 @@ export function LimitNotice() {
               border: `1px solid rgba(${RGB},0.25)`,
               boxShadow: "0 1px 2px rgba(0,0,0,0.4), 0 24px 64px rgba(0,0,0,0.5)" }}
           >
-            <button onClick={() => setInfo(null)} aria-label="Закрыть"
+            <button onClick={() => setInfo(null)} aria-label="Close"
               style={{ position: "absolute", top: 12, right: 12, width: 32, height: 32, borderRadius: 10, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", color: "rgba(255,255,255,0.5)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <X size={15} />
             </button>
@@ -71,12 +71,12 @@ export function LimitNotice() {
             <p style={{ fontSize: 14, lineHeight: 1.6, color: "rgba(255,255,255,0.6)", margin: "0 0 6px" }}>{info.error}</p>
             {info.code === "QUOTA_EXCEEDED" && info.limit != null && (
               <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", margin: "0 0 4px", fontVariantNumeric: "tabular-nums" }}>
-                Использовано {info.used ?? info.limit} из {info.limit} за месяц
+                Used {info.used ?? info.limit} of {info.limit} this month
               </p>
             )}
             {info.resetAt && (
               <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.35)", margin: "0 0 20px" }}>
-                Лимит обновится {new Date(info.resetAt).toLocaleDateString("ru-RU")}
+                Limit resets {new Date(info.resetAt).toLocaleDateString("en-US")}
               </p>
             )}
 
@@ -85,7 +85,7 @@ export function LimitNotice() {
             <Link href="/dashboard/billing"
               onClick={() => { trackEvent("upgrade_clicked", { from: info.code }); setInfo(null); }}
               style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 24px", borderRadius: 13, textDecoration: "none", color: "#fff", fontSize: 14.5, fontWeight: 700, background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: `0 8px 24px rgba(${RGB},0.4), inset 0 1px 0 rgba(255,255,255,0.16)` }}>
-              Выбрать тариф <ArrowUpRight size={16} />
+              Choose a plan <ArrowUpRight size={16} />
             </Link>
           </motion.div>
         </motion.div>

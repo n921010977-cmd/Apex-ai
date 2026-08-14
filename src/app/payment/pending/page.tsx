@@ -31,14 +31,14 @@ export default function PaymentPendingPage() {
         <div style={{ width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px", display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.3)" }}>
           <Clock size={28} style={{ color: "#fbbf24" }} />
         </div>
-        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Платёж в обработке</h1>
+        <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Payment in progress</h1>
         <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, margin: "0 0 8px" }}>
-          Перевод отправлен и ждёт подтверждения блокчейна. Обычно это 1–3 минуты, при загруженной сети — до 30.
+          The transfer has been sent and is waiting for blockchain confirmation. Usually 1–3 minutes; up to 30 when the network is busy.
         </p>
         <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, margin: "0 0 22px" }}>
-          Как только сеть подтвердит платёж, тариф включится автоматически — мы проверяем это каждые несколько секунд.
+          As soon as the network confirms the payment, your plan activates automatically — we check every few seconds.
         </p>
-        <Link href="/dashboard/billing" style={{ fontSize: 13.5, fontWeight: 600, color: "#a5b4fc" }}>← Вернуться к тарифам</Link>
+        <Link href="/dashboard/billing" style={{ fontSize: 13.5, fontWeight: 600, color: "#a5b4fc" }}>← Back to pricing</Link>
       </div>
     </main>
   );

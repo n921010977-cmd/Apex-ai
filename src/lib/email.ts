@@ -33,17 +33,17 @@ export async function sendEmail({ to, subject, html }: SendArgs): Promise<{ sent
 export function verificationEmailHtml(link: string): string {
   return `
   <div style="font-family:ui-sans-serif,system-ui,sans-serif;max-width:480px;margin:0 auto;color:#1f2328">
-    <h2 style="font-size:18px;margin:0 0 12px">Подтвердите email · Vertlix AI</h2>
+    <h2 style="font-size:18px;margin:0 0 12px">Confirm your email · Vertlix AI</h2>
     <p style="font-size:14px;line-height:1.6;color:#475569">
-      Спасибо за регистрацию в Vertlix AI. Чтобы активировать аккаунт, подтвердите свой email:
+      Thanks for signing up for Vertlix AI. Confirm your email to activate your account:
     </p>
     <p style="margin:20px 0">
       <a href="${link}" style="display:inline-block;padding:11px 20px;border-radius:10px;background:#4f46e5;color:#fff;font-weight:600;font-size:14px;text-decoration:none">
-        Подтвердить email
+        Confirm email
       </a>
     </p>
     <p style="font-size:12px;line-height:1.6;color:#94a3b8">
-      Ссылка действует 24 часа. Если вы не регистрировались — просто проигнорируйте это письмо.
+      The link is valid for 24 hours. If you didn\u2019t sign up, just ignore this email.
     </p>
   </div>`;
 }
