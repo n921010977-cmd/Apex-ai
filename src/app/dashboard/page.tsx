@@ -30,11 +30,11 @@ function fmtAgo(iso?: string): string {
   if (!iso) return "";
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.round(diff / 60000);
-  if (m < 1) return "только что";
-  if (m < 60) return `${m}м назад`;
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
   const h = Math.round(m / 60);
-  if (h < 24) return `${h}ч назад`;
-  return `${Math.round(h / 24)}д назад`;
+  if (h < 24) return `${h}h ago`;
+  return `${Math.round(h / 24)}d ago`;
 }
 
 interface Project {
@@ -48,18 +48,18 @@ interface Project {
 // прогнозом $2.4M как чужой результат — обман. Пусто = пустое состояние с CTA.
 
 const EXECUTIVES = [
-  { role: "CEO", name: "Sophia Rivers", title: "Chief Strategy AI", specialty: "Стратегия & Видение",    color: "#6366f1", rgb: "99,102,241",  confidence: 94, tasks: 12, icon: Brain,      slug: "ceo" },
-  { role: "CFO", name: "Marcus Chen",   title: "Finance AI",         specialty: "Финансы & Модели",       color: "#3b82f6", rgb: "59,130,246",  confidence: 89, tasks: 8,  icon: DollarSign, slug: "cfo" },
-  { role: "CMO", name: "Elena Torres",  title: "Growth AI",          specialty: "Маркетинг & Рост",       color: "#10b981", rgb: "16,185,129",  confidence: 91, tasks: 15, icon: TrendingUp, slug: "cmo" },
-  { role: "COO", name: "James Wright",  title: "Operations AI",      specialty: "Операции & Процессы",    color: "#f59e0b", rgb: "245,158,11",  confidence: 86, tasks: 10, icon: Activity,   slug: "coo" },
-  { role: "CTO", name: "Park Aiden",    title: "Technology AI",      specialty: "Технологии & Архитект.", color: "#8b5cf6", rgb: "139,92,246",  confidence: 92, tasks: 9,  icon: Cpu,        slug: "cto" },
+  { role: "CEO", name: "Sophia Rivers", title: "Chief Strategy AI", specialty: "Strategy & Vision",    color: "#6366f1", rgb: "99,102,241",  confidence: 94, tasks: 12, icon: Brain,      slug: "ceo" },
+  { role: "CFO", name: "Marcus Chen",   title: "Finance AI",         specialty: "Finance & Models",       color: "#3b82f6", rgb: "59,130,246",  confidence: 89, tasks: 8,  icon: DollarSign, slug: "cfo" },
+  { role: "CMO", name: "Elena Torres",  title: "Growth AI",          specialty: "Marketing & Growth",       color: "#10b981", rgb: "16,185,129",  confidence: 91, tasks: 15, icon: TrendingUp, slug: "cmo" },
+  { role: "COO", name: "James Wright",  title: "Operations AI",      specialty: "Operations & Process",    color: "#f59e0b", rgb: "245,158,11",  confidence: 86, tasks: 10, icon: Activity,   slug: "coo" },
+  { role: "CTO", name: "Park Aiden",    title: "Technology AI",      specialty: "Technology & Architecture", color: "#8b5cf6", rgb: "139,92,246",  confidence: 92, tasks: 9,  icon: Cpu,        slug: "cto" },
 ];
 
 const NEXT_STEPS = [
-  { title: "Разобрать идею советом директоров", desc: "20 AI-ролей разберут проект каждый со своей стороны и дадут вердикт.", href: "/dashboard/executives", icon: Users },
-  { title: "Собрать стратегию",                 desc: "Позиционирование, рынок, конкуренты и приоритеты одним документом.", href: "/dashboard/new",        icon: FileText },
-  { title: "Сделать питч-дек",                  desc: "Слайды для инвестора с экспортом в PDF.",                             href: "/dashboard/pitch",      icon: Rocket },
-  { title: "Разложить цели на план 30/60/90",   desc: "Понятные шаги на ближайшие недели вместо общих слов.",               href: "/dashboard/tools",      icon: Target },
+  { title: "Review your idea with the board", desc: "20 AI roles examine the project from every angle and deliver a verdict.", href: "/dashboard/executives", icon: Users },
+  { title: "Build a strategy",                 desc: "Positioning, market, competitors and priorities in one document.", href: "/dashboard/new",        icon: FileText },
+  { title: "Create a pitch deck",              desc: "Investor slides with PDF export.",                             href: "/dashboard/pitch",      icon: Rocket },
+  { title: "Turn goals into a 30/60/90 plan",  desc: "Clear steps for the coming weeks instead of vague intentions.",               href: "/dashboard/tools",      icon: Target },
 ];
 
 // Секция «инсайты» раньше показывала придуманные факты о бизнесе
@@ -69,10 +69,10 @@ const NEXT_STEPS = [
 
 
 const QUICK_ACTIONS = [
-  { label: "Новый анализ",  href: "/dashboard/new",        icon: Zap,      desc: "Запустить AI-команду" },
-  { label: "AI Чат",        href: "/dashboard/chat",       icon: Brain,    desc: "Спросить совет" },
-  { label: "Отчёты",        href: "/dashboard/reports",    icon: FileText, desc: "Все анализы" },
-  { label: "Исп. совет",    href: "/dashboard/executives", icon: Users,    desc: "AI-директора" },
+  { label: "New analysis",  href: "/dashboard/new",        icon: Zap,      desc: "Launch the AI team" },
+  { label: "AI Chat",       href: "/dashboard/chat",       icon: Brain,    desc: "Ask the board" },
+  { label: "Reports",       href: "/dashboard/reports",    icon: FileText, desc: "All analyses" },
+  { label: "Exec board",    href: "/dashboard/executives", icon: Users,    desc: "AI directors" },
 ];
 
 // ─── Neural Visualization (Canvas) ───────────────────────────────────────────
@@ -325,7 +325,7 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
             <Rocket size={14} style={{ color: "rgba(255,255,255,0.7)" }} />
           </div>
           <span style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.6)", background: "rgba(0,0,0,0.3)", backdropFilter: "blur(8px)", padding: "3px 8px", borderRadius: 6 }}>
-            {p.status === "active" ? "● Активен" : "⏸ Пауза"}
+            {p.status === "active" ? "● Active" : "⏸ Paused"}
           </span>
         </div>
         <div className="absolute top-3 right-3">
@@ -363,12 +363,12 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
           <Link href={`/dashboard/projects/${p.id}`}
             className="flex-1 flex items-center justify-center gap-1.5 font-semibold text-white transition-all hover:-translate-y-px"
             style={{ height: 30, borderRadius: 9, fontSize: 11, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
-            <ArrowUpRight size={11} /> Открыть
+            <ArrowUpRight size={11} /> Open
           </Link>
           <Link href="/dashboard/reports"
             className="flex items-center justify-center gap-1.5 transition-all hover:bg-white/[0.08]"
             style={{ height: 30, padding: "0 12px", borderRadius: 9, fontSize: 11, color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-            <FileText size={11} /> Отчёт
+            <FileText size={11} /> Report
           </Link>
         </div>
       </div>
@@ -442,7 +442,7 @@ function ExecCard({ exec }: { exec: typeof EXECUTIVES[number] }) {
         <div className="flex items-end justify-between mb-2">
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: exec.color, lineHeight: 1 }}>{exec.confidence}%</div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>Уверенность AI</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 2 }}>AI confidence</div>
           </div>
           <MiniSparkline color={exec.color} data={EXEC_SPARKLINES[exec.role]} />
         </div>
@@ -454,14 +454,14 @@ function ExecCard({ exec }: { exec: typeof EXECUTIVES[number] }) {
         </div>
 
         <div className="flex items-center justify-between">
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)" }}>{exec.tasks} задач активно</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)" }}>{exec.tasks} tasks active</span>
           <motion.div
             animate={{ x: hovered ? 2 : 0 }}
             transition={{ duration: 0.2 }}
             className="flex items-center gap-1"
             style={{ fontSize: 10, color: exec.color }}
           >
-            Спросить <MessageSquare size={10} />
+            Ask <MessageSquare size={10} />
           </motion.div>
         </div>
 
@@ -480,14 +480,14 @@ function EmptyProjects() {
       <div style={{ width: 52, height: 52, borderRadius: 14, margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", background: `rgba(${ACCENT_RGB},0.1)`, border: `1px solid rgba(${ACCENT_RGB},0.22)` }}>
         <Rocket size={22} color={ACCENT} />
       </div>
-      <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 6 }}>Создайте первый проект</div>
+      <div style={{ fontSize: 16, fontWeight: 700, color: "#fff", marginBottom: 6 }}>Create your first project</div>
       <p style={{ fontSize: 13, color: "rgba(255,255,255,0.42)", lineHeight: 1.6, maxWidth: 360, margin: "0 auto 20px" }}>
-        Опишите бизнес-идею — AI-команда директоров проведёт полный анализ рынка, финансов и стратегии.
+        Describe your business idea and the AI board will run a full market, finance and strategy analysis.
       </p>
       <Link href="/dashboard/new"
         className="inline-flex items-center gap-2 font-semibold text-white transition-all hover:-translate-y-px"
         style={{ height: 42, padding: "0 22px", borderRadius: 12, fontSize: 14, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
-        <Zap size={15} /> Начать анализ
+        <Zap size={15} /> Start analysis
       </Link>
     </div>
   );
@@ -512,7 +512,7 @@ export default function DashboardPage() {
       .catch(() => { setProjects([]); })
       .finally(() => setLoading(false));
 
-    // Журнал активности — реальные записи пользователя.
+    // Activity log — реальные записи пользователя.
     fetch("/api/activity")
       .then(r => (r.ok ? r.json() : null))
       .then(d => { if (Array.isArray(d?.data)) setActivity(d.data.slice(0, 5)); })
@@ -520,7 +520,7 @@ export default function DashboardPage() {
   }, []);
 
   const hour     = new Date().getHours();
-  const greeting = hour < 12 ? "Доброе утро" : hour < 17 ? "Добрый день" : "Добрый вечер";
+  const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening";
   const firstName = session?.user?.name?.split(" ")[0] ?? "Founder";
 
   return (
@@ -575,7 +575,7 @@ export default function DashboardPage() {
                   className="flex items-center gap-2 px-3 py-1.5 rounded-full"
                   style={{ background: "rgba(16,185,129,0.08)", border: "1px solid rgba(16,185,129,0.2)" }}>
                   <span className="size-1.5 rounded-full" style={{ background: SUCCESS, animation: "hero-pulse 1.8s ease-in-out infinite" }} />
-                  <span style={{ fontSize: 10, fontWeight: 700, color: SUCCESS, letterSpacing: "0.11em" }}>AI СИСТЕМА АКТИВНА</span>
+                  <span style={{ fontSize: 10, fontWeight: 700, color: SUCCESS, letterSpacing: "0.11em" }}>AI SYSTEM ACTIVE</span>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, scale: 0.85 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.22, duration: 0.4 }}
                   className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
@@ -595,16 +595,16 @@ export default function DashboardPage() {
               </motion.h1>
               <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.25, duration: 0.5 }}
                 style={{ fontSize: 14, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, marginBottom: 20, maxWidth: 440 }}>
-                AI-команда директоров анализирует рынок, стратегию и финансы в реальном времени.
+                Your AI board of directors analyzes market, strategy and finance in real time.
               </motion.p>
 
               {/* KPI chips */}
               <div className="flex flex-wrap gap-2.5 mb-6">
                 {[
-                  { icon: Target,     label: "Возможностей", value: 4,  suffix: "",  color: SUCCESS },
+                  { icon: Target,     label: "Opportunities", value: 4,  suffix: "",  color: SUCCESS },
                   { icon: BarChart2,  label: "AI Analyses",  value: 12, suffix: "+", color: ACCENT  },
-                  { icon: Shield,     label: "Рисков",       value: 2,  suffix: "",  color: DANGER  },
-                  { icon: TrendingUp, label: "Рост MoM",     value: 34, suffix: "%", color: WARNING },
+                  { icon: Shield,     label: "Risks",       value: 2,  suffix: "",  color: DANGER  },
+                  { icon: TrendingUp, label: "MoM growth",     value: 34, suffix: "%", color: WARNING },
                 ].map((k, i) => (
                   <KpiChip key={k.label} {...k} delay={0.3 + i * 0.06} />
                 ))}
@@ -613,8 +613,8 @@ export default function DashboardPage() {
               {/* CTA */}
               <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55, duration: 0.45 }}
                 className="flex flex-wrap gap-3">
-                <CtaButton href="/dashboard/new"  primary icon={Zap}   label="Новая стратегия" />
-                <CtaButton href="/dashboard/chat"         icon={Brain}  label="Спросить совет" />
+                <CtaButton href="/dashboard/new"  primary icon={Zap}   label="New strategy" />
+                <CtaButton href="/dashboard/chat"         icon={Brain}  label="Ask the board" />
               </motion.div>
             </motion.div>
 
@@ -634,7 +634,7 @@ export default function DashboardPage() {
                   <span style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.5)", letterSpacing: "0.1em" }}>NEURAL NET</span>
                 </div>
               </div>
-              <div style={{ position: "absolute", bottom: 10, right: 12, pointerEvents: "none", fontSize: 9.5, color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}>20 узлов · sync</div>
+              <div style={{ position: "absolute", bottom: 10, right: 12, pointerEvents: "none", fontSize: 9.5, color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}>20 nodes · sync</div>
             </motion.div>
           </div>
 
@@ -646,11 +646,11 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 <h2 style={{ fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>Executive AI Board</h2>
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", paddingTop: 1 }}>5 AI-директоров · нажмите чтобы задать вопрос</span>
+                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", paddingTop: 1 }}>5 AI directors · click to ask a question</span>
               </div>
               <Link href="/dashboard/executives" className="flex items-center gap-1"
                 style={{ fontSize: 11, color: `rgba(${ACCENT_RGB},0.7)`, textDecoration: "none" }}>
-                Все директора <ChevronRight size={12} />
+                All directors <ChevronRight size={12} />
               </Link>
             </div>
 
@@ -680,17 +680,17 @@ export default function DashboardPage() {
             <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: `linear-gradient(90deg, transparent, rgba(${ACCENT_RGB},0.7), transparent)` }} />
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
               <Rocket size={16} style={{ color: "#818cf8" }} />
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#a5b4fc" }}>С чего начать</span>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", textTransform: "uppercase", color: "#a5b4fc" }}>Where to start</span>
             </div>
-            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", margin: "0 0 6px" }}>Ваш AI-совет директоров готов к работе</h2>
+            <h2 style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", margin: "0 0 6px" }}>Your AI board of directors is ready</h2>
             <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 18px", maxWidth: 560 }}>
-              Посмотрите готовый пример анализа за 30 секунд — или сразу запустите свою стратегию, и 20 директоров разберут её.
+              See a finished sample analysis in 30 seconds — or launch your own strategy and let 20 directors take it apart.
             </p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 12 }}>
               {[
-                { icon: Star,          title: "Посмотреть пример", desc: "Готовый анализ проекта", href: "/dashboard/projects/demo", primary: true },
-                { icon: Zap,           title: "Создать стратегию",  desc: "Запустить свой анализ",   href: "/dashboard/new" },
-                { icon: MessageSquare, title: "Спросить совет",     desc: "Задать вопрос директорам", href: "/dashboard/executives" },
+                { icon: Star,          title: "See the example", desc: "A finished project analysis", href: "/dashboard/projects/demo", primary: true },
+                { icon: Zap,           title: "Create a strategy",  desc: "Run your own analysis",   href: "/dashboard/new" },
+                { icon: MessageSquare, title: "Ask the board",     desc: "Put a question to the directors", href: "/dashboard/executives" },
               ].map((s, i) => (
                 <Link key={s.title} href={s.href} style={{ textDecoration: "none" }}>
                   <motion.div whileHover={{ y: -3 }} transition={{ type: "spring", stiffness: 300, damping: 22 }}
@@ -720,7 +720,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
           {/* Tab bar */}
           <div className="flex items-center gap-1 p-1 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", display: "inline-flex" }}>
-            {([["projects", "Мои проекты"], ["insights", "AI Intelligence"]] as const).map(([id, label]) => (
+            {([["projects", "My projects"], ["insights", "AI Intelligence"]] as const).map(([id, label]) => (
               <button key={id} onClick={() => setTab(id)}
                 className="px-4 py-1.5 rounded-lg text-xs font-medium transition-all"
                 style={tab === id
@@ -753,8 +753,8 @@ export default function DashboardPage() {
                         <Zap size={16} className="text-white/20 group-hover:text-indigo-400/60 transition-colors" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-white/30 group-hover:text-white/55 transition-colors">Новая стратегия</div>
-                        <div className="text-xs text-white/15">Опишите идею — AI-команда проведёт полный анализ</div>
+                        <div className="text-sm font-medium text-white/30 group-hover:text-white/55 transition-colors">New strategy</div>
+                        <div className="text-xs text-white/15">Describe an idea — the AI team runs a full analysis</div>
                       </div>
                     </Link>
                   </>
@@ -795,7 +795,7 @@ export default function DashboardPage() {
             style={{ borderRadius: 16, padding: "18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 12 }}>
-              Быстрые действия
+              Quick actions
             </div>
             <div className="grid grid-cols-2 gap-2">
               {QUICK_ACTIONS.map((qa, i) => (
@@ -820,7 +820,7 @@ export default function DashboardPage() {
           >
             <div className="flex items-center justify-between mb-3">
               <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)" }}>
-                Журнал активности
+                Activity log
               </div>
               <div className="flex items-center gap-1.5" style={{ fontSize: 9, fontWeight: 600, color: SUCCESS }}>
                 <span className="size-1.5 rounded-full" style={{ background: SUCCESS, animation: "hero-pulse 2s ease-in-out infinite" }} />
@@ -832,8 +832,8 @@ export default function DashboardPage() {
                   Пока их нет — честное пустое состояние с подсказкой. */}
               {activity.length === 0 && (
                 <div style={{ padding: "14px 2px", fontSize: 11.5, color: "rgba(255,255,255,0.3)", lineHeight: 1.5 }}>
-                  Здесь появятся ваши действия: анализы, стратегии, заседания совета.
-                  <Link href="/dashboard/new" style={{ color: "#a5b4fc", textDecoration: "none", marginLeft: 4 }}>Начать →</Link>
+                  Your actions will appear here: analyses, strategies, board meetings.
+                  <Link href="/dashboard/new" style={{ color: "#a5b4fc", textDecoration: "none", marginLeft: 4 }}>Start →</Link>
                 </div>
               )}
               {activity.map((ev, i) => (
@@ -847,7 +847,7 @@ export default function DashboardPage() {
                     <Activity size={12} />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(255,255,255,0.72)", lineHeight: 1.3 }}>{ev.action ?? "Действие"}</div>
+                    <div style={{ fontSize: 11.5, fontWeight: 500, color: "rgba(255,255,255,0.72)", lineHeight: 1.3 }}>{ev.action ?? "Action"}</div>
                     {ev.entity_type && <div style={{ fontSize: 10, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>{ev.entity_type}</div>}
                   </div>
                   <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)", flexShrink: 0, marginTop: 1 }}>{fmtAgo(ev.created_at)}</span>
@@ -866,11 +866,11 @@ export default function DashboardPage() {
             <div className="flex items-center gap-2 mb-3">
               <Lightbulb size={13} style={{ color: ACCENT }} />
               <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: `rgba(${ACCENT_RGB},0.9)` }}>
-                Что создаём сегодня
+                What are we creating today
               </span>
             </div>
             <p style={{ fontSize: 13, fontWeight: 600, color: "#fff", lineHeight: 1.5, marginBottom: 12 }}>
-              Опишите бизнес один раз — совет директоров разберёт его и даст вердикт.
+              Describe your business once — the board will take it apart and give a verdict.
             </p>
             <div className="space-y-2 mb-3">
               {NEXT_STEPS.slice(0, 3).map(st => (
@@ -886,7 +886,7 @@ export default function DashboardPage() {
             <Link href="/dashboard/new"
               className="flex items-center justify-center gap-2 font-semibold text-white transition-all hover:-translate-y-px"
               style={{ height: 38, borderRadius: 10, fontSize: 12.5, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)", textDecoration: "none" }}>
-              <Zap size={13} /> Начать разбор
+              <Zap size={13} /> Start the review
             </Link>
           </motion.div>
 
@@ -901,12 +901,12 @@ export default function DashboardPage() {
             style={{ borderRadius: 16, padding: "18px", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}
           >
             <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: "rgba(255,255,255,0.28)", marginBottom: 12 }}>
-              Нужна помощь
+              Need help
             </div>
             {[
-              { label: "Как устроены тарифы и лимиты", href: "/dashboard/billing" },
-              { label: "Написать в поддержку",          href: "/dashboard/support" },
-              { label: "Условия и конфиденциальность",  href: "/legal" },
+              { label: "How plans and limits work", href: "/dashboard/billing" },
+              { label: "Contact support",          href: "/dashboard/support" },
+              { label: "Terms & privacy",          href: "/legal" },
             ].map((l, i) => (
               <Link key={l.href} href={l.href}
                 className="flex items-center justify-between py-2 group"
