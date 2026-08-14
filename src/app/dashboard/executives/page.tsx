@@ -40,56 +40,56 @@ const ACCENT = "#6366f1";
 
 // ── Agent data ────────────────────────────────────────────────────────────────
 const CHAR: Record<string, { specialty: string; confidence: number }> = {
-  ceo:      { specialty: "Стратегия & Видение",        confidence: 96 },
-  cfo:      { specialty: "Финансы & Модели",           confidence: 93 },
-  cmo:      { specialty: "Маркетинг & Рост",           confidence: 94 },
-  coo:      { specialty: "Операции & Процессы",        confidence: 92 },
-  cto:      { specialty: "Технологии & Архитектура",   confidence: 95 },
-  analyst:  { specialty: "Данные & Гипотезы",          confidence: 91 },
-  invest:   { specialty: "Инвестиции & Оценка",        confidence: 92 },
-  risk:     { specialty: "Риски & Защита",             confidence: 90 },
-  brand:    { specialty: "Бренд & Позиционирование",   confidence: 92 },
-  growth:   { specialty: "Рост & Эксперименты",        confidence: 91 },
-  market:   { specialty: "Рынок & Разведка",           confidence: 91 },
-  pr:       { specialty: "PR & Репутация",             confidence: 88 },
-  sales:    { specialty: "Продажи & Воронка",          confidence: 90 },
-  hr:       { specialty: "Найм & Команда",             confidence: 87 },
-  legal:    { specialty: "Право & Комплаенс",          confidence: 88 },
-  supply:   { specialty: "Логистика & Поставки",       confidence: 89 },
-  data:     { specialty: "Аналитика & Прогнозы",       confidence: 92 },
-  product:  { specialty: "Продукт & Роадмап",          confidence: 93 },
-  ux:       { specialty: "UX & Исследования",          confidence: 90 },
-  strategy: { specialty: "Сценарии & Развилки",        confidence: 94 },
+  ceo:      { specialty: "Strategy & Vision",        confidence: 96 },
+  cfo:      { specialty: "Finance & Models",           confidence: 93 },
+  cmo:      { specialty: "Marketing & Growth",           confidence: 94 },
+  coo:      { specialty: "Operations & Process",        confidence: 92 },
+  cto:      { specialty: "Technology & Architecture",   confidence: 95 },
+  analyst:  { specialty: "Data & Hypotheses",          confidence: 91 },
+  invest:   { specialty: "Investment & Valuation",        confidence: 92 },
+  risk:     { specialty: "Risk & Protection",             confidence: 90 },
+  brand:    { specialty: "Brand & Positioning",   confidence: 92 },
+  growth:   { specialty: "Growth & Experiments",        confidence: 91 },
+  market:   { specialty: "Market & Intelligence",           confidence: 91 },
+  pr:       { specialty: "PR & Reputation",             confidence: 88 },
+  sales:    { specialty: "Sales & Funnel",          confidence: 90 },
+  hr:       { specialty: "Hiring & Team",             confidence: 87 },
+  legal:    { specialty: "Legal & Compliance",          confidence: 88 },
+  supply:   { specialty: "Logistics & Supply",       confidence: 89 },
+  data:     { specialty: "Analytics & Forecasts",       confidence: 92 },
+  product:  { specialty: "Product & Roadmap",          confidence: 93 },
+  ux:       { specialty: "UX & Research",          confidence: 90 },
+  strategy: { specialty: "Scenarios & Forks",        confidence: 94 },
 };
 
 const ACT: Record<string, string[]> = {
-  ceo:      ["Синтезирует отчёты отделов", "Расставляет приоритеты недели", "Готовит стратегическую сессию"],
-  cfo:      ["Пересчитывает юнит-экономику", "Сводит P&L за месяц", "Проверяет прогноз выручки"],
-  cmo:      ["Оценивает конверсию каналов", "Планирует запуск кампании", "Смотрит когорты за неделю"],
-  coo:      ["Оптимизирует онбординг", "Обновляет SLA поддержки", "Разбирает узкое место"],
-  cto:      ["Ревьюит архитектуру MVP", "Оценивает стоимость фичи", "Планирует спринт"],
-  analyst:  ["Проверяет гипотезу на данных", "Строит модель спроса", "Готовит недельный отчёт"],
-  invest:   ["Считает оценку раунда", "Сравнивает мультипликаторы", "Готовит инвест-меморандум"],
-  risk:     ["Сканирует риски запуска", "Обновляет карту рисков", "Стресс-тестирует финмодель"],
-  brand:    ["Шлифует позиционирование", "Проверяет тон коммуникации", "Собирает бренд-гайд"],
-  growth:   ["Запускает A/B-тест", "Анализирует воронку активации", "Ищет новую петлю роста"],
-  market:   ["Мониторит конкурентов", "Разбирает тренды ниши", "Собирает инсайты клиентов"],
-  pr:       ["Готовит питч для медиа", "Обновляет пресс-кит", "Мониторит упоминания"],
-  sales:    ["Прогревает пайплайн", "Разбирает возражения", "Обновляет скрипт продаж"],
-  hr:       ["Собирает профиль роли", "Планирует найм квартала", "Улучшает онбординг"],
-  legal:    ["Проверяет договор", "Сверяет комплаенс", "Обновляет шаблоны NDA"],
-  supply:   ["Оптимизирует поставки", "Считает маржу цепочки", "Сокращает сроки логистики"],
-  data:     ["Тренирует прогнозную модель", "Чистит данные воронки", "Настраивает дашборд KPI"],
-  product:  ["Приоритизирует бэклог", "Пишет спецификацию фичи", "Анализирует фидбек"],
-  ux:       ["Проводит юзабилити-тест", "Разбирает путь пользователя", "Прототипирует онбординг"],
-  strategy: ["Моделирует сценарии", "Готовит развилки решения", "Аудитит стратегию квартала"],
+  ceo:      ["Synthesizing department reports", "Setting weekly priorities", "Preparing the strategy session"],
+  cfo:      ["Recalculating unit economics", "Closing the monthly P&L", "Checking the revenue forecast"],
+  cmo:      ["Reviewing channel conversion", "Planning a campaign launch", "Reviewing weekly cohorts"],
+  coo:      ["Optimizing onboarding", "Updating support SLAs", "Unblocking a bottleneck"],
+  cto:      ["Reviewing MVP architecture", "Estimating a feature", "Planning the sprint"],
+  analyst:  ["Testing a hypothesis on data", "Building a demand model", "Preparing the weekly report"],
+  invest:   ["Calculating round valuation", "Comparing multiples", "Drafting the investment memo"],
+  risk:     ["Scanning launch risks", "Updating the risk map", "Stress-testing the financial model"],
+  brand:    ["Polishing positioning", "Checking tone of voice", "Assembling the brand guide"],
+  growth:   ["Running an A/B test", "Analyzing the activation funnel", "Hunting a new growth loop"],
+  market:   ["Monitoring competitors", "Analyzing niche trends", "Collecting customer insights"],
+  pr:       ["Preparing a media pitch", "Updating the press kit", "Monitoring mentions"],
+  sales:    ["Warming the pipeline", "Working through objections", "Updating the sales script"],
+  hr:       ["Building a role profile", "Planning quarterly hiring", "Improving onboarding"],
+  legal:    ["Reviewing a contract", "Checking compliance", "Updating NDA templates"],
+  supply:   ["Optimizing supply", "Calculating chain margins", "Cutting logistics lead times"],
+  data:     ["Training a forecast model", "Cleaning funnel data", "Setting up the KPI dashboard"],
+  product:  ["Prioritizing the backlog", "Writing a feature spec", "Analyzing feedback"],
+  ux:       ["Running a usability test", "Mapping the user journey", "Prototyping onboarding"],
+  strategy: ["Modeling scenarios", "Preparing decision forks", "Auditing the quarterly strategy"],
 };
 
 const FB: Record<string, string> = {
-  cfo: "С финансовой стороны: считаю юнит-экономику. LTV/CAC ниже 3 — сначала чиним экономику. Пилот с лимитом бюджета и пересмотром через 30 дней.",
-  cmo: "С точки зрения роста: спрос проверяем дешёвым тестом — лендинг и два канала, решение по данным конверсии.",
-  cto: "Технически реализуемо: 2–3 недели на MVP, начинаем с самого узкого сценария.",
-  coo: "По операциям: до запуска нужны владелец процесса, SLA и чек-лист.",
+  cfo: "From the finance side: I run the unit economics. LTV/CAC below 3 — fix the economics first. A pilot with a budget cap, reviewed in 30 days.",
+  cmo: "From the growth side: test demand cheaply — a landing page and two channels, decide on conversion data.",
+  cto: "Technically feasible: 2–3 weeks for an MVP, starting with the narrowest scenario.",
+  coo: "On operations: before launch we need a process owner, SLAs and a checklist.",
 };
 
 function hashOf(s: string): number {
@@ -126,9 +126,9 @@ export default function ExecutiveCouncilPage() {
   const [tick,  setTick]  = useState(0);
   const [view,  setView]  = useState<"grid" | "list">("grid");
   const [query, setQuery] = useState("");
-  const [roleFilter,      setRoleFilter]      = useState("Все роли");
-  const [statusFilter,    setStatusFilter]    = useState("Все статусы");
-  const [expertiseFilter, setExpertiseFilter] = useState("Экспертиза");
+  const [roleFilter,      setRoleFilter]      = useState("All roles");
+  const [statusFilter,    setStatusFilter]    = useState("All statuses");
+  const [expertiseFilter, setExpertiseFilter] = useState("Expertise");
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
   const goMeet = useCallback((slug: string) => {
@@ -147,7 +147,7 @@ export default function ExecutiveCouncilPage() {
   // analysts/specialists live in AI Agents, not the boardroom.
   const allAgents: AgentFull[] = useMemo(() => {
     return TEAM
-      .filter(m => m.slug !== "ceo" && /директор/i.test(TEAM_BY_SLUG[m.slug]?.title ?? ""))
+      .filter(m => m.slug !== "ceo" && /officer|director/i.test(TEAM_BY_SLUG[m.slug]?.title ?? ""))
       .map(m => rich(m.slug));
   }, []);
 
@@ -157,10 +157,10 @@ export default function ExecutiveCouncilPage() {
         const q = query.toLowerCase();
         if (!a.name.toLowerCase().includes(q) && !a.specialty.toLowerCase().includes(q) && !a.role.toLowerCase().includes(q)) return false;
       }
-      if (statusFilter !== "Все статусы") {
+      if (statusFilter !== "All statuses") {
         const isActive = metrics(a.slug).working;
-        if (statusFilter === "Активные" && !isActive) return false;
-        if (statusFilter === "Ожидание" && isActive) return false;
+        if (statusFilter === "Active" && !isActive) return false;
+        if (statusFilter === "Waiting" && isActive) return false;
       }
       return true;
     });
@@ -195,12 +195,12 @@ export default function ExecutiveCouncilPage() {
                   <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981",
                     animation: "ec-pulse 2s ease-in-out infinite" }} />
                   <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, color: "#10b981", letterSpacing: "0.12em" }}>
-                    {TOTALS.working} АГЕНТОВ · ONLINE
+                    {TOTALS.working} AGENTS · ONLINE
                   </span>
                 </div>
               </div>
               <p style={{ fontSize: 13, color: TS, margin: 0 }}>
-                {TEAM.length} AI-директоров готовы к работе — прямой доступ, метрики, живые задачи
+                {TEAM.length} AI directors ready to work — direct access, metrics, live tasks
               </p>
             </div>
           </div>
@@ -212,7 +212,7 @@ export default function ExecutiveCouncilPage() {
               <Search size={12} style={{ position: "absolute", left: 10, top: "50%",
                 transform: "translateY(-50%)", color: TM, pointerEvents: "none" }} />
               <input value={query} onChange={e => setQuery(e.target.value)}
-                placeholder="Поиск агента…"
+                placeholder="Search agents…"
                 style={{ height: 36, width: 180, paddingLeft: 30, paddingRight: 12, borderRadius: 10,
                   background: SURF, border: `1px solid ${BORD}`, color: TP, fontSize: 12,
                   outline: "none", transition: "border-color 0.15s" }}
@@ -222,9 +222,9 @@ export default function ExecutiveCouncilPage() {
 
             {/* Filter dropdowns */}
             {[
-              { key: "role",      label: roleFilter,      options: ["Все роли", "C-Level", "Специалист"] },
-              { key: "status",    label: statusFilter,    options: ["Все статусы", "Активные", "Ожидание"] },
-              { key: "expertise", label: expertiseFilter, options: ["Экспертиза", "Финансы", "Маркетинг", "Технологии", "Операции", "Продукт"] },
+              { key: "role",      label: roleFilter,      options: ["All roles", "C-Level", "Specialist"] },
+              { key: "status",    label: statusFilter,    options: ["All statuses", "Active", "Waiting"] },
+              { key: "expertise", label: expertiseFilter, options: ["Expertise", "Finance", "Marketing", "Technology", "Operations", "Product"] },
             ].map(({ key, label, options }) => (
               <div key={key} style={{ position: "relative" }}>
                 <button onClick={() => setOpenDropdown(openDropdown === key ? null : key)}
@@ -301,7 +301,7 @@ export default function ExecutiveCouncilPage() {
           {/* Section label */}
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
             <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 700, letterSpacing: "0.14em", color: TM }}>
-              СОВЕТ ДИРЕКТОРОВ · {visibleAgents.length + 1}
+              BOARD OF DIRECTORS · {visibleAgents.length + 1}
             </span>
             <div style={{ flex: 1, height: 1, background: `linear-gradient(90deg, ${BORD}, transparent)` }} />
           </div>
@@ -332,7 +332,7 @@ export default function ExecutiveCouncilPage() {
 
           {visibleAgents.length === 0 && (
             <div style={{ padding: "64px 0", textAlign: "center", color: TM, fontSize: 13 }}>
-              Ничего не найдено — попробуйте другой запрос
+              Nothing found — try a different query
             </div>
           )}
         </motion.div>
@@ -414,8 +414,8 @@ function ConfArc({ value, color, size = 52 }: { value: number; color: string; si
 
 // ── Live activity ─────────────────────────────────────────────────────────────
 function LiveAct({ slug, tick, working, color }: { slug: string; tick: number; working: boolean; color: string }) {
-  const list = ACT[slug] ?? ["Работает над задачей"];
-  const text = working ? list[tick % list.length] : "В ожидании задачи";
+  const list = ACT[slug] ?? ["Working on a task"];
+  const text = working ? list[tick % list.length] : "Waiting for a task";
   return (
     <div style={{ display: "flex", alignItems: "flex-start", gap: 7, minHeight: 18 }}>
       {working
@@ -432,7 +432,7 @@ function LiveAct({ slug, tick, working, color }: { slug: string; tick: number; w
           initial={{ opacity: 0, y: 3 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -3 }}
           transition={{ duration: 0.2, ease: EASE }}
           style={{ fontSize: 11.5, lineHeight: 1.5, color: working ? TS : TM }}>
-          {working && <span style={{ color, fontWeight: 700, marginRight: 3 }}>сейчас:</span>}
+          {working && <span style={{ color, fontWeight: 700, marginRight: 3 }}>now:</span>}
           {text}
         </motion.span>
       </AnimatePresence>
@@ -459,28 +459,28 @@ function StatusBadge({ working }: { working: boolean }) {
 // ── Council deliberation (зал заседаний) ──────────────────────────────────────
 const BOARD_SLUGS = ["ceo", "cfo", "cmo", "coo", "cto"] as const;
 const EXAMPLE_QS = [
-  "Стоит ли поднять цену на 20%?",
-  "Выходить ли на рынок США в этом квартале?",
-  "Нанять сейлза или вложить в маркетинг?",
+  "Should we raise prices by 20%?",
+  "Should we enter the US market this quarter?",
+  "Hire a salesperson or invest in marketing?",
 ];
 
 type Phase = "idle" | "deliberating" | "verdict" | "done";
 type Stance = "for" | "against" | "caution";
 
 const STANCE_META: Record<Stance, { label: string; c: string }> = {
-  for:     { label: "ЗА",        c: "#10b981" },
-  against: { label: "ПРОТИВ",    c: "#ef4444" },
-  caution: { label: "ОСТОРОЖНО", c: "#f59e0b" },
+  for:     { label: "FOR",        c: "#10b981" },
+  against: { label: "AGAINST",    c: "#ef4444" },
+  caution: { label: "CAUTION", c: "#f59e0b" },
 };
 // Fallback stances when the API is unavailable (matches the FB texts' tone).
 const FB_STANCE: Record<string, Stance> = { ceo: "for", cfo: "caution", cmo: "for", coo: "caution", cto: "caution" };
 
 // Directors are told to open with a [ЗА]/[ПРОТИВ]/[ОСТОРОЖНО] tag; strip it for display.
 function parseStance(t: string): { stance: Stance | null; clean: string } {
-  const m = t.match(/^\s*\[?\s*(ЗА|ПРОТИВ|ОСТОРОЖНО)\s*\]?[:.\s—–-]*/i);
+  const m = t.match(/^\s*\[?\s*(FOR|AGAINST|CAUTION)\s*\]?[:.\s—–-]*/i);
   if (!m) return { stance: null, clean: t.replace(/\*\*/g, "") };
   const w = m[1].toUpperCase();
-  return { stance: w === "ЗА" ? "for" : w === "ПРОТИВ" ? "against" : "caution", clean: t.slice(m[0].length).replace(/\*\*/g, "") };
+  return { stance: w === "FOR" ? "for" : w === "AGAINST" ? "against" : "caution", clean: t.slice(m[0].length).replace(/\*\*/g, "") };
 }
 
 function CouncilSession() {
@@ -525,16 +525,16 @@ function CouncilSession() {
       const a = rich(slug);
       setCurrent(slug);
       const heard = results.length
-        ? `\n\nУже выступили:\n${results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text.slice(0, 220)}`).join("\n")}\nМожешь согласиться или возразить коллегам — по делу.`
+        ? `\n\nAlready spoke:\n${results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text.slice(0, 220)}`).join("\n")}\nYou may agree or push back on colleagues — keep it substantive.`
         : "";
-      const ctx = isFollowUp && prevCtx.current ? `\n\nКонтекст прошлого решения совета: ${prevCtx.current.slice(0, 400)}` : "";
-      const persona = `Ты — ${a.name}, ${a.title} (${a.role}) на заседании совета директоров Vertlix. Твоя экспертиза: ${a.specialty}. Начни ответ ровно с одной метки твоей позиции: [ЗА], [ПРОТИВ] или [ОСТОРОЖНО]. Затем 2–3 коротких предложения строго со своей профессиональной позиции, конкретно, без вводных и без markdown.`;
+      const ctx = isFollowUp && prevCtx.current ? `\n\nContext of the board\u2019s previous decision: ${prevCtx.current.slice(0, 400)}` : "";
+      const persona = `You are ${a.name}, ${a.title} (${a.role}) at a Vertlix board of directors meeting. Your expertise: ${a.specialty}. Start your answer with exactly one stance tag: [FOR], [AGAINST] or [CAUTION]. Then 2–3 short sentences strictly from your professional standpoint, concrete, no preamble, no markdown.`;
       let raw = "";
       try {
         raw = await streamChat(`${question}${ctx}${heard}`, persona, t => setSpeeches(p => ({ ...p, [slug]: (p[slug] || "") + t })));
       } catch {
         const fb = `[${STANCE_META[FB_STANCE[slug] ?? "caution"].label}] ` + ((slug in FB ? FB[slug as keyof typeof FB] : undefined)
-          ?? `Со стороны ${a.role}: нужен более узкий контекст. Базово — проверяем гипотезу дешёвым тестом и решаем по данным.`);
+          ?? `From the ${a.role} side: I need a narrower context. Baseline — test the hypothesis cheaply and decide on data.`);
         for (const ch of fb) { raw += ch; setSpeeches(p => ({ ...p, [slug]: (p[slug] || "") + ch })); await new Promise(r => setTimeout(r, 5)); }
       }
       const { stance, clean } = parseStance(raw);
@@ -549,17 +549,17 @@ function CouncilSession() {
     setPhase("verdict");
     const tally = results.reduce((acc, r) => { acc[r.stance] = (acc[r.stance] ?? 0) + 1; return acc; }, {} as Record<Stance, number>);
     const tallyStr = (Object.keys(STANCE_META) as Stance[]).filter(s => tally[s]).map(s => `${STANCE_META[s].label}: ${tally[s]}`).join(", ");
-    const synthPersona = "Ты — председатель совета директоров Vertlix. Синтезируй дебаты в единый вердикт: чёткое решение с опорой на голосование, 1–2 ключевых риска и конкретный следующий шаг. 3–5 деловых предложений, без markdown.";
-    const synthMsg = `Вопрос основателя: "${question}"\n\nГолосование: ${tallyStr}\n\nВыступления:\n` +
-      results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text}`).join("\n\n") + "\n\nДай итоговый вердикт совета.";
+    const synthPersona = "You are the chair of the Vertlix board of directors. Synthesize the debate into one verdict: a clear decision grounded in the vote, 1–2 key risks and a concrete next step. 3–5 businesslike sentences, no markdown.";
+    const synthMsg = `Founder\u2019s question: "${question}"\n\nVote: ${tallyStr}\n\nStatements:\n` +
+      results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text}`).join("\n\n") + "\n\nGive the board\u2019s final verdict.";
     let verdictFull = "";
     try {
       verdictFull = await streamChat(synthMsg, synthPersona, t => setVerdict(prev => prev + t));
     } catch {
-      const fb = "Вердикт совета: двигаться, но управляемо. Сначала дешёвый тест гипотезы с чётким критерием успеха и пересмотром через 30 дней. Главный риск — расфокус: держите один сегмент и одну метрику.";
+      const fb = "Board verdict: proceed, but under control. First a cheap hypothesis test with a clear success criterion, reviewed in 30 days. The main risk is losing focus: hold one segment and one metric.";
       for (const ch of fb) { verdictFull += ch; setVerdict(prev => prev + ch); await new Promise(r => setTimeout(r, 5)); }
     }
-    prevCtx.current = `Вопрос: ${question}. Вердикт: ${verdictFull}`;
+    prevCtx.current = `Question: ${question}. Verdict: ${verdictFull}`;
     track(EVENTS.COUNCIL_VERDICT, { votes: { for: tally.for ?? 0, against: tally.against ?? 0, caution: tally.caution ?? 0 } });
     setPhase("done");
     // Persist the whole board deliberation to the История page.
@@ -599,14 +599,14 @@ function CouncilSession() {
           <MessagesSquare size={19} color="#fff" />
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
-          <div style={{ fontSize: 17, fontWeight: 800, color: TP, letterSpacing: "-0.02em" }}>Зал заседаний совета</div>
-          <div style={{ fontSize: 12.5, color: TS, marginTop: 2 }}>Задайте один вопрос — все 5 директоров совещаются и дают вердикт</div>
+          <div style={{ fontSize: 17, fontWeight: 800, color: TP, letterSpacing: "-0.02em" }}>Boardroom</div>
+          <div style={{ fontSize: 12.5, color: TS, marginTop: 2 }}>Ask one question — all 5 directors confer and deliver a verdict</div>
         </div>
         {phase !== "idle" && (
           <button onClick={reset} disabled={busy}
             style={{ height: 34, padding: "0 14px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: busy ? "default" : "pointer",
               background: SURF, border: `1px solid ${BORD}`, color: busy ? TM : TS, opacity: busy ? 0.5 : 1 }}>
-            Новый вопрос
+            New question
           </button>
         )}
       </div>
@@ -634,15 +634,15 @@ function CouncilSession() {
               })}
             </div>
             <div>
-              <div style={{ fontSize: 12.5, fontWeight: 700, color: TP }}>Совет в сборе · 5 директоров</div>
-              <div style={{ fontSize: 11, color: TM }}>Готовы совещаться над вашим вопросом</div>
+              <div style={{ fontSize: 12.5, fontWeight: 700, color: TP }}>Board assembled · 5 directors</div>
+              <div style={{ fontSize: 11, color: TM }}>Ready to deliberate on your question</div>
             </div>
           </div>
 
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
             <textarea value={q} onChange={e => setQ(e.target.value)} maxLength={1000}
               onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) convene(); }}
-              placeholder="Например: стоит ли привлекать раунд сейчас или расти на выручке?"
+              placeholder="For example: raise a round now or grow on revenue?"
               rows={2}
               style={{ flex: 1, minWidth: 260, resize: "none", padding: "12px 14px", borderRadius: 12, fontSize: 13.5, lineHeight: 1.5,
                 background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`, color: TP, outline: "none", fontFamily: "inherit" }}
@@ -654,7 +654,7 @@ function CouncilSession() {
                 background: q.trim() ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.06)",
                 boxShadow: q.trim() ? "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" : "none",
                 display: "flex", alignItems: "center", gap: 8 }}>
-              <Zap size={15} /> Созвать совет
+              <Zap size={15} /> Convene the board
             </button>
           </div>
           <div style={{ display: "flex", gap: 7, marginTop: 12, flexWrap: "wrap" }}>
@@ -678,7 +678,7 @@ function CouncilSession() {
           <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", marginBottom: 16, borderRadius: 12,
             background: "rgba(255,255,255,0.03)", border: `1px solid ${BORD}` }}>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: TM, marginBottom: 3 }}>ПОВЕСТКА ЗАСЕДАНИЯ</div>
+              <div style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: TM, marginBottom: 3 }}>MEETING AGENDA</div>
               <div style={{ fontSize: 13.5, fontWeight: 600, color: TP }}>{asked}</div>
             </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, flexShrink: 0 }}>
@@ -735,7 +735,7 @@ function CouncilSession() {
           <div ref={feedRef} style={{ maxHeight: 420, overflowY: "auto", borderRadius: 16, border: `1px solid ${BORD}`,
             background: "rgba(255,255,255,0.015)", padding: "4px 0" }}>
             <div style={{ padding: "10px 16px 6px", fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.14em", color: TM }}>
-              ПРОТОКОЛ ЗАСЕДАНИЯ
+              MEETING MINUTES
             </div>
             <AnimatePresence>
               {BOARD_SLUGS.filter(s => speeches[s] !== undefined).map(slug => {
@@ -804,7 +804,7 @@ function CouncilSession() {
                       <Crown size={13} color="#3a2a00" strokeWidth={2.4} />
                     </motion.span>
                     <span style={{ fontFamily: MONO, fontSize: 10.5, fontWeight: 700, letterSpacing: "0.12em", color: "#a5b4fc", textTransform: "uppercase" }}>
-                      Вердикт совета
+                      Board verdict
                     </span>
                     {/* Vote tally */}
                     <span style={{ display: "flex", gap: 6, marginLeft: "auto" }}>
@@ -818,7 +818,7 @@ function CouncilSession() {
                     {phase === "verdict" && (
                       <span style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 10, color: TM }}>
                         <span style={{ display: "flex", gap: 2 }}>{[0, 1, 2].map(i => <span key={i} style={{ width: 3, height: 3, borderRadius: "50%", background: "#a5b4fc", animation: `ec-think 1s ease-in-out ${i * 0.15}s infinite` }} />)}</span>
-                        синтезирую
+                        synthesizing
                       </span>
                     )}
                   </div>
@@ -837,7 +837,7 @@ function CouncilSession() {
               style={{ display: "flex", gap: 10, marginTop: 14 }}>
               <input value={followQ} onChange={e => setFollowQ(e.target.value)} maxLength={1000}
                 onKeyDown={e => { if (e.key === "Enter" && followQ.trim()) convene(followQ, true); }}
-                placeholder="Уточнить у совета… (совет помнит своё прошлое решение)"
+                placeholder="Follow up with the board… (it remembers its last decision)"
                 style={{ flex: 1, height: 42, padding: "0 14px", borderRadius: 12, fontSize: 13,
                   background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`, color: TP, outline: "none" }}
                 onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")}
@@ -847,7 +847,7 @@ function CouncilSession() {
                   border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7,
                   background: followQ.trim() ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.06)",
                   boxShadow: followQ.trim() ? "0 6px 18px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.16)" : "none" }}>
-                <CornerDownLeft size={14} /> Спросить
+                <CornerDownLeft size={14} /> Ask
               </button>
             </motion.div>
           )}
@@ -913,7 +913,7 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
                 <span style={{ fontSize: 20, fontWeight: 800, color: TP, letterSpacing: "-0.02em" }}>{a.name}</span>
                 <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.12em",
                   padding: "2px 8px", borderRadius: 6, color: "#fbbf24",
-                  border: "1px solid rgba(251,191,36,0.32)", background: "rgba(251,191,36,0.08)" }}>ЛИДЕР</span>
+                  border: "1px solid rgba(251,191,36,0.32)", background: "rgba(251,191,36,0.08)" }}>LEAD</span>
               </div>
               <div style={{ fontSize: 12, color: TS, marginBottom: 8 }}>{a.title} · {a.specialty}</div>
               <StatusBadge working />
@@ -926,9 +926,9 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
           {/* Stats row */}
           <div style={{ display: "flex", gap: 16, marginTop: 16 }}>
             {[
-              { v: `${totalAgents}`, l: "агентов" },
-              { v: `${mt.success}%`, l: "успех" },
-              { v: `${mt.done}`,     l: "задач" },
+              { v: `${totalAgents}`, l: "agents" },
+              { v: `${mt.success}%`, l: "success" },
+              { v: `${mt.done}`,     l: "tasks" },
             ].map((s, i) => (
               <div key={i}>
                 <div style={{ fontSize: 16, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums", lineHeight: 1 }}>{s.v}</div>
@@ -942,7 +942,7 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
         <div style={{ padding: "24px 16px", display: "flex", flexDirection: "column", justifyContent: "center",
           borderLeft: `1px solid ${BORD}`, borderRight: `1px solid ${BORD}` }}>
           <div style={{ fontSize: 10, color: TM, marginBottom: 10, fontFamily: MONO, letterSpacing: "0.1em" }}>
-            ПРОИЗВОДИТЕЛЬНОСТЬ · 30Д
+            PERFORMANCE · 30D
           </div>
           <Spark color={a.c} data={sd} w={280} h={64} />
         </div>
@@ -962,7 +962,7 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
                 transition: "all 0.18s" }}
               onMouseOver={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
               onMouseOut={e  => { e.currentTarget.style.filter = "brightness(1)";   e.currentTarget.style.transform = "translateY(0)"; }}>
-              <MessageSquare size={12} /> Спросить
+              <MessageSquare size={12} /> Ask
             </button>
             <button onClick={e => { e.stopPropagation(); onMeet(); }}
               style={{ height: 38, borderRadius: 10, fontSize: 11, fontWeight: 700,
@@ -970,7 +970,7 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 6, transition: "all 0.18s" }}
               onMouseOver={e => { e.currentTarget.style.background = `${a.c}22`; }}
               onMouseOut={e  => { e.currentTarget.style.background = `${a.c}12`; }}>
-              <MessagesSquare size={11} /> Совещание · {totalAgents}
+              <MessagesSquare size={11} /> Meeting · {totalAgents}
             </button>
           </div>
         </div>
@@ -1040,7 +1040,7 @@ function BoardMemberCard({ a, tick, reduce, onAsk, onMeet }: {
         {/* workload — how much they work */}
         <div style={{ marginBottom: 12, padding: "10px 12px", borderRadius: 11, background: "rgba(255,255,255,0.02)", border: `1px solid ${BORD}` }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 7 }}>
-            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", color: TM, textTransform: "uppercase" }}>Загрузка</span>
+            <span style={{ fontFamily: MONO, fontSize: 9, fontWeight: 700, letterSpacing: "0.12em", color: TM, textTransform: "uppercase" }}>Load</span>
             <span style={{ fontSize: 15, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{mt.load}%</span>
           </div>
           <div style={{ height: 5, borderRadius: 3, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
@@ -1048,7 +1048,7 @@ function BoardMemberCard({ a, tick, reduce, onAsk, onMeet }: {
               style={{ height: "100%", borderRadius: 3, background: `linear-gradient(90deg, ${a.g[0]}, ${a.g[1]})` }} />
           </div>
           <div style={{ display: "flex", gap: 16, marginTop: 9 }}>
-            {[{ v: mt.done, l: "задач" }, { v: `${mt.success}%`, l: "успех" }, { v: `${mt.streak}д`, l: "серия" }].map((m, i) => (
+            {[{ v: mt.done, l: "tasks" }, { v: `${mt.success}%`, l: "success" }, { v: `${mt.streak}d`, l: "streak" }].map((m, i) => (
               <div key={i} style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
                 <span style={{ fontSize: 12.5, fontWeight: 800, color: TP, fontVariantNumeric: "tabular-nums" }}>{m.v}</span>
                 <span style={{ fontSize: 9, color: TM }}>{m.l}</span>
@@ -1064,12 +1064,12 @@ function BoardMemberCard({ a, tick, reduce, onAsk, onMeet }: {
               background: `linear-gradient(135deg, ${a.g[0]}, ${a.g[1]})`, border: "none",
               display: "flex", alignItems: "center", justifyContent: "center", gap: 6,
               boxShadow: `0 4px 14px ${a.c}3a, inset 0 1px 0 rgba(255,255,255,0.2)` }}>
-            <MessageSquare size={12} /> Написать
+            <MessageSquare size={12} /> Message
           </button>
           <button onClick={e => { e.stopPropagation(); onMeet(); }}
             style={{ padding: "0 13px", height: 36, borderRadius: 10, fontSize: 11.5, fontWeight: 700, cursor: "pointer", color: a.c,
               background: `${a.c}12`, border: `1px solid ${a.c}35`, display: "flex", alignItems: "center", justifyContent: "center", gap: 5, whiteSpace: "nowrap" }}>
-            <MessagesSquare size={11} /> Совет
+            <MessagesSquare size={11} /> Board
           </button>
         </div>
       </div>
@@ -1129,9 +1129,9 @@ function AgentListRow({ a, tick, delay, onAsk, onMeet }: {
       {/* Stats */}
       <div style={{ display: "flex", gap: 24, flexShrink: 0 }}>
         {[
-          { v: mt.done,            l: "задач" },
-          { v: `${mt.success}%`,   l: "успех" },
-          { v: `${a.confidence}%`, l: "конф" },
+          { v: mt.done,            l: "tasks" },
+          { v: `${mt.success}%`,   l: "success" },
+          { v: `${a.confidence}%`, l: "conf" },
         ].map((m, i) => (
           <div key={i} style={{ textAlign: "right", minWidth: 40 }}>
             <div style={{ fontSize: 13, fontWeight: 800, color: a.c, fontVariantNumeric: "tabular-nums" }}>{m.v}</div>
@@ -1153,7 +1153,7 @@ function AgentListRow({ a, tick, delay, onAsk, onMeet }: {
                 background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
                 display: "flex", alignItems: "center", gap: 5,
                 boxShadow: "0 3px 12px rgba(99,102,241,0.38)" }}>
-              <MessageSquare size={10} /> Спросить
+              <MessageSquare size={10} /> Ask
             </motion.button>
           )}
         </AnimatePresence>
@@ -1165,7 +1165,7 @@ function AgentListRow({ a, tick, delay, onAsk, onMeet }: {
               style={{ height: 32, padding: "0 12px", borderRadius: 8, fontSize: 11, fontWeight: 600,
                 cursor: "pointer", color: a.c, background: `${a.c}12`, border: `1px solid ${a.c}35`,
                 display: "flex", alignItems: "center", gap: 5, whiteSpace: "nowrap" }}>
-              <MessagesSquare size={10} /> Совещание
+              <MessagesSquare size={10} /> Meeting
             </motion.button>
           )}
         </AnimatePresence>
@@ -1184,13 +1184,13 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
   const submit = useCallback(async () => {
     const question = q.trim(); if (!question || busy) return;
     setBusy(true); setAnswer("");
-    const persona = `Ты — ${agent.name}, ${agent.title}, специализация: ${agent.specialty}. Ответь как топ-менеджер: конкретно, 4–6 предложений. Без markdown.`;
+    const persona = `You are ${agent.name}, ${agent.title}, specialty: ${agent.specialty}. Answer like a top executive: concrete, 4–6 sentences. No markdown.`;
     let full = "";
     try {
       full = await streamChat(question, persona, t => setAnswer(prev => prev + t));
     } catch {
       const fb = (agent.slug in FB ? FB[agent.slug as keyof typeof FB] : undefined)
-        ?? "Готов помочь — опишите задачу подробнее. Живой анализ доступен после настройки ANTHROPIC_API_KEY.";
+        ?? "Happy to help — describe the task in more detail. Live analysis is available once ANTHROPIC_API_KEY is configured.";
       for (const ch of fb) { full += ch; setAnswer(prev => prev + ch); await new Promise(r => setTimeout(r, 6)); }
     }
     setBusy(false);
@@ -1245,9 +1245,9 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
         {/* Stats */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 8, marginBottom: 20 }}>
           {[
-            { v: mt.done,             l: "Задач" },
-            { v: `${mt.success}%`,    l: "Успех" },
-            { v: `${mt.streak} дней`, l: "Серия" },
+            { v: mt.done,             l: "Tasks" },
+            { v: `${mt.success}%`,    l: "Success" },
+            { v: `${mt.streak} days`, l: "Streak" },
           ].map((s, i) => (
             <div key={i} style={{ padding: "12px 14px", borderRadius: 12, background: SURF, border: `1px solid ${BORD}` }}>
               <div style={{ fontSize: 20, fontWeight: 800, color: agent.c, fontVariantNumeric: "tabular-nums" }}>{s.v}</div>
@@ -1261,7 +1261,7 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
           <input autoFocus value={q} onChange={e => setQ(e.target.value)} maxLength={1000}
             onKeyDown={e => { if (e.key === "Enter") void submit(); }}
             disabled={busy}
-            placeholder={`Спросить ${agent.name.split(" ")[0]}…`}
+            placeholder={`Ask ${agent.name.split(" ")[0]}…`}
             style={{ flex: 1, minWidth: 0, height: 48, padding: "0 16px", borderRadius: 13, fontSize: 14,
               color: TP, background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`,
               outline: "none", transition: "border-color 0.18s, box-shadow 0.18s" }}
