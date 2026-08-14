@@ -85,7 +85,10 @@ $$;
 revoke all on function bump_ai_usage(text) from public, anon, authenticated;
 
 -- ── 8. Пер-пользовательские агрегаты для /admin/users (одним запросом) ──────
-create or replace view admin_user_stats as
+-- drop+create, а не `or replace`: миграция 015 расширяет набор колонок,
+-- а replace не умеет менять их состав при повторном прогоне цепочки.
+drop view if exists admin_user_stats;
+create view admin_user_stats as
 select
   u.id::text                                   as user_id,
   u.email,

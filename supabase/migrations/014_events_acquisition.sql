@@ -119,7 +119,7 @@ with u as (select id, created_at from users),
        select d.n,
               count(*) filter (where exists (
                 select 1 from user_sessions s
-                 where s.user_id = u.id
+                 where s.user_id = u.id::text
                    and s.started_at >= u.created_at + make_interval(days => d.n)
                    and s.started_at <  u.created_at + make_interval(days => d.n + 1)
               )) as returned,

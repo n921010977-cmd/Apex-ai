@@ -11,6 +11,21 @@
 -- сервер работает service-role ключом, проверки — в API. Пользователь не может
 -- поменять plan/status/expires_at/payment_id из браузера.
 
+-- Миграция 001 создавала другую таблицу subscriptions (под Stripe, с
+-- organization_id и без user_id) — приложение её не использует. Если она ещё
+-- лежит в базе, `create table if not exists` ниже молча оставил бы её, и
+-- индекс по user_id упал бы. Убираем legacy-таблицу, только если это она.
+do $$ begin
+  if exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'subscriptions'
+                and column_name = 'organization_id')
+     and not exists (select 1 from information_schema.columns
+              where table_schema = 'public' and table_name = 'subscriptions'
+                and column_name = 'user_id') then
+    drop table subscriptions cascade;
+  end if;
+end $$;
+
 create table if not exists subscriptions (
   id          uuid primary key default gen_random_uuid(),
   user_id     text not null,
