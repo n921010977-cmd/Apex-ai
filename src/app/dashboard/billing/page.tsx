@@ -9,7 +9,7 @@ import { trackEvent } from "@/lib/track-client";
 import { useToast } from "@/components/ui/Toast";
 import { PaymentFlowNote } from "@/components/dashboard/PaymentFlowNote";
 
-// ─── Тарифы и подписка внутри приложения ──────────────────────────────────────
+// ─── Plans & billing внутри приложения ──────────────────────────────────────
 // Умная страница биллинга: выбор тарифа (оплата криптой через OxaPay или демо),
 // обработка возврата с оплаты (?paid=1 — ждём подтверждения webhook’ом), живые
 // счётчики расхода лимитов текущего тарифа и подсказка апгрейда у лимита.
@@ -19,28 +19,28 @@ const RGB = "99,102,241";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const FEATURE_ROWS: { key: keyof PlanFeatures; label: string }[] = [
-  { key: "boardMeetings", label: "Совет из 20 AI-директоров" },
-  { key: "strategies",    label: "Генерация стратегий" },
-  { key: "agents",        label: "Библиотека AI-агентов" },
-  { key: "webResearch",   label: "Свежие данные с рынка" },
-  { key: "pitchDeck",     label: "Питч-дек для инвестора" },
-  { key: "goalsPlan",     label: "Студия «Цели и план»" },
-  { key: "weeklyFocus",   label: "Трекер целей + «Фокус недели»" },
+  { key: "boardMeetings", label: "Board of 20 AI directors" },
+  { key: "strategies",    label: "Strategy generation" },
+  { key: "agents",        label: "AI agent library" },
+  { key: "webResearch",   label: "Fresh market data" },
+  { key: "pitchDeck",     label: "Investor pitch deck" },
+  { key: "goalsPlan",     label: "Goals & Plan studio" },
+  { key: "weeklyFocus",   label: "Goal tracker + Weekly Focus" },
 ];
 
 // Квоты, которые показываем в панели расхода (в порядке важности).
 const QUOTA_META: { key: string; label: string }[] = [
-  { key: "aiMessages",   label: "AI-сообщения" },
-  { key: "strategies",   label: "Стратегии" },
-  { key: "boardMeetings",label: "Заседания совета" },
-  { key: "pitchDecks",   label: "Питч-деки" },
-  { key: "weeklyFocus",  label: "«Фокус недели»" },
+  { key: "aiMessages",   label: "AI messages" },
+  { key: "strategies",   label: "Strategies" },
+  { key: "boardMeetings",label: "Board meetings" },
+  { key: "pitchDecks",   label: "Pitch decks" },
+  { key: "weeklyFocus",  label: "Weekly Focus" },
 ];
 
 type Usage = Record<string, { used: number; limit: number | null; remaining: number | null }>;
 
 function limitText(v: number | null): string {
-  return v === null ? "без лимита" : v === 0 ? "—" : String(v);
+  return v === null ? "unlimited" : v === 0 ? "—" : String(v);
 }
 
 // Живой счётчик одной квоты.
@@ -111,7 +111,7 @@ export default function BillingPage() {
         const p = await loadUsage();
         if (p && p !== "none") {
           setPay("done");
-          toast("Оплата подтверждена — тариф активирован!", "success");
+          toast("Payment confirmed — plan activated!", "success");
           if (pollRef.current) clearInterval(pollRef.current);
         } else if (tries >= 20) { // ~1 мин
           if (pollRef.current) clearInterval(pollRef.current);
@@ -138,7 +138,7 @@ export default function BillingPage() {
       // Сессия устарела — просим войти заново (без каких-либо активаций).
       if (res.status === 401) {
         setBusy(null);
-        toast("Сессия устарела — войди в аккаунт заново", "error");
+        toast("Session expired — please sign in again", "error");
         setTimeout(() => { window.location.href = "/login?callbackUrl=/dashboard/billing"; }, 900);
         return;
       }
@@ -153,13 +153,13 @@ export default function BillingPage() {
       setBusy(null);
       toast(
         data?.configured === false
-          ? "Оплата временно недоступна — платёжный шлюз не подключён. Напиши в поддержку."
-          : data?.error || "Не удалось открыть оплату — попробуй ещё раз или напиши в поддержку.",
+          ? "Payments are temporarily unavailable — the gateway is not connected. Contact support."
+          : data?.error || "Could not open the payment page — try again or contact support.",
         "error",
       );
     } catch {
       setBusy(null);
-      toast("Сеть недоступна — попробуйте ещё раз", "error");
+      toast("Network unavailable — please try again", "error");
     }
   };
 
@@ -185,8 +185,8 @@ export default function BillingPage() {
               background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)" }}>
             <Loader2 size={18} style={{ color: "#a5b4fc", animation: "spin 1s linear infinite" }} />
             <div>
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Подтверждаем оплату в сети…</div>
-              <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)" }}>Крипто-платёж подтверждается 1–3 минуты. Тариф включится автоматически.</div>
+              <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Confirming your payment on-chain…</div>
+              <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.55)" }}>Crypto payments take 1–3 minutes to confirm. Your plan will activate automatically.</div>
             </div>
           </motion.div>
         )}
@@ -195,20 +195,20 @@ export default function BillingPage() {
             style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 14, marginBottom: 20,
               background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)" }}>
             <X size={18} style={{ color: "rgba(255,255,255,0.5)" }} />
-            <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.7)" }}>Оплата отменена. Выбери тариф ещё раз, когда будешь готов.</div>
+            <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.7)" }}>Payment cancelled. Pick a plan again whenever you\u2019re ready.</div>
           </motion.div>
         )}
       </AnimatePresence>
 
       <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.55, ease: EASE }} style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: "clamp(26px,4vw,38px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 8px", color: "#fff" }}>Тарифы и подписка</h1>
+        <h1 style={{ fontSize: "clamp(26px,4vw,38px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 8px", color: "#fff" }}>Plans & billing</h1>
         <p style={{ fontSize: 15, color: "rgba(255,255,255,0.5)", maxWidth: 620, lineHeight: 1.6 }}>
-          На Starter открыт весь продукт, кроме трёх премиум-инструментов. Pro открывает их, Max — те же функции с лимитами в разы больше.
+          Starter unlocks the whole product except three premium tools. Pro unlocks them all; Max has the same features with much higher limits.
         </p>
         {active !== "none" && (
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 14, padding: "6px 14px", borderRadius: 999, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)" }}>
             <ShieldCheck size={15} style={{ color: "#34d399" }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#34d399" }}>Ваш тариф: {PLAN_BY_ID[active].name}</span>
+            <span style={{ fontSize: 13, fontWeight: 600, color: "#34d399" }}>Your plan: {PLAN_BY_ID[active].name}</span>
           </div>
         )}
       </motion.div>
@@ -219,7 +219,7 @@ export default function BillingPage() {
           style={{ marginBottom: 26, borderRadius: 18, padding: "20px 22px", background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <TrendingUp size={16} style={{ color: "#a5b4fc" }} />
-            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.02em", color: "#fff" }}>Расход за этот месяц</span>
+            <span style={{ fontSize: 13, fontWeight: 700, letterSpacing: "0.02em", color: "#fff" }}>Usage this month</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px 28px" }}>
             {QUOTA_META.map(({ key, label }) => {
@@ -234,11 +234,11 @@ export default function BillingPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 18, padding: "12px 14px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)" }}>
               <AlertTriangle size={17} style={{ color: "#fbbf24", flexShrink: 0 }} />
               <div style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.45 }}>
-                Ты близок к лимиту тарифа. На <b style={{ color: "#fff" }}>{nextPlan.name}</b> лимиты в разы больше.
+                You\u2019re close to your plan limit. <b style={{ color: "#fff" }}>{nextPlan.name}</b> has much higher limits.
               </div>
               <button onClick={() => choose(nextPlan)} disabled={busy !== null}
                 style={{ flexShrink: 0, height: 36, padding: "0 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)` }}>
-                Обновить до {nextPlan.name}
+                Upgrade to {nextPlan.name}
               </button>
             </div>
           )}
@@ -257,19 +257,19 @@ export default function BillingPage() {
                 border: isCurrent ? "1px solid rgba(52,211,153,0.5)" : hot ? `1px solid rgba(${RGB},0.5)` : "1px solid rgba(255,255,255,0.08)",
                 boxShadow: hot ? `0 12px 40px rgba(${RGB},0.2)` : "0 1px 2px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.18)" }}>
               {hot && (
-                <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 14px", borderRadius: 999, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, color: "#fff", whiteSpace: "nowrap", boxShadow: `0 4px 14px rgba(${RGB},0.5)` }}>Популярный</div>
+                <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 14px", borderRadius: 999, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, color: "#fff", whiteSpace: "nowrap", boxShadow: `0 4px 14px rgba(${RGB},0.5)` }}>Popular</div>
               )}
               <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginTop: hot ? 8 : 0 }}>{plan.name}</div>
               <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", marginTop: 3, minHeight: 34 }}>{plan.tagline}</div>
               <div style={{ display: "flex", alignItems: "baseline", gap: 4, margin: "16px 0 18px" }}>
                 <span style={{ fontSize: 40, fontWeight: 800, letterSpacing: "-0.02em", color: "#fff" }}>${plan.priceMonthly}</span>
-                <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/мес</span>
+                <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/mo</span>
               </div>
               <button onClick={() => choose(plan)} disabled={busy !== null}
                 style={{ width: "100%", height: 46, borderRadius: 12, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#fff",
                   background: isCurrent ? "rgba(52,211,153,0.15)" : hot ? `linear-gradient(135deg,${ACCENT},#4f46e5)` : "rgba(255,255,255,0.08)",
                   boxShadow: hot && !isCurrent ? `0 6px 20px rgba(${RGB},0.35)` : "none", opacity: busy && busy !== plan.id ? 0.5 : 1 }}>
-                {busy === plan.id ? "Открываем оплату…" : isCurrent ? "Продлить · текущий тариф" : `Выбрать ${plan.name}`}
+                {busy === plan.id ? "Opening payment…" : isCurrent ? "Renew · current plan" : `Choose ${plan.name}`}
               </button>
               <div style={{ marginTop: 20, display: "flex", flexDirection: "column", gap: 10 }}>
                 {plan.perks.map((perk, j) => (
@@ -290,7 +290,7 @@ export default function BillingPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Что входит</th>
+                <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>What\u2019s included</th>
                 {PLANS.map(p => (
                   <th key={p.id} style={{ padding: "16px 12px", fontSize: 13.5, fontWeight: 700, color: p.highlight ? "#c7d2fe" : "#fff", textAlign: "center" }}>
                     {p.name}<br /><span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.4)" }}>${p.priceMonthly}</span>
@@ -310,11 +310,11 @@ export default function BillingPage() {
                 </tr>
               ))}
               {([
-                ["AI-сообщения / мес", "aiMessages"],
-                ["Питч-деки / мес", "pitchDecks"],
-                ["Стратегии / мес", "strategies"],
-                ["Заседания совета / мес", "boardMeetings"],
-                ["«Фокус недели» / мес", "weeklyFocus"],
+                ["AI messages / mo", "aiMessages"],
+                ["Pitch decks / mo", "pitchDecks"],
+                ["Strategies / mo", "strategies"],
+                ["Board meetings / mo", "boardMeetings"],
+                ["Weekly Focus / mo", "weeklyFocus"],
               ] as const).map(([label, key]) => (
                 <tr key={key} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                   <td style={{ padding: "13px 20px", fontSize: 13.5, color: "rgba(255,255,255,0.72)" }}>{label}</td>
@@ -334,7 +334,7 @@ export default function BillingPage() {
       <PaymentFlowNote />
 
       <p style={{ textAlign: "center", marginTop: 20, fontSize: 12.5, color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-        <Sparkles size={13} /> Отмена в любой момент. Лимиты обновляются каждый месяц.
+        <Sparkles size={13} /> Cancel anytime. Limits reset every month.
       </p>
     </div>
   );

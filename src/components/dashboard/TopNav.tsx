@@ -7,40 +7,36 @@ import { useSession } from "next-auth/react";
 import { Search, Bell, Plus, Cpu, Menu, Command, CornerDownLeft, LayoutGrid, FolderKanban, FileText, Users, Bot, Sparkles, Settings, LifeBuoy } from "lucide-react";
 
 // ─── Command palette targets ────────────────────────────────────────────────
-type CmdTarget = { label: string; hint: string; href: string; kind: "Страница" | "Действие" | "Агент"; icon: typeof LayoutGrid; keywords?: string };
+type CmdTarget = { label: string; hint: string; href: string; kind: "Page" | "Action" | "Agent"; icon: typeof LayoutGrid; keywords?: string };
 const CMD_TARGETS: CmdTarget[] = [
-  { label: "Обзор",                hint: "Дашборд",              href: "/dashboard",            kind: "Страница", icon: LayoutGrid,   keywords: "dashboard главная overview" },
-  { label: "Новая стратегия",      hint: "Проверить идею",       href: "/dashboard/new",        kind: "Действие", icon: Sparkles,     keywords: "создать анализ идея new strategy" },
-  { label: "Мои проекты",          hint: "Портфель стратегий",   href: "/dashboard/projects",   kind: "Страница", icon: FolderKanban, keywords: "projects портфель" },
-  { label: "Отчёты",               hint: "Готовые отчёты",       href: "/dashboard/reports",    kind: "Страница", icon: FileText,     keywords: "reports pdf" },
-  { label: "Исполнительный совет", hint: "Спросить совет",       href: "/dashboard/executives", kind: "Страница", icon: Users,        keywords: "board совет батл директора" },
-  { label: "AI Агенты",            hint: "20 директоров",        href: "/dashboard/agents",     kind: "Страница", icon: Bot,          keywords: "agents команда team" },
-  { label: "Настройки",            hint: "Аккаунт и подписка",   href: "/dashboard/settings",   kind: "Страница", icon: Settings,     keywords: "settings профиль подписка" },
-  { label: "Поддержка",            hint: "Помощь",               href: "/dashboard/support",    kind: "Страница", icon: LifeBuoy,     keywords: "support помощь тикет" },
-  { label: "Спросить CFO",         hint: "Финансовый директор",  href: "/dashboard/executives", kind: "Агент",    icon: Bot,          keywords: "финансы деньги cfo" },
-  { label: "Спросить CMO",         hint: "Директор по маркетингу", href: "/dashboard/executives", kind: "Агент",  icon: Bot,          keywords: "маркетинг рост cmo" },
-  { label: "Спросить CTO",         hint: "Технический директор", href: "/dashboard/executives", kind: "Агент",    icon: Bot,          keywords: "технологии продукт cto" },
+  { label: "Overview",             hint: "Dashboard",            href: "/dashboard",            kind: "Page", icon: LayoutGrid,   keywords: "dashboard home overview" },
+  { label: "New strategy",         hint: "Validate an idea",     href: "/dashboard/new",        kind: "Action", icon: Sparkles,     keywords: "create analysis idea new strategy" },
+  { label: "My projects",          hint: "Strategy portfolio",   href: "/dashboard/projects",   kind: "Page", icon: FolderKanban, keywords: "projects portfolio" },
+  { label: "Reports",              hint: "Finished reports",     href: "/dashboard/reports",    kind: "Page", icon: FileText,     keywords: "reports pdf" },
+  { label: "Executive board",      hint: "Ask the board",        href: "/dashboard/executives", kind: "Page", icon: Users,        keywords: "board directors council" },
+  { label: "AI Agents",            hint: "20 directors",         href: "/dashboard/agents",     kind: "Page", icon: Bot,          keywords: "agents team" },
+  { label: "Settings",             hint: "Account & billing",    href: "/dashboard/settings",   kind: "Page", icon: Settings,     keywords: "settings profile billing" },
+  { label: "Support",              hint: "Help",                 href: "/dashboard/support",    kind: "Page", icon: LifeBuoy,     keywords: "support help ticket" },
+  { label: "Ask the CFO",          hint: "Chief Financial Officer", href: "/dashboard/executives", kind: "Agent",    icon: Bot,          keywords: "finance money cfo" },
+  { label: "Ask the CMO",          hint: "Chief Marketing Officer", href: "/dashboard/executives", kind: "Agent",  icon: Bot,          keywords: "marketing growth cmo" },
+  { label: "Ask the CTO",          hint: "Chief Technology Officer", href: "/dashboard/executives", kind: "Agent",    icon: Bot,          keywords: "technology product cto" },
 ];
 
 const ROUTE_LABELS: Record<string, string> = {
   "/dashboard":            "Dashboard",
-  "/dashboard/new":        "Новая стратегия",
-  "/dashboard/projects":   "Мои проекты",
-  "/dashboard/reports":    "Отчёты",
-  "/dashboard/executives": "Исполнительный совет",
-  "/dashboard/chat":       "AI Чат",
-  "/dashboard/agents":     "AI Агенты",
-  "/dashboard/notepad":    "Блокнот",
-  "/dashboard/settings":   "Настройки",
-  "/dashboard/support":    "Поддержка",
+  "/dashboard/new":        "New strategy",
+  "/dashboard/projects":   "My projects",
+  "/dashboard/reports":    "Reports",
+  "/dashboard/executives": "Executive board",
+  "/dashboard/chat":       "AI Chat",
+  "/dashboard/agents":     "AI Agents",
+  "/dashboard/notepad":    "Notepad",
+  "/dashboard/settings":   "Settings",
+  "/dashboard/support":    "Support",
 };
 
 // Fallback shown while the API loads or if the user has no notifications yet
-const DEMO_NOTIFICATIONS: Notification[] = [
-  { id: "d1", title: "Стратегический анализ готов", body: "AI Fitness Platform — 94 балла", type: "success", is_read: false, created_at: new Date(Date.now() - 7200000).toISOString() },
-  { id: "d2", title: "Новый конкурент обнаружен",   body: "Sector: B2B SaaS · Funding: $12M", type: "warning", is_read: false, created_at: new Date(Date.now() - 18000000).toISOString() },
-  { id: "d3", title: "Финансовая модель обновлена", body: "SaaS Invoice Platform — Q2 прогноз", type: "info", is_read: true, created_at: new Date(Date.now() - 86400000).toISOString() },
-];
+const DEMO_NOTIFICATIONS: Notification[] = [];  // Демо-уведомления удалены: показываем только настоящие.
 
 const TYPE_DOT: Record<string, string> = {
   success: "#10b981", warning: "#f59e0b", danger: "#ef4444", error: "#ef4444", info: "#6366f1",
@@ -49,12 +45,12 @@ const TYPE_DOT: Record<string, string> = {
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
-  if (m < 1) return "сейчас";
-  if (m < 60) return `${m}м`;
+  if (m < 1) return "now";
+  if (m < 60) return `${m}m`;
   const h = Math.floor(m / 60);
-  if (h < 24) return `${h}ч`;
+  if (h < 24) return `${h}h`;
   const d = Math.floor(h / 24);
-  return d === 1 ? "Вчера" : `${d}д`;
+  return d === 1 ? "Yesterday" : `${d}d`;
 }
 
 interface Notification {
@@ -85,7 +81,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
 
   const results = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return CMD_TARGETS.filter(t => t.kind !== "Агент");
+    if (!q) return CMD_TARGETS.filter(t => t.kind !== "Agent");
     return CMD_TARGETS.filter(t =>
       t.label.toLowerCase().includes(q) || t.hint.toLowerCase().includes(q) || (t.keywords ?? "").includes(q)
     );
@@ -176,7 +172,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         onClick={onMenuClick}
         className="lg:hidden size-9 rounded-xl flex items-center justify-center flex-shrink-0 transition-colors"
         style={{ color: "rgba(255,255,255,0.5)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)" }}
-        aria-label="Открыть меню"
+        aria-label="Open menu"
       >
         <Menu size={16} />
       </button>
@@ -214,7 +210,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           type="text"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Поиск команд, страниц, агентов…"
+          placeholder="Search commands, pages, agents…"
           onFocus={() => setFocused(true)}
           onKeyDown={e => {
             if (e.key === "ArrowDown") { e.preventDefault(); setActive(a => Math.min(a + 1, results.length - 1)); }
@@ -255,12 +251,12 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           >
             {results.length === 0 ? (
               <div className="term-mono" style={{ padding: "16px", fontSize: 11.5, color: "rgba(255,255,255,0.35)" }}>
-                Ничего не найдено по «{query}»
+                Nothing found for \u201c{query}\u201d
               </div>
             ) : (
               <>
                 <div className="term-label" style={{ padding: "10px 14px 6px", fontSize: 9, letterSpacing: "0.12em", color: "rgba(255,255,255,0.3)" }}>
-                  {query.trim() ? "РЕЗУЛЬТАТЫ" : "БЫСТРЫЙ ПЕРЕХОД"}
+                  {query.trim() ? "RESULTS" : "QUICK JUMP"}
                 </div>
                 {results.map((t, i) => {
                   const Icon = t.icon;
@@ -292,7 +288,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
               </>
             )}
             <div className="term-mono" style={{ display: "flex", gap: 12, padding: "8px 14px", borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: 9, color: "rgba(255,255,255,0.28)" }}>
-              <span>↑↓ навигация</span><span>↵ открыть</span><span>esc закрыть</span>
+              <span>↑↓ navigate</span><span>↵ open</span><span>esc close</span>
             </div>
           </div>
         )}
@@ -315,7 +311,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           }}
         >
           <Plus size={12} strokeWidth={2.5} />
-          Новая
+          New
         </Link>
 
         {/* AI status */}
@@ -339,7 +335,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
               color:      "rgba(255,255,255,0.4)",
               background: notifOpen ? "rgba(255,255,255,0.06)" : "transparent",
             }}
-            aria-label="Уведомления"
+            aria-label="Notifications"
           >
             <Bell size={15} />
             {unread > 0 && (
@@ -362,7 +358,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
             >
               <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <div className="flex items-center gap-2">
-                  <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>Уведомления</span>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>Notifications</span>
                   {unread > 0 && (
                     <span className="chip chip-blue" style={{ padding: "1px 7px", fontSize: 10 }}>{unread}</span>
                   )}
@@ -372,12 +368,12 @@ export function TopNav({ onMenuClick }: TopNavProps) {
                   style={{ fontSize: 10, color: "rgba(99,102,241,0.8)", cursor: "pointer", background: "none", border: "none" }}
                   className="hover:text-indigo-300 transition-colors"
                 >
-                  Прочитать всё
+                  Mark all read
                 </button>
               </div>
               {notifications.length === 0 ? (
                 <div style={{ padding: "28px 16px", textAlign: "center", fontSize: 12, color: "rgba(255,255,255,0.3)" }}>
-                  Нет уведомлений
+                  No notifications
                 </div>
               ) : notifications.map((n, i) => {
                 const dot = TYPE_DOT[n.type ?? "info"] ?? "#6366f1";
@@ -401,7 +397,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
               })}
               <div className="px-4 py-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                 <button style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer", width: "100%", textAlign: "center" }}>
-                  Все уведомления →
+                  All notifications →
                 </button>
               </div>
             </div>

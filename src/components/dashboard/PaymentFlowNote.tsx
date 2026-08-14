@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { MousePointerClick, Wallet, ShieldCheck, Unlock } from "lucide-react";
 
-// ─── Блок «Как проходит оплата» на странице тарифов ───────────────────────────
+// ─── Блок «How payment works» на странице тарифов ───────────────────────────
 // Успокаивает клиента перед оплатой: платёж через OxaPay в USDT, мы проверяем
 // подпись, тариф включается автоматически. Ставится над таблицей сравнения.
 
@@ -12,10 +12,10 @@ const RGB = "99,102,241";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const STEPS = [
-  { icon: MousePointerClick, title: "Выбираешь тариф", desc: "Жмёшь кнопку — открывается защищённая оплата" },
-  { icon: Wallet,            title: "Платишь в USDT",  desc: "На странице OxaPay, крипто-перевод (TRC-20)" },
-  { icon: ShieldCheck,       title: "Проверяем оплату", desc: "Сверяем подпись OxaPay — подделать нельзя" },
-  { icon: Unlock,            title: "Тариф включается", desc: "Автоматически, сразу после подтверждения" },
+  { icon: MousePointerClick, title: "Pick a plan", desc: "One click opens a secure payment page" },
+  { icon: Wallet,            title: "Pay in USDT",  desc: "On the OxaPay page, crypto transfer (TRC-20)" },
+  { icon: ShieldCheck,       title: "We verify it", desc: "OxaPay\u2019s signature is checked — impossible to fake" },
+  { icon: Unlock,            title: "Plan activates", desc: "Automatically, right after confirmation" },
 ];
 
 export function PaymentFlowNote() {
@@ -29,8 +29,8 @@ export function PaymentFlowNote() {
     >
       <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 18 }}>
         <ShieldCheck size={16} style={{ color: "#a5b4fc" }} />
-        <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>Как проходит оплата</span>
-        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>— безопасно, в криптовалюте</span>
+        <span style={{ fontSize: 14, fontWeight: 700, color: "#fff", letterSpacing: "-0.01em" }}>How payment works</span>
+        <span style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>— secure, in crypto</span>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 14 }}>
@@ -49,7 +49,7 @@ export function PaymentFlowNote() {
       </div>
 
       <div style={{ marginTop: 16, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.06)", fontSize: 12, color: "rgba(255,255,255,0.4)", lineHeight: 1.5 }}>
-        Деньги проходят через OxaPay — мы не храним твою карту или кошелёк. После оплаты тариф активируется автоматически, обычно за 1–3 минуты.
+        Payments go through OxaPay — we never store your card or wallet. After payment your plan activates automatically, usually within 1–3 minutes.
       </div>
     </motion.div>
   );
