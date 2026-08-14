@@ -261,7 +261,7 @@ export default function ChatPage() {
               Исследование
             </button>
 
-            <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} placeholder="Спросите Vertlix AI…" rows={1}
+            <textarea ref={inputRef} value={input} onChange={e => setInput(e.target.value)} onKeyDown={onKey} placeholder="Спросите Vertlix AI…" rows={1} maxLength={1000}
               style={{ flex: 1, resize: "none", maxHeight: 160, minHeight: 40, padding: "10px 12px", background: "transparent", border: "none", color: "#fff", fontSize: 14, outline: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
 
             <button onClick={() => send()} disabled={busy || (!input.trim() && !attach)} style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, border: "none", cursor: busy || (!input.trim() && !attach) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center",

@@ -7,6 +7,7 @@ import { logAiRequest } from "@/lib/analytics/server";
 import { industryPromptBlock } from "@/lib/industries";
 import { safeErrorResponse } from "@/lib/errors";
 import { markActivated } from "@/lib/analytics/growth";
+import { MAX_QUESTION_LEN, QUESTION_TOO_LONG } from "@/lib/validators";
 
 export const maxDuration = 60;
 
@@ -71,6 +72,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: false, error: "Invalid JSON" }, { status: 400 });
   }
   const goals = Array.isArray(body.goals) ? body.goals.slice(0, MAX_GOALS) : [];
+  // Общий потолок вопроса к AI: длинное поле цели отклоняем с понятной ошибкой.
+  for (const g of goals) {
+    for (const v of Object.values(g ?? {})) {
+      if (typeof v === "string" && v.length > MAX_QUESTION_LEN) {
+        return NextResponse.json({ success: false, error: QUESTION_TOO_LONG, code: "QUESTION_TOO_LONG" }, { status: 422 });
+      }
+    }
+  }
   if (goals.length === 0) {
     return NextResponse.json({ success: false, error: "Добавьте хотя бы одну цель" }, { status: 422 });
   }

@@ -640,7 +640,7 @@ function CouncilSession() {
           </div>
 
           <div style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}>
-            <textarea value={q} onChange={e => setQ(e.target.value)}
+            <textarea value={q} onChange={e => setQ(e.target.value)} maxLength={1000}
               onKeyDown={e => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) convene(); }}
               placeholder="Например: стоит ли привлекать раунд сейчас или расти на выручке?"
               rows={2}
@@ -835,7 +835,7 @@ function CouncilSession() {
           {phase === "done" && (
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease: EASE, delay: 0.2 }}
               style={{ display: "flex", gap: 10, marginTop: 14 }}>
-              <input value={followQ} onChange={e => setFollowQ(e.target.value)}
+              <input value={followQ} onChange={e => setFollowQ(e.target.value)} maxLength={1000}
                 onKeyDown={e => { if (e.key === "Enter" && followQ.trim()) convene(followQ, true); }}
                 placeholder="Уточнить у совета… (совет помнит своё прошлое решение)"
                 style={{ flex: 1, height: 42, padding: "0 14px", borderRadius: 12, fontSize: 13,
@@ -1258,7 +1258,7 @@ function AskModal({ agent, onClose }: { agent: AgentFull; onClose: () => void })
 
         {/* Input */}
         <div style={{ display: "flex", gap: 8 }}>
-          <input autoFocus value={q} onChange={e => setQ(e.target.value)}
+          <input autoFocus value={q} onChange={e => setQ(e.target.value)} maxLength={1000}
             onKeyDown={e => { if (e.key === "Enter") void submit(); }}
             disabled={busy}
             placeholder={`Спросить ${agent.name.split(" ")[0]}…`}

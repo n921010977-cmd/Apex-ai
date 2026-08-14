@@ -9,6 +9,7 @@ import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { webResearch, webContextBlock, webResearchConfigured } from "@/lib/web-research";
 import { safeErrorResponse } from "@/lib/errors";
 import { markActivated } from "@/lib/analytics/growth";
+import { MAX_QUESTION_LEN, QUESTION_TOO_LONG } from "@/lib/validators";
 
 export const maxDuration = 120;
 
@@ -18,7 +19,8 @@ export const maxDuration = 120;
 // него презентацию и отдаёт на скачивание. Это «киллер-артефакт»: ChatGPT даёт
 // текст в окне, здесь — готовый документ, который не стыдно показать инвестору.
 
-const MAX_BRIEF = 4000;
+// Единый потолок вопроса к AI — как во всех маршрутах (см. validators).
+const MAX_BRIEF = MAX_QUESTION_LEN;
 
 // Каноническая последовательность слайдов инвесторской презентации.
 const SLIDES = [
@@ -90,7 +92,7 @@ export async function POST(req: NextRequest) {
   const style = ["classic", "visionary", "data"].includes(body.style ?? "") ? body.style! : "classic";
   if (!brief) return NextResponse.json({ success: false, error: "Опишите бизнес" }, { status: 422 });
   if (brief.length > MAX_BRIEF) {
-    return NextResponse.json({ success: false, error: `Бриф не длиннее ${MAX_BRIEF} символов` }, { status: 422 });
+    return NextResponse.json({ success: false, error: QUESTION_TOO_LONG }, { status: 422 });
   }
 
   // Персона = инструкция составителя дека + отраслевая экспертиза по нише.

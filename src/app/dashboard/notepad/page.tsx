@@ -267,7 +267,10 @@ export default function NotepadPage() {
       "Создать резюме":  "Составь executive summary для руководства: контекст, выводы, следующие шаги.",
     };
     const persona = "Ты — AI-редактор заметок в Vertlix. Отвечай по-русски, кратко и структурно, используй markdown.";
-    const message = `${tasks[action] ?? action}\n\nЗаметка «${active.title}»:\n\n${active.content.slice(0, 6000)}`;
+    // Сервер принимает вопрос не длиннее 1000 символов — обрезаем фрагмент
+    // заметки так, чтобы задание + заголовок + текст уложились в лимит.
+    const head = `${tasks[action] ?? action}\n\nЗаметка «${active.title.slice(0, 80)}»:\n\n`;
+    const message = head + active.content.slice(0, Math.max(0, 990 - head.length));
     try {
       const res = await fetch("/api/chat/direct", {
         method: "POST",

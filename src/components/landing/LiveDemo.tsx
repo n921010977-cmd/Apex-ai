@@ -121,7 +121,7 @@ export function LiveDemo() {
           <div style={{ padding: "20px 20px 22px" }}>
             {/* Input row */}
             <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-              <input
+              <input maxLength={1000}
                 value={idea}
                 onChange={e => setIdea(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") run(); }}

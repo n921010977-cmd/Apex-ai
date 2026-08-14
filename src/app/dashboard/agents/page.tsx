@@ -968,7 +968,7 @@ export default function AgentsPage() {
               {/* ask box */}
               <div style={{ padding: "16px 22px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 7 }}>Спросите {runAgent.name.split(" ")[0]}</div>
-                <textarea
+                <textarea maxLength={1000}
                   value={runInput}
                   onChange={(e) => setRunInput(e.target.value)}
                   onKeyDown={(e) => { if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) executeRun(); }}

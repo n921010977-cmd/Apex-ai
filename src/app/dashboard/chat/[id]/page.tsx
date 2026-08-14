@@ -736,7 +736,7 @@ export default function ChatPage() {
       {/* Input */}
       <div className="flex-shrink-0 p-4 border-t border-white/[0.06] bg-[#05060A]/80 backdrop-blur-sm">
         <div className="flex items-end gap-3 p-3 rounded-2xl bg-white/[0.04] border border-white/[0.08] focus-within:border-violet-500/30 transition-colors">
-          <textarea
+          <textarea maxLength={1000}
             ref={inputRef}
             value={input}
             onChange={(e) => setInput(e.target.value)}

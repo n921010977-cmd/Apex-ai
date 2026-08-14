@@ -1115,7 +1115,9 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
       }))
     : DEMO_AGENTS;
 
-  const projectContext = `Проект: "${project.name}". ${project.subtitle}. Описание: ${project.summary}. Ключевые финансовые показатели: ${project.financials.map(f => `${f.label} — ${f.value}`).join(", ")}.`;
+  // Сервер принимает вопрос не длиннее 1000 символов: контекст проекта режем,
+  // оставляя место инструкции (~250 символов) в самом сообщении.
+  const projectContext = `Проект: "${project.name}". ${project.subtitle}. Описание: ${project.summary}. Ключевые финансовые показатели: ${project.financials.map(f => `${f.label} — ${f.value}`).join(", ")}.`.slice(0, 700);
 
   const avgScore = Math.round(agents.reduce((s, a) => s + a.score, 0) / agents.length);
 

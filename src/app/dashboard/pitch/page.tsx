@@ -153,7 +153,7 @@ function PitchDeckInner() {
       {/* Brief input */}
       <div style={{ marginTop: 22, borderRadius: 16, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.07)", padding: 18 }}>
         <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Опишите бизнес</label>
-        <textarea
+        <textarea maxLength={1000}
           value={brief}
           onChange={e => setBrief(e.target.value)}
           placeholder="Что за продукт, для кого, как зарабатывает, на какой вы стадии…"

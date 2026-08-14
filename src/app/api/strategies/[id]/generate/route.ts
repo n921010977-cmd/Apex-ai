@@ -9,6 +9,7 @@ import { MODEL_HEAVY, MAX_TOKENS_HEAVY } from "@/lib/ai/model-config";
 import { industryPromptBlock } from "@/lib/industries";
 import { safeErrorResponse } from "@/lib/errors";
 import { markActivated } from "@/lib/analytics/growth";
+import { MAX_QUESTION_LEN, QUESTION_TOO_LONG } from "@/lib/validators";
 
 export const maxDuration = 120;
 
@@ -44,6 +45,15 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const body = await req.json().catch(() => ({}));
   const questionnaire = body.questionnaire ?? strategy.questionnaire ?? {};
+  // Каждый ответ анкеты — пользовательский вопрос к AI: потолок 1000 символов.
+  for (const v of Object.values(questionnaire as Record<string, unknown>)) {
+    const texts = Array.isArray(v) ? v : [v];
+    for (const t of texts) {
+      if (typeof t === "string" && t.length > MAX_QUESTION_LEN) {
+        return NextResponse.json({ success: false, error: QUESTION_TOO_LONG, code: "QUESTION_TOO_LONG" }, { status: 422 });
+      }
+    }
+  }
   const language = body.language ?? strategy.language ?? "ru";
 
   await db.from("strategies").update({ status: "generating", questionnaire }).eq("id", id).eq("user_id", session.user.id);

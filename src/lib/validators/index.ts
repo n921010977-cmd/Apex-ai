@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+// Единый потолок длины пользовательского вопроса к AI. Ограничивает расход
+// токенов и стоимость одного запроса; применяется во ВСЕХ AI-маршрутах.
+export const MAX_QUESTION_LEN = 1000;
+export const QUESTION_TOO_LONG = `Вопрос слишком длинный — максимум ${MAX_QUESTION_LEN} символов`;
+
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 
 export const LoginSchema = z.object({
@@ -17,10 +22,10 @@ export const RegisterSchema = z.object({
 
 export const CreateProjectSchema = z.object({
   name: z.string().min(2).max(200),
-  description: z.string().max(2000).optional(),
+  description: z.string().max(MAX_QUESTION_LEN, QUESTION_TOO_LONG).optional(),
   industry: z.string().max(100).optional(),
   stage: z.enum(["IDEA", "VALIDATION", "MVP", "GROWTH", "SCALE", "MATURE"]).default("IDEA"),
-  goals: z.array(z.string()).max(10).default([]),
+  goals: z.array(z.string().max(MAX_QUESTION_LEN, QUESTION_TOO_LONG)).max(10).default([]),
   timeframe: z.string().max(50).optional(),
 });
 
@@ -31,7 +36,7 @@ export const UpdateProjectSchema = CreateProjectSchema.partial().extend({
 // ─── Messages / Chat ──────────────────────────────────────────────────────────
 
 export const SendMessageSchema = z.object({
-  message: z.string().max(10_000).default(""),
+  message: z.string().max(MAX_QUESTION_LEN, QUESTION_TOO_LONG).default(""),
   projectId: z.string().optional(),
   agentId: z.string().optional(),
   persona: z.string().max(4000).optional(),
@@ -139,7 +144,7 @@ export const RoadmapSectionSchema = SectionScoreSchema.extend({
 
 export const CreateTaskSchema = z.object({
   title: z.string().min(2).max(300),
-  description: z.string().max(2000).optional(),
+  description: z.string().max(MAX_QUESTION_LEN, QUESTION_TOO_LONG).optional(),
   priority: z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]).default("MEDIUM"),
   dueDate: z.string().datetime().optional(),
   projectId: z.string().optional(),

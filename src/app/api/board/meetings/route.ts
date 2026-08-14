@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { createClient } from "@/lib/supabase/server";
 import { dbErrorResponse } from "@/lib/errors";
+import { MAX_QUESTION_LEN, QUESTION_TOO_LONG } from "@/lib/validators";
 
 export async function GET(req: NextRequest) {
   const session = await auth();
@@ -42,6 +43,10 @@ export async function POST(req: NextRequest) {
 
   if (!body.title?.trim()) {
     return NextResponse.json({ success: false, error: "Title is required" }, { status: 422 });
+  }
+  // Вопрос совету — тоже вопрос к AI: общий потолок 1000 символов.
+  if (body.title.trim().length > MAX_QUESTION_LEN) {
+    return NextResponse.json({ success: false, error: QUESTION_TOO_LONG, code: "QUESTION_TOO_LONG" }, { status: 422 });
   }
 
   const supabase = await createClient();
