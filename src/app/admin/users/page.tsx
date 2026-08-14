@@ -19,6 +19,7 @@ interface Row {
   requests_total: number; requests_today: number; sessions_count: number; revenue: number;
   usage_month?: number; limit_month?: number | null; remaining_month?: number | null;
   sub_status?: string; expires_at?: string | null;
+  auth_provider?: string; is_verified?: boolean;
 }
 
 const PLAN_COLORS: Record<string, string> = { none: TM, starter: "#a5b4fc", pro: "#34d399", max: "#fbbf24" };
@@ -130,14 +131,14 @@ export default function AdminUsersPage() {
             <div style={{ overflowX: "auto" }}>
               <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 860 }}>
                 <thead><tr style={{ borderBottom: `1px solid ${BORD}` }}>
-                  {th("Пользователь", "email")}{th("Тариф")}{th("Статус")}{th("Расход за месяц", "usage_month")}{th("Остаток")}{th("Действует до", "expires_at")}{th("Запросы", "requests_total")}{th("Сессии", "sessions_count")}{th("Последний визит", "last_visit")}{th("Выручка", "revenue")}{th("Регистрация", "created_at")}
+                  {th("Пользователь", "email")}{th("Вход")}{th("Тариф")}{th("Статус")}{th("Расход за месяц", "usage_month")}{th("Остаток")}{th("Действует до", "expires_at")}{th("Запросы", "requests_total")}{th("Сессии", "sessions_count")}{th("Последний визит", "last_visit")}{th("Выручка", "revenue")}{th("Регистрация", "created_at")}
                 </tr></thead>
                 <tbody>
                   {loading && rows.length === 0 && (
-                    <tr><td colSpan={11} style={{ padding: 28, textAlign: "center", color: TM, fontSize: 13 }}>Загружаем…</td></tr>
+                    <tr><td colSpan={12} style={{ padding: 28, textAlign: "center", color: TM, fontSize: 13 }}>Загружаем…</td></tr>
                   )}
                   {!loading && rows.length === 0 && (
-                    <tr><td colSpan={11} style={{ padding: 28, textAlign: "center", color: TM, fontSize: 13 }}>
+                    <tr><td colSpan={12} style={{ padding: 28, textAlign: "center", color: TM, fontSize: 13 }}>
                       {demo ? "Подключи Supabase и выполни миграции — здесь появятся реальные пользователи." : "Никого не найдено."}
                     </td></tr>
                   )}
@@ -149,6 +150,17 @@ export default function AdminUsersPage() {
                       <td style={{ padding: "12px 14px" }}>
                         <div style={{ fontSize: 13.5, fontWeight: 600, color: TP }}>{r.name || "—"}</div>
                         <div style={{ fontSize: 11.5, color: TM }}>{r.email}</div>
+                      </td>
+                      <td style={{ padding: "12px 14px", whiteSpace: "nowrap" }}>
+                        {/* Google/GitHub = аккаунт удостоверен провайдером; email —
+                            смотрим на подтверждение почты по ссылке из письма. */}
+                        <span style={{ fontSize: 11.5, fontWeight: 600, color: r.auth_provider === "google" ? "#8ab4f8" : r.auth_provider === "github" ? "#c9d1d9" : TS }}>
+                          {r.auth_provider === "google" ? "Google" : r.auth_provider === "github" ? "GitHub" : "Email"}
+                        </span>
+                        <span title={r.auth_provider && r.auth_provider !== "email" ? "Аккаунт удостоверен OAuth-провайдером" : r.is_verified ? "Email подтверждён по ссылке" : "Email не подтверждён"}
+                          style={{ marginLeft: 6, fontSize: 11, color: (r.auth_provider && r.auth_provider !== "email") || r.is_verified ? "#34d399" : "#f59e0b" }}>
+                          {(r.auth_provider && r.auth_provider !== "email") || r.is_verified ? "✓" : "?"}
+                        </span>
                       </td>
                       <td style={{ padding: "12px 14px" }}>
                         <span style={{ fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em", color: PLAN_COLORS[r.plan] ?? TS, padding: "3px 9px", borderRadius: 999, background: "rgba(255,255,255,0.04)", border: `1px solid ${BORD}` }}>{r.plan}</span>

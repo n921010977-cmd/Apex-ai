@@ -330,6 +330,14 @@ const config: NextAuthConfig = {
             token.id   = existing.id;
             token.role = existing.role ?? "FREE";
             token.tier = existing.tier ?? "FREE";
+            // Отмечаем способ входа и подтверждённость: OAuth-провайдер сам
+            // удостоверил владельца почты. Отдельным update и в своём catch —
+            // чтобы отсутствие колонки (миграция 017 не применена) не ломало вход.
+            try {
+              await db.from("users")
+                .update({ auth_provider: account.provider, is_verified: true, last_login_at: new Date().toISOString() })
+                .eq("id", existing.id);
+            } catch { /* колонок ещё нет — не критично */ }
           } else {
             // Create new user on first OAuth login
             const { data: created } = await db
@@ -350,6 +358,11 @@ const config: NextAuthConfig = {
               token.id   = created.id;
               token.role = created.role;
               token.tier = created.tier;
+              try {
+                await db.from("users")
+                  .update({ auth_provider: account.provider, is_verified: true })
+                  .eq("id", created.id);
+              } catch { /* миграция 017 ещё не применена */ }
             }
           }
         } catch (err) {
