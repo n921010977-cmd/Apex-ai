@@ -443,7 +443,7 @@ export function HeroSection() {
             >
               <span className="size-1.5 rounded-full bg-violet-400 animate-pulse" />
               <span className="text-[11px] font-semibold text-violet-300/90 tracking-wide">
-                20 AI-директоров разберут вашу идею
+                20 AI directors will review your idea
               </span>
             </div>
           </motion.div>
@@ -453,17 +453,17 @@ export function HeroSection() {
             variants={it}
             className="text-5xl sm:text-6xl xl:text-[64px] font-bold leading-[1.08] mb-6 tracking-tight"
           >
-            <span className="text-white">Узнай, взлетит ли твоя идея —</span>
+            <span className="text-white">Find out if your idea will fly —</span>
             <br />
-            <span style={{ color: "#818cf8" }}>за 5 минут,</span>{" "}
-            <span className="text-white/45">а не за год и все сбережения.</span>
+            <span style={{ color: "#818cf8" }}>in 5 minutes,</span>{" "}
+            <span className="text-white/45">not a year and your savings.</span>
           </motion.h1>
 
           {/* Description */}
           <motion.p variants={it} className="text-[16px] text-white/40 leading-[1.75] mb-10 max-w-lg">
-            20 AI-директоров — CEO, CFO, CMO, юрист, аналитик и&nbsp;другие — разберут
-            вашу идею с&nbsp;разных сторон, посчитают экономику, найдут риски и&nbsp;выдадут
-            план действий на&nbsp;первые 90&nbsp;дней. Честно, с&nbsp;цифрами и&nbsp;без&nbsp;воды.
+            20 AI directors — CEO, CFO, CMO, lawyer, analyst and&nbsp;more — will examine
+            your idea from every angle, run the numbers, surface the risks and&nbsp;hand you
+            an action plan for the first 90&nbsp;days. Honest, with numbers, no&nbsp;fluff.
           </motion.p>
 
           {/* Metric readout — terminal style */}
@@ -507,7 +507,7 @@ export function HeroSection() {
               <svg viewBox="0 0 24 24" className="size-4.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
               </svg>
-              Проверить мою идею — бесплатно
+              Check my idea — free
             </Link>
 
             {/* Secondary glass */}
@@ -521,7 +521,7 @@ export function HeroSection() {
                 backdropFilter: "blur(12px)",
               }}
             >
-              Как это работает ↓
+              How it works ↓
             </a>
           </motion.div>
 
@@ -530,9 +530,9 @@ export function HeroSection() {
               продукта нет: выдуманное социальное доказательство убрано. */}
           <motion.div variants={it} className="mt-8 flex flex-wrap items-center gap-x-5 gap-y-2 justify-center lg:justify-start">
             {[
-              "Бесплатно: 20 AI-сообщений",
-              "Карта не нужна",
-              "Первый разбор — за пару минут",
+              "Free: 20 AI messages",
+              "No card required",
+              "First review in a couple of minutes",
             ].map((t) => (
               <span key={t} className="flex items-center gap-2 text-[12.5px] text-white/40">
                 <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="#34d399" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>

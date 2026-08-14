@@ -27,20 +27,20 @@ function CountUp({ to, duration = 1400 }: { to: number; duration?: number }) {
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
 const REPORT_SECTIONS = [
-  "Резюме для инвестора",   "Оценка бизнеса (0–100)",
-  "Финансовый прогноз",     "Прогноз выручки",
-  "Анализ рынка",           "Разбор конкурентов",
-  "SWOT-анализ",            "Маркетинг-стратегия",
-  "Портрет клиента",        "План запуска",
-  "Роадмап на 30 дней",     "Роадмап на 90 дней",
-  "Стратегия роста",        "Анализ рисков",
-  "Чек-лист действий",
+  "Investor summary",       "Business score (0–100)",
+  "Financial forecast",     "Revenue projection",
+  "Market analysis",        "Competitor breakdown",
+  "SWOT analysis",          "Marketing strategy",
+  "Customer profile",       "Launch plan",
+  "30-day roadmap",         "90-day roadmap",
+  "Growth strategy",        "Risk analysis",
+  "Action checklist",
 ];
 
 const FEATURES = [
   {
-    title:       "Мышление реального совета",
-    description: "Не обезличенные ответы AI. Каждый директор даёт собственную позицию, данные и рекомендации — как на настоящем заседании совета.",
+    title:       "Real boardroom thinking",
+    description: "Not generic AI answers. Every director gives their own position, data and recommendations — like a real board meeting.",
     color:       "#8b5cf6",
     rgb:         "139,92,246",
     icon: (
@@ -51,8 +51,8 @@ const FEATURES = [
     ),
   },
   {
-    title:       "Финмодель за минуты",
-    description: "CFO строит реалистичный прогноз выручки, расходов и точку безубыточности под вашу бизнес-модель, а не под «среднюю компанию».",
+    title:       "Financial model in minutes",
+    description: "The CFO builds a realistic revenue, cost and break-even forecast for your business model — not for an \u201caverage company\u201d.",
     color:       "#3b82f6",
     rgb:         "59,130,246",
     icon: (
@@ -64,8 +64,8 @@ const FEATURES = [
     ),
   },
   {
-    title:       "Конкурентная разведка",
-    description: "Аналитик разбирает конкурентов: карта позиционирования, незанятые ниши и стратегия отличия — на чём именно вы выиграете.",
+    title:       "Competitive intelligence",
+    description: "The Analyst dissects competitors: positioning map, open niches and a differentiation strategy — exactly where you win.",
     color:       "#06b6d4",
     rgb:         "6,182,212",
     icon: (
@@ -76,8 +76,8 @@ const FEATURES = [
     ),
   },
   {
-    title:       "Отчёт, который не стыдно показать",
-    description: "PDF презентационного уровня — для инвесторов, кофаундеров и банков. Скачали — и сразу на встречу.",
+    title:       "A report you can proudly show",
+    description: "Presentation-grade PDF for investors, co-founders and banks. Download it and walk into the meeting.",
     color:       "#10b981",
     rgb:         "16,185,129",
     icon: (
@@ -181,13 +181,13 @@ function ReportCard() {
 
       {/* Floating widget – top right */}
       <div className="hidden lg:block" style={{ position: "absolute", top: 0, right: -8, zIndex: 10 }}>
-        <FloatingWidget label="Прогноз выручки" value="$2.4M / год" color="#10b981" rgb="16,185,129"
+        <FloatingWidget label="Revenue forecast" value="$2.4M / yr" color="#10b981" rgb="16,185,129"
           style={{ position: "relative" }} />
       </div>
 
       {/* Floating widget – bottom left */}
       <div className="hidden lg:block" style={{ position: "absolute", bottom: 0, left: -8, zIndex: 10 }}>
-        <FloatingWidget label="Окупаемость" value="8-й месяц" color="#3b82f6" rgb="59,130,246"
+        <FloatingWidget label="Payback" value="month 8" color="#3b82f6" rgb="59,130,246"
           style={{ position: "relative" }} />
       </div>
 
@@ -231,10 +231,10 @@ function ReportCard() {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ fontSize: 14, fontWeight: 600, color: "rgba(255,255,255,0.92)", letterSpacing: "-0.01em" }}>
-              Стратегический отчёт
+              Strategy report
             </div>
             <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.32)", marginTop: 2 }}>
-              Подготовлен AI-советом директоров
+              Prepared by the AI board of directors
             </div>
           </div>
           {/* Complete badge */}
@@ -244,7 +244,7 @@ function ReportCard() {
             border: "1px solid rgba(16,185,129,0.25)",
             color: "#34d399",
           }}>
-            Готов
+            Ready
           </div>
         </div>
 
@@ -252,7 +252,7 @@ function ReportCard() {
         <div style={{ padding: "22px 22px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
           <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 14 }}>
             <span style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", letterSpacing: "0.01em" }}>
-              Оценка жизнеспособности
+              Viability score
             </span>
             <span style={{ fontSize: 42, fontWeight: 800, lineHeight: 1, letterSpacing: "-0.03em", color: "#fff", display: "flex", alignItems: "baseline", gap: 2 }}>
               <CountUp to={87} /><span style={{ fontSize: 20, opacity: 0.4, fontWeight: 700 }}>/100</span>
@@ -262,10 +262,10 @@ function ReportCard() {
           {/* Category breakdown — mini bar chart (single indigo accent) */}
           <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
             {[
-              { label: "Рыночный потенциал", v: 91 },
-              { label: "Финансы",            v: 83 },
-              { label: "Реализуемость",      v: 87 },
-              { label: "Конкурентность",     v: 79 },
+              { label: "Market potential",  v: 91 },
+              { label: "Finance",           v: 83 },
+              { label: "Feasibility",       v: 87 },
+              { label: "Competitiveness",   v: 79 },
             ].map((c, i) => (
               <div key={c.label} style={{ display: "grid", gridTemplateColumns: "120px 1fr 30px", alignItems: "center", gap: 10 }}>
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.42)" }}>{c.label}</span>
@@ -386,12 +386,12 @@ export function FeaturesSection() {
 
           {/* Heading */}
           <h2 style={{ fontSize: "clamp(30px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.07, margin: "0 0 20px", color: "#fff" }}>
-            <span style={{ display: "block" }}>Всё, что нужно для решения.</span>
-            <span style={{ display: "block", color: "rgba(255,255,255,0.45)" }}>И ничего лишнего.</span>
+            <span style={{ display: "block" }}>Everything you need to decide.</span>
+            <span style={{ display: "block", color: "rgba(255,255,255,0.45)" }}>And nothing you don\u2019t.</span>
           </h2>
 
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.38)", maxWidth: 520, margin: "0 auto", lineHeight: 1.65 }}>
-            Каждый отчёт — 15+ профессиональных разделов: от финансовой модели до плана действий на первые 90 дней.
+            Every report has 15+ professional sections: from the financial model to an action plan for the first 90 days.
           </p>
         </motion.div>
 
@@ -443,7 +443,7 @@ export function FeaturesSection() {
               </motion.div>
             ))}
 
-            {/* Посмотреть пример отчёта link */}
+            {/* See a sample report link */}
             <motion.div variants={itemVar} style={{ paddingTop: 8 }}>
               <a
                 href="/dashboard"
@@ -460,7 +460,7 @@ export function FeaturesSection() {
                 onMouseEnter={e => (e.currentTarget.style.color = "#c4b5fd")}
                 onMouseLeave={e => (e.currentTarget.style.color = "#a78bfa")}
               >
-                Посмотреть пример отчёта
+                See a sample report
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16">
                   <path d="M5 12h14M12 5l7 7-7 7" />
                 </svg>

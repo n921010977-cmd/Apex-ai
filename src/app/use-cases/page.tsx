@@ -7,35 +7,35 @@ import { Footer } from "@/components/landing/Footer";
 // Никаких кейсов «клиент вырос в 3 раза» — таких данных у нас нет.
 
 export const metadata: Metadata = {
-  title: "Сценарии использования",
-  description: "Как предприниматели используют Vertlix AI: проверка идеи, подготовка к инвестору, план запуска, разбор просевших метрик и еженедельная приоритизация.",
+  title: "Use cases",
+  description: "How entrepreneurs use Vertlix AI: idea validation, investor prep, launch planning, diagnosing falling metrics and weekly prioritization.",
   alternates: { canonical: "/use-cases" },
 };
 
 const CASES = [
   {
-    who: "Проверяю идею перед стартом",
-    pain: "Непонятно, стоит ли вкладывать деньги и полгода жизни.",
-    how: ["Описываете идею в разборе проекта", "Совет директоров даёт вердикт с рисками", "Стратегия показывает рынок и модель заработка"],
-    tools: "Разбор проекта · Совет директоров · Стратегия",
+    who: "Validating an idea before starting",
+    pain: "Unclear whether it deserves your money and six months of your life.",
+    how: ["Describe the idea in a project review", "The board delivers a verdict with risks", "The strategy maps the market and the revenue model"],
+    tools: "Project review · Board of directors · Strategy",
   },
   {
-    who: "Готовлюсь к разговору с инвестором",
-    pain: "Нужна презентация и внятные ответы на неудобные вопросы.",
-    how: ["Собираете питч-дек с выбором стиля подачи", "Правите слайды прямо в браузере", "Выгружаете в PDF и отправляете"],
-    tools: "Питч-дек · Экспорт в PDF",
+    who: "Preparing to talk to investors",
+    pain: "You need a deck and solid answers to uncomfortable questions.",
+    how: ["Build a pitch deck with a style of your choice", "Edit the slides right in the browser", "Export to PDF and send it off"],
+    tools: "Pitch deck · PDF export",
   },
   {
-    who: "Запускаю продукт и теряюсь в задачах",
-    pain: "Список дел бесконечный, а что делать в понедельник — неясно.",
-    how: ["Ставите цель в студии планирования", "Получаете план 30/60/90 с шагами", "Каждую неделю берёте фокус недели"],
-    tools: "Цели и план · Фокус недели",
+    who: "Launching a product, drowning in tasks",
+    pain: "The to-do list is endless, but what to do on Monday is unclear.",
+    how: ["Set a goal in the planning studio", "Get a 30/60/90 plan with steps", "Pick a weekly focus every week"],
+    tools: "Goals & Plan · Weekly Focus",
   },
   {
-    who: "Разбираюсь, почему просели метрики",
-    pain: "Цифры падают, гипотез много, проверять нечем.",
-    how: ["Спрашиваете профильного агента — маркетолога, финансиста, аналитика", "Сравниваете версии в совете директоров", "Фиксируете решение в плане"],
-    tools: "Библиотека агентов · Совет директоров",
+    who: "Figuring out why metrics dropped",
+    pain: "Numbers are falling, hypotheses are many, evidence is scarce.",
+    how: ["Ask the right specialist agent — marketer, finance, analyst", "Compare views at the board of directors", "Lock the decision into the plan"],
+    tools: "Agent library · Board of directors",
   },
 ];
 
@@ -45,10 +45,10 @@ export default function UseCasesPage() {
       <Navbar />
       <div style={{ maxWidth: 940, margin: "0 auto", padding: "120px 24px 80px" }}>
         <h1 style={{ fontSize: "clamp(30px,5vw,48px)", fontWeight: 800, letterSpacing: "-0.03em", margin: "0 0 14px", textWrap: "balance" }}>
-          Когда Vertlix AI действительно помогает
+          When Vertlix AI actually helps
         </h1>
         <p style={{ fontSize: 17, color: "rgba(255,255,255,0.5)", maxWidth: 620, lineHeight: 1.65, margin: "0 0 48px" }}>
-          Четыре ситуации, ради которых продукт и делался. В каждой — какие инструменты нажимать.
+          Four situations the product was built for — and exactly which tools to reach for in each.
         </p>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -71,10 +71,10 @@ export default function UseCasesPage() {
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 40 }}>
           <Link href="/register" style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 28px", borderRadius: 13, fontSize: 15, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 8px 24px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
-            Попробовать бесплатно
+            Try it free
           </Link>
           <Link href="/features" style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.75)", textDecoration: "none", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
-            Все возможности
+            All features
           </Link>
         </div>
       </div>

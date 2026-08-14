@@ -10,8 +10,8 @@ import { CONTACT_EMAIL } from "@/lib/site";
 // Цены берутся из того же конфига, что и страница тарифов.
 
 export const metadata: Metadata = {
-  title: "Инвесторам",
-  description: "Vertlix AI — AI-совет директоров для предпринимателей. Продукт запущен, платежи работают, метрики собираются в реальном времени.",
+  title: "Investors",
+  description: "Vertlix AI — an AI board of directors for entrepreneurs. The product is live, payments work, metrics stream in real time.",
   alternates: { canonical: "/investors" },
 };
 
@@ -68,67 +68,67 @@ export default function InvestorsPage() {
               </svg>
             </div>
             <span style={{ fontSize: 15, fontWeight: 700, letterSpacing: "0.14em" }}>VERTLIX AI</span>
-            <span style={{ marginLeft: "auto", fontSize: 12, color: T.tm }}>Материалы для инвесторов</span>
+            <span style={{ marginLeft: "auto", fontSize: 12, color: T.tm }}>Investor materials</span>
           </div>
 
           <h1 style={{ fontSize: "clamp(32px,5.5vw,54px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.08, margin: "0 0 18px", textWrap: "balance" }}>
-            AI-совет директоров для предпринимателей
+            An AI board of directors for entrepreneurs
           </h1>
           <p style={{ fontSize: 17, lineHeight: 1.65, color: T.ts, maxWidth: 640, margin: "0 0 28px" }}>
-            Vertlix AI заменяет дорогой консалтинг: 20 AI-ролей — от CEO до юриста — разбирают бизнес
-            пользователя и выдают готовые документы: стратегию, питч-дек, план 30/60/90.
-            Продукт запущен и принимает платежи.
+            Vertlix AI replaces expensive consulting: 20 AI roles — from CEO to lawyer — examine the user\u2019s
+            business and deliver finished documents: a strategy, a pitch deck, a 30/60/90 plan.
+            The product is live and taking payments.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             <a href="https://vertlixai.com" style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 26px", borderRadius: 12, fontSize: 14.5, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 8px 24px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
-              Открыть работающий продукт
+              Open the live product
             </a>
             <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 24px", borderRadius: 12, fontSize: 14.5, fontWeight: 600, color: "rgba(255,255,255,0.75)", textDecoration: "none", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              Связаться с основателем
+              Contact the founder
             </a>
           </div>
         </header>
 
         {/* ── Problem ── */}
-        <Section id="problem" eyebrow="Проблема" title="Предприниматель принимает ключевые решения в одиночку">
+        <Section id="problem" eyebrow="Problem" title="Entrepreneurs make their biggest decisions alone">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
-            <Card title="Консалтинг недоступен">
-              Стратегическая сессия с консультантами стоит тысячи долларов — на ранней стадии таких денег нет.
+            <Card title="Consulting is out of reach">
+              A strategy session with consultants costs thousands of dollars — money early-stage founders don\u2019t have.
             </Card>
-            <Card title="Чат-боты дают переписку, а не результат">
-              Универсальный AI-чат отвечает на вопросы, но не выдаёт связный документ: стратегию, презентацию, план действий.
+            <Card title="Chatbots give transcripts, not results">
+              A generic AI chat answers questions but never produces a coherent document: a strategy, a deck, an action plan.
             </Card>
-            <Card title="Решения без второй пары глаз">
-              Риски — юридические, финансовые, маркетинговые — остаются незамеченными, пока не выстрелят.
+            <Card title="Decisions without a second pair of eyes">
+              Legal, financial and marketing risks go unnoticed until they blow up.
             </Card>
           </div>
         </Section>
 
         {/* ── Solution ── */}
-        <Section id="solution" eyebrow="Решение" title="Совет из 20 AI-директоров, который выдаёт документы">
+        <Section id="solution" eyebrow="Solution" title="A board of 20 AI directors that delivers documents">
           <p style={{ fontSize: 15, lineHeight: 1.7, color: T.ts, maxWidth: 680, margin: "0 0 20px" }}>
-            Пользователь описывает бизнес один раз. Дальше каждая AI-роль — CEO, CFO, CMO, COO, CTO,
-            юрист, аналитик и другие — разбирает проект со своей стороны. Результат — не диалог,
-            а четыре готовых артефакта:
+            The user describes the business once. Then every AI role — CEO, CFO, CMO, COO, CTO,
+            lawyer, analyst and more — examines the project from its own angle. The result is not a dialogue
+            but four finished artifacts:
           </p>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: 14 }}>
-            <Card title="Вердикт совета">Риски и возможности по ролям, с итоговым заключением.</Card>
-            <Card title="Стратегия">Позиционирование, рынок, конкуренты, модель монетизации.</Card>
-            <Card title="Питч-дек">Слайды для инвестора с правкой в браузере и экспортом в PDF.</Card>
-            <Card title="План 30/60/90">Конкретные шаги с чек-листом и еженедельным фокусом.</Card>
+            <Card title="Board verdict">Risks and opportunities by role, with a final conclusion.</Card>
+            <Card title="Strategy">Positioning, market, competitors, monetization model.</Card>
+            <Card title="Pitch deck">Investor slides edited in the browser, exported to PDF.</Card>
+            <Card title="30/60/90 plan">Concrete steps with a checklist and a weekly focus.</Card>
           </div>
         </Section>
 
         {/* ── Product ── */}
-        <Section id="product" eyebrow="Продукт" title="Скриншоты работающего продукта">
+        <Section id="product" eyebrow="Product" title="Screenshots of the live product">
           <p style={{ fontSize: 13.5, color: T.tm, margin: "0 0 18px" }}>
-            Это не макеты: снимки сделаны с живого приложения. Продукт можно открыть и проверить прямо сейчас.
+            These are not mockups: the shots are taken from the live app. You can open and verify the product right now.
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
             {[
-              { src: "/investors/executives.png", alt: "Исполнительный совет: 20 AI-директоров, зал заседаний", cap: "Исполнительный совет — задаёте вопрос, директора совещаются и дают вердикт" },
-              { src: "/investors/agents.png", alt: "Библиотека AI-агентов по направлениям", cap: "Библиотека агентов — финансы, маркетинг, продажи, право, разработка" },
-              { src: "/investors/dashboard.png", alt: "Дашборд пользователя с лимитами тарифа и следующими шагами", cap: "Дашборд — тариф, остаток лимитов и следующий полезный шаг" },
+              { src: "/investors/executives.png", alt: "Executive council: 20 AI directors, boardroom", cap: "Executive council — ask a question, the directors confer and deliver a verdict" },
+              { src: "/investors/agents.png", alt: "AI agent library by department", cap: "Agent library — finance, marketing, sales, legal, engineering" },
+              { src: "/investors/dashboard.png", alt: "User dashboard with plan limits and next steps", cap: "Dashboard — plan, remaining limits and the next useful step" },
             ].map(s => (
               <figure key={s.src} style={{ margin: 0 }}>
                 <div style={{ borderRadius: 16, overflow: "hidden", border: T.bord, background: "#0a0b12" }}>
@@ -141,13 +141,13 @@ export default function InvestorsPage() {
         </Section>
 
         {/* ── How it works ── */}
-        <Section id="how" eyebrow="Как это работает" title="От описания бизнеса до документов — четыре шага">
+        <Section id="how" eyebrow="How it works" title="From business description to documents in four steps">
           <ol style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(210px, 1fr))", gap: 14 }}>
             {[
-              ["Описание", "Пользователь рассказывает о бизнесе или идее один раз."],
-              ["Разбор", "20 AI-ролей анализируют проект, каждая — свою зону."],
-              ["Документы", "Стратегия, питч-дек и план собираются автоматически."],
-              ["Работа по плану", "Фокус недели и трекер целей возвращают пользователя каждую неделю."],
+              ["Describe", "The user describes the business or idea once."],
+              ["Analyze", "20 AI roles analyze the project, each in its own area."],
+              ["Documents", "Strategy, pitch deck and plan are assembled automatically."],
+              ["Execute", "Weekly focus and the goal tracker bring the user back every week."],
             ].map(([t, d], i) => (
               <li key={t} style={{ borderRadius: 16, padding: "18px 20px", background: T.surf, border: T.bord }}>
                 <div style={{ width: 26, height: 26, borderRadius: 8, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)", color: "#a5b4fc", fontSize: 12.5, fontWeight: 700 }}>{i + 1}</div>
@@ -159,93 +159,93 @@ export default function InvestorsPage() {
         </Section>
 
         {/* ── Business model ── */}
-        <Section id="model" eyebrow="Бизнес-модель" title="Помесячная подписка с лимитами, защищающими маржу">
+        <Section id="model" eyebrow="Business model" title="Monthly subscriptions with margin-protecting limits">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 18 }}>
             {PLANS.map(p => (
               <div key={p.id} style={{ borderRadius: 16, padding: "20px 22px", background: T.surf, border: p.highlight ? "1px solid rgba(99,102,241,0.45)" : T.bord }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{p.name}</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, margin: "8px 0 10px" }}>
                   <span style={{ fontSize: 30, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>${p.priceMonthly}</span>
-                  <span style={{ fontSize: 13, color: T.tm }}>/мес</span>
+                  <span style={{ fontSize: 13, color: T.tm }}>/mo</span>
                 </div>
                 <div style={{ fontSize: 12.5, lineHeight: 1.6, color: T.ts }}>{p.tagline}</div>
               </div>
             ))}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
-            <Card title="Экономика под контролем">
-              Каждый тариф ограничен месячными лимитами AI-запросов, которые списываются атомарно на сервере —
-              расход на AI-провайдера структурно не может превысить заложенный в цену.
+            <Card title="Economics under control">
+              Every plan is bounded by monthly AI request limits, decremented atomically on the server —
+              AI provider spend structurally cannot exceed what the price includes.
             </Card>
-            <Card title="Платежи уже работают">
-              Оплата криптовалютой через OxaPay: счёт создаётся на сервере, тариф активируется только
-              после подтверждения платежа со стороны OxaPay. Продление прибавляет срок к остатку.
+            <Card title="Payments already work">
+              Crypto payments via OxaPay: invoices are created server-side and a plan activates only
+              after OxaPay confirms the payment. Renewal adds time to the remaining balance.
             </Card>
-            <Card title="Низкая стоимость доставки">
-              Serverless-инфраструктура (Vercel + Supabase): затраты растут вместе с использованием,
-              без фиксированных серверных расходов на старте.
+            <Card title="Low cost to serve">
+              Serverless infrastructure (Vercel + Supabase): costs scale with usage,
+              with no fixed server spend at the start.
             </Card>
           </div>
         </Section>
 
         {/* ── Market ── */}
-        <Section id="market" eyebrow="Рынок" title="Кому это нужно">
+        <Section id="market" eyebrow="Market" title="Who needs this">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
-            <Card title="Основатели на ранней стадии">
-              Проверяют идею до вложений: вердикт совета и стратегия за вечер вместо месяцев неопределённости.
+            <Card title="Early-stage founders">
+              Validate the idea before investing: a board verdict and strategy in one evening instead of months of uncertainty.
             </Card>
-            <Card title="Малый бизнес">
-              Владельцы без доступа к консультантам: план развития, разбор просевших метрик, юридические риски.
+            <Card title="Small business">
+              Owners without access to consultants: growth plans, diagnosing falling metrics, legal risks.
             </Card>
-            <Card title="Фаундеры перед раундом">
-              Питч-дек и ответы на неудобные вопросы инвестора — до встречи, а не на ней.
+            <Card title="Founders before a round">
+              A pitch deck and answers to the hard investor questions — before the meeting, not during it.
             </Card>
           </div>
           <p style={{ fontSize: 12.5, color: T.tm, marginTop: 14 }}>
-            Оценки объёма рынка сознательно не приводим: чужие TAM-цифры без собственной методологии — это шум.
-            Готовы разобрать расчёт воронки юнит-экономики на встрече.
+            We deliberately cite no market-size figures: borrowed TAM numbers without our own methodology are noise.
+            We are happy to walk through the funnel and unit-economics math in a meeting.
           </p>
         </Section>
 
         {/* ── Traction ── */}
-        <Section id="traction" eyebrow="Трекшн" title="Ранняя стадия — и мы это не прячем">
+        <Section id="traction" eyebrow="Traction" title="Early stage — and we don\u2019t hide it">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
-            <Card title="Продукт в продакшене">
-              Сайт работает на vertlixai.com: регистрация, все AI-инструменты, тарифы и оплата — не прототип, а рабочий сервис.
+            <Card title="Product in production">
+              Live at vertlixai.com: signup, every AI tool, plans and payments — a working service, not a prototype.
             </Card>
-            <Card title="Инфраструктура метрик готова">
-              Собственная аналитика уже пишет полную воронку (визит → регистрация → активация → оплата),
-              MRR, когорты и удержание — инвестор видит живые цифры, а не слайд.
+            <Card title="Metrics infrastructure ready">
+              Our own analytics already records the full funnel (visit → signup → activation → payment),
+              MRR, cohorts and retention — an investor sees live numbers, not a slide.
             </Card>
-            <Card title="Платёжный контур проверен">
-              Создание счёта, webhook с проверкой подписи, идемпотентная активация подписки и продление
-              без сгорания остатка — протестировано сквозными сценариями.
+            <Card title="Payment loop verified">
+              Invoice creation, signature-checked webhooks, idempotent subscription activation and renewal
+              that preserves remaining time — covered by end-to-end tests.
             </Card>
           </div>
           <p style={{ fontSize: 12.5, color: T.tm, marginTop: 14 }}>
-            Пользовательскую базу и выручку не приводим: продукт только выходит на рынок.
-            Здесь не будет выдуманных клиентов и рейтингов — когда появятся настоящие, их покажет наша же аналитика.
+            We cite no user counts or revenue: the product is just entering the market.
+            You won\u2019t find invented customers or ratings here — when real ones arrive, our own analytics will show them.
           </p>
         </Section>
 
         {/* ── Competition ── */}
-        <Section id="competition" eyebrow="Конкуренция" title="Между чат-ботом и консультантом">
+        <Section id="competition" eyebrow="Competition" title="Between the chatbot and the consultant">
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", minWidth: 560, borderCollapse: "collapse", fontSize: 13 }}>
               <thead>
                 <tr>
-                  {["", "Универсальные AI-чаты", "Консалтинг", "Vertlix AI"].map(h => (
+                  {["", "Generic AI chats", "Consulting", "Vertlix AI"].map(h => (
                     <th key={h} style={{ textAlign: "left", padding: "10px 12px", color: T.tm, fontWeight: 700, fontSize: 11.5, textTransform: "uppercase", letterSpacing: "0.08em", borderBottom: T.bord }}>{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {[
-                  ["Результат", "Переписка", "Документы", "Документы"],
-                  ["Цена в месяц", "$20–200", "Тысячи долларов", "$29–49"],
-                  ["Скорость", "Мгновенно", "Недели", "Минуты"],
-                  ["Разбор по ролям", "Нет", "Да", "Да — 20 ролей"],
-                  ["Возврат в продукт", "Низкий", "Разовый проект", "План и фокус недели"],
+                  ["Output", "A transcript", "Documents", "Documents"],
+                  ["Monthly price", "$20–200", "Thousands of dollars", "$29–49"],
+                  ["Speed", "Instant", "Weeks", "Minutes"],
+                  ["Role-by-role review", "No", "Yes", "Yes — 20 roles"],
+                  ["Return to product", "Low", "One-off project", "Plan and weekly focus"],
                 ].map(row => (
                   <tr key={row[0]}>
                     {row.map((cell, i) => (
@@ -259,27 +259,27 @@ export default function InvestorsPage() {
         </Section>
 
         {/* ── Go-to-market ── */}
-        <Section id="gtm" eyebrow="Go-to-Market" title="Замеряемое привлечение с первого дня">
+        <Section id="gtm" eyebrow="Go-to-Market" title="Measurable acquisition from day one">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
-            <Card title="Перформанс-каналы">
-              UTM-атрибуция встроена: каждый источник виден до оплаты — какая реклама приносит деньги, а какая трафик.
+            <Card title="Performance channels">
+              UTM attribution is built in: every source is tracked through to payment — which ads bring money and which bring traffic.
             </Card>
-            <Card title="SEO и контент">
-              Публичные страницы по реальным сценариям использования уже проиндексированы; блог — следующий шаг.
+            <Card title="SEO and content">
+              Public pages for real use cases are already indexed; a blog is the next step.
             </Card>
-            <Card title="Рефералы">
-              Реферальные ссылки работают (код сохраняется при регистрации); вознаграждение включим, когда появится база.
+            <Card title="Referrals">
+              Referral links work (the code is saved at signup); rewards switch on once there is a user base.
             </Card>
           </div>
         </Section>
 
         {/* ── Roadmap ── */}
-        <Section id="roadmap" eyebrow="Роадмап" title="Что дальше">
+        <Section id="roadmap" eyebrow="Roadmap" title="What\u2019s next">
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
-              ["Сделано", "Продукт, тарифы, платёжный контур, аналитика воронки, админ-панель, SEO-страницы", true],
-              ["Ближайшее", "Email-уведомления (события уже собираются), блог, A/B-тесты конверсии", false],
-              ["Затем", "Интеграции с рабочими инструментами, английская версия, партнёрские каналы", false],
+              ["Done", "Product, plans, payment loop, funnel analytics, admin panel, SEO pages", true],
+              ["Next", "Email notifications (events already collected), blog, conversion A/B tests", false],
+              ["Later", "Integrations with work tools, localization, partner channels", false],
             ].map(([label, text, done]) => (
               <div key={label as string} style={{ display: "flex", gap: 14, alignItems: "flex-start", borderRadius: 14, padding: "14px 18px", background: T.surf, border: T.bord }}>
                 <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", padding: "4px 10px", borderRadius: 999, color: done ? "#34d399" : "#a5b4fc", background: done ? "rgba(16,185,129,0.1)" : "rgba(99,102,241,0.1)", border: done ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(99,102,241,0.3)" }}>{label}</span>
@@ -290,17 +290,17 @@ export default function InvestorsPage() {
         </Section>
 
         {/* ── Investment ── */}
-        <Section id="invest" eyebrow="Инвестиции" title="Поговорим?">
+        <Section id="invest" eyebrow="Investment" title="Let\u2019s talk">
           <p style={{ fontSize: 15, lineHeight: 1.7, color: T.ts, maxWidth: 640, margin: "0 0 24px" }}>
-            Условия раунда обсуждаем индивидуально — без выдуманных оценок на слайде.
-            Покажем продукт вживую, живые метрики в админ-панели и расчёт юнит-экономики.
+            Round terms are discussed individually — no invented valuations on a slide.
+            We\u2019ll show the product live, real metrics in the admin panel and the unit-economics math.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 28px", borderRadius: 13, fontSize: 15, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 8px 24px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
-              Написать: {CONTACT_EMAIL}
+              Email us: {CONTACT_EMAIL}
             </a>
             <Link href="/" style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.75)", textDecoration: "none", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
-              На главную
+              Back to home
             </Link>
           </div>
         </Section>

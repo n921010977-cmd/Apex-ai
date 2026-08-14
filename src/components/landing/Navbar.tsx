@@ -5,10 +5,10 @@ import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
 const NAV_ITEMS = [
-  { label: "Продукт", href: "#product" },
-  { label: "AI команда", href: "#executives" },
-  { label: "Возможности", href: "/features" },
-  { label: "Тарифы", href: "#pricing" },
+  { label: "Product", href: "#product" },
+  { label: "AI team", href: "#executives" },
+  { label: "Features", href: "/features" },
+  { label: "Pricing", href: "#pricing" },
   { label: "FAQ", href: "#faq" },
 ];
 
@@ -44,9 +44,9 @@ export function Navbar() {
           : { background: "transparent" }
       }
     >
-      <nav aria-label="Главная навигация" className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-6 flex items-center justify-between">
         {/* Brand — terminal wordmark */}
-        <Link href="/" className="flex items-center gap-2.5 group rounded-lg" aria-label="Vertlix Command Center — на главную">
+        <Link href="/" className="flex items-center gap-2.5 group rounded-lg" aria-label="Vertlix Command Center — home">
           <div
             className="size-9 flex items-center justify-center flex-shrink-0 transition-shadow duration-300 group-hover:shadow-[0_4px_20px_rgba(99,102,241,0.35)]"
             style={{
@@ -90,7 +90,7 @@ export function Navbar() {
             href="/login"
             className="term-mono hidden md:inline-flex items-center h-9 px-4 text-[11px] tracking-[0.1em] uppercase text-white/55 rounded-lg border border-white/[0.09] hover:text-white hover:border-white/[0.18] transition-all duration-200"
           >
-            Войти
+            Sign in
           </Link>
           <Link
             href="/register"
@@ -100,7 +100,7 @@ export function Navbar() {
               boxShadow: "0 4px 16px rgba(99,102,241,0.28), inset 0 1px 0 rgba(255,255,255,0.16)",
             }}
           >
-            Начать бесплатно
+            Start free
           </Link>
 
           {/* Mobile hamburger */}
@@ -109,7 +109,7 @@ export function Navbar() {
             onClick={() => setOpen(v => !v)}
             aria-expanded={open}
             aria-controls="mobile-menu"
-            aria-label={open ? "Закрыть меню" : "Открыть меню"}
+            aria-label={open ? "Close menu" : "Open menu"}
             className="md:hidden inline-flex items-center justify-center size-9 rounded-xl border border-white/[0.09] text-white/70 hover:text-white hover:border-white/[0.18] transition-colors"
           >
             <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -166,7 +166,7 @@ export function Navbar() {
                 onClick={() => setOpen(false)}
                 className="px-4 py-3 rounded-xl text-[15px] font-medium text-white/60 hover:text-white hover:bg-white/[0.05] transition-colors"
               >
-                Войти в аккаунт
+                Sign in
               </Link>
             </div>
           </motion.div>

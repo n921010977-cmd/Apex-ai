@@ -6,40 +6,40 @@ import { CONTACT_EMAIL } from "@/lib/site";
 
 const NAV_COLUMNS = [
   {
-    heading: "Продукт",
+    heading: "Product",
     links: [
-      { label: "Возможности", href: "/features" },
-      { label: "AI команда", href: "#executives" },
-      { label: "Сценарии использования", href: "/use-cases" },
-      { label: "Тарифы", href: "/pricing" },
-      { label: "AI Чат", href: "/chat" },
+      { label: "Features", href: "/features" },
+      { label: "AI team", href: "#executives" },
+      { label: "Use cases", href: "/use-cases" },
+      { label: "Pricing", href: "/pricing" },
+      { label: "AI Chat", href: "/chat" },
     ],
   },
   {
-    heading: "Компания",
+    heading: "Company",
     links: [
-      { label: "Как это работает", href: "#product" },
-      { label: "Контакты", href: `mailto:${CONTACT_EMAIL}` },
-      { label: "Начать бесплатно", href: "/register" },
+      { label: "How it works", href: "#product" },
+      { label: "Contact", href: `mailto:${CONTACT_EMAIL}` },
+      { label: "Start free", href: "/register" },
     ],
   },
   {
-    heading: "Ресурсы",
+    heading: "Resources",
     links: [
-      { label: "AI команда", href: "#executives" },
-      { label: "Справочный центр", href: "#faq" },
-      { label: "Поддержка", href: `mailto:${CONTACT_EMAIL}` },
-      { label: "Войти", href: "/login" },
+      { label: "AI team", href: "#executives" },
+      { label: "Help center", href: "#faq" },
+      { label: "Support", href: `mailto:${CONTACT_EMAIL}` },
+      { label: "Sign in", href: "/login" },
     ],
   },
   {
-    heading: "Правовая информация",
+    heading: "Legal",
     links: [
-      { label: "Публичная оферта", href: "/legal/offer" },
-      { label: "Конфиденциальность", href: "/legal#privacy" },
-      { label: "Условия использования", href: "/legal#terms" },
+      { label: "Public offer", href: "/legal/offer" },
+      { label: "Privacy", href: "/legal#privacy" },
+      { label: "Terms of service", href: "/legal#terms" },
       { label: "Cookies", href: "/legal#cookies" },
-      { label: "Оговорка об ответственности", href: "/legal#disclaimer" },
+      { label: "Disclaimer", href: "/legal#disclaimer" },
     ],
   },
 ];
@@ -106,13 +106,12 @@ export function Footer() {
                 </svg>
               </div>
               <div>
-                <div className="text-[15px] font-bold text-white tracking-tight">Центр управления бизнесом</div>
-                <div className="text-[10px] text-white/35 tracking-[0.18em] uppercase">Совет ИИ-директоров</div>
+                <div className="text-[15px] font-bold text-white tracking-tight">Business command center</div>
+                <div className="text-[10px] text-white/35 tracking-[0.18em] uppercase">AI board of directors</div>
               </div>
             </div>
             <p className="text-sm text-white/40 leading-relaxed max-w-sm mb-6">
-              AI-операционная система для предпринимателей, основателей и компаний,
-              готовых масштабироваться. Полная бизнес-стратегия за минуты.
+              The AI operating system for entrepreneurs, founders and companies ready to scale. A complete business strategy in minutes.
             </p>
             {/* System status */}
             <div
@@ -123,15 +122,15 @@ export function Footer() {
                 <span className="absolute inline-flex size-full rounded-full bg-emerald-400 opacity-60 animate-ping" style={{ animationDuration: "2.5s" }} />
                 <span className="relative inline-flex size-2 rounded-full bg-emerald-400" />
               </span>
-              <span className="text-xs font-medium text-emerald-400/90">Все системы работают</span>
+              <span className="text-xs font-medium text-emerald-400/90">All systems operational</span>
             </div>
           </div>
 
           {/* Newsletter */}
           <div className="lg:justify-self-end w-full max-w-md">
-            <h3 className="text-sm font-semibold text-white mb-2">Будьте в курсе</h3>
+            <h3 className="text-sm font-semibold text-white mb-2">Stay in the loop</h3>
             <p className="text-sm text-white/40 leading-relaxed mb-4">
-              Новые AI-агенты, стратегии роста и обновления продукта — раз в месяц, без спама.
+              New AI agents, growth strategies and product updates — once a month, no spam.
             </p>
             {subscribed ? (
               <div
@@ -142,11 +141,11 @@ export function Footer() {
                 <svg className="size-4 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
-                Вы подписаны. Спасибо!
+                You are subscribed. Thank you!
               </div>
             ) : (
               <form onSubmit={subscribe} className="flex gap-2.5">
-                <label htmlFor="footer-email" className="sr-only">Электронная почта</label>
+                <label htmlFor="footer-email" className="sr-only">Email address</label>
                 <input
                   id="footer-email"
                   type="email"
@@ -168,7 +167,7 @@ export function Footer() {
                     boxShadow: "0 4px 16px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
                 >
-                  Подписаться
+                  Subscribe
                 </button>
               </form>
             )}
@@ -201,7 +200,7 @@ export function Footer() {
           className="pt-7 flex flex-col sm:flex-row items-center justify-between gap-5"
           style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
         >
-          <p className="text-xs text-white/25">© 2026 Business Command Center. Все права защищены.</p>
+          <p className="text-xs text-white/25">© 2026 Business Command Center. All rights reserved.</p>
           <div className="flex items-center gap-2">
             {SOCIALS.map((s) => (
               <a

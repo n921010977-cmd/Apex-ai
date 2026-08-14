@@ -8,27 +8,27 @@ const RGB = "99,102,241";
 const FREE_RUNS = 2;
 
 const EXAMPLES = [
-  "Кофейня для айтишников с подпиской",
-  "SaaS для автоматизации отчётов",
-  "Онлайн-магазин локальных брендов",
+  "Subscription coffee shop for developers",
+  "SaaS for report automation",
+  "Online store for local brands",
 ];
 
 // Fallback verdict if the API is unavailable — the demo must always work
-const FALLBACK = `ОЦЕНКА: 78/100
-СИЛЬНОЕ: понятная боль аудитории и готовность платить за решение
-СИЛЬНОЕ: низкий порог входа — MVP можно проверить за 4–6 недель
-РИСК: конкуренты с бюджетом уже занимают нишу — нужна чёткая дифференциация
-РИСК: unit-экономика чувствительна к стоимости привлечения
-ПЕРВЫЙ ШАГ: 10 интервью с целевыми клиентами до написания кода`;
+const FALLBACK = `SCORE: 78/100
+STRENGTH: a clear audience pain and willingness to pay for a fix
+STRENGTH: low barrier to entry — an MVP can be tested in 4–6 weeks
+RISK: funded competitors already occupy the niche — sharp differentiation needed
+RISK: unit economics are sensitive to acquisition cost
+FIRST STEP: 10 interviews with target customers before writing code`;
 
-const PERSONA = `Ты — экспресс-совет Vertlix из 20 AI-директоров. Дай краткий вердикт по бизнес-идее СТРОГО в формате (6 строк, без вступлений и пояснений):
-ОЦЕНКА: N/100
-СИЛЬНОЕ: …
-СИЛЬНОЕ: …
-РИСК: …
-РИСК: …
-ПЕРВЫЙ ШАГ: …
-Каждая строка ≤ 14 слов. Пиши по-русски, конкретно, с учётом именно этой идеи.`;
+const PERSONA = `You are the Vertlix express board of 20 AI directors. Give a short verdict on the business idea STRICTLY in this format (6 lines, no intro, no explanations):
+SCORE: N/100
+STRENGTH: …
+STRENGTH: …
+RISK: …
+RISK: …
+FIRST STEP: …
+Each line ≤ 14 words. Write in English, be concrete, specific to this exact idea.`;
 
 export function LiveDemo() {
   const [idea, setIdea] = useState("");
@@ -70,7 +70,7 @@ export function LiveDemo() {
       const res = await fetch("/api/chat/direct", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: `Бизнес-идея: ${text}`, persona: PERSONA, history: [] }),
+        body: JSON.stringify({ message: `Business idea: ${text}`, persona: PERSONA, history: [] }),
       });
       if (!res.ok || !res.body) { playFallback(); return; }
       const reader = res.body.getReader();
@@ -111,10 +111,10 @@ export function LiveDemo() {
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f59e0b", opacity: 0.7 }} />
                 <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#10b981", opacity: 0.7 }} />
               </span>
-              <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — экспресс-проверка · без регистрации</span>
+              <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — express check · no signup</span>
             </div>
             <span style={{ fontSize: 10, letterSpacing: "0.1em", color: exhausted ? "#fbbf24" : "rgba(255,255,255,0.3)" }}>
-              {exhausted ? "ЛИМИТ ДЕМО" : `${FREE_RUNS - runs} ИЗ ${FREE_RUNS} БЕСПЛАТНО`}
+              {exhausted ? "DEMO LIMIT" : `${FREE_RUNS - runs} OF ${FREE_RUNS} FREE`}
             </span>
           </div>
 
@@ -125,7 +125,7 @@ export function LiveDemo() {
                 value={idea}
                 onChange={e => setIdea(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") run(); }}
-                placeholder="Опишите бизнес-идею одной фразой…"
+                placeholder="Describe your business idea in one sentence…"
                 disabled={busy || exhausted}
                 className="term-mono"
                 style={{
@@ -145,7 +145,7 @@ export function LiveDemo() {
                   background: busy || !idea.trim() || exhausted ? "rgba(255,255,255,0.07)" : "linear-gradient(135deg,#6366f1,#4f46e5)",
                   boxShadow: busy || !idea.trim() || exhausted ? "none" : `0 5px 18px rgba(${RGB},0.35)`,
                 }}>
-                {busy ? "СОВЕТ ДУМАЕТ…" : "▸ Проверить"}
+                {busy ? "BOARD IS THINKING…" : "▸ Check it"}
               </button>
             </div>
 
@@ -170,7 +170,7 @@ export function LiveDemo() {
                 background: "rgba(0,0,0,0.35)", border: "1px solid rgba(255,255,255,0.07)",
                 fontSize: 12.5, lineHeight: 1.9, color: "rgba(230,232,240,0.85)", whiteSpace: "pre-wrap",
               }}>
-                {out || "> запрос отправлен 20 директорам…"}
+                {out || "> request sent to 20 directors…"}
                 {busy && <span className="term-blink">▋</span>}
               </div>
             )}
@@ -181,8 +181,8 @@ export function LiveDemo() {
                 style={{ marginTop: 14, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
                 <span style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", lineHeight: 1.5 }}>
                   {exhausted && !done
-                    ? "Демо-лимит исчерпан. Полный разбор — бесплатно после входа."
-                    : "Это 1% отчёта. Полная версия: финмодель, конкуренты, план на 90 дней."}
+                    ? "Demo limit reached. The full review is free after sign-in."
+                    : "This is 1% of the report. Full version: financial model, competitors, 90-day plan."}
                 </span>
                 <Link href="/register" className="term-mono" style={{
                   display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 18px",
@@ -191,7 +191,7 @@ export function LiveDemo() {
                   background: "linear-gradient(135deg,#6366f1,#4f46e5)",
                   boxShadow: `0 5px 18px rgba(${RGB},0.35)`, flexShrink: 0,
                 }}>
-                  ▸ Полный отчёт
+                  ▸ Full report
                 </Link>
               </motion.div>
             )}

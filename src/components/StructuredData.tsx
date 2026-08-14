@@ -16,14 +16,14 @@ export function StructuredData() {
       name: SITE_NAME,
       url,
       logo: `${url}/icon`,
-      description: "AI-совет директоров: стратегия, планирование и питч-деки для предпринимателей.",
+      description: "AI executive board: strategy, planning and pitch decks for entrepreneurs.",
     },
     {
       "@context": "https://schema.org",
       "@type": "WebSite",
       name: SITE_NAME,
       url,
-      inLanguage: "ru-RU",
+      inLanguage: "en-US",
     },
     {
       "@context": "https://schema.org",
@@ -32,7 +32,7 @@ export function StructuredData() {
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       url,
-      description: "CEO, CFO, CMO, COO и ещё 16 AI-агентов работают над стратегией вашего бизнеса.",
+      description: "CEO, CFO, CMO, COO and 16 more AI agents working on your business strategy.",
       // Цены берутся из того же конфига, что и страница тарифов.
       offers: PLANS.map(p => ({
         "@type": "Offer",

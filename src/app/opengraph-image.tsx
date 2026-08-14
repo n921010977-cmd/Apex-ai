@@ -5,7 +5,7 @@ import { ImageResponse } from "next/og";
 
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
-export const alt = "Vertlix AI — AI-совет директоров для вашего бизнеса";
+export const alt = "Vertlix AI — your AI executive board";
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -27,10 +27,10 @@ export default function OpengraphImage() {
         </div>
 
         <div style={{ fontSize: 68, fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, maxWidth: 900 }}>
-          AI-совет директоров для вашего бизнеса
+          Your AI board of directors
         </div>
         <div style={{ fontSize: 30, color: "rgba(255,255,255,0.55)", marginTop: 26, maxWidth: 860, lineHeight: 1.4 }}>
-          CEO, CFO, CMO, COO и ещё 16 агентов — стратегия, план и питч-дек за минуты
+          CEO, CFO, CMO, COO and 16 more agents — strategy, plan and pitch deck in minutes
         </div>
       </div>
     ),

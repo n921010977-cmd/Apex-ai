@@ -9,37 +9,37 @@ const RGB = "99,102,241";
 type Msg = {
   id: string;
   role: string; name: string; color: string;
-  stance?: "ЗА" | "ПРОТИВ" | "РИСК" | "ДАННЫЕ";
+  stance?: "FOR" | "AGAINST" | "RISK" | "DATA";
   text: string;
   conflictWith?: string; // renders a conflict marker after this message
 };
 
 const SCRIPT: Msg[] = [
-  { id: "ba",  role: "Аналитик", name: "Priya",  color: "#f59e0b", stance: "ДАННЫЕ",
-    text: "Рынок фитнес-приложений — $4.2B, рост +24%/год. Конкуренты сильны, но AI-персонализация — незанятая ниша." },
-  { id: "cmo", role: "CMO", name: "Elena", color: "#10b981", stance: "ЗА",
-    text: "Через органику и микро-инфлюенсеров получаем CAC ~$22. Freemium-воронка даст быстрый рост базы." },
-  { id: "cfo", role: "CFO", name: "Marcus", color: "#3b82f6", stance: "ПРОТИВ",
-    text: "Возражаю. При churn 8% LTV не сходится: окупаемость уезжает за 26 месяцев. Эта экономика не выдержит платный трафик.",
+  { id: "ba",  role: "Analyst", name: "Priya",  color: "#f59e0b", stance: "DATA",
+    text: "The fitness app market is $4.2B, growing +24%/yr. Competitors are strong, but AI personalization is an open niche." },
+  { id: "cmo", role: "CMO", name: "Elena", color: "#10b981", stance: "FOR",
+    text: "Organic plus micro-influencers gets CAC to ~$22. A freemium funnel grows the base fast." },
+  { id: "cfo", role: "CFO", name: "Marcus", color: "#3b82f6", stance: "AGAINST",
+    text: "I object. At 8% churn the LTV math fails: payback slips past 26 months. This economy can\u2019t survive paid traffic.",
     conflictWith: "CMO" },
-  { id: "cmo2", role: "CMO", name: "Elena", color: "#10b981", stance: "ЗА",
-    text: "Контраргумент: retention-программа + AI-планы тренировок снижают churn до 5%. LTV вырастает до $180 — модель сходится." },
-  { id: "law", role: "Юрист", name: "Diana", color: "#94a3b8", stance: "РИСК",
-    text: "Данные о здоровье = чувствительные. Нужны explicit-согласия и политика хранения до запуска, иначе GDPR-риск." },
-  { id: "cto", role: "CTO", name: "Aiden", color: "#d946ef", stance: "ЗА",
-    text: "MVP реален за 8 недель: готовый стек, модели персонализации обучаем на открытых датасетах." },
+  { id: "cmo2", role: "CMO", name: "Elena", color: "#10b981", stance: "FOR",
+    text: "Counterpoint: a retention program plus AI workout plans cut churn to 5%. LTV rises to $180 — the model works." },
+  { id: "law", role: "Lawyer", name: "Diana", color: "#94a3b8", stance: "RISK",
+    text: "Health data is sensitive. Explicit consent and a retention policy are needed before launch, or it\u2019s a GDPR risk." },
+  { id: "cto", role: "CTO", name: "Aiden", color: "#d946ef", stance: "FOR",
+    text: "An MVP is doable in 8 weeks: proven stack, personalization models trained on open datasets." },
 ];
 
 const VERDICT = {
   score: 87,
-  text: "Запускаем. Freemium-модель, маркетинг-бюджет ≤ 15% MRR (условие CFO), цель по churn — 6% к третьему месяцу, юридическая структура и согласия — до релиза. Elena ведёт GTM, Marcus контролирует unit-экономику еженедельно.",
+  text: "We launch. Freemium model, marketing budget ≤ 15% of MRR (CFO\u2019s condition), churn target 6% by month three, legal structure and consents before release. Elena owns GTM, Marcus reviews unit economics weekly.",
 };
 
 const STANCE_STYLE: Record<string, { bg: string; color: string }> = {
-  "ЗА":      { bg: "rgba(16,185,129,0.14)",  color: "#34d399" },
-  "ПРОТИВ":  { bg: "rgba(239,68,68,0.14)",   color: "#f87171" },
-  "РИСК":    { bg: "rgba(245,158,11,0.14)",  color: "#fbbf24" },
-  "ДАННЫЕ":  { bg: "rgba(99,102,241,0.14)",  color: "#a5b4fc" },
+  "FOR":     { bg: "rgba(16,185,129,0.14)",  color: "#34d399" },
+  "AGAINST": { bg: "rgba(239,68,68,0.14)",   color: "#f87171" },
+  "RISK":    { bg: "rgba(245,158,11,0.14)",  color: "#fbbf24" },
+  "DATA":    { bg: "rgba(99,102,241,0.14)",  color: "#a5b4fc" },
 };
 
 // ─── Section ──────────────────────────────────────────────────────────────────
@@ -112,10 +112,10 @@ export function HowAgentsWork() {
             <span style={{ fontSize: 10, letterSpacing: "0.18em", color: `rgba(${RGB},0.85)` }}>// LIVE — ЗАСЕДАНИЕ СОВЕТА</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, margin: "0 0 14px", color: "#fff" }}>
-            Посмотрите, как совет принимает решение
+            Watch the board make a decision
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,0.4)", maxWidth: 540, margin: "0 auto", lineHeight: 1.65 }}>
-            Это не карточки с обещаниями. Это реальный процесс: аргументы, конфликт позиций и решение CEO.
+            Not promise cards — the real process: arguments, clashing positions and the CEO\u2019s call.
           </p>
         </motion.div>
 
@@ -136,13 +136,13 @@ export function HowAgentsWork() {
               <span style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>vertlix — boardroom session</span>
             </div>
             <span style={{ fontSize: 10, letterSpacing: "0.1em", color: verdict ? "#34d399" : "rgba(255,255,255,0.35)" }}>
-              {verdict ? "РЕШЕНИЕ ПРИНЯТО" : `${shown}/${SCRIPT.length} ВЫСТУПИЛИ`}
+              {verdict ? "DECISION MADE" : `${shown}/${SCRIPT.length} SPOKE`}
             </span>
           </div>
 
           {/* Topic line */}
           <div className="term-mono" style={{ padding: "10px 18px", borderBottom: "1px solid rgba(255,255,255,0.05)", fontSize: 11.5, color: "rgba(255,255,255,0.55)", letterSpacing: "0.03em" }}>
-            <span style={{ color: `rgba(${RGB},0.8)` }}>&gt; ПОВЕСТКА:</span> AI-фитнес приложение · подписка $19/мес — запускать?
+            <span style={{ color: `rgba(${RGB},0.8)` }}>&gt; AGENDA:</span> AI fitness app · $19/mo subscription — launch it?
           </div>
 
           {/* Feed */}
@@ -182,7 +182,7 @@ export function HowAgentsWork() {
                     style={{ margin: "12px 0 0 45px", display: "flex", alignItems: "center", gap: 10 }}
                   >
                     <span style={{ flex: "0 0 40px", height: 1, background: "linear-gradient(90deg, transparent, rgba(239,68,68,0.6))" }} />
-                    <span style={{ fontSize: 9.5, letterSpacing: "0.14em", color: "#f87171" }}>⚡ КОНФЛИКТ ПОЗИЦИЙ: {m.role} ↔ {m.conflictWith}</span>
+                    <span style={{ fontSize: 9.5, letterSpacing: "0.14em", color: "#f87171" }}>⚡ POSITIONS CLASH: {m.role} ↔ {m.conflictWith}</span>
                     <span style={{ flex: 1, height: 1, background: "linear-gradient(90deg, rgba(239,68,68,0.6), transparent)" }} />
                   </motion.div>
                 )}
@@ -216,8 +216,8 @@ export function HowAgentsWork() {
                       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" width="15" height="15"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     </div>
                     <div style={{ flex: 1 }}>
-                      <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>CEO · Sophia — решение совета</div>
-                      <div className="term-mono" style={{ fontSize: 9, letterSpacing: "0.12em", color: `rgba(${RGB},0.8)` }}>СИНТЕЗ ЗАВЕРШЁН</div>
+                      <div style={{ fontSize: 13, fontWeight: 800, color: "#fff" }}>CEO · Sophia — board decision</div>
+                      <div className="term-mono" style={{ fontSize: 9, letterSpacing: "0.12em", color: `rgba(${RGB},0.8)` }}>SYNTHESIS COMPLETE</div>
                     </div>
                     <div className="term-value" style={{ fontSize: 26, fontWeight: 800, color: "#34d399" }}>{VERDICT.score}<span style={{ fontSize: 12, opacity: 0.5 }}>/100</span></div>
                   </div>
@@ -230,11 +230,11 @@ export function HowAgentsWork() {
           {/* Footer bar */}
           <div className="term-mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 16px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
             <span style={{ fontSize: 9.5, letterSpacing: "0.1em", color: "rgba(255,255,255,0.25)" }}>
-              симуляция на основе реального пайплайна vertlix
+              a simulation based on the real vertlix pipeline
             </span>
             {verdict && (
               <button onClick={replay} style={{ fontSize: 10, letterSpacing: "0.1em", color: "#a5b4fc", background: `rgba(${RGB},0.1)`, border: `1px solid rgba(${RGB},0.3)`, borderRadius: 7, padding: "4px 12px", cursor: "pointer" }}>
-                ▸ ПОВТОРИТЬ СЕССИЮ
+                ▸ REPLAY SESSION
               </button>
             )}
           </div>

@@ -41,7 +41,7 @@ export function CtaBanner() {
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-violet-500/20 bg-violet-500/5 mb-6"
         >
           <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-xs text-violet-300/80 font-medium">Бесплатно · Без карты</span>
+          <span className="text-xs text-violet-300/80 font-medium">Free · No card required</span>
         </motion.div>
 
         <motion.h2
@@ -49,11 +49,11 @@ export function CtaBanner() {
           className="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight"
           style={{ textWrap: "balance" } as React.CSSProperties}
         >
-          Готовы построить свой бизнес?
+          Ready to build your business?
         </motion.h2>
 
         <motion.p variants={item} className="text-lg text-white/40 mb-8 max-w-xl mx-auto">
-          Присоединяйтесь к тысячам основателей, которые получают стратегии мирового уровня за считанные минуты.
+          Get a board-level review of your idea and a working strategy in minutes — free to start.
         </motion.p>
 
         <motion.div variants={item} className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -67,7 +67,7 @@ export function CtaBanner() {
             <svg className="size-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
               <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
             </svg>
-            Начать бесплатно
+            Start free
           </motion.a>
           <motion.a
             href="/login"
@@ -76,12 +76,12 @@ export function CtaBanner() {
             transition={{ type: "spring", stiffness: 300, damping: 20 }}
             className="inline-flex items-center gap-2 h-14 px-8 text-base font-medium text-white/50 border border-white/[0.08] rounded-2xl hover:border-white/[0.15] hover:text-white/80"
           >
-            Войти в аккаунт →
+            Sign in →
           </motion.a>
         </motion.div>
 
         <motion.p variants={item} className="mt-4 text-sm text-white/20">
-          3 отчёта бесплатно · Без кредитной карты · Отмена в любой момент
+          Free to try · No credit card · Cancel anytime
         </motion.p>
       </motion.div>
     </section>

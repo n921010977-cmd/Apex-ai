@@ -39,8 +39,8 @@ export const metadata: Metadata = {
     template: "%s | Vertlix AI",
   },
   description:
-    "Замените консалтинговую команду AI-советом директоров. CEO, CFO, CMO, COO и ещё 16 агентов — работают вместе над вашей бизнес-стратегией.",
-  keywords: ["business strategy", "AI executive", "startup", "entrepreneur", "бизнес план", "AI советник"],
+    "Replace a consulting team with an AI executive board. CEO, CFO, CMO, COO and 16 more agents working together on your business strategy.",
+  keywords: ["business strategy", "AI executive", "startup", "entrepreneur", "business plan", "AI advisor"],
   authors: [{ name: "Vertlix AI" }],
   creator: "Vertlix AI",
   manifest: "/manifest.json",
@@ -54,16 +54,16 @@ export const metadata: Metadata = {
   },
   openGraph: {
     title: "Vertlix AI — Your AI Executive Board",
-    description: "Замените консалтинг AI-советом директоров. McKinsey meets AI.",
+    description: "Replace consulting with an AI executive board. McKinsey meets AI.",
     type: "website",
-    locale: "ru_RU",
+    locale: "en_US",
     url: "/",
     siteName: SITE_NAME,
   },
   twitter: {
     card: "summary_large_image",
     title: "Vertlix AI — AI Executive Board",
-    description: "Замените консалтинг AI-советом директоров.",
+    description: "Replace consulting with an AI executive board.",
   },
   robots: {
     index: true,
@@ -78,7 +78,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="ru"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} antialiased`}
     >
       <head>

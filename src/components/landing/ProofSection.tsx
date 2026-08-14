@@ -18,34 +18,34 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 const DELIVERABLES = [
   {
     icon: Users,
-    title: "Разбор идеи советом директоров",
-    what: "20 AI-ролей — CEO, CFO, CMO, юрист, аналитик и другие — разбирают ваш проект каждый со своей стороны.",
-    result: "Список рисков и решений, которые в одиночку не увидишь.",
+    title: "Board review of your idea",
+    what: "20 AI roles — CEO, CFO, CMO, lawyer, analyst and more — each examine your project from their own angle.",
+    result: "A list of risks and decisions you would never spot alone.",
   },
   {
     icon: FileText,
-    title: "Стратегия развития",
-    what: "Позиционирование, рынок, конкуренты, модель монетизации и приоритеты.",
-    result: "Документ, с которым можно идти к команде и партнёрам.",
+    title: "Growth strategy",
+    what: "Positioning, market, competitors, monetization model and priorities.",
+    result: "A document you can take to your team and partners.",
   },
   {
     icon: Presentation,
-    title: "Питч-дек для инвестора",
-    what: "Слайды по классической структуре, с выбором языка и стиля подачи, редактированием прямо в браузере.",
-    result: "Готовая презентация с экспортом в PDF.",
+    title: "Investor pitch deck",
+    what: "Slides in the classic structure, with language and style options, edited right in the browser.",
+    result: "A finished presentation with PDF export.",
   },
   {
     icon: Target,
-    title: "План 30/60/90 и фокус недели",
-    what: "Цели раскладываются на конкретные шаги с проверяемым чек-листом.",
-    result: "Понятно, что делать в ближайший понедельник, а не «когда-нибудь».",
+    title: "30/60/90 plan and weekly focus",
+    what: "Goals are broken into concrete steps with a checkable to-do list.",
+    result: "You know what to do next Monday — not \"someday\".",
   },
 ];
 
 const TRUST = [
-  { icon: CreditCard,  title: "Помесячная оплата",  text: "Подписка на месяц. Не понравилось — просто не продлеваете." },
-  { icon: ShieldCheck, title: "Прозрачные лимиты",  text: "Сколько запросов входит в тариф — написано на странице тарифов и видно в кабинете." },
-  { icon: LifeBuoy,    title: "Живая поддержка",    text: "Пишите на почту из футера — отвечает человек, а не бот." },
+  { icon: CreditCard,  title: "Monthly billing",  text: "One month at a time. Not happy? Simply don\u2019t renew." },
+  { icon: ShieldCheck, title: "Transparent limits",  text: "Exactly how many requests each plan includes is on the pricing page and in your dashboard." },
+  { icon: LifeBuoy,    title: "Human support",    text: "Email us via the footer — a person answers, not a bot." },
 ];
 
 export function ProofSection() {
@@ -65,14 +65,14 @@ export function ProofSection() {
           border: `1px solid rgba(${RGB},0.25)`, background: `rgba(${RGB},0.05)`,
         }}>
           <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${RGB},0.85)` }}>
-            {"// что вы получаете"}
+            {"// what you get"}
           </span>
         </div>
         <h2 style={{ fontSize: "clamp(28px,4vw,46px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, margin: "0 0 14px", color: "#fff", textWrap: "balance" }}>
-          Не «доступ к AI», а четыре готовых документа
+          Not \u201cAI access\u201d — four finished documents
         </h2>
         <p style={{ fontSize: 16, color: "rgba(255,255,255,0.45)", maxWidth: 560, margin: "0 auto", lineHeight: 1.65 }}>
-          Вы описываете бизнес один раз — и забираете результат, а не переписку с чат-ботом.
+          Describe your business once — walk away with results, not a chat transcript.
         </p>
       </motion.div>
 
@@ -139,7 +139,7 @@ export function ProofSection() {
             boxShadow: `0 8px 28px rgba(${RGB},0.4), inset 0 1px 0 rgba(255,255,255,0.16)`,
           }}
         >
-          Начать бесплатно <ArrowRight size={17} />
+          Start free <ArrowRight size={17} />
         </Link>
       </motion.div>
 

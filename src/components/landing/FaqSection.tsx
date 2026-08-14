@@ -8,22 +8,22 @@ const RGB = "99,102,241";
 
 // ─── FAQ data (question = command, answer = console output) ──────────────────
 const FAQ = [
-  { cmd: "real-ai",   q: "Это реальный AI или шаблонные ответы?",
-    a: "Реальные AI-агенты на базе передовых языковых моделей. Каждый из 20 экспертов анализирует именно ваш бизнес, а не подставляет его в шаблон. CEO синтезирует выводы команды в единый отчёт." },
-  { cmd: "vs-chatgpt", q: "Чем это лучше обычного ChatGPT?",
-    a: "Вместо одного ответа — 20 параллельных специализированных анализов. CFO считает финмодель, CMO строит go-to-market, юрист проверяет риски — одновременно и без дополнительных запросов. А главное: они спорят и проверяют друг друга." },
-  { cmd: "trust",     q: "Можно ли доверять финансовым и юридическим выводам?",
-    a: "Отчёты дают стратегическую базу и ориентиры, но не заменяют профессиональных консультантов. Юридический раздел — не юридическая консультация. Критические решения верифицируйте у профильных специалистов." },
-  { cmd: "speed",     q: "Сколько занимает генерация отчёта?",
-    a: "Обычно 2–5 минут. Все 20 агентов работают параллельно, CEO объединяет результаты — на выходе полный структурированный отчёт на 15+ разделов." },
-  { cmd: "free",      q: "Что входит в бесплатный тариф?",
-    a: "3 полных анализа в месяц, все 20 AI-экспертов, финансовые прогнозы, анализ рисков и рынка, резюме стратегии. Кредитная карта не нужна." },
-  { cmd: "export",    q: "Можно ли экспортировать отчёты?",
-    a: "Да, на Pro и Agency доступен экспорт в PDF презентационного уровня — для инвесторов, кофаундеров и банков. На Starter — просмотр онлайн." },
-  { cmd: "security",  q: "Мои данные в безопасности?",
-    a: "Данные используются только для генерации вашего отчёта и не передаются третьим лицам. Шифрование при передаче и хранении." },
-  { cmd: "discounts", q: "Есть ли скидки для стартапов и студентов?",
-    a: "Да. Стартапам из акселераторов — скидка 50%. Студентам — бесплатный Pro на 3 месяца. Напишите в поддержку." },
+  { cmd: "real-ai",   q: "Is this real AI or canned answers?",
+    a: "Real AI agents built on frontier language models. Each of the 20 experts analyzes your specific business rather than fitting it into a template. The CEO synthesizes the team\u2019s findings into one report." },
+  { cmd: "vs-chatgpt", q: "How is this better than plain ChatGPT?",
+    a: "Instead of one answer you get 20 parallel specialist analyses. The CFO builds the financial model, the CMO plans go-to-market, the lawyer checks risks — all at once. Most importantly: they debate and cross-check each other." },
+  { cmd: "trust",     q: "Can I trust the financial and legal conclusions?",
+    a: "Reports give you a strategic foundation and direction, but do not replace professional advisors. The legal section is not legal advice. Verify critical decisions with qualified specialists." },
+  { cmd: "speed",     q: "How long does a report take?",
+    a: "Usually 2–5 minutes. All 20 agents work in parallel and the CEO merges the results into a structured report with 15+ sections." },
+  { cmd: "free",      q: "What does the free tier include?",
+    a: "20 AI messages, 2 strategies and 1 board meeting per month — enough to properly test the product. No credit card required." },
+  { cmd: "export",    q: "Can I export reports?",
+    a: "Yes — the pitch deck exports to presentation-grade PDF for investors, co-founders and banks (available on Pro and Max)." },
+  { cmd: "security",  q: "Is my data safe?",
+    a: "Your data is used only to generate your report and is never shared with third parties. Encrypted in transit and at rest." },
+  { cmd: "discounts", q: "Do you offer startup or student discounts?",
+    a: "Write to support — we discuss startup and student discounts individually." },
 ];
 
 export function FaqSection() {
@@ -62,10 +62,10 @@ export function FaqSection() {
             <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${RGB},0.85)` }}>// вопросы к системе</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, margin: "0 0 14px", color: "#fff" }}>
-            Спросите систему напрямую
+            Ask the system directly
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,0.4)", maxWidth: 480, margin: "0 auto", lineHeight: 1.65 }}>
-            Выберите запрос слева — консоль выполнит его и выведет ответ.
+            Pick a query on the left — the console runs it and prints the answer.
           </p>
         </motion.div>
 
@@ -121,7 +121,7 @@ export function FaqSection() {
               </div>
             </div>
             <div className="term-mono" style={{ padding: "10px 18px", borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 10, letterSpacing: "0.08em", color: "rgba(255,255,255,0.25)" }}>
-              не нашли ответ? → <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#818cf8", textDecoration: "none" }}>поддержка</a> · или спросите в <a href="/chat" style={{ color: "#818cf8", textDecoration: "none" }}>чате Vertlix</a>
+              didn\u2019t find your answer? → <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#818cf8", textDecoration: "none" }}>support</a> · or ask in <a href="/chat" style={{ color: "#818cf8", textDecoration: "none" }}>Vertlix chat</a>
             </div>
           </div>
         </motion.div>

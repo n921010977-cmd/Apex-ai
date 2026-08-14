@@ -20,17 +20,17 @@ const RGB = "99,102,241";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const FEATURE_ROWS: { key: keyof PlanFeatures; label: string }[] = [
-  { key: "boardMeetings", label: "Совет из 20 AI-директоров" },
-  { key: "strategies",    label: "Генерация стратегий" },
-  { key: "agents",        label: "Библиотека AI-агентов" },
-  { key: "webResearch",   label: "Свежие данные с рынка" },
-  { key: "pitchDeck",     label: "Питч-дек для инвестора" },
-  { key: "goalsPlan",     label: "Студия «Цели и план»" },
-  { key: "weeklyFocus",   label: "Трекер целей + «Фокус недели»" },
+  { key: "boardMeetings", label: "Board of 20 AI directors" },
+  { key: "strategies",    label: "Strategy generation" },
+  { key: "agents",        label: "AI agent library" },
+  { key: "webResearch",   label: "Fresh market data" },
+  { key: "pitchDeck",     label: "Investor pitch deck" },
+  { key: "goalsPlan",     label: "Goals & Plan studio" },
+  { key: "weeklyFocus",   label: "Goal tracker + Weekly Focus" },
 ];
 
 function limitText(v: number | null): string {
-  return v === null ? "без лимита" : v === 0 ? "—" : String(v);
+  return v === null ? "unlimited" : v === 0 ? "—" : String(v);
 }
 
 // Count-up числа цены при появлении.
@@ -76,12 +76,12 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
           const H = asPageHeading ? "h1" : "h2";
           return (
             <H style={{ fontSize: "clamp(30px,5vw,46px)", fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 12px", textWrap: "balance" }}>
-              Простые тарифы, честные лимиты
+              Simple pricing, honest limits
             </H>
           );
         })()}
         <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", maxWidth: 560, margin: "0 auto", lineHeight: 1.6 }}>
-          На Starter открыт весь продукт, кроме трёх премиум-инструментов. Pro открывает их, Max — те же функции с лимитами в разы больше.
+          Starter unlocks the whole product except three premium tools. Pro unlocks them all; Max has the same features with much higher limits.
         </p>
       </motion.div>
 
@@ -117,14 +117,14 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
               <div style={{ position: "relative", zIndex: 1 }}>
                 {hot && (
                   <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 14px", borderRadius: 999, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, color: "#fff", whiteSpace: "nowrap", boxShadow: `0 4px 14px rgba(${RGB},0.5)` }}>
-                    Популярный
+                    Popular
                   </div>
                 )}
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginTop: hot ? 8 : 0 }}>{plan.name}</div>
                 <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", marginTop: 3, minHeight: 34 }}>{plan.tagline}</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, margin: "16px 0 18px" }}>
                   <Price value={plan.priceMonthly} />
-                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/мес</span>
+                  <span style={{ fontSize: 14, color: "rgba(255,255,255,0.4)" }}>/mo</span>
                 </div>
 
                 <motion.div whileHover={reduce ? undefined : { scale: 1.02 }} whileTap={reduce ? undefined : { scale: 0.98 }}>
@@ -138,7 +138,7 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
                       boxShadow: hot ? `0 6px 20px rgba(${RGB},0.35), inset 0 1px 0 rgba(255,255,255,0.16)` : "none",
                     }}
                   >
-                    Выбрать {plan.name}
+                    Choose {plan.name}
                   </Link>
                 </motion.div>
 
@@ -174,7 +174,7 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Что входит</th>
+                <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>What\u2019s included</th>
                 {PLANS.map(p => (
                   <th key={p.id} style={{ padding: "16px 12px", fontSize: 13.5, fontWeight: 700, color: p.highlight ? "#c7d2fe" : "#fff", textAlign: "center" }}>
                     {p.name}<br /><span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.4)" }}>${p.priceMonthly}</span>
@@ -196,11 +196,11 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
                 </tr>
               ))}
               {([
-                ["AI-сообщения / мес", "aiMessages"],
-                ["Питч-деки / мес", "pitchDecks"],
-                ["Стратегии / мес", "strategies"],
-                ["Заседания совета / мес", "boardMeetings"],
-                ["«Фокус недели» / мес", "weeklyFocus"],
+                ["AI messages / mo", "aiMessages"],
+                ["Pitch decks / mo", "pitchDecks"],
+                ["Strategies / mo", "strategies"],
+                ["Board meetings / mo", "boardMeetings"],
+                ["Weekly Focus / mo", "weeklyFocus"],
               ] as const).map(([label, key]) => (
                 <tr key={key} style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}>
                   <td style={{ padding: "13px 20px", fontSize: 13.5, color: "rgba(255,255,255,0.72)" }}>{label}</td>
@@ -217,7 +217,7 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
       </motion.div>
 
       <p style={{ textAlign: "center", marginTop: 24, fontSize: 12.5, color: "rgba(255,255,255,0.35)" }}>
-        Отмена в любой момент. Лимиты обновляются каждый месяц.
+        Cancel anytime. Limits reset every month.
       </p>
     </section>
   );

@@ -16,34 +16,34 @@ type Agent = {
 };
 
 const CEO = {
-  id: "ceo", abbr: "CEO", role: "Генеральный директор", color: "#818cf8",
-  input: "Выводы всех 19 агентов, включая конфликтующие позиции",
-  analyzes: "Противоречия между департаментами, приоритеты, риск/потенциал",
-  output: "Единая стратегия с решением, условиями и планом на 90 дней — вам",
+  id: "ceo", abbr: "CEO", role: "Chief Executive Officer", color: "#818cf8",
+  input: "Findings of all 19 agents, including conflicting positions",
+  analyzes: "Cross-department conflicts, priorities, risk vs. upside",
+  output: "One strategy with a decision, conditions and a 90-day plan — for you",
 };
 
 const AGENTS: Agent[] = [
   // ── inner ring: C-suite ──
-  { id: "cfo",  abbr: "CFO",  role: "Финансовый директор",    color: "#3b82f6", ring: 1, input: "Цены, издержки, данные рынка от Аналитика", analyzes: "Unit-экономику, LTV/CAC, точку безубыточности, burn", output: "Финмодель и лимиты бюджета → CEO, CMO" },
-  { id: "cmo",  abbr: "CMO",  role: "Директор по маркетингу", color: "#10b981", ring: 1, input: "Сегменты и конкурентов от Аналитика, лимиты от CFO", analyzes: "Каналы привлечения, позиционирование, CAC по каналам", output: "GTM-стратегия и воронка → CEO, Продажи" },
-  { id: "coo",  abbr: "COO",  role: "Операционный директор",  color: "#f59e0b", ring: 1, input: "Стратегию CEO, ограничения CFO", analyzes: "Процессы, найм, операционные узкие места", output: "Роадмап запуска 30/90 дней → CEO, HR" },
-  { id: "cto",  abbr: "CTO",  role: "Технический директор",   color: "#d946ef", ring: 1, input: "Требования продукта от CPO", analyzes: "Стек, архитектуру, сроки и стоимость разработки", output: "Тех-план и оценка MVP → CEO, VP Eng" },
-  { id: "cpo",  abbr: "CPO",  role: "Директор по продукту",   color: "#a78bfa", ring: 1, input: "Боли пользователей от UX, данные рынка", analyzes: "Приоритеты фич, product-market fit, retention", output: "Продуктовый роадмап → CTO, CEO" },
-  { id: "ba",   abbr: "BA",   role: "Бизнес-аналитик",        color: "#f97316", ring: 1, input: "Вашу идею и описание рынка", analyzes: "TAM/SAM/SOM, конкурентов, тренды, ниши", output: "Рыночные данные → CFO, CMO, CEO" },
-  { id: "law",  abbr: "LAW",  role: "Юридический советник",   color: "#94a3b8", ring: 1, input: "Бизнес-модель и географию работы", analyzes: "Структуру, IP, регуляторные требования", output: "Юр-риски и требования → CEO, CISO" },
+  { id: "cfo",  abbr: "CFO",  role: "Chief Financial Officer",    color: "#3b82f6", ring: 1, input: "Prices, costs, market data from the Analyst", analyzes: "Unit economics, LTV/CAC, break-even point, burn", output: "Financial model and budget limits → CEO" },
+  { id: "cmo",  abbr: "CMO",  role: "Chief Marketing Officer", color: "#10b981", ring: 1, input: "Segments and competitors from the Analyst, limits from CFO", analyzes: "Acquisition channels, positioning, CAC per channel", output: "GTM strategy and CAC plan → CEO" },
+  { id: "coo",  abbr: "COO",  role: "Chief Operating Officer",  color: "#f59e0b", ring: 1, input: "CEO strategy, CFO constraints", analyzes: "Processes, hiring, operational bottlenecks", output: "30/90-day launch roadmap → CEO, HR" },
+  { id: "cto",  abbr: "CTO",  role: "Chief Technology Officer",   color: "#d946ef", ring: 1, input: "Product requirements from CPO", analyzes: "Stack, architecture, timeline and build cost", output: "Tech plan and MVP estimate → CEO, VP Eng" },
+  { id: "cpo",  abbr: "CPO",  role: "Chief Product Officer",   color: "#a78bfa", ring: 1, input: "User pains from UX, market data", analyzes: "Feature priorities, product-market fit, retention", output: "Product roadmap → CTO, CEO" },
+  { id: "ba",   abbr: "BA",   role: "Business Analyst",        color: "#f97316", ring: 1, input: "Your idea and market description", analyzes: "TAM/SAM/SOM, competitors, trends, niches", output: "Market data → CFO, CMO, CEO" },
+  { id: "law",  abbr: "LAW",  role: "Legal Advisor",   color: "#94a3b8", ring: 1, input: "Business model and operating geography", analyzes: "Structure, IP, regulatory requirements", output: "Legal risks and requirements → CEO, CISO" },
   // ── outer ring ──
-  { id: "sale", abbr: "SD",   role: "Директор по продажам",   color: "#34d399", ring: 2, input: "Воронку и сегменты от CMO", analyzes: "Цикл сделки, ценообразование, скрипты", output: "План продаж → CEO" },
-  { id: "grw",  abbr: "GRW",  role: "Growth-хакер",           color: "#fb923c", ring: 2, input: "Воронку от CMO, метрики продукта", analyzes: "Точки роста, виральные петли, A/B-гипотезы", output: "Growth-эксперименты → CMO" },
-  { id: "ciso", abbr: "SEC",  role: "Директор по безопасности", color: "#ef4444", ring: 2, input: "Архитектуру от CTO, юр-требования", analyzes: "Угрозы, защиту данных, комплаенс", output: "Требования безопасности → CTO" },
-  { id: "hr",   abbr: "HR",   role: "Директор по персоналу",  color: "#f472b6", ring: 2, input: "План найма от COO", analyzes: "Роли, компенсации, культуру", output: "Орг-структура и план найма → COO" },
-  { id: "cdo",  abbr: "CDO",  role: "Директор по данным",     color: "#06b6d4", ring: 2, input: "Метрики продукта и воронки", analyzes: "North Star, аналитику, ML-возможности", output: "Data-стратегия → CPO, CEO" },
-  { id: "vpe",  abbr: "VPE",  role: "VP инженерии",           color: "#84cc16", ring: 2, input: "Тех-план от CTO", analyzes: "Команду, процессы разработки, сроки", output: "План спринтов → CTO" },
-  { id: "ir",   abbr: "IR",   role: "Инвестор-отношения",     color: "#a855f7", ring: 2, input: "Финмодель от CFO, стратегию CEO", analyzes: "Инвест-привлекательность, мультипликаторы", output: "Питч-структура → CEO" },
-  { id: "brd",  abbr: "BRD",  role: "Бренд-стратег",          color: "#e879f9", ring: 2, input: "Позиционирование от CMO", analyzes: "Айдентику, tone of voice, отличие от конкурентов", output: "Бренд-платформа → CMO" },
-  { id: "cs",   abbr: "CS",   role: "Customer Success",       color: "#4ade80", ring: 2, input: "Продукт и сегменты", analyzes: "Onboarding, churn-триггеры, NPS", output: "Retention-план → CPO, CMO" },
-  { id: "ds",   abbr: "DS",   role: "Data-сайентист",         color: "#22d3ee", ring: 2, input: "Сырые данные и метрики от CDO", analyzes: "Прогнозы, сегментацию, LTV-модели", output: "Модели и прогнозы → CDO, CFO" },
-  { id: "inv",  abbr: "INV",  role: "Инвест-аналитик",        color: "#fde68a", ring: 2, input: "Финмодель, сравнимые сделки", analyzes: "ROI, оценку, сценарии выхода", output: "Инвест-оценка → IR, CEO" },
-  { id: "str",  abbr: "STR",  role: "Стратег-консультант",    color: "#c4b5fd", ring: 2, input: "Всю картину рынка и продукта", analyzes: "Moat, blue ocean, горизонты роста", output: "Долгосрочная стратегия → CEO" },
+  { id: "sale", abbr: "SD",   role: "Sales Director",   color: "#34d399", ring: 2, input: "Funnel and segments from CMO", analyzes: "Deal cycle, pricing, scripts", output: "Sales plan → CEO" },
+  { id: "grw",  abbr: "GRW",  role: "Growth Hacker",           color: "#fb923c", ring: 2, input: "Funnel from CMO, product metrics", analyzes: "Growth levers, viral loops, A/B hypotheses", output: "Growth experiments → CMO" },
+  { id: "ciso", abbr: "SEC",  role: "Chief Security Officer", color: "#ef4444", ring: 2, input: "Architecture from CTO, legal requirements", analyzes: "Threats, data protection, compliance", output: "Security requirements → CTO" },
+  { id: "hr",   abbr: "HR",   role: "HR Director",  color: "#f472b6", ring: 2, input: "Hiring plan from COO", analyzes: "Roles, compensation, culture", output: "Org structure and hiring plan → COO" },
+  { id: "cdo",  abbr: "CDO",  role: "Chief Data Officer",     color: "#06b6d4", ring: 2, input: "Product and funnel metrics", analyzes: "North Star, analytics, ML opportunities", output: "Data strategy → CPO, CEO" },
+  { id: "vpe",  abbr: "VPE",  role: "VP of Engineering",           color: "#84cc16", ring: 2, input: "Tech plan from CTO", analyzes: "Team, dev processes, timelines", output: "Sprint plan → CTO" },
+  { id: "ir",   abbr: "IR",   role: "Investor Relations",     color: "#a855f7", ring: 2, input: "Financial model from CFO, CEO strategy", analyzes: "Investment appeal, multiples", output: "Pitch structure → CEO" },
+  { id: "brd",  abbr: "BRD",  role: "Brand Strategist",          color: "#e879f9", ring: 2, input: "Positioning from CMO", analyzes: "Identity, tone of voice, differentiation", output: "Brand platform → CMO" },
+  { id: "cs",   abbr: "CS",   role: "Customer Success",       color: "#4ade80", ring: 2, input: "Product and segments", analyzes: "Onboarding, churn triggers, NPS", output: "Retention plan → CPO, CMO" },
+  { id: "ds",   abbr: "DS",   role: "Data Scientist",         color: "#22d3ee", ring: 2, input: "Raw data and metrics from CDO", analyzes: "Forecasts, segmentation, LTV models", output: "Models and forecasts → CDO, CFO" },
+  { id: "inv",  abbr: "INV",  role: "Investment Analyst",        color: "#fde68a", ring: 2, input: "Financial model, comparable deals", analyzes: "ROI, valuation, exit scenarios", output: "Investment assessment → IR, CEO" },
+  { id: "str",  abbr: "STR",  role: "Strategy Consultant",    color: "#c4b5fd", ring: 2, input: "The full market and product picture", analyzes: "Moat, blue ocean, growth horizons", output: "Long-term strategy → CEO" },
 ];
 
 // ─── Layout math ──────────────────────────────────────────────────────────────
@@ -112,10 +112,10 @@ export function ExecutivesSection() {
             <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(165,180,252,0.9)" }}>// орг-структура · 20 агентов</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.08, margin: "0 0 14px", color: "#fff" }}>
-            Это не список. Это организация
+            Not a list. An organization
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,0.4)", maxWidth: 540, margin: "0 auto", lineHeight: 1.65 }}>
-            Кликните на любого агента — увидите, что он получает, что анализирует и кому передаёт результат.
+            Click any agent to see what they receive, what they analyze and who they hand results to.
           </p>
         </motion.div>
 
@@ -254,9 +254,9 @@ export function ExecutivesSection() {
                 </div>
 
                 {[
-                  { k: "ПОЛУЧАЕТ", v: selected.input, icon: "↓" },
-                  { k: "АНАЛИЗИРУЕТ", v: selected.analyzes, icon: "◈" },
-                  { k: "ОТДАЁТ", v: selected.output, icon: "↗" },
+                  { k: "RECEIVES", v: selected.input, icon: "↓" },
+                  { k: "ANALYZES", v: selected.analyzes, icon: "◈" },
+                  { k: "HANDS OFF", v: selected.output, icon: "↗" },
                 ].map(row => (
                   <div key={row.k}>
                     <div className="term-mono" style={{ fontSize: 9, letterSpacing: "0.16em", color: `${selected.color}cc`, marginBottom: 6 }}>
@@ -277,7 +277,7 @@ export function ExecutivesSection() {
                       background: `linear-gradient(135deg, #6366f1, #4f46e5)`, color: "#fff",
                       boxShadow: `0 5px 18px rgba(${RGB},0.3), inset 0 1px 0 rgba(255,255,255,0.15)`,
                     }}>
-                    ▸ Обсудить с агентом
+                    ▸ Talk to this agent
                   </Link>
                 </div>
               </motion.div>
