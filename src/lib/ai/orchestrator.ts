@@ -121,7 +121,7 @@ async function callAgent(params: {
     return { subTitle: params.agentName, markdown: text || "—", score: 65, pageEstimate: 3, tokensUsed };
   } catch (err) {
     console.error(`[orchestrator] agent "${params.agentName}" error:`, err);
-    return { subTitle: params.agentName, markdown: `Ошибка генерации: ${String(err)}`, score: 0, pageEstimate: 0, tokensUsed };
+    return { subTitle: params.agentName, markdown: `Generation error: ${String(err)}`, score: 0, pageEstimate: 0, tokensUsed };
   }
 }
 
@@ -133,14 +133,14 @@ function mean(arr: number[]) { return arr.length ? arr.reduce((a, b) => a + b, 0
 
 function buildContext(p: ProjectContext) {
   return `
-Проект: ${p.name}
-Описание: ${p.description || "не указано"}
-Отрасль: ${p.industry}
-Стадия: ${p.stage}
-Цели: ${p.goals.join("; ") || "не указаны"}
-Горизонт: ${p.timeframe}
-Целевая выручка: ${p.targetRevenue || "не указана"}
-${p.analysis ? `\nПредварительный анализ:\n${JSON.stringify(p.analysis, null, 2)}` : ""}
+Project: ${p.name}
+Description: ${p.description || "not specified"}
+Industry: ${p.industry}
+Stage: ${p.stage}
+Goals: ${p.goals.join("; ") || "not specified"}
+Timeframe: ${p.timeframe}
+Target revenue: ${p.targetRevenue || "not specified"}
+${p.analysis ? `\nPreliminary analysis:\n${JSON.stringify(p.analysis, null, 2)}` : ""}
 `.trim();
 }
 
@@ -189,48 +189,48 @@ async function runFinanceTrack(
 ): Promise<SectionResult> {
   const start   = Date.now();
   const ctx     = buildContext(project);
-  await markSectionProcessing(db, reportId, "FINANCE", "Финансовый анализ", 1);
+  await markSectionProcessing(db, reportId, "FINANCE", "Financial Analysis", 1);
 
-  const BASE_SYSTEM = `Ты CFO (Chief Financial Officer) — эксперт финансового моделирования и инвестиционного анализа.
-Пиши детально, с таблицами, формулами и цифрами. Ответ ТОЛЬКО через инструмент submit_content.
-Контекст проекта:\n${ctx}`;
+  const BASE_SYSTEM = `You are the CFO (Chief Financial Officer) — an expert in financial modeling and investment analysis.
+Write in detail, with tables, formulas, and figures. Respond ONLY through the submit_content tool.
+Project context:\n${ctx}`;
 
   const subSections: Array<{ name: string; prompt: string }> = [
     {
-      name:   "Финансовая модель и прогноз выручки (Year 1–3)",
-      prompt: `Разработай детальную финансовую модель для "${project.name}".
-Включи: структуру выручки и потоков дохода; помесячный план Y1, квартальный Y2, годовой Y3;
-ценообразование и тарифные планы; ключевые драйверы роста. Используй markdown-таблицы.
-Целевой объём: 4–5 страниц.`,
+      name:   "Financial Model & Revenue Forecast (Year 1-3)",
+      prompt: `Develop a detailed financial model for "${project.name}".
+Include: revenue structure and income streams; a monthly plan for Y1, quarterly for Y2, annual for Y3;
+pricing and plan tiers; key growth drivers. Use markdown tables.
+Target length: 4-5 pages.`,
     },
     {
-      name:   "Юнит-экономика: LTV, CAC, маржинальность",
-      prompt: `Проведи глубокий анализ юнит-экономики "${project.name}".
-Рассчитай и объясни: CAC по каждому каналу; LTV с разбивкой по сегментам; LTV/CAC (цель >3×);
-Gross Margin, Contribution Margin; Payback Period; Churn Rate и влияние на LTV.
-Приведи все формулы и расчёты. Объём: 3–4 страницы.`,
+      name:   "Unit Economics: LTV, CAC, Margins",
+      prompt: `Conduct a deep unit economics analysis for "${project.name}".
+Calculate and explain: CAC by channel; LTV broken down by segment; LTV/CAC (target >3x);
+Gross Margin, Contribution Margin; Payback Period; Churn Rate and its effect on LTV.
+Show all formulas and calculations. Length: 3-4 pages.`,
     },
     {
-      name:   "Денежный поток, runway и точка безубыточности",
-      prompt: `Построй детальный анализ денежного потока "${project.name}".
-Включи: ежемесячный cash burn rate; runway при текущих инвестициях; Break-even анализ (единиц и выручки);
-операционный vs. свободный денежный поток; рабочий капитал; ключевые триггеры кассового разрыва.
-Таблицы и графики в ASCII. Объём: 3–4 страницы.`,
+      name:   "Cash Flow, Runway & Breakeven Point",
+      prompt: `Build a detailed cash flow analysis for "${project.name}".
+Include: monthly cash burn rate; runway at current investment levels; breakeven analysis (units and revenue);
+operating vs. free cash flow; working capital; key triggers for a cash crunch.
+Tables and ASCII charts. Length: 3-4 pages.`,
     },
     {
-      name:   "Стратегия привлечения инвестиций и структура капитала",
-      prompt: `Разработай инвестиционную стратегию для "${project.name}".
-Включи: необходимый объём инвестиций и стадии (pre-seed, seed, Series A);
-как распределить капитал (use of funds); оценка (valuation) — методы DCF, comparable companies;
-условия для инвесторов (term sheet ключевые пункты); план достижения milestones до следующего раунда.
-Объём: 3–4 страницы.`,
+      name:   "Fundraising Strategy & Capital Structure",
+      prompt: `Develop an investment strategy for "${project.name}".
+Include: required funding amount and stages (pre-seed, seed, Series A);
+how to allocate capital (use of funds); valuation — DCF and comparable company methods;
+investor terms (key term sheet points); a plan to reach milestones before the next round.
+Length: 3-4 pages.`,
     },
     {
-      name:   "Трёх-сценарный анализ: Медведь / База / Бык",
-      prompt: `Проведи полный сценарный анализ для "${project.name}".
-Для каждого сценария (Pessimistic / Base / Optimistic) опиши: ключевые допущения; выручка Y1/Y2/Y3;
-EBITDA маржа; runway; вероятность реализации; триггеры перехода между сценариями; рекомендуемые действия.
-Таблица сравнения сценариев. Объём: 4–5 страниц.`,
+      name:   "Three-Scenario Analysis: Bear / Base / Bull",
+      prompt: `Conduct a full scenario analysis for "${project.name}".
+For each scenario (Pessimistic / Base / Optimistic) describe: key assumptions; revenue Y1/Y2/Y3;
+EBITDA margin; runway; probability of occurrence; triggers for switching between scenarios; recommended actions.
+A scenario comparison table. Length: 4-5 pages.`,
     },
   ];
 
@@ -250,7 +250,7 @@ EBITDA маржа; runway; вероятность реализации; триг
     agentMeta: { agent: "CFO", model: "claude-sonnet-5", tokensUsed: totalTokens, durationMs: Date.now() - start },
   };
 
-  await persistSection(db, reportId, "FINANCE", "Финансовый анализ", sectionResult, 1);
+  await persistSection(db, reportId, "FINANCE", "Financial Analysis", sectionResult, 1);
   return sectionResult;
 }
 
@@ -262,40 +262,40 @@ async function runMarketTrack(
 ): Promise<SectionResult> {
   const start   = Date.now();
   const ctx     = buildContext(project);
-  await markSectionProcessing(db, reportId, "MARKET", "Анализ рынка", 2);
+  await markSectionProcessing(db, reportId, "MARKET", "Market Analysis", 2);
 
-  const BASE_SYSTEM = `Ты Chief Market Intelligence Officer — эксперт стратегического анализа рынков и конкурентной разведки.
-Пиши детально, с данными, метриками и конкретными примерами. Ответ ТОЛЬКО через инструмент submit_content.
-Контекст проекта:\n${ctx}`;
+  const BASE_SYSTEM = `You are the Chief Market Intelligence Officer — an expert in strategic market analysis and competitive intelligence.
+Write in detail, with data, metrics, and concrete examples. Respond ONLY through the submit_content tool.
+Project context:\n${ctx}`;
 
   const subSections = [
     {
-      name:   "Размер и структура рынка: TAM / SAM / SOM",
-      prompt: `Проведи детальный анализ рынка для "${project.name}" в отрасли "${project.industry}".
-Рассчитай TAM (Total Addressable Market), SAM (Serviceable Addressable Market), SOM (Serviceable Obtainable Market).
-Используй bottom-up и top-down методологии. Опиши динамику роста (CAGR), структуру рынка, ключевые сегменты.
-Объём: 3–4 страницы.`,
+      name:   "Market Size & Structure: TAM / SAM / SOM",
+      prompt: `Conduct a detailed market analysis for "${project.name}" in the "${project.industry}" industry.
+Calculate TAM (Total Addressable Market), SAM (Serviceable Addressable Market), SOM (Serviceable Obtainable Market).
+Use bottom-up and top-down methodologies. Describe growth dynamics (CAGR), market structure, and key segments.
+Length: 3-4 pages.`,
     },
     {
-      name:   "Конкурентный ландшафт и анализ позиционирования",
-      prompt: `Проведи глубокий конкурентный анализ для "${project.name}".
-Включи: карту конкурентов (прямые, косвенные, заменители); SWOT для 3–5 ключевых игроков;
-матрицу позиционирования по 2 ключевым осям; барьеры входа; конкурентные преимущества проекта;
-White space opportunities. Таблицы сравнения. Объём: 4–5 страниц.`,
+      name:   "Competitive Landscape & Positioning Analysis",
+      prompt: `Conduct a deep competitive analysis for "${project.name}".
+Include: a competitor map (direct, indirect, substitutes); a SWOT for 3-5 key players;
+a positioning matrix across 2 key axes; entry barriers; the project's competitive advantages;
+white space opportunities. Comparison tables. Length: 4-5 pages.`,
     },
     {
-      name:   "Сегментация клиентов и Ideal Customer Profile",
-      prompt: `Разработай детальную сегментацию целевой аудитории для "${project.name}".
-Включи: 3–4 ключевых сегмента с размером и потенциалом; ICP (Ideal Customer Profile) для B2B или B2C;
-Jobs-to-be-done для каждого сегмента; Customer Pain Points и Gain Points; готовность платить (WTP);
-Jobs personas с цитатами. Объём: 3–4 страницы.`,
+      name:   "Customer Segmentation & Ideal Customer Profile",
+      prompt: `Develop a detailed target audience segmentation for "${project.name}".
+Include: 3-4 key segments with size and potential; an ICP (Ideal Customer Profile) for B2B or B2C;
+jobs-to-be-done for each segment; customer pain points and gain points; willingness to pay (WTP);
+jobs personas with quotes. Length: 3-4 pages.`,
     },
     {
-      name:   "Рыночные тренды и технологические изменения",
-      prompt: `Проанализируй мегатренды и технологические сдвиги, влияющие на "${project.name}".
-Включи: 5–7 ключевых трендов; технологические дизрапторы; регуляторные изменения; ESG-факторы;
-геополитические влияния; влияние AI и автоматизации; временные горизонты (1/3/5 лет);
-возможности и угрозы для проекта. Объём: 3–4 страницы.`,
+      name:   "Market Trends & Technology Shifts",
+      prompt: `Analyze the megatrends and technology shifts affecting "${project.name}".
+Include: 5-7 key trends; technology disruptors; regulatory changes; ESG factors;
+geopolitical influences; the impact of AI and automation; time horizons (1/3/5 years);
+opportunities and threats for the project. Length: 3-4 pages.`,
     },
   ];
 
@@ -315,7 +315,7 @@ Jobs personas с цитатами. Объём: 3–4 страницы.`,
     agentMeta: { agent: "CMO-Market", model: "claude-sonnet-5", tokensUsed: totalTokens, durationMs: Date.now() - start },
   };
 
-  await persistSection(db, reportId, "MARKET", "Анализ рынка", sectionResult, 2);
+  await persistSection(db, reportId, "MARKET", "Market Analysis", sectionResult, 2);
   return sectionResult;
 }
 
@@ -327,47 +327,47 @@ async function runMarketingTrack(
 ): Promise<SectionResult> {
   const start   = Date.now();
   const ctx     = buildContext(project);
-  await markSectionProcessing(db, reportId, "MARKETING", "Маркетинговая стратегия", 3);
+  await markSectionProcessing(db, reportId, "MARKETING", "Marketing Strategy", 3);
 
-  const BASE_SYSTEM = `Ты CMO (Chief Marketing Officer) — эксперт growth-маркетинга и построения брендов.
-Ты мыслишь воронками, метриками и ROI. Ответ ТОЛЬКО через инструмент submit_content.
-Контекст проекта:\n${ctx}`;
+  const BASE_SYSTEM = `You are the CMO (Chief Marketing Officer) — an expert in growth marketing and brand building.
+You think in funnels, metrics, and ROI. Respond ONLY through the submit_content tool.
+Project context:\n${ctx}`;
 
   const subSections = [
     {
-      name:   "Бренд-стратегия, УТП и ключевые сообщения",
-      prompt: `Разработай полную бренд-стратегию для "${project.name}".
-Включи: Brand Positioning Statement; УТП (уникальное торговое предложение) для каждого сегмента;
-Brand Voice и Tone of Voice; ключевые сообщения (messaging matrix); Elevator Pitch (30 сек / 2 мин / 5 мин);
-Tagline варианты; Story of Why. Объём: 3–4 страницы.`,
+      name:   "Brand Strategy, USP & Key Messaging",
+      prompt: `Develop a complete brand strategy for "${project.name}".
+Include: a Brand Positioning Statement; a USP (unique selling proposition) for each segment;
+Brand Voice and Tone of Voice; key messaging (messaging matrix); an Elevator Pitch (30 sec / 2 min / 5 min);
+tagline options; the Story of Why. Length: 3-4 pages.`,
     },
     {
-      name:   "Digital-каналы привлечения и performance-маркетинг",
-      prompt: `Разработай детальную стратегию платного и органического привлечения для "${project.name}".
-Для каждого канала (SEA/PPC, Paid Social, Display, Native): объём аудитории; CAC-ориентир;
-бюджет на старте vs. масштаб; ключевые метрики и KPI; план A/B-тестирования.
-Расставь каналы по приоритету (ICE score). Объём: 3–4 страницы.`,
+      name:   "Digital Acquisition Channels & Performance Marketing",
+      prompt: `Develop a detailed paid and organic acquisition strategy for "${project.name}".
+For each channel (SEA/PPC, Paid Social, Display, Native): audience size; a CAC benchmark;
+starting budget vs. scale budget; key metrics and KPIs; an A/B testing plan.
+Prioritize channels (ICE score). Length: 3-4 pages.`,
     },
     {
-      name:   "Контент-маркетинг, SEO и органический рост",
-      prompt: `Создай контент-стратегию и SEO-план для "${project.name}".
-Включи: контент-пилларс; семантическое ядро (топ-20 ключевых слов с оценкой трафика);
-контент-план на 3 месяца (форматы, частота, темы); стратегию link-building;
-Email-маркетинг воронка; Social Media стратегия по платформам. Объём: 3–4 страницы.`,
+      name:   "Content Marketing, SEO & Organic Growth",
+      prompt: `Create a content strategy and SEO plan for "${project.name}".
+Include: content pillars; a semantic core (top 20 keywords with traffic estimates);
+a 3-month content plan (formats, frequency, topics); a link-building strategy;
+an email marketing funnel; a social media strategy by platform. Length: 3-4 pages.`,
     },
     {
-      name:   "Партнёрства, реферральная программа и community",
-      prompt: `Разработай стратегию партнёрств и вирального роста для "${project.name}".
-Включи: типы партнёрств (strategic, channel, technology, co-marketing); топ-10 целевых партнёров;
-условия партнёрской программы; реферральная механика (incl. экономика);
-community-стратегия (Telegram, Discord, LinkedIn); Ambassador Program. Объём: 3–4 страницы.`,
+      name:   "Partnerships, Referral Program & Community",
+      prompt: `Develop a partnership and viral growth strategy for "${project.name}".
+Include: partnership types (strategic, channel, technology, co-marketing); top 10 target partners;
+partner program terms; referral mechanics (incl. economics);
+community strategy (Telegram, Discord, LinkedIn); an Ambassador Program. Length: 3-4 pages.`,
     },
     {
-      name:   "Воронка продаж, CRM и маркетинговые KPI",
-      prompt: `Построй детальную воронку конверсий и систему KPI для "${project.name}".
-Включи: TOFU/MOFU/BOFU с конкретными конверсиями; CRM-процесс и автоматизации;
-Marketing Attribution модель; дашборд KPI (Awareness → Revenue);
-North Star Metric; OKR для маркетинга на квартал. Таблицы. Объём: 3–4 страницы.`,
+      name:   "Sales Funnel, CRM & Marketing KPIs",
+      prompt: `Build a detailed conversion funnel and KPI system for "${project.name}".
+Include: TOFU/MOFU/BOFU with specific conversion rates; CRM process and automations;
+a marketing attribution model; a KPI dashboard (Awareness → Revenue);
+a North Star Metric; quarterly marketing OKRs. Tables. Length: 3-4 pages.`,
     },
   ];
 
@@ -387,7 +387,7 @@ North Star Metric; OKR для маркетинга на квартал. Табл
     agentMeta: { agent: "CMO-Marketing", model: "claude-sonnet-5", tokensUsed: totalTokens, durationMs: Date.now() - start },
   };
 
-  await persistSection(db, reportId, "MARKETING", "Маркетинговая стратегия", sectionResult, 3);
+  await persistSection(db, reportId, "MARKETING", "Marketing Strategy", sectionResult, 3);
   return sectionResult;
 }
 
@@ -399,42 +399,42 @@ async function runOperationsTrack(
 ): Promise<SectionResult> {
   const start   = Date.now();
   const ctx     = buildContext(project);
-  await markSectionProcessing(db, reportId, "OPERATIONS", "Операции и технологии", 4);
+  await markSectionProcessing(db, reportId, "OPERATIONS", "Operations & Technology", 4);
 
-  const BASE_SYSTEM = `Ты COO + CTO — эксперт по построению масштабируемых операционных систем и технологических платформ.
-Ты мыслишь процессами, метриками и архитектурой. Ответ ТОЛЬКО через инструмент submit_content.
-Контекст проекта:\n${ctx}`;
+  const BASE_SYSTEM = `You are the COO + CTO — an expert in building scalable operating systems and technology platforms.
+You think in processes, metrics, and architecture. Respond ONLY through the submit_content tool.
+Project context:\n${ctx}`;
 
   const subSections = [
     {
-      name:   "Организационная структура и план найма",
-      prompt: `Спроектируй организационную структуру для "${project.name}".
-Включи: org chart (текущий и через 12/24/36 месяцев); критические роли для найма по приоритету;
-должностные инструкции для топ-5 позиций; стратегию компенсации (equity + salary);
-процесс онбординга и культура; KPI для каждой роли. Объём: 3–4 страницы.`,
+      name:   "Org Structure & Hiring Plan",
+      prompt: `Design an org structure for "${project.name}".
+Include: an org chart (current and at 12/24/36 months); critical hiring roles by priority;
+job descriptions for the top 5 positions; a compensation strategy (equity + salary);
+onboarding process and culture; KPIs for each role. Length: 3-4 pages.`,
     },
     {
-      name:   "Технологический стек и архитектура платформы",
-      prompt: `Разработай технологическую стратегию для "${project.name}".
-Включи: выбор технологического стека с обоснованием; архитектуру платформы (monolith vs microservices);
-инфраструктуру (cloud provider, DevOps, CI/CD); стратегию данных и аналитики;
-безопасность и compliance (GDPR и др.); MVP vs. Scale архитектура; Tech Roadmap.
-Объём: 4–5 страниц.`,
+      name:   "Tech Stack & Platform Architecture",
+      prompt: `Develop a technology strategy for "${project.name}".
+Include: tech stack selection with rationale; platform architecture (monolith vs microservices);
+infrastructure (cloud provider, DevOps, CI/CD); a data and analytics strategy;
+security and compliance (GDPR, etc.); MVP vs. Scale architecture; a Tech Roadmap.
+Length: 4-5 pages.`,
     },
     {
-      name:   "Ключевые бизнес-процессы и операционная модель",
-      prompt: `Разработай детальную операционную модель для "${project.name}".
-Включи: карту ключевых процессов (value stream mapping); процессы привлечения и обслуживания клиентов;
-Supply chain или Service Delivery процесс; операционные KPI и SLA;
-автоматизация и инструменты (с оценкой ROI); Quality Management System. Объём: 3–4 страницы.`,
+      name:   "Key Business Processes & Operating Model",
+      prompt: `Develop a detailed operating model for "${project.name}".
+Include: a key process map (value stream mapping); customer acquisition and service processes;
+a supply chain or service delivery process; operational KPIs and SLAs;
+automation and tooling (with ROI estimates); a Quality Management System. Length: 3-4 pages.`,
     },
     {
-      name:   "Операционные KPI, OKR и система управления",
-      prompt: `Создай систему управления эффективностью для "${project.name}".
-Включи: Balanced Scorecard (Financial / Customer / Process / Learning);
-OKR на квартал для каждой функции; Operational Dashboard (что мерить ежедневно/еженедельно/ежемесячно);
-Meeting Cadence и Decision-Making Framework; риски операционной эффективности.
-Таблицы KPI. Объём: 3–4 страницы.`,
+      name:   "Operational KPIs, OKRs & Management System",
+      prompt: `Create a performance management system for "${project.name}".
+Include: a Balanced Scorecard (Financial / Customer / Process / Learning);
+quarterly OKRs for each function; an Operational Dashboard (what to measure daily/weekly/monthly);
+a meeting cadence and decision-making framework; operational efficiency risks.
+KPI tables. Length: 3-4 pages.`,
     },
   ];
 
@@ -454,7 +454,7 @@ Meeting Cadence и Decision-Making Framework; риски операционно�
     agentMeta: { agent: "COO+CTO", model: "claude-sonnet-5", tokensUsed: totalTokens, durationMs: Date.now() - start },
   };
 
-  await persistSection(db, reportId, "OPERATIONS", "Операции и технологии", sectionResult, 4);
+  await persistSection(db, reportId, "OPERATIONS", "Operations & Technology", sectionResult, 4);
   return sectionResult;
 }
 
@@ -466,48 +466,48 @@ async function runRisksTrack(
 ): Promise<SectionResult> {
   const start   = Date.now();
   const ctx     = buildContext(project);
-  await markSectionProcessing(db, reportId, "RISKS", "Анализ рисков", 5);
+  await markSectionProcessing(db, reportId, "RISKS", "Risk Analysis", 5);
 
-  const BASE_SYSTEM = `Ты CRO (Chief Risk Officer) + юридический советник — эксперт управления рисками и compliance.
-Будь честен и строг. Не скрывай проблемы. Ответ ТОЛЬКО через инструмент submit_content.
-Контекст проекта:\n${ctx}`;
+  const BASE_SYSTEM = `You are the CRO (Chief Risk Officer) + legal advisor — an expert in risk management and compliance.
+Be honest and rigorous. Don\'t hide problems. Respond ONLY through the submit_content tool.
+Project context:\n${ctx}`;
 
   const subSections = [
     {
-      name:   "Стратегические и рыночные риски",
-      prompt: `Проведи анализ стратегических рисков для "${project.name}".
-Включи: риск неверной оценки рынка (PMF); конкурентные угрозы; технологическая устарелость;
-зависимость от ключевых партнёров или клиентов; риски пивота; сценарии "black swan".
-Матрица вероятность × влияние. Объём: 3–4 страницы.`,
+      name:   "Strategic & Market Risks",
+      prompt: `Conduct a strategic risk analysis for "${project.name}".
+Include: risk of misjudging the market (PMF); competitive threats; technology obsolescence;
+dependency on key partners or customers; pivot risks; "black swan" scenarios.
+A probability × impact matrix. Length: 3-4 pages.`,
     },
     {
-      name:   "Финансовые и регуляторные риски",
-      prompt: `Проанализируй финансовые и юридические риски для "${project.name}".
-Включи: риск исчерпания финансирования; валютные и процентные риски;
-регуляторные требования в отрасли "${project.industry}" (лицензии, GDPR, антимонопольное и т.д.);
-налоговые риски; IP и патентные риски; судебные риски; страхование.
-Объём: 3–4 страницы.`,
+      name:   "Financial & Regulatory Risks",
+      prompt: `Analyze the financial and legal risks for "${project.name}".
+Include: risk of running out of funding; currency and interest rate risks;
+regulatory requirements in the "${project.industry}" industry (licenses, GDPR, antitrust, etc.);
+tax risks; IP and patent risks; litigation risks; insurance.
+Length: 3-4 pages.`,
     },
     {
-      name:   "Операционные и технологические риски",
-      prompt: `Оцени операционные и технические риски для "${project.name}".
-Включи: риск ключевых сотрудников (key man); кибербезопасность и data breach;
-надёжность инфраструктуры (SLA, RPO/RTO); процессные сбои; vendor lock-in;
-технический долг; масштабирование под нагрузкой. Объём: 3–4 страницы.`,
+      name:   "Operational & Technology Risks",
+      prompt: `Assess the operational and technical risks for "${project.name}".
+Include: key-man risk; cybersecurity and data breach risk;
+infrastructure reliability (SLA, RPO/RTO); process failures; vendor lock-in;
+technical debt; scaling under load. Length: 3-4 pages.`,
     },
     {
-      name:   "Матрица рисков и план митигации",
-      prompt: `Создай полную матрицу рисков с планом митигации для "${project.name}".
-Включи: топ-15 рисков с оценкой (probability 1-5 × impact 1-5 = risk score);
-для каждого риска: owner, дата review, стратегия (avoid/reduce/transfer/accept), конкретные действия;
-Risk Appetite Statement; ключевые Risk Indicators (KRI). Таблица. Объём: 4–5 страниц.`,
+      name:   "Risk Matrix & Mitigation Plan",
+      prompt: `Create a complete risk matrix with a mitigation plan for "${project.name}".
+Include: the top 15 risks scored (probability 1-5 × impact 1-5 = risk score);
+for each risk: owner, review date, strategy (avoid/reduce/transfer/accept), concrete actions;
+a Risk Appetite Statement; key Risk Indicators (KRI). Table. Length: 4-5 pages.`,
     },
     {
-      name:   "Кризисный план и антихрупкость",
-      prompt: `Разработай Crisis Management Plan и стратегию антихрупкости для "${project.name}".
-Включи: Playbook для топ-5 кризисных сценариев (потеря ключевого клиента, data breach, регуляторный запрет, etc.);
-коммуникационная стратегия в кризис; Business Continuity Plan; резервные планы финансирования;
-как строить антихрупкость через диверсификацию. Объём: 3–4 страницы.`,
+      name:   "Crisis Plan & Antifragility",
+      prompt: `Develop a Crisis Management Plan and antifragility strategy for "${project.name}".
+Include: a playbook for the top 5 crisis scenarios (loss of a key customer, data breach, regulatory ban, etc.);
+a crisis communication strategy; a Business Continuity Plan; backup funding plans;
+how to build antifragility through diversification. Length: 3-4 pages.`,
     },
   ];
 
@@ -529,7 +529,7 @@ Risk Appetite Statement; ключевые Risk Indicators (KRI). Таблица.
     agentMeta: { agent: "CRO", model: "claude-sonnet-5", tokensUsed: totalTokens, durationMs: Date.now() - start },
   };
 
-  await persistSection(db, reportId, "RISKS", "Анализ рисков", sectionResult, 5);
+  await persistSection(db, reportId, "RISKS", "Risk Analysis", sectionResult, 5);
   return sectionResult;
 }
 
@@ -541,49 +541,49 @@ async function runRoadmapTrack(
 ): Promise<SectionResult> {
   const start   = Date.now();
   const ctx     = buildContext(project);
-  await markSectionProcessing(db, reportId, "ROADMAP", "Стратегическая дорожная карта", 6);
+  await markSectionProcessing(db, reportId, "ROADMAP", "Strategic Roadmap", 6);
 
-  const BASE_SYSTEM = `Ты Chief Strategy Officer — эксперт стратегического планирования и execution.
-Ты превращаешь амбиции в конкретные планы с датами, ответственными и метриками. Ответ ТОЛЬКО через инструмент submit_content.
-Контекст проекта:\n${ctx}`;
+  const BASE_SYSTEM = `You are the Chief Strategy Officer — an expert in strategic planning and execution.
+You turn ambitions into concrete plans with dates, owners, and metrics. Respond ONLY through the submit_content tool.
+Project context:\n${ctx}`;
 
   const subSections = [
     {
-      name:   "90-дневный план запуска (Sprint Zero)",
-      prompt: `Разработай детальный 90-дневный план запуска для "${project.name}".
-Разбей на 3 спринта по 30 дней. Для каждого дня/недели: конкретные задачи, ответственный, критерии готовности.
-Включи: найм, продукт, продажи, маркетинг, финансы, юридическое.
-Определи critical path и зависимости. Объём: 4–5 страниц.`,
+      name:   "90-Day Launch Plan (Sprint Zero)",
+      prompt: `Develop a detailed 90-day launch plan for "${project.name}".
+Break it into 3 sprints of 30 days each. For each day/week: specific tasks, an owner, readiness criteria.
+Include: hiring, product, sales, marketing, finance, legal.
+Identify the critical path and dependencies. Length: 4-5 pages.`,
     },
     {
-      name:   "Year 1: Квартальные milestone и OKR",
-      prompt: `Создай подробный план Year 1 для "${project.name}" с квартальными OKR.
-Для Q1/Q2/Q3/Q4: Objectives (3–4) и Key Results (3–4 per objective) с целевыми цифрами;
-ключевые milestones каждого квартала; бюджет; headcount; продуктовые релизы.
-Таблица с трекингом статуса. Объём: 4–5 страниц.`,
+      name:   "Year 1: Quarterly Milestones & OKRs",
+      prompt: `Create a detailed Year 1 plan for "${project.name}" with quarterly OKRs.
+For Q1/Q2/Q3/Q4: Objectives (3-4) and Key Results (3-4 per objective) with target figures;
+key milestones each quarter; budget; headcount; product releases.
+A status-tracking table. Length: 4-5 pages.`,
     },
     {
-      name:   "Year 2: Фаза роста и масштабирование",
-      prompt: `Разработай стратегию роста Year 2 для "${project.name}".
-Включи: стратегию масштабирования (Geographic / Product / Customer expansion);
-ключевые инвестиции и найм; продуктовую roadmap; расширение каналов;
-цели по выручке и клиентской базе; Series A подготовка (если применимо).
-Объём: 3–4 страницы.`,
+      name:   "Year 2: Growth Phase & Scaling",
+      prompt: `Develop a Year 2 growth strategy for "${project.name}".
+Include: a scaling strategy (geographic / product / customer expansion);
+key investments and hiring; a product roadmap; channel expansion;
+revenue and customer base targets; Series A preparation (if applicable).
+Length: 3-4 pages.`,
     },
     {
-      name:   "Year 3: Доминирование на рынке и инвестиционные опционы",
-      prompt: `Определи долгосрочную стратегию и опционы выхода для "${project.name}" к концу Year 3.
-Включи: рыночная доля цель; M&A стратегия (покупать или быть купленными); IPO готовность;
-международная экспансия; диверсификация продуктового портфеля;
-стратегические партнёрства уровня enterprise; Exit Scenarios (IPO / Strategic Sale / PE Buyout).
-Объём: 3–4 страницы.`,
+      name:   "Year 3: Market Dominance & Investment Options",
+      prompt: `Define the long-term strategy and exit options for "${project.name}" by the end of Year 3.
+Include: a market share target; M&A strategy (buying or being bought); IPO readiness;
+international expansion; product portfolio diversification;
+enterprise-level strategic partnerships; exit scenarios (IPO / strategic sale / PE buyout).
+Length: 3-4 pages.`,
     },
     {
-      name:   "Технологическая и продуктовая дорожная карта",
-      prompt: `Создай детальную продуктовую roadmap для "${project.name}" на 3 года.
-Разбей на: Core Features (MVP); Growth Features (Q2–Q4 Y1); Platform Features (Y2); Scale Features (Y3).
-Для каждой фичи: бизнес-обоснование, приоритет (RICE score), effort, impact.
-Включи API/Integration roadmap и Data roadmap. Объём: 4–5 страниц.`,
+      name:   "Technology & Product Roadmap",
+      prompt: `Create a detailed 3-year product roadmap for "${project.name}".
+Break it into: Core Features (MVP); Growth Features (Q2-Q4 Y1); Platform Features (Y2); Scale Features (Y3).
+For each feature: business rationale, priority (RICE score), effort, impact.
+Include an API/integration roadmap and a data roadmap. Length: 4-5 pages.`,
     },
   ];
 
@@ -603,7 +603,7 @@ async function runRoadmapTrack(
     agentMeta: { agent: "CSO", model: "claude-sonnet-5", tokensUsed: totalTokens, durationMs: Date.now() - start },
   };
 
-  await persistSection(db, reportId, "ROADMAP", "Стратегическая дорожная карта", sectionResult, 6);
+  await persistSection(db, reportId, "ROADMAP", "Strategic Roadmap", sectionResult, 6);
   return sectionResult;
 }
 
@@ -615,45 +615,45 @@ async function runSummaryTrack(
   sectionResults: SectionResult[],
 ): Promise<SectionResult> {
   const start = Date.now();
-  await markSectionProcessing(db, reportId, "SUMMARY", "Исполнительное резюме", 0);
+  await markSectionProcessing(db, reportId, "SUMMARY", "Executive Summary", 0);
 
   const sectionsContext = sectionResults
     .map((r, i) => {
-      const titles = ["Финансы", "Рынок", "Маркетинг", "Операции", "Риски", "Дорожная карта"];
-      return `## ${titles[i] ?? `Раздел ${i + 1}`} (оценка: ${r.score}/100)\n` +
+      const titles = ["Finance", "Market", "Marketing", "Operations", "Risks", "Roadmap"];
+      return `## ${titles[i] ?? `Section ${i + 1}`} (score: ${r.score}/100)\n` +
         r.blocks.slice(0, 2).map(b => `### ${b.subTitle}\n${b.markdown.slice(0, 800)}...`).join("\n\n");
     })
     .join("\n\n---\n\n");
 
   const ctx = buildContext(project);
 
-  const BASE_SYSTEM = `Ты CEO — стратегический лидер и синтезатор. Ты создаёшь итоговое видение на основе глубокого анализа всех департаментов.
-Ты пишешь ёмко, по существу, без воды. Ответ ТОЛЬКО через инструмент submit_content.
-Контекст проекта:\n${ctx}`;
+  const BASE_SYSTEM = `You are the CEO — a strategic leader and synthesizer. You build a final vision based on a deep analysis of every department.
+You write concisely, to the point, no fluff. Respond ONLY through the submit_content tool.
+Project context:\n${ctx}`;
 
   const subSections = [
     {
-      name:   "Исполнительное резюме и ключевые выводы",
-      prompt: `На основе полного анализа всех разделов напиши Исполнительное резюме для "${project.name}".
-Включи: Vision Statement одной мощной фразой; ключевые выводы из каждого раздела (финансы, рынок, операции, риски, roadmap);
-критические факторы успеха; главные вызовы; рекомендуемые немедленные действия топ-3.
-Сводные данные из разделов:\n${sectionsContext.slice(0, 3000)}\nОбъём: 4–5 страниц.`,
+      name:   "Executive Summary & Key Takeaways",
+      prompt: `Based on the full analysis of every section, write an Executive Summary for "${project.name}".
+Include: a Vision Statement in one powerful sentence; key takeaways from each section (finance, market, operations, risks, roadmap);
+critical success factors; the main challenges; the top 3 recommended immediate actions.
+Section summary data:\n${sectionsContext.slice(0, 3000)}\nLength: 4-5 pages.`,
     },
     {
-      name:   "Стратегические рекомендации совета директоров",
-      prompt: `Как CEO, сформулируй стратегические рекомендации для "${project.name}".
-Дай 7–10 конкретных стратегических рекомендаций с приоритетом и обоснованием.
-Включи: must-do в первые 30 дней; стратегические ставки на 12 месяцев; красные линии (что НЕЛЬЗЯ делать);
-решения, которые нужно принять немедленно vs. можно отложить.
-Объём: 3–4 страницы.`,
+      name:   "Board-Level Strategic Recommendations",
+      prompt: `As the CEO, formulate strategic recommendations for "${project.name}".
+Give 7-10 concrete strategic recommendations with priority and rationale.
+Include: must-dos in the first 30 days; strategic bets for the next 12 months; red lines (what NOT to do);
+decisions that need to be made immediately vs. can be deferred.
+Length: 3-4 pages.`,
     },
     {
-      name:   "Инвестиционный тезис и заключение",
-      prompt: `Напиши финальное заключение и инвестиционный тезис для "${project.name}".
-Включи: почему этот проект выиграет (unfair advantages); рыночный timing; команда и исполнение;
-финансовый потенциал для инвестора; что делает этот проект уникальным;
-финальный призыв к действию. Общий вывод по отчёту.
-Объём: 2–3 страницы.`,
+      name:   "Investment Thesis & Conclusion",
+      prompt: `Write the final conclusion and investment thesis for "${project.name}".
+Include: why this project will win (unfair advantages); market timing; team and execution;
+the financial upside for an investor; what makes this project unique;
+a final call to action. An overall conclusion for the report.
+Length: 2-3 pages.`,
     },
   ];
 
@@ -673,7 +673,7 @@ async function runSummaryTrack(
     agentMeta: { agent: "CEO", model: "claude-sonnet-5", tokensUsed: totalTokens, durationMs: Date.now() - start },
   };
 
-  await persistSection(db, reportId, "SUMMARY", "Исполнительное резюме", sectionResult, 0);
+  await persistSection(db, reportId, "SUMMARY", "Executive Summary", sectionResult, 0);
   return sectionResult;
 }
 
