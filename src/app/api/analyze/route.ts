@@ -141,7 +141,7 @@ async function runAgent(role: string, brief: ProjectBrief): Promise<AgentResult>
         investment_appeal: "—",
         scalability: "—",
       },
-      confidence: "низкая",
+      confidence: "low",
       score: computeFallbackScore(role, brief),
     };
   }
