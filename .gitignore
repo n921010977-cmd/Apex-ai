@@ -5,6 +5,10 @@ node_modules/
 .next/
 out/
 
+# auto-scaffolded by `next build` (agent-guidance docs, regenerated every build)
+/AGENTS.md
+/CLAUDE.md
+
 # production
 build/
 
