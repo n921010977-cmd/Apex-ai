@@ -19,73 +19,73 @@ interface ProjectData {
 
 const DEMO_AGENTS = [
   { id:"ceo", role:"CEO", name:TEAM_BY_SLUG["ceo"].name, color:TEAM_BY_SLUG["ceo"].c, title:TEAM_BY_SLUG["ceo"].title, score:82,
-    opinion:"Проект имеет чёткий стратегический потенциал в нише с растущим спросом. Бизнес-модель масштабируема и защищена за счёт сетевого эффекта. Рекомендую сконцентрироваться на одном ICP в первые 6 месяцев работы. Ключевой риск — расфокусировка в попытке охватить все сегменты сразу. Команда должна иметь чёткое распределение ролей до запуска. Инвестиции пропорционально делятся между продуктом и привлечением клиентов. Партнёрства с дополнительными игроками рынка существенно ускорят рост. OKR должны быть жёстко привязаны к финансовым целям на каждый квартал. Выход на операционную прибыль реален в горизонте 18–24 месяцев при правильном исполнении." },
+    opinion:"The project has clear strategic potential in a niche with growing demand. The business model is scalable and defensible thanks to network effects. I recommend focusing on a single ICP for the first 6 months of operation. The key risk is losing focus by trying to cover every segment at once. The team needs a clear division of roles before launch. Investment should be split proportionally between product and customer acquisition. Partnerships with complementary market players will significantly accelerate growth. OKRs must be tightly tied to financial goals every quarter. Reaching operating profit is realistic within 18-24 months with proper execution." },
   { id:"cfo", role:"CFO", name:TEAM_BY_SLUG["cfo"].name, color:TEAM_BY_SLUG["cfo"].c, title:TEAM_BY_SLUG["cfo"].title, score:79,
-    opinion:"Финансовая структура проекта в целом корректна, однако требует доработки в части прогнозирования выручки. Burn rate следует оптимизировать до уровня максимум 15% месячного MRR. CAC нужно снизить на 20% для достижения прибыльности в плановые сроки. Создайте runway минимум на 18 месяцев до следующего раунда привлечения. P&L должен выйти в плюс не позднее месяца 20 после запуска. Revenue-based financing стоит рассмотреть как альтернативу equity dilution. Unit economics жизнеспособны при достижении масштаба 1000+ активных клиентов. Финансовые KPI необходимо мониторить еженедельно для оперативного реагирования." },
+    opinion:"The project's financial structure is generally sound but needs refinement in revenue forecasting. Burn rate should be optimized to a maximum of 15% of monthly MRR. CAC needs to drop by 20% to hit profitability on schedule. Build a runway of at least 18 months before the next funding round. P&L should turn positive no later than month 20 after launch. Revenue-based financing is worth considering as an alternative to equity dilution. Unit economics become viable at a scale of 1000+ active customers. Financial KPIs need to be monitored weekly for fast response." },
   { id:"coo", role:"COO", name:TEAM_BY_SLUG["coo"].name, color:TEAM_BY_SLUG["coo"].c, title:TEAM_BY_SLUG["coo"].title, score:76,
-    opinion:"Операционная стратегия требует немедленной проработки процессов доставки ценности клиентам. Без чётких SOP команда потеряет 30–40% эффективности при масштабировании. Автоматизация рутинных задач должна начаться с первого месяца работы компании. KPI по операционной эффективности должны отслеживаться еженедельно на всех уровнях. Время отклика на запросы клиентов является критическим показателем NPS. Операционные расходы реалистично снизить на 18–25% при выходе на объём. Первые 3 месяца — критический период выстраивания операционной дисциплины. Поставщики и партнёры требуют формального договорного оформления до старта." },
+    opinion:"The operational strategy needs immediate work on the processes that deliver value to customers. Without clear SOPs, the team will lose 30-40% of its efficiency when scaling. Automating routine tasks should start from the company's first month. Operational efficiency KPIs need to be tracked weekly at every level. Response time to customer requests is a critical NPS indicator. Operating expenses can realistically drop 18-25% once volume kicks in. The first 3 months are the critical period for building operational discipline. Suppliers and partners need formal contracts in place before launch." },
   { id:"cmo", role:"CMO", name:TEAM_BY_SLUG["cmo"].name, color:TEAM_BY_SLUG["cmo"].c, title:TEAM_BY_SLUG["cmo"].title, score:84,
-    opinion:"Рыночное позиционирование требует более чёткой дифференциации от ключевых конкурентов. Контент-маркетинг рекомендую как основной acquisition channel на старте с минимальным бюджетом. Brand voice должен быть задокументирован до первого публичного контакта с аудиторией. CAC через органику может быть в 3–5 раз ниже paid при правильной SEO стратегии. Email retention программа способна снизить churn на 15–20% при правильной реализации. Партнёрство с инфлюенсерами в нише даст быстрый initial traction на первых 90 дней. Ретаргетинг должен быть настроен с первого месяца присутствия в платных каналах. A/B тестирование — обязательная практика для всех acquisition гипотез без исключения." },
+    opinion:"Market positioning needs clearer differentiation from key competitors. I recommend content marketing as the primary acquisition channel at launch given the minimal budget. Brand voice must be documented before the first public contact with the audience. Organic CAC can run 3-5x lower than paid with the right SEO strategy. An email retention program can cut churn by 15-20% when done right. Partnering with niche influencers will deliver fast initial traction in the first 90 days. Retargeting should be set up from the first month of paid-channel presence. A/B testing is a mandatory practice for every acquisition hypothesis, no exceptions." },
   { id:"cto", role:"CTO", name:TEAM_BY_SLUG["cto"].name, color:TEAM_BY_SLUG["cto"].c, title:TEAM_BY_SLUG["cto"].title, score:71,
-    opinion:"Технологический стек выбран адекватно стадии и текущему масштабу проекта. Главный риск — накопление технического долга при агрессивном росте без рефакторинга. Архитектура должна быть спроектирована с расчётом на 10x текущей нагрузки системы. DevOps культура и CI/CD — обязательны с первого дня разработки команды. Безопасность данных требует приоритизации, особенно при работе с пользовательскими данными. Мониторинг и alerting должны быть настроены до производственного launch продукта. API-first подход обеспечит гибкость интеграций и будущего масштабирования системы. Инвестиция в автотесты окупится уже на 3-м месяце активной разработки продукта." },
-  { id:"analyst", role:"Аналитик", name:TEAM_BY_SLUG["analyst"].name, color:TEAM_BY_SLUG["analyst"].c, title:TEAM_BY_SLUG["analyst"].title, score:80,
-    opinion:"Рыночный анализ подтверждает наличие реального спроса в целевом сегменте аудитории. Конкуренты не полностью закрывают pain point, который адресует данный проект на рынке. TAM существенен, но реалистичная целевая доля рынка в 3 года составляет 1–3%. Тренды рынка положительные: CAGR 15–25% прогнозируется в следующие 5 лет. Барьеры входа умеренные — window of opportunity открыт для быстрого движения. Поведение потребителей меняется в пользу данного решения по всем ключевым метрикам. Сезонность требует отдельного учёта в финансовой модели при прогнозировании. Данные должны собираться с первого дня для обучения будущих аналитических моделей." },
-  { id:"legal", role:"Юрист", name:TEAM_BY_SLUG["legal"].name, color:TEAM_BY_SLUG["legal"].c, title:TEAM_BY_SLUG["legal"].title, score:68,
-    opinion:"Юридическая структура проекта требует проверки на соответствие регуляторным требованиям. Обработка персональных данных пользователей должна соответствовать GDPR и локальным нормам. Регистрация товарного знака необходима до публичного запуска продукта на рынок. Договоры с подрядчиками и сотрудниками должны быть составлены с полноценными NDA. Интеллектуальная собственность должна быть оформлена на юридическое лицо, а не физических лиц. Пользовательское соглашение и политика конфиденциальности являются юридическими требованиями. Потенциальные регуляторные риски в отрасли необходимо задокументировать заблаговременно. Создайте юридический резерв размером 5–10% операционного бюджета для минимизации рисков." },
-  { id:"sales", role:"Продажи", name:TEAM_BY_SLUG["sales"].name, color:TEAM_BY_SLUG["sales"].c, title:TEAM_BY_SLUG["sales"].title, score:77,
-    opinion:"Воронка продаж требует чёткого определения метрик на каждом этапе customer journey. Conversion rate от лида к клиенту — ключевой KPI, который нужно отслеживать с первого дня. Сегментация по ICP позволит сфокусировать усилия на наиболее конвертируемых лидах. Ценовая стратегия выглядит конкурентоспособно, однако требует рыночного тестирования. CRM система обязательна с появления первого потенциального клиента в pipeline. Реферальная программа может обеспечить до 30% новых клиентов при правильной механике. Sales playbook должен быть документирован до найма первого sales-менеджера в команду. Среднее время закрытия сделки нужно оптимизировать к концу второго квартала работы." },
+    opinion:"The tech stack chosen fits the project's current stage and scale well. The main risk is accumulating technical debt from aggressive growth without refactoring. The architecture should be designed for 10x the current system load. DevOps culture and CI/CD are mandatory from the team's first day of development. Data security needs prioritization, especially when handling user data. Monitoring and alerting must be set up before the product's production launch. An API-first approach will keep integrations and future scaling flexible. Investment in automated tests will pay off by the 3rd month of active development." },
+  { id:"analyst", role:"Analyst", name:TEAM_BY_SLUG["analyst"].name, color:TEAM_BY_SLUG["analyst"].c, title:TEAM_BY_SLUG["analyst"].title, score:80,
+    opinion:"Market analysis confirms real demand exists in the target audience segment. Competitors don't fully address the pain point this project targets. TAM is substantial, but a realistic 3-year target market share is 1-3%. Market trends are positive: CAGR of 15-25% is forecast over the next 5 years. Entry barriers are moderate — the window of opportunity is open for fast movement. Consumer behavior is shifting in favor of this solution across all key metrics. Seasonality needs separate accounting in the financial model when forecasting. Data should be collected from day one to train future analytical models." },
+  { id:"legal", role:"Legal", name:TEAM_BY_SLUG["legal"].name, color:TEAM_BY_SLUG["legal"].c, title:TEAM_BY_SLUG["legal"].title, score:68,
+    opinion:"The project's legal structure needs a compliance review against regulatory requirements. User personal data handling must comply with GDPR and local regulations. Trademark registration is needed before the product's public market launch. Contracts with contractors and employees must include full NDAs. Intellectual property should be assigned to the legal entity, not individuals. A user agreement and privacy policy are legal requirements. Potential regulatory risks in the industry need to be documented in advance. Set aside a legal reserve of 5-10% of the operating budget to minimize risk." },
+  { id:"sales", role:"Sales", name:TEAM_BY_SLUG["sales"].name, color:TEAM_BY_SLUG["sales"].c, title:TEAM_BY_SLUG["sales"].title, score:77,
+    opinion:"The sales funnel needs clearly defined metrics at every stage of the customer journey. Lead-to-customer conversion rate is the key KPI to track from day one. ICP segmentation will let the team focus effort on the most convertible leads. The pricing strategy looks competitive but needs market testing. A CRM system is mandatory from the moment the first prospect enters the pipeline. A referral program can drive up to 30% of new customers with the right mechanics. A sales playbook should be documented before hiring the first sales manager. Average deal-closing time needs to be optimized by the end of the second quarter." },
   { id:"hr", role:"HR", name:TEAM_BY_SLUG["hr"].name, color:TEAM_BY_SLUG["hr"].c, title:TEAM_BY_SLUG["hr"].title, score:72,
-    opinion:"Команда — ключевое конкурентное преимущество на ранней стадии развития бизнеса. Культура компании закладывается в первые 10 нанятых сотрудников навсегда. Recruitment pipeline должен быть активным постоянно, а не только при острой необходимости. Onboarding процесс влияет на retention в первые 90 дней критически и определяет лояльность. Компенсационные пакеты должны быть конкурентными в рамках стадии и рынка труда. Employee NPS — важный ранний индикатор проблем с культурой внутри организации. Работа с выгоранием должна быть приоритетом для leadership с первого месяца. Разнообразие в команде коррелирует с качеством решений и уровнем инноваций." },
-  { id:"product", role:"Продукт", name:TEAM_BY_SLUG["product"].name, color:TEAM_BY_SLUG["product"].c, title:TEAM_BY_SLUG["product"].title, score:85,
-    opinion:"Product-market fit — единственная метрика, которая имеет критическое значение на данной стадии. Пользовательский research должен проводиться еженедельно в первые 3 месяца без исключений. MVP должен быть запущен максимально быстро для получения реального рыночного feedback. Retention rate на 30-й день — главный индикатор достижения product-market fit. Roadmap должен строиться исключительно на основе данных и пользовательского feedback. Feature prioritization по ICE-score предотвратит распыление ресурсов на ненужные функции. NPS должен отслеживаться с первого активного пользователя продукта без задержки. Activation rate является критическим показателем эффективности onboarding процесса." },
-  { id:"risk", role:"Риски", name:TEAM_BY_SLUG["risk"].name, color:TEAM_BY_SLUG["risk"].c, title:TEAM_BY_SLUG["risk"].title, score:65,
-    opinion:"Профиль рисков проекта классифицирован как умеренно-высокий для текущей стадии идеи. Финансовый риск является главным: 60% стартапов умирают именно от нехватки денег. Рыночный риск снижается хорошим пониманием конкурентной среды и сегментации. Операционный риск связан с критической зависимостью от ключевых сотрудников компании. Технологический риск умеренный при правильном выборе стека и команды разработки. Регуляторный риск требует мониторинга в 6-месячном горизонте планирования. Сценарный анализ — обязательный инструмент финансового и операционного планирования. Резервный фонд в размере 20% бюджета минимизирует black swan сценарии развития." },
+    opinion:"The team is the key competitive advantage in a business's early stage. Company culture is set permanently by the first 10 hires. The recruitment pipeline needs to stay active continuously, not just when urgently needed. Onboarding critically affects retention in the first 90 days and shapes loyalty. Compensation packages need to be competitive for the stage and labor market. Employee NPS is an important early indicator of culture problems inside the organization. Addressing burnout needs to be a leadership priority from month one. Team diversity correlates with decision quality and the level of innovation." },
+  { id:"product", role:"Product", name:TEAM_BY_SLUG["product"].name, color:TEAM_BY_SLUG["product"].c, title:TEAM_BY_SLUG["product"].title, score:85,
+    opinion:"Product-market fit is the only metric that critically matters at this stage. User research should happen weekly for the first 3 months, no exceptions. The MVP should launch as fast as possible to get real market feedback. Day-30 retention rate is the main indicator of reaching product-market fit. The roadmap should be built strictly on data and user feedback. ICE-score feature prioritization will prevent resources from spreading thin on unnecessary features. NPS should be tracked from the product's very first active user, without delay. Activation rate is a critical indicator of onboarding effectiveness." },
+  { id:"risk", role:"Risk", name:TEAM_BY_SLUG["risk"].name, color:TEAM_BY_SLUG["risk"].c, title:TEAM_BY_SLUG["risk"].title, score:65,
+    opinion:"The project's risk profile is classified as moderate-to-high for this idea stage. Financial risk is the main one: 60% of startups die specifically from running out of money. Market risk is reduced by good understanding of the competitive landscape and segmentation. Operational risk stems from critical dependency on key employees. Technology risk is moderate given the right stack and dev team choices. Regulatory risk needs monitoring over a 6-month planning horizon. Scenario analysis is a mandatory tool for financial and operational planning. A reserve fund of 20% of budget minimizes black-swan scenarios." },
   { id:"growth", role:"Growth", name:TEAM_BY_SLUG["growth"].name, color:TEAM_BY_SLUG["growth"].c, title:TEAM_BY_SLUG["growth"].title, score:88,
-    opinion:"Самый быстрый путь к росту — нахождение одного масштабируемого acquisition channel в первые 3 месяца. Виральный коэффициент выше 1.0 кардинально трансформирует экономику всего проекта. Экспериментальный подход с еженедельными growth спринтами даёт наилучшие результаты на практике. Product-led growth возможен при правильном дизайне freemium воронки продукта. Community-led growth является самым дешёвым sustainable каналом привлечения клиентов. SEO при правильной стратегии обеспечивает ROI 10x+ в горизонте 12 месяцев работы. Referral loop должен быть зашит непосредственно в продукт, а не прикручен снаружи. Данные из первых 100 клиентов — золото для формирования долгосрочной growth стратегии." },
+    opinion:"The fastest path to growth is finding one scalable acquisition channel in the first 3 months. A viral coefficient above 1.0 fundamentally transforms the whole project's economics. An experimental approach with weekly growth sprints delivers the best results in practice. Product-led growth is achievable with the right freemium funnel design. Community-led growth is the cheapest sustainable customer acquisition channel. SEO with the right strategy delivers 10x+ ROI over a 12-month horizon. The referral loop should be built directly into the product, not bolted on afterward. Data from the first 100 customers is gold for shaping long-term growth strategy." },
   { id:"data", role:"Data", name:TEAM_BY_SLUG["data"].name, color:TEAM_BY_SLUG["data"].c, title:TEAM_BY_SLUG["data"].title, score:74,
-    opinion:"Данные — главный актив, который нужно начинать собирать с самого первого дня работы. Структура данных должна быть спроектирована под будущие машинного обучения применения. Customer segmentation на основе поведенческих данных даст долгосрочное конкурентное преимущество. Churn prediction model начинает окупаться при базе от 500 активных клиентов системы. A/B тест инфраструктура необходима для масштабирования экспериментальной культуры. LTV prediction улучшает CAC оптимизацию на 30–40% при правильной реализации. Персонализация на основе данных повышает retention в среднем на 15–25% в первый год. Data-driven culture является конкурентным moat, который сложно скопировать конкурентам." },
-  { id:"brand", role:"Бренд", name:TEAM_BY_SLUG["brand"].name, color:TEAM_BY_SLUG["brand"].c, title:TEAM_BY_SLUG["brand"].title, score:79,
-    opinion:"Brand positioning должен быть чётким и различимым на насыщенном конкурентами рынке. Визуальная идентичность компании создаёт первое впечатление, которое невозможно исправить второй раз. Tone of voice бренда должен точно соответствовать ценностям целевой аудитории продукта. Consistency во всех touchpoints является критической для построения доверия и лояльности. Brand equity строится медленно, но является долгосрочным стратегическим активом компании. Storytelling вокруг основателей и миссии работает значительно лучше корпоративного контента. Social proof в виде отзывов и кейсов должен появиться в первые 3 месяца присутствия. Brand guidelines обязательны до найма первого маркетолога и подрядчиков по контенту." },
+    opinion:"Data is the main asset, and collection needs to start from the very first day. The data structure should be designed with future machine learning use in mind. Behavioral customer segmentation will deliver a long-term competitive advantage. A churn prediction model starts paying off at 500+ active customers. A/B testing infrastructure is necessary to scale an experimentation culture. LTV prediction improves CAC optimization by 30-40% when done right. Data-driven personalization lifts retention by an average of 15-25% in the first year. A data-driven culture is a competitive moat that's hard for competitors to copy." },
+  { id:"brand", role:"Brand", name:TEAM_BY_SLUG["brand"].name, color:TEAM_BY_SLUG["brand"].c, title:TEAM_BY_SLUG["brand"].title, score:79,
+    opinion:"Brand positioning needs to be clear and distinct in a competitor-saturated market. Visual identity creates the first impression, and there's no second chance to fix it. Brand tone of voice must precisely match the target audience's values. Consistency across every touchpoint is critical for building trust and loyalty. Brand equity builds slowly but becomes a long-term strategic asset for the company. Storytelling around the founders and mission works far better than corporate content. Social proof in the form of reviews and case studies should appear within the first 3 months. Brand guidelines are mandatory before hiring the first marketer or content contractor." },
   { id:"ux", role:"CS", name:TEAM_BY_SLUG["ux"].name, color:TEAM_BY_SLUG["ux"].c, title:TEAM_BY_SLUG["ux"].title, score:73,
-    opinion:"Customer success — единственный отдел, который непосредственно влияет на retention метрики. Onboarding должен привести клиента к первой ценности за 7 дней максимально. Churn начинается задолго до отказа — триггеры нужно выявить в первые 3 месяца работы. Проактивный outreach при снижении активности снижает churn на 20–30% по данным индустрии. NPS опрос должен проводиться через 30, 60 и 90 дней после начала использования. Customer feedback является лучшим источником идей для product roadmap компании. Expansion revenue через upsell требует предварительного успеха клиента в текущем плане. SLA должен быть задокументирован и неукоснительно соблюдаться с первого клиента." },
-  { id:"pr", role:"Инжиниринг", name:TEAM_BY_SLUG["pr"].name, color:TEAM_BY_SLUG["pr"].c, title:TEAM_BY_SLUG["pr"].title, score:70,
-    opinion:"Технический долг — главная угроза скорости разработки после первого года активного роста. CI/CD pipeline должен быть настроен до первого production деплоя в любом случае. Code review культура предотвращает критические ошибки в production на ранней стадии. Test coverage минимум 70% является обязательным стандартом качества для команды. Документация кода должна быть обязательной практикой всей инженерной команды с первого спринта. Мониторинг и observability — первый приоритет сразу после запуска производственного окружения. Security-first подход в архитектурных решениях защищает от дорогостоящих инцидентов. Incident response playbook нужен до появления первого платящего клиента в системе." },
-  { id:"invest", role:"Инвестиции", name:TEAM_BY_SLUG["invest"].name, color:TEAM_BY_SLUG["invest"].c, title:TEAM_BY_SLUG["invest"].title, score:76,
-    opinion:"С точки зрения инвестиционной привлекательности проект находится в зелёной зоне оценки. Comparable companies показывают мультипликаторы 5–15x revenue при правильной бизнес-модели. ROI для seed инвесторов реалистичен при выходе через 3–5 лет при текущих метриках. Рынок имеет аналогичные успешные прецеденты с сопоставимыми входными параметрами. EBITDA margin при масштабировании должна превышать 20% для привлекательности. Burn multiple ниже 2.0 свидетельствует об эффективном расходовании привлечённого капитала. M&A потенциал компании значителен при достижении лидерства в целевой нише рынка. Investor updates должны быть ежемесячными и содержать 5 ключевых операционных метрик." },
-  { id:"strategy", role:"Стратегия", name:TEAM_BY_SLUG["strategy"].name, color:TEAM_BY_SLUG["strategy"].c, title:TEAM_BY_SLUG["strategy"].title, score:83,
-    opinion:"Стратегическое позиционирование компании недостаточно дифференцировано от ключевых конкурентов. Sustainable competitive moat требует фокуса на одном из трёх: cost leadership, differentiation или niche. Blue ocean стратегия возможна при правильном пересмотре ценностного предложения компании. Стратегический фокус на первые 18 месяцев критически важен для выживания и роста. Конкурентный анализ должен обновляться ежеквартально для актуальности стратегических решений. Barriers to entry нужно активно строить и укреплять с первого дня операционной деятельности. Ecosystem стратегия через партнёрства существенно ускорит рост и снизит стоимость привлечения. Долгосрочная стратегия должна балансировать между Horizon 1 и Horizon 2 развития бизнеса." },
-  { id:"supply", role:"Операции", name:TEAM_BY_SLUG["supply"].name, color:TEAM_BY_SLUG["supply"].c, title:TEAM_BY_SLUG["supply"].title, score:69,
-    opinion:"Операционная эффективность является фундаментом устойчивого масштабирования любого бизнеса. Процессы должны быть задокументированы и стандартизированы до найма 5-го сотрудника команды. Автоматизация рутинных задач сэкономит 20–30% операционного времени всей команды. Vendor management требует формализации с появления первого значимого подрядчика. KPI дерево должно быть каскадировано на каждую функцию и роль в организации. Операционные ритмы — ежедневные standup, еженедельные reviews — являются критически важными. Quality control процессы влияют на NPS и retention клиентов напрямую и ощутимо. Операционная маржа является главным индикатором здоровья бизнеса на уровне unit economics." },
-  { id:"market", role:"Исследования", name:TEAM_BY_SLUG["market"].name, color:TEAM_BY_SLUG["market"].c, title:TEAM_BY_SLUG["market"].title, score:77,
-    opinion:"Рыночные данные подтверждают наличие устойчивого потребительского спроса в целевом сегменте. Тенденции рынка благоприятны: растущий интерес к категории и снижение барьеров для входа. Потребительское поведение смещается в направлении, совпадающем с ценностным предложением компании. Конкурентная карта показывает незанятую нишу в средней ценовой категории рынка. CAGR в 15–25% на следующие 5 лет создаёт благоприятное окно возможностей для запуска. Сезонность рынка требует обязательного учёта при планировании cash flow и маркетинга. Географическая экспансия возможна после достижения PMF в локальном рынке присутствия. Исследования показывают высокую готовность платить среди целевой аудитории при правильном позиционировании." },
+    opinion:"Customer success is the one department that directly drives retention metrics. Onboarding should get a customer to first value within 7 days max. Churn starts long before cancellation — triggers need to be identified in the first 3 months. Proactive outreach when activity drops reduces churn by 20-30% according to industry data. NPS surveys should run at 30, 60, and 90 days after a customer starts using the product. Customer feedback is the best source of ideas for the product roadmap. Expansion revenue through upsell requires the customer's success on their current plan first. The SLA needs to be documented and strictly honored from the very first customer." },
+  { id:"pr", role:"Engineering", name:TEAM_BY_SLUG["pr"].name, color:TEAM_BY_SLUG["pr"].c, title:TEAM_BY_SLUG["pr"].title, score:70,
+    opinion:"Technical debt is the biggest threat to development velocity after the first year of active growth. A CI/CD pipeline must be set up before the first production deploy, no matter what. A code review culture prevents critical production bugs early on. Minimum 70% test coverage is a mandatory quality standard for the team. Code documentation must be a mandatory practice for the whole engineering team from sprint one. Monitoring and observability are the top priority right after the production environment launches. A security-first approach in architectural decisions protects against costly incidents. An incident response playbook is needed before the first paying customer arrives." },
+  { id:"invest", role:"Investment", name:TEAM_BY_SLUG["invest"].name, color:TEAM_BY_SLUG["invest"].c, title:TEAM_BY_SLUG["invest"].title, score:76,
+    opinion:"From an investment attractiveness standpoint, the project sits in the green zone. Comparable companies show 5-15x revenue multiples with the right business model. ROI for seed investors is realistic on a 3-5 year exit at current metrics. The market has similar successful precedents with comparable starting parameters. EBITDA margin at scale needs to exceed 20% to stay attractive. A burn multiple below 2.0 signals efficient use of raised capital. M&A potential is significant once the company achieves leadership in its target niche. Investor updates should be monthly and cover 5 key operating metrics." },
+  { id:"strategy", role:"Strategy", name:TEAM_BY_SLUG["strategy"].name, color:TEAM_BY_SLUG["strategy"].c, title:TEAM_BY_SLUG["strategy"].title, score:83,
+    opinion:"The company's strategic positioning isn't sufficiently differentiated from key competitors. A sustainable competitive moat requires focusing on one of three: cost leadership, differentiation, or niche. A blue-ocean strategy is achievable with the right rethink of the value proposition. Strategic focus in the first 18 months is critical for survival and growth. Competitive analysis needs quarterly refreshes to keep strategic decisions relevant. Barriers to entry need to be actively built and reinforced from day one of operations. An ecosystem strategy through partnerships will meaningfully speed growth and cut acquisition costs. Long-term strategy needs to balance Horizon 1 and Horizon 2 business development." },
+  { id:"supply", role:"Operations", name:TEAM_BY_SLUG["supply"].name, color:TEAM_BY_SLUG["supply"].c, title:TEAM_BY_SLUG["supply"].title, score:69,
+    opinion:"Operational efficiency is the foundation of sustainable scaling for any business. Processes need to be documented and standardized before hiring employee number 5. Automating routine tasks will save the whole team 20-30% of operating time. Vendor management needs formalizing once the first significant contractor comes on board. The KPI tree needs to cascade down to every function and role in the organization. Operating rhythms — daily standups, weekly reviews — are critically important. Quality control processes have a direct, measurable impact on NPS and customer retention. Operating margin is the main indicator of business health at the unit-economics level." },
+  { id:"market", role:"Research", name:TEAM_BY_SLUG["market"].name, color:TEAM_BY_SLUG["market"].c, title:TEAM_BY_SLUG["market"].title, score:77,
+    opinion:"Market data confirms sustained consumer demand in the target segment. Market trends are favorable: growing category interest and lowering entry barriers. Consumer behavior is shifting in a direction that aligns with the company's value proposition. The competitive map shows an unoccupied niche in the mid-price category. A CAGR of 15-25% over the next 5 years creates a favorable launch window. Market seasonality needs to be factored into cash flow and marketing planning. Geographic expansion is possible once PMF is reached in the local home market. Research shows strong willingness to pay among the target audience with the right positioning." },
 ];
 
 // ─── PROJECT STATIC DATA ─────────────────────────────────────────────────────
 
 const PROJECTS_DATA: Record<string, ProjectData> = {
   demo: {
-    name: "AI-Powered Fitness Platform", subtitle: "SaaS · Mobile App · 8 AI Executives", score: 87, status: "Завершён",
-    scores: [{ label: "Рыночный потенциал", value: 91 }, { label: "Финансовая устойчивость", value: 83 }, { label: "Реализуемость", value: 87 }, { label: "Конкурентное преимущество", value: 79 }],
-    summary: "AI-Powered Fitness Platform — высокопотенциальный продукт в быстрорастущем рынке персональных тренировок ($4.2B). Сильная дифференциация через AI-персонализацию. Рекомендуется B2C модель с freemium воронкой и монетизацией через Premium подписку ($19.99/мес).",
-    financials: [{ label: "Прогноз выручки (год 1)", value: "$240K", numeric: 240 }, { label: "Прогноз выручки (год 3)", value: "$2.4M", numeric: 2400 }, { label: "Точка безубыточности", value: "18 месяцев" }, { label: "LTV пользователя", value: "$180" }, { label: "CAC", value: "$22" }, { label: "LTV/CAC", value: "8.2x" }],
-    market: [{ label: "TAM (общий рынок)", value: "$4.2B", numeric: 4200 }, { label: "SAM (достижимый)", value: "$840M", numeric: 840 }, { label: "SOM (целевой)", value: "$42M", numeric: 42 }, { label: "Рост рынка", value: "+24%/год" }],
-    risks: [{ level: "high", title: "Высокая конкуренция", desc: "MyFitnessPal, Noom, Peloton — крупные игроки с большими бюджетами." }, { level: "medium", title: "Стоимость привлечения", desc: "CAC может вырасти при масштабировании платных каналов." }, { level: "low", title: "Технический риск", desc: "AI модели требуют постоянного обучения и качественных данных." }],
+    name: "AI-Powered Fitness Platform", subtitle: "SaaS · Mobile App · 8 AI Executives", score: 87, status: "Complete",
+    scores: [{ label: "Market Potential", value: 91 }, { label: "Financial Stability", value: 83 }, { label: "Feasibility", value: 87 }, { label: "Competitive Advantage", value: 79 }],
+    summary: "AI-Powered Fitness Platform is a high-potential product in the fast-growing personal training market ($4.2B). Strong differentiation through AI personalization. A B2C model with a freemium funnel and Premium subscription monetization ($19.99/mo) is recommended.",
+    financials: [{ label: "Revenue Forecast (Year 1)", value: "$240K", numeric: 240 }, { label: "Revenue Forecast (Year 3)", value: "$2.4M", numeric: 2400 }, { label: "Breakeven Point", value: "18 months" }, { label: "User LTV", value: "$180" }, { label: "CAC", value: "$22" }, { label: "LTV/CAC", value: "8.2x" }],
+    market: [{ label: "TAM (Total Market)", value: "$4.2B", numeric: 4200 }, { label: "SAM (Serviceable)", value: "$840M", numeric: 840 }, { label: "SOM (Target)", value: "$42M", numeric: 42 }, { label: "Market Growth", value: "+24%/yr" }],
+    risks: [{ level: "high", title: "High Competition", desc: "MyFitnessPal, Noom, Peloton are major players with big budgets." }, { level: "medium", title: "Acquisition Cost", desc: "CAC could rise as paid channels scale." }, { level: "low", title: "Technical Risk", desc: "AI models require ongoing training and quality data." }],
   },
   "2": {
-    name: "SaaS Invoice Platform", subtitle: "SaaS · FinTech · 8 AI Executives", score: 91, status: "Завершён",
-    scores: [{ label: "Рыночный потенциал", value: 94 }, { label: "Финансовая устойчивость", value: 90 }, { label: "Реализуемость", value: 88 }, { label: "Конкурентное преимущество", value: 85 }],
-    summary: "SaaS Invoice Platform решает реальную боль 59M фрилансеров в США. Высокая retention (78%) в категории, предсказуемый MRR. Рекомендуется запуск с фокусом на дизайн-агентства и IT-консультантов как первичный ICP.",
-    financials: [{ label: "Прогноз выручки (год 1)", value: "$180K", numeric: 180 }, { label: "Прогноз выручки (год 3)", value: "$1.8M", numeric: 1800 }, { label: "Точка безубыточности", value: "12 месяцев" }, { label: "LTV пользователя", value: "$540" }, { label: "CAC", value: "$48" }, { label: "LTV/CAC", value: "11.2x" }],
-    market: [{ label: "TAM (общий рынок)", value: "$2.1B", numeric: 2100 }, { label: "SAM (достижимый)", value: "$420M", numeric: 420 }, { label: "SOM (целевой)", value: "$21M", numeric: 21 }, { label: "Рост рынка", value: "+18%/год" }],
-    risks: [{ level: "medium", title: "FreshBooks / QuickBooks", desc: "Доминирующие игроки с высокой узнаваемостью бренда." }, { level: "low", title: "Интеграции", desc: "Нужны интеграции с банками и платёжными системами." }, { level: "low", title: "Регуляторные требования", desc: "Разные требования к счетам в разных странах." }],
+    name: "SaaS Invoice Platform", subtitle: "SaaS · FinTech · 8 AI Executives", score: 91, status: "Complete",
+    scores: [{ label: "Market Potential", value: 94 }, { label: "Financial Stability", value: 90 }, { label: "Feasibility", value: 88 }, { label: "Competitive Advantage", value: 85 }],
+    summary: "SaaS Invoice Platform solves a real pain point for 59M freelancers in the US. High category retention (78%), predictable MRR. Launch is recommended with a focus on design agencies and IT consultants as the primary ICP.",
+    financials: [{ label: "Revenue Forecast (Year 1)", value: "$180K", numeric: 180 }, { label: "Revenue Forecast (Year 3)", value: "$1.8M", numeric: 1800 }, { label: "Breakeven Point", value: "12 months" }, { label: "User LTV", value: "$540" }, { label: "CAC", value: "$48" }, { label: "LTV/CAC", value: "11.2x" }],
+    market: [{ label: "TAM (Total Market)", value: "$2.1B", numeric: 2100 }, { label: "SAM (Serviceable)", value: "$420M", numeric: 420 }, { label: "SOM (Target)", value: "$21M", numeric: 21 }, { label: "Market Growth", value: "+18%/yr" }],
+    risks: [{ level: "medium", title: "FreshBooks / QuickBooks", desc: "Dominant players with high brand recognition." }, { level: "low", title: "Integrations", desc: "Bank and payment system integrations are needed." }, { level: "low", title: "Regulatory Requirements", desc: "Invoicing requirements vary by country." }],
   },
   "3": {
-    name: "Local Restaurant Chain", subtitle: "Restaurant · Food · 5 AI Executives", score: 72, status: "В работе",
-    scores: [{ label: "Рыночный потенциал", value: 75 }, { label: "Финансовая устойчивость", value: 68 }, { label: "Реализуемость", value: 74 }, { label: "Конкурентное преимущество", value: 70 }],
-    summary: "Стратегия расширения ресторанной сети анализируется. Умеренный потенциал в конкурентном рынке fast-casual.",
-    financials: [{ label: "Стартовые инвестиции", value: "$350K" }, { label: "Маржинальность", value: "~15-20%" }, { label: "Food cost %", value: "~28-32%" }],
-    market: [{ label: "TAM (общий рынок)", value: "$890M", numeric: 890 }, { label: "SAM (достижимый)", value: "$89M", numeric: 89 }, { label: "SOM (целевой)", value: "$4.5M", numeric: 4.5 }, { label: "Рост рынка", value: "+9%/год" }],
-    risks: [{ level: "high", title: "Операционная сложность", desc: "Управление несколькими точками требует систем." }, { level: "high", title: "Высокая конкуренция", desc: "Насыщенный рынок с низкими барьерами входа." }, { level: "medium", title: "Рост аренды", desc: "Стоимость коммерческой недвижимости растёт." }],
+    name: "Local Restaurant Chain", subtitle: "Restaurant · Food · 5 AI Executives", score: 72, status: "In Progress",
+    scores: [{ label: "Market Potential", value: 75 }, { label: "Financial Stability", value: 68 }, { label: "Feasibility", value: 74 }, { label: "Competitive Advantage", value: 70 }],
+    summary: "Restaurant chain expansion strategy is being analyzed. Moderate potential in the competitive fast-casual market.",
+    financials: [{ label: "Startup Investment", value: "$350K" }, { label: "Margin", value: "~15-20%" }, { label: "Food Cost %", value: "~28-32%" }],
+    market: [{ label: "TAM (Total Market)", value: "$890M", numeric: 890 }, { label: "SAM (Serviceable)", value: "$89M", numeric: 89 }, { label: "SOM (Target)", value: "$4.5M", numeric: 4.5 }, { label: "Market Growth", value: "+9%/yr" }],
+    risks: [{ level: "high", title: "Operational Complexity", desc: "Managing multiple locations requires systems." }, { level: "high", title: "High Competition", desc: "Saturated market with low entry barriers." }, { level: "medium", title: "Rising Rent", desc: "Commercial real estate costs are increasing." }],
   },
 };
 
@@ -97,35 +97,35 @@ function buildProjectFromUser(raw: Record<string, unknown>): ProjectData {
   const revenueDisplay = rawRevenue && rawRevenue.length > 0 && rawRevenue !== "0"
     ? rawRevenue.startsWith("$") ? rawRevenue : `$${rawRevenue}` : `$${(score * 3).toFixed(0)}K`;
   return {
-    name: String(raw.name || "Проект"),
-    subtitle: `${raw.industry || "Бизнес"} · ${raw.stage || "Идея"} · AI Executive Board`,
-    score, status: "Завершён",
+    name: String(raw.name || "Project"),
+    subtitle: `${raw.industry || "Business"} · ${raw.stage || "Idea"} · AI Executive Board`,
+    score, status: "Complete",
     scores: [
-      { label: "Рыночный потенциал", value: Math.min(99, score + 4) },
-      { label: "Финансовая устойчивость", value: Math.max(50, score - 6) },
-      { label: "Реализуемость", value: Math.min(99, score + 1) },
-      { label: "Конкурентное преимущество", value: Math.max(50, score - 8) },
+      { label: "Market Potential", value: Math.min(99, score + 4) },
+      { label: "Financial Stability", value: Math.max(50, score - 6) },
+      { label: "Feasibility", value: Math.min(99, score + 1) },
+      { label: "Competitive Advantage", value: Math.max(50, score - 8) },
     ],
-    summary: `${raw.name} — бизнес-идея в сфере ${raw.industry || "вашей индустрии"}. ${raw.description ? String(raw.description).slice(0, 200) : ""} AI-команда проанализировала проект и подготовила стратегию.`,
+    summary: `${raw.name} is a business idea in ${raw.industry || "your industry"}. ${raw.description ? String(raw.description).slice(0, 200) : ""} The AI team has analyzed the project and prepared a strategy.`,
     financials: [
-      { label: "Прогноз выручки (год 1)", value: revenueDisplay, numeric: score * 3 },
-      { label: "Прогноз выручки (год 3)", value: `$${(score * 0.03).toFixed(1)}M`, numeric: score * 30 },
-      { label: "Точка безубыточности", value: score > 80 ? "14 месяцев" : "20 месяцев" },
-      { label: "LTV пользователя", value: `$${(score * 2).toFixed(0)}` },
+      { label: "Revenue Forecast (Year 1)", value: revenueDisplay, numeric: score * 3 },
+      { label: "Revenue Forecast (Year 3)", value: `$${(score * 0.03).toFixed(1)}M`, numeric: score * 30 },
+      { label: "Breakeven Point", value: score > 80 ? "14 months" : "20 months" },
+      { label: "User LTV", value: `$${(score * 2).toFixed(0)}` },
       { label: "CAC", value: `$${Math.floor(score / 3)}` },
       { label: "LTV/CAC", value: `${(score / 15).toFixed(1)}x` },
-      { label: "Таймфрейм", value: `${raw.timeframe || "12"} месяцев` },
+      { label: "Timeframe", value: `${raw.timeframe || "12"} months` },
     ],
     market: [
-      { label: "TAM (общий рынок)", value: raw.market ? String(raw.market) : `$${(score * 50).toFixed(0)}M`, numeric: score * 50 },
-      { label: "SAM (достижимый)", value: `$${(score * 10).toFixed(0)}M`, numeric: score * 10 },
-      { label: "SOM (целевой)", value: `$${score}M`, numeric: score },
-      { label: "Рост рынка", value: raw.growth ? String(raw.growth) : `+${Math.floor(score / 7)}%/год` },
+      { label: "TAM (Total Market)", value: raw.market ? String(raw.market) : `$${(score * 50).toFixed(0)}M`, numeric: score * 50 },
+      { label: "SAM (Serviceable)", value: `$${(score * 10).toFixed(0)}M`, numeric: score * 10 },
+      { label: "SOM (Target)", value: `$${score}M`, numeric: score },
+      { label: "Market Growth", value: raw.growth ? String(raw.growth) : `+${Math.floor(score / 7)}%/yr` },
     ],
     risks: [
-      { level: "medium", title: "Конкурентная среда", desc: `В сфере ${raw.industry || "вашей индустрии"} присутствуют устоявшиеся игроки с ресурсами.` },
-      { level: score > 80 ? "low" : "medium", title: "Привлечение клиентов", desc: "Стоимость привлечения может вырасти при масштабировании." },
-      { level: "low", title: "Операционные риски", desc: "Требуется выстроить процессы и команду до масштабирования." },
+      { level: "medium", title: "Competitive Environment", desc: `The ${raw.industry || "your industry"} space has established players with resources.` },
+      { level: score > 80 ? "low" : "medium", title: "Customer Acquisition", desc: "Acquisition cost could rise as the business scales." },
+      { level: "low", title: "Operational Risks", desc: "Processes and team need to be built out before scaling." },
     ],
   };
 }
@@ -177,7 +177,7 @@ function AnimatedGauge({ score, color, size = 72, delay = 0, showLabel = true }:
       {showLabel && (
         <text x={cx} y={cy + size * 0.22} textAnchor="middle"
           fontSize={size * 0.09} fill="rgba(255,255,255,0.25)"
-          fontFamily="system-ui" letterSpacing="1">БАЛЛ</text>
+          fontFamily="system-ui" letterSpacing="1">SCORE</text>
       )}
     </svg>
   );
@@ -211,8 +211,8 @@ function DetailedRevenueChart({ financials, timeframe }: {
   const svgRef = useRef<SVGSVGElement>(null);
   const [hoverIdx, setHoverIdx] = useState<number | null>(null);
 
-  const yr1 = financials.find(f => f.label.toLowerCase().includes("год 1") || f.label.toLowerCase().includes("year 1"));
-  const yr3 = financials.find(f => f.label.toLowerCase().includes("год 3") || f.label.toLowerCase().includes("year 3"));
+  const yr1 = financials.find(f => f.label.toLowerCase().includes("year 1"));
+  const yr3 = financials.find(f => f.label.toLowerCase().includes("year 3"));
   const v1 = yr1?.numeric ?? 100;
   const v3 = yr3?.numeric ?? v1 * 10;
 
@@ -226,10 +226,10 @@ function DetailedRevenueChart({ financials, timeframe }: {
 
   // Date labels starting 6 months before "now"
   const now = new Date(2026, 0, 1);
-  const RU_MONTHS = ["ЯНВ","ФЕВ","МАР","АПР","МАЙ","ИЮН","ИЮЛ","АВГ","СЕН","ОКТ","НОЯ","ДЕК"];
+  const EN_MONTHS = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
   const dateLabels = Array.from({ length: months }, (_, i) => {
     const d = new Date(now.getFullYear(), now.getMonth() + i - 2, 1);
-    return `${RU_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+    return `${EN_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
   });
 
   const W = 600, H = 220;
@@ -276,7 +276,7 @@ function DetailedRevenueChart({ financials, timeframe }: {
     }}>
       <div style={{ padding: "16px 20px 0" }}>
         <div style={{ fontSize: 9, fontWeight: 800, letterSpacing: "0.22em", color: "rgba(255,255,255,0.28)", textTransform: "uppercase", marginBottom: 4 }}>
-          Детализированный прогноз выручки
+          Detailed Revenue Forecast
         </div>
       </div>
       <svg
@@ -318,7 +318,7 @@ function DetailedRevenueChart({ financials, timeframe }: {
         {/* Y-axis label rotated */}
         <text x={10} y={H / 2} textAnchor="middle" fill="rgba(255,255,255,0.2)" fontSize="8"
           fontFamily="ui-monospace,monospace" transform={`rotate(-90, 10, ${H / 2})`}>
-          ВЫРУЧКА ($)
+          REVENUE ($)
         </text>
 
         {/* X-axis labels */}
@@ -328,7 +328,7 @@ function DetailedRevenueChart({ financials, timeframe }: {
           </text>
         ))}
         <text x={W / 2} y={H - 0} textAnchor="middle" fill="rgba(255,255,255,0.15)" fontSize="7.5" fontFamily="ui-monospace,monospace">
-          ВРЕМЯ (МЕСЯЦЫ/ГОДЫ)
+          TIME (MONTHS/YEARS)
         </text>
 
         {/* Area + line (clipped) */}
@@ -398,10 +398,10 @@ function DetailedRevenueChart({ financials, timeframe }: {
 function MarketSphereChart({ items }: { items: { label: string; value: string; numeric?: number }[] }) {
   const animated = useAnimated(120);
 
-  const tam  = items.find(m => m.label.toLowerCase().includes("tam") || m.label.toLowerCase().includes("общий"));
-  const sam  = items.find(m => m.label.toLowerCase().includes("sam") || m.label.toLowerCase().includes("достиж"));
-  const som  = items.find(m => m.label.toLowerCase().includes("som") || m.label.toLowerCase().includes("целевой"));
-  const cagr = items.find(m => m.label.toLowerCase().includes("рост") || m.label.toLowerCase().includes("cagr"));
+  const tam  = items.find(m => m.label.toLowerCase().includes("tam") || m.label.toLowerCase().includes("total"));
+  const sam  = items.find(m => m.label.toLowerCase().includes("sam") || m.label.toLowerCase().includes("serviceable"));
+  const som  = items.find(m => m.label.toLowerCase().includes("som") || m.label.toLowerCase().includes("target"));
+  const cagr = items.find(m => m.label.toLowerCase().includes("growth") || m.label.toLowerCase().includes("cagr"));
 
   // ── Concentric radii (area ∝ market value) ──
   const nTam = tam?.numeric || 1000;
@@ -412,13 +412,13 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
   const rSom = Math.max(30, R * Math.sqrt(Math.min(1, nSom / nTam)));
 
   const cards = [
-    { key: "TAM", label: "TAM: " + (tam?.value ?? "—"), sub: "(Общий адресный рынок)", color: "#818cf8", rgb: "129,140,248",
+    { key: "TAM", label: "TAM: " + (tam?.value ?? "—"), sub: "(Total addressable market)", color: "#818cf8", rgb: "129,140,248",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> },
-    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Достижимый рынок)", color: "#6366f1", rgb: "99,102,241",
+    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Serviceable available market)", color: "#6366f1", rgb: "99,102,241",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> },
-    { key: "SOM", label: "SOM: " + (som?.value ?? "—"), sub: "(Достижимый рыночный охват)", color: "#10b981", rgb: "16,185,129",
+    { key: "SOM", label: "SOM: " + (som?.value ?? "—"), sub: "(Serviceable obtainable market)", color: "#10b981", rgb: "16,185,129",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M17 3l1 4-4 1"/></svg> },
-    { key: "CAGR", label: "CAGR: " + (cagr?.value ?? "+25%"), sub: "(Среднегодовой темп роста)", color: "#f59e0b", rgb: "245,158,11",
+    { key: "CAGR", label: "CAGR: " + (cagr?.value ?? "+25%"), sub: "(Compound annual growth rate)", color: "#f59e0b", rgb: "245,158,11",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/><rect x="2" y="14" width="4" height="7" rx="1"/><rect x="9" y="10" width="4" height="11" rx="1"/><rect x="16" y="6" width="4" height="15" rx="1"/></svg> },
   ];
 
@@ -428,7 +428,7 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
       borderRadius: 16, overflow: "hidden", position: "relative",
     }}>
       <div style={{ padding: "14px 20px 0", fontSize: 9, fontWeight: 800, letterSpacing: "0.22em", color: "rgba(255,255,255,0.28)", textTransform: "uppercase" }}>
-        Анализ объёма рынка (TAM / SAM / SOM)
+        Market Size Analysis (TAM / SAM / SOM)
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", alignItems: "center" }}>
         {/* Concentric nested circles (TAM ⊃ SAM ⊃ SOM) */}
@@ -508,9 +508,9 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
 function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] }) {
   const animated = useAnimated(150);
   const axes = risks.length >= 3 ? risks.slice(0, 6) : [
-    { title: "Конкуренция", level: "high" }, { title: "Рынок", level: "medium" },
-    { title: "Финансы", level: "high" }, { title: "Команда", level: "medium" },
-    { title: "Регуляторика", level: "low" }, { title: "Технологии", level: "medium" },
+    { title: "Competition", level: "high" }, { title: "Market", level: "medium" },
+    { title: "Finance", level: "high" }, { title: "Team", level: "medium" },
+    { title: "Regulatory", level: "low" }, { title: "Technology", level: "medium" },
   ];
   const n = axes.length;
   const cx = 110, cy = 110, r = 78;
@@ -536,7 +536,7 @@ function AnimatedRadar({ risks }: { risks: { level: string; title: string }[] })
       border: "1px solid rgba(255,255,255,0.07)", borderRadius: 16, padding: 20, position: "relative", overflow: "hidden",
     }}>
       <div style={{ position: "absolute", inset: 0, opacity: 0.02, backgroundImage: "linear-gradient(rgba(255,255,255,0.4) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.4) 1px,transparent 1px)", backgroundSize: "28px 28px" }} />
-      <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 4 }}>Матрица угроз</div>
+      <div style={{ fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.3)", textTransform: "uppercase", letterSpacing: "0.2em", marginBottom: 4 }}>Threat Matrix</div>
       <div style={{ display: "flex", justifyContent: "center" }}>
         <svg viewBox="0 0 220 220" width={200} height={200}>
           <defs>
@@ -597,7 +597,7 @@ function ScoreGauge({ score }: { score: number }) {
           style={{ transition: "stroke-dasharray 1.5s cubic-bezier(0.34,1.1,0.64,1) 0.2s", filter: `drop-shadow(0 0 6px ${color})` }} />
       </g>
       <text x={cx} y={cy + 8} textAnchor="middle" fontSize="26" fontWeight="800" fill="white" fontFamily="ui-monospace,monospace">{val}</text>
-      <text x={cx} y={cy + 23} textAnchor="middle" fontSize="7.5" fill="rgba(255,255,255,0.28)" fontFamily="system-ui" letterSpacing="1.5">БИЗНЕС-БАЛЛ</text>
+      <text x={cx} y={cy + 23} textAnchor="middle" fontSize="7.5" fill="rgba(255,255,255,0.28)" fontFamily="system-ui" letterSpacing="1.5">BUSINESS SCORE</text>
     </svg>
   );
 }
@@ -619,8 +619,8 @@ function AgentPanel({ letter, name, subtitle, color, score, opinion, delay = 0, 
     started.current = true;
     setStreaming(true);
 
-    const persona = `Ты — ${name}, ${subtitle}. Отвечай строго от лица этого специалиста, по-русски, без markdown-символов, конкретно и профессионально.`;
-    const message = `${projectContext}\n\nДай оценку проекта со своей точки зрения (${subtitle}). Ровно 7–10 предложений. ВАЖНО: каждое предложение — максимум 5–7 слов, очень коротко и чётко. Только факты и выводы. По-русски, без списков и markdown.`;
+    const persona = `You are ${name}, ${subtitle}. Respond strictly in character as this specialist, in English, without markdown symbols, concretely and professionally.`;
+    const message = `${projectContext}\n\nGive your assessment of the project from your perspective (${subtitle}). Exactly 7-10 sentences. IMPORTANT: each sentence must be a maximum of 5-7 words, very short and crisp. Facts and conclusions only. In English, no lists or markdown.`;
 
     try {
       const res = await fetch("/api/chat/direct", {
@@ -685,7 +685,7 @@ function AgentPanel({ letter, name, subtitle, color, score, opinion, delay = 0, 
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
           <div style={{ fontSize: 20, fontWeight: 900, color: scoreColor, fontFamily: "ui-monospace,monospace", lineHeight: 1 }}>{score}</div>
-          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em" }}>БАЛЛ</div>
+          <div style={{ fontSize: 8, color: "rgba(255,255,255,0.25)", letterSpacing: "0.1em" }}>SCORE</div>
         </div>
       </div>
       <div style={{ paddingLeft: 4 }}>
@@ -743,8 +743,8 @@ function AgentBrief({ letter, name, role, color, rgb, text }:
     const voices = window.speechSynthesis.getVoices();
     const ru = voices.filter(v => v.lang?.toLowerCase().startsWith("ru"));
     if (ru.length === 0) return null;
-    const female = ["irina","svetlana","dariya","milena","alyona","katya","tatyana","elena","female","женск"];
-    const male   = ["pavel","dmitry","yuri","maxim","male","мужск","aleksandr"];
+    const female = ["irina","svetlana","dariya","milena","alyona","katya","tatyana","elena","female"];
+    const male   = ["pavel","dmitry","yuri","maxim","male","aleksandr"];
     const quality = ["google","natural","online","neural","premium","enhanced"];
     const score = (v: SpeechSynthesisVoice) => {
       const n = v.name.toLowerCase();
@@ -767,7 +767,7 @@ function AgentBrief({ letter, name, role, color, rgb, text }:
     const next = () => {
       if (i >= sentences.length) { setSpeaking(false); return; }
       const u = new SpeechSynthesisUtterance(sentences[i]);
-      u.lang = "ru-RU";
+      u.lang = "en-US";
       u.rate = 0.98;
       u.pitch = 1.12;
       if (voice) u.voice = voice;
@@ -850,7 +850,7 @@ function AgentBrief({ letter, name, role, color, rgb, text }:
 
       {/* Speak button */}
       {supported && (
-        <button onClick={toggleSpeak} title={speaking ? "Остановить" : "Озвучить"} style={{
+        <button onClick={toggleSpeak} title={speaking ? "Stop" : "Play"} style={{
           flexShrink: 0, height: 38, padding: "0 14px", borderRadius: 11,
           display: "flex", alignItems: "center", gap: 7, cursor: "pointer",
           background: speaking ? `rgba(${rgb},0.22)` : `rgba(${rgb},0.12)`,
@@ -861,7 +861,7 @@ function AgentBrief({ letter, name, role, color, rgb, text }:
           {speaking ? (
             <>
               <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}><rect x="3" y="3" width="10" height="10" rx="2"/></svg>
-              Стоп
+              Stop
             </>
           ) : (
             <>
@@ -869,7 +869,7 @@ function AgentBrief({ letter, name, role, color, rgb, text }:
                 <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
                 <path d="M15.54 8.46a5 5 0 0 1 0 7.07M19.07 4.93a10 10 0 0 1 0 14.14"/>
               </svg>
-              Озвучить
+              Play
             </>
           )}
         </button>
@@ -914,7 +914,7 @@ function agentColor(role: string) {
 
 const SCORE_METRICS = [
   {
-    key: 0, label: "РЫНОЧНЫЙ ПОТЕНЦИАЛ", color: "#8b5cf6", rgb: "139,92,246",
+    key: 0, label: "MARKET POTENTIAL", color: "#8b5cf6", rgb: "139,92,246",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
         <circle cx="24" cy="24" r="22" fill="url(#mg1)" opacity={0.18}/>
@@ -929,10 +929,10 @@ const SCORE_METRICS = [
         <circle cx="32" cy="36" r="3" stroke="#f59e0b" strokeWidth="1.5" fill="none"/>
       </svg>
     ),
-    desc: "Оценка объёма рынка и темпов роста.",
+    desc: "Assessment of market size and growth rate.",
   },
   {
-    key: 1, label: "ФИНАНСОВАЯ УСТОЙЧИВОСТЬ", color: "#3b82f6", rgb: "59,130,246",
+    key: 1, label: "FINANCIAL STABILITY", color: "#3b82f6", rgb: "59,130,246",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
         <defs><radialGradient id="mg2" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#3b82f6"/><stop offset="100%" stopColor="#1c4fff" stopOpacity="0"/></radialGradient></defs>
@@ -943,10 +943,10 @@ const SCORE_METRICS = [
         <path d="M24 8 v6 M24 38 v4 M20 12 c0-2.2 1.8-4 4-4 s4 1.8 4 4 c0 2-1.2 3.5-3 4 v2 h-2 v-2 c-1.8-.5-3-2-3-4z" stroke="#f59e0b" strokeWidth="1.2" fill="none"/>
       </svg>
     ),
-    desc: "Коэффициент ликвидности и долговой нагрузки.",
+    desc: "Liquidity ratio and debt load.",
   },
   {
-    key: 2, label: "РЕАЛИЗУЕМОСТЬ", color: "#10b981", rgb: "16,185,129",
+    key: 2, label: "FEASIBILITY", color: "#10b981", rgb: "16,185,129",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
         <defs><radialGradient id="mg3" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#10b981"/><stop offset="100%" stopColor="#00e7a7" stopOpacity="0"/></radialGradient></defs>
@@ -958,10 +958,10 @@ const SCORE_METRICS = [
         <circle cx="33.9" cy="14.1" r="2" fill="#10b981" opacity={0.8}/>
       </svg>
     ),
-    desc: "Техническая и операционная готовность.",
+    desc: "Technical and operational readiness.",
   },
   {
-    key: 3, label: "КОНКУРЕНТНОЕ ПРЕИМУЩЕСТВО", color: "#f59e0b", rgb: "245,158,11",
+    key: 3, label: "COMPETITIVE ADVANTAGE", color: "#f59e0b", rgb: "245,158,11",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
         <defs><radialGradient id="mg4" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#f59e0b"/><stop offset="100%" stopColor="#ff8800" stopOpacity="0"/></radialGradient></defs>
@@ -971,16 +971,16 @@ const SCORE_METRICS = [
         <text x="24" y="40" textAnchor="middle" fontSize="7" fill="#f59e0b" fontWeight="700" letterSpacing="0.5" opacity={0.6}>MARKET</text>
       </svg>
     ),
-    desc: "Уникальность продукта и барьеры входа.",
+    desc: "Product uniqueness and entry barriers.",
   },
 ];
 
 // Explains WHY a category earned its score (transparency)
 const SCORE_REASONS: Record<number, { hi: string; mid: string; lo: string }> = {
-  0: { hi: "Крупный растущий рынок, спрос подтверждён",       mid: "Рынок есть, но высокая конкуренция",        lo: "Узкая или насыщенная ниша" },
-  1: { hi: "Здоровая unit-экономика, LTV/CAC > 3:1",          mid: "Модель рабочая, нужен контроль burn rate",   lo: "Слабая экономика, высокий CAC" },
-  2: { hi: "Реализуемо текущей командой и стеком",            mid: "Выполнимо, но нужны процессы и найм",        lo: "Высокая операционная сложность" },
-  3: { hi: "Чёткая дифференциация и барьеры входа",           mid: "Преимущество есть, но легко копируемо",      lo: "Слабая дифференциация от лидеров" },
+  0: { hi: "Large growing market, demand confirmed",       mid: "Market exists, but competition is high",        lo: "Narrow or saturated niche" },
+  1: { hi: "Healthy unit economics, LTV/CAC > 3:1",          mid: "Model works, burn rate needs control",   lo: "Weak economics, high CAC" },
+  2: { hi: "Achievable with the current team and stack",            mid: "Doable, but needs process and hiring",        lo: "High operational complexity" },
+  3: { hi: "Clear differentiation and entry barriers",           mid: "There is an advantage, but it's easily copied",      lo: "Weak differentiation from leaders" },
 };
 function scoreReason(key: number, val: number): string {
   const r = SCORE_REASONS[key];
@@ -1002,7 +1002,7 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
     aiResults.find(r => r.role === "Strategy Advisor")?.recommendations || "";
   const recLines = ceoSummary
     ? ceoSummary.replace(/\d+\./g, "|").split("|").map((s: string) => s.trim()).filter((s: string) => s.length > 12).slice(0, 3)
-    : ["Оптимизировать CAC для улучшения финансовой устойчивости.", "Усилить барьеры входа.", "Ускорить выход на рынок."];
+    : ["Optimize CAC to improve financial stability.", "Strengthen entry barriers.", "Accelerate market entry."];
 
   return (
     <div style={{
@@ -1029,13 +1029,13 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
                 style={{ transition: "stroke-dasharray 1.5s cubic-bezier(0.22,1,0.36,1) 0.4s", filter: `drop-shadow(0 0 8px ${scoreColor})` }} />
             </g>
             <text x="65" y="60" textAnchor="middle" fontSize="30" fontWeight="900" fill={scoreColor} fontFamily="ui-monospace,monospace">{scoreVal}</text>
-            <text x="65" y="76" textAnchor="middle" fontSize="7" fontWeight="700" fill="rgba(255,255,255,0.35)" letterSpacing="1.5">БИЗНЕС-БАЛЛ</text>
+            <text x="65" y="76" textAnchor="middle" fontSize="7" fontWeight="700" fill="rgba(255,255,255,0.35)" letterSpacing="1.5">BUSINESS SCORE</text>
           </svg>
           <div style={{ fontSize: 9, fontWeight: 700, color: "rgba(255,255,255,0.25)", letterSpacing: "0.12em", textAlign: "center", marginTop: -4 }}>
-            {project.score >= 85 ? "ОТЛИЧНО" : project.score >= 70 ? "ХОРОШО" : "ТРЕБУЕТ РАБОТЫ"}
+            {project.score >= 85 ? "EXCELLENT" : project.score >= 70 ? "GOOD" : "NEEDS WORK"}
           </div>
           <div style={{ fontSize: 8, color: "rgba(255,255,255,0.28)", textAlign: "center", marginTop: 8, lineHeight: 1.5, maxWidth: 150 }}>
-            Средневзвешенное по 4 категориям →
+            Weighted average across 4 categories →
           </div>
         </div>
 
@@ -1081,7 +1081,7 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", flexShrink: 0 }} />
-            <span style={{ fontSize: 8.5, fontWeight: 800, color: "#818cf8", letterSpacing: "0.14em" }}>РЕКОМЕНДАЦИИ ИИ</span>
+            <span style={{ fontSize: 8.5, fontWeight: 800, color: "#818cf8", letterSpacing: "0.14em" }}>AI RECOMMENDATIONS</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
             {recLines.map((line: string, i: number) => (
@@ -1101,7 +1101,7 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
 
 // ─── TABS ─────────────────────────────────────────────────────────────────────
 
-const TABS = ["Диагностика", "AI Команда", "Финансы", "Рынок", "Риски"];
+const TABS = ["Diagnostics", "AI Team", "Finance", "Market", "Risks"];
 
 // ─── DIAGNOSTICS TAB ──────────────────────────────────────────────────────────
 
@@ -1117,11 +1117,11 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
 
   // Сервер принимает вопрос не длиннее 1000 символов: контекст проекта режем,
   // оставляя место инструкции (~250 символов) в самом сообщении.
-  const projectContext = `Проект: "${project.name}". ${project.subtitle}. Описание: ${project.summary}. Ключевые финансовые показатели: ${project.financials.map(f => `${f.label} — ${f.value}`).join(", ")}.`.slice(0, 700);
+  const projectContext = `Project: "${project.name}". ${project.subtitle}. Description: ${project.summary}. Key financial metrics: ${project.financials.map(f => `${f.label} — ${f.value}`).join(", ")}.`.slice(0, 700);
 
   const avgScore = Math.round(agents.reduce((s, a) => s + a.score, 0) / agents.length);
 
-  const diagBrief = `Итог совета: проект набрал ${project.score} из 100 — ${project.score >= 85 ? "сильная идея, можно запускать" : project.score >= 70 ? "жизнеспособно, но есть что доработать" : "требует серьёзной проработки"}. Сильнее всего — рыночный потенциал, слабее — конкурентное преимущество. Ниже каждый директор даёт свою оценку.`;
+  const diagBrief = `Board summary: the project scored ${project.score} out of 100 — ${project.score >= 85 ? "a strong idea, ready to launch" : project.score >= 70 ? "viable, but there's room to refine" : "needs serious work"}. Strongest area — market potential, weakest — competitive advantage. Below, each executive gives their own assessment.`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1134,17 +1134,17 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
       }}>
         <div>
           <div style={{ fontSize: 22, fontWeight: 900, color: "white", fontFamily: "ui-monospace,monospace" }}>{agents.length}</div>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em" }}>СПЕЦИАЛИСТОВ</div>
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em" }}>SPECIALISTS</div>
         </div>
         <div style={{ width: 1, height: 32, background: "rgba(255,255,255,0.07)" }} />
         <div>
           <div style={{ fontSize: 22, fontWeight: 900, color: "#6366f1", fontFamily: "ui-monospace,monospace" }}>{avgScore}</div>
-          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em" }}>СР. БАЛЛ</div>
+          <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em" }}>AVG SCORE</div>
         </div>
         <div style={{ width: 1, height: 32, background: "rgba(255,255,255,0.07)" }} />
         <div style={{ flex: 1 }}>
           <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)", lineHeight: 1.5 }}>
-            Полный анализ от {agents.length} AI-специалистов. Каждый эксперт оценил проект по своей области компетенции.
+            Full analysis from {agents.length} AI specialists. Each expert assessed the project within their area of expertise.
           </div>
         </div>
       </div>
@@ -1159,7 +1159,7 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
             subtitle={agent.title}
             color={agent.color}
             score={agent.score}
-            opinion={agent.opinion || "Анализ проекта завершён."}
+            opinion={agent.opinion || "Project analysis complete."}
             delay={80 + i * 50}
             agentId={agent.id}
             projectContext={projectContext}
@@ -1261,17 +1261,17 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
     <div style={{ position: "relative" }}>
       <div style={{ marginBottom: 14 }}>
         <AgentBrief letter="S" name="Sophia Rivers" role="CEO" color="#6366f1" rgb="99,102,241"
-          text="Это ваша AI-команда — 20 специалистов, каждый разобрал проект со своей стороны. Кликните на любого агента, чтобы увидеть его полный анализ. Нажмите «Озвучить», и я вкратце расскажу главное голосом." />
+          text="This is your AI team — 20 specialists, each has broken down the project from their angle. Click any agent to see their full analysis. Press \u201cPlay\u201d and I'll walk you through the highlights." />
       </div>
 
       {/* Header row */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
         <div>
           <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.35)", letterSpacing: "0.16em", textTransform: "uppercase" }}>
-            Исполнительный совет — организационная структура
+            Executive Board — Organizational Structure
           </div>
           <div style={{ fontSize: 11.5, color: "rgba(255,255,255,0.3)", marginTop: 3 }}>
-            {aiResults.length} из 20 агентов активны · нажмите на карточку для полного анализа
+            {aiResults.length} of 20 agents active · click a card for the full analysis
           </div>
         </div>
         {isUserProject && (
@@ -1283,7 +1283,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
             boxShadow: isReanalyzing ? "none" : "0 6px 18px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)",
           }}>
             <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 11, height: 11 }}><polygon points="3,2 14,8 3,14"/></svg>
-            {isReanalyzing ? `Анализ… ${reanalyzeProgress}/8` : "Запустить анализ"}
+            {isReanalyzing ? `Analyzing… ${reanalyzeProgress}/8` : "Run Analysis"}
           </button>
         )}
       </div>
@@ -1293,15 +1293,15 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
           borderRadius: 18, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)",
           padding: "56px 24px", textAlign: "center",
         }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 8 }}>AI-анализ ещё не запущен</div>
+          <div style={{ fontSize: 14, fontWeight: 700, color: "white", marginBottom: 8 }}>AI analysis hasn't been run yet</div>
           <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", marginBottom: 20, lineHeight: 1.6, maxWidth: 320, marginInline: "auto" }}>
-            Запустите анализ, чтобы активировать всех 20 агентов совета.
+            Run the analysis to activate all 20 board agents.
           </p>
           {isUserProject && (
             <button onClick={onReanalyze} disabled={isReanalyzing}
               style={{ height: 42, padding: "0 28px", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: 11, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
               <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}><polygon points="3,2 14,8 3,14"/></svg>
-              {isReanalyzing ? `Запуск… ${reanalyzeProgress}/8` : "Запустить анализ"}
+              {isReanalyzing ? `Starting… ${reanalyzeProgress}/8` : "Run Analysis"}
             </button>
           )}
         </div>
@@ -1319,8 +1319,8 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
               <span style={{ width: 48, height: 48, borderRadius: 13, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
                 background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>C</span>
               <span style={{ flex: 1, minWidth: 0 }}>
-                <span style={{ display: "block", fontSize: 14.5, fontWeight: 800, color: "white" }}>CEO — Генеральный директор</span>
-                <span style={{ display: "block", fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Синтезирует выводы всех директоров в единую стратегию</span>
+                <span style={{ display: "block", fontSize: 14.5, fontWeight: 800, color: "white" }}>CEO — Chief Executive Officer</span>
+                <span style={{ display: "block", fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Synthesizes every director's findings into a single strategy</span>
               </span>
               {ceo && <span style={{ fontSize: 26, fontWeight: 900, fontFamily: "ui-monospace,monospace", color: "#818cf8" }}>{ceo.score}</span>}
             </button>
@@ -1337,7 +1337,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
                   transition: `opacity 0.4s ${di * 40}ms, transform 0.4s ${di * 40}ms`,
                 }}>
                   <div style={{ fontSize: 9, fontWeight: 700, color: leadColor, letterSpacing: "0.12em", textTransform: "uppercase", marginBottom: 8, paddingLeft: 2 }}>
-                    {div.badge} · направление
+                    {div.badge} · division
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                     <AgentChip role={div.lead} />
@@ -1376,10 +1376,10 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
             {/* Compact stat row */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 8, marginBottom: 16 }}>
               {[
-                ["Модель", "Claude Haiku 4.5"],
-                ["Точность", `${stats.accuracy}%`],
-                ["Задач выполнено", `${stats.tasks}`],
-                ["Ср. время", `${stats.avgTime} мин`],
+                ["Model", "Claude Haiku 4.5"],
+                ["Accuracy", `${stats.accuracy}%`],
+                ["Tasks Completed", `${stats.tasks}`],
+                ["Avg. Time", `${stats.avgTime} min`],
               ].map(([k, v]) => (
                 <div key={k} style={{ padding: "9px 11px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
                   <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.05em", marginBottom: 3 }}>{k}</div>
@@ -1390,10 +1390,10 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
 
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {[
-                { label: "Краткий вывод", text: selAgent.summary },
-                { label: "Анализ", text: selAgent.analysis },
-                { label: "Рекомендации", text: selAgent.recommendations },
-                { label: "Риски", text: selAgent.risks },
+                { label: "Summary", text: selAgent.summary },
+                { label: "Analysis", text: selAgent.analysis },
+                { label: "Recommendations", text: selAgent.recommendations },
+                { label: "Risks", text: selAgent.risks },
               ].filter(s => s.text).map((sec, si) => (
                 <div key={si} style={{ padding: "13px 15px", borderRadius: 12, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
                   <div style={{ fontSize: 9.5, fontWeight: 700, color: "rgba(255,255,255,0.4)", textTransform: "uppercase", letterSpacing: "0.14em", marginBottom: 7 }}>{sec.label}</div>
@@ -1411,25 +1411,25 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
 // Live recompute of the financial model when the operator changes assumptions.
 function parseMoney(s?: string): number {
   if (!s) return 0;
-  const m = s.replace(/\s/g, "").match(/([\d.]+)\s*([KkMmМм]?)/);
+  const m = s.replace(/\s/g, "").match(/([\d.]+)\s*([KkMm]?)/);
   if (!m) return 0;
   const n = parseFloat(m[1]);
   const u = m[2].toLowerCase();
-  if (u === "m" || u === "м") return n * 1000;   // → в тысячах
-  if (u === "k" || u === "к") return n;
+  if (u === "m") return n * 1000;   // → in thousands
+  if (u === "k") return n;
   return n / 1000;
 }
 const fmtMoney = (k: number) => k >= 1000 ? `$${(k / 1000).toFixed(1)}M` : `$${Math.round(k)}K`;
 
 function WhatIfPanel({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
-  const yr1  = financials.find(f => f.label.toLowerCase().includes("год 1"))?.numeric ?? 240;
-  const yr3  = financials.find(f => f.label.toLowerCase().includes("год 3"))?.numeric ?? 2400;
-  const ltv0 = parseMoney(financials.find(f => f.label.toLowerCase().includes("ltv п"))?.value) * 1000 || 180;
+  const yr1  = financials.find(f => f.label.toLowerCase().includes("year 1"))?.numeric ?? 240;
+  const yr3  = financials.find(f => f.label.toLowerCase().includes("year 3"))?.numeric ?? 2400;
+  const ltv0 = parseMoney(financials.find(f => f.label.toLowerCase().includes("ltv"))?.value) * 1000 || 180;
   const cac0 = parseMoney(financials.find(f => f.label.toLowerCase() === "cac" || f.label.toLowerCase().includes("cac"))?.value) * 1000 || 22;
 
-  const [price, setPrice]   = useState(1);   // цена
-  const [cost, setCost]     = useState(1);   // расходы/CAC
-  const [volume, setVolume] = useState(1);   // объём/клиенты
+  const [price, setPrice]   = useState(1);   // price
+  const [cost, setCost]     = useState(1);   // costs/CAC
+  const [volume, setVolume] = useState(1);   // volume/customers
 
   // Recompute
   const rev1 = yr1 * price * volume;
@@ -1455,28 +1455,28 @@ function WhatIfPanel({ financials }: { financials: { label: string; value: strin
   );
 
   const out = [
-    { label: "ВЫРУЧКА ГОД 1", base: yr1,  now: rev1, fmt: fmtMoney },
-    { label: "ВЫРУЧКА ГОД 3", base: yr3,  now: rev3, fmt: fmtMoney },
+    { label: "REVENUE YEAR 1", base: yr1,  now: rev1, fmt: fmtMoney },
+    { label: "REVENUE YEAR 3", base: yr3,  now: rev3, fmt: fmtMoney },
     { label: "LTV / CAC",     base: ltv0 / cac0, now: ratio, fmt: (n: number) => `${n.toFixed(1)}x` },
-    { label: "ОКУПАЕМОСТЬ",   base: beBase, now: be, fmt: (n: number) => `${Math.round(n)} мес`, invert: true },
+    { label: "BREAKEVEN",   base: beBase, now: be, fmt: (n: number) => `${Math.round(n)} mo`, invert: true },
   ];
 
   return (
     <div style={{ borderRadius: 16, border: "1px solid rgba(99,102,241,0.2)", background: "rgba(99,102,241,0.03)", overflow: "hidden" }}>
       <div className="term-mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <span style={{ fontSize: 11, letterSpacing: "0.14em", color: "#a5b4fc" }}>// СИМУЛЯТОР «ЧТО ЕСЛИ?»</span>
+        <span style={{ fontSize: 11, letterSpacing: "0.14em", color: "#a5b4fc" }}>// WHAT-IF SIMULATOR</span>
         {changed && (
-          <button onClick={() => { setPrice(1); setCost(1); setVolume(1); }} style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 7, padding: "3px 9px", cursor: "pointer", letterSpacing: "0.08em" }}>СБРОС</button>
+          <button onClick={() => { setPrice(1); setCost(1); setVolume(1); }} style={{ fontSize: 10, color: "rgba(255,255,255,0.4)", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 7, padding: "3px 9px", cursor: "pointer", letterSpacing: "0.08em" }}>RESET</button>
         )}
       </div>
       <div style={{ display: "grid", gridTemplateColumns: "minmax(220px,1fr) minmax(240px,1.1fr)", gap: 0 }}>
         {/* Controls */}
         <div style={{ padding: "18px 20px", display: "flex", flexDirection: "column", gap: 16, borderRight: "1px solid rgba(255,255,255,0.06)" }}>
-          <Slider label="Цена продукта"     val={price}  set={setPrice}  min={0.5} max={2} unit="цена" />
-          <Slider label="Расходы / CAC"     val={cost}   set={setCost}   min={0.5} max={2} unit="затраты" />
-          <Slider label="Объём / клиенты"   val={volume} set={setVolume} min={0.5} max={2.5} unit="масштаб" />
+          <Slider label="Product Price"     val={price}  set={setPrice}  min={0.5} max={2} unit="price" />
+          <Slider label="Costs / CAC"     val={cost}   set={setCost}   min={0.5} max={2} unit="costs" />
+          <Slider label="Volume / Customers"   val={volume} set={setVolume} min={0.5} max={2.5} unit="scale" />
           <p style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", lineHeight: 1.5, margin: 0 }}>
-            Двигайте параметры — модель пересчитывается мгновенно. Это оценочная проекция, не гарантия.
+            Move the sliders — the model recalculates instantly. This is an estimated projection, not a guarantee.
           </p>
         </div>
         {/* Outputs */}
@@ -1491,7 +1491,7 @@ function WhatIfPanel({ financials }: { financials: { label: string; value: strin
                 <div className="term-value" style={{ fontSize: 21, fontWeight: 800, color: col, lineHeight: 1 }}>{o.fmt(o.now)}</div>
                 {!same && (
                   <div className="term-mono" style={{ fontSize: 9.5, color: "rgba(255,255,255,0.3)", marginTop: 4 }}>
-                    было {o.fmt(o.base)}
+                    was {o.fmt(o.base)}
                   </div>
                 )}
               </div>
@@ -1506,22 +1506,22 @@ function WhatIfPanel({ financials }: { financials: { label: string; value: strin
 // ─── SCENARIOS (crisis / base / growth) ───────────────────────────────────────
 function ScenariosPanel({ financials }: { financials: { label: string; value: string; numeric?: number }[] }) {
   const animated = useAnimated(150);
-  const yr3 = financials.find(f => f.label.toLowerCase().includes("год 3"))?.numeric ?? 2400;
+  const yr3 = financials.find(f => f.label.toLowerCase().includes("year 3"))?.numeric ?? 2400;
   const be0 = 18;
 
   const SC = [
-    { key: "crisis", label: "ПЕССИМИСТИЧНЫЙ", tone: "#f87171", rgb: "248,113,113", rev: 0.55, be: 1.6,
-      note: "Медленный рост, высокий CAC, сжатие рынка. Нужен запас хода и жёсткий контроль burn." },
-    { key: "base",   label: "БАЗОВЫЙ",        tone: "#a5b4fc", rgb: "99,102,241", rev: 1.0,  be: 1.0,
-      note: "Реалистичный сценарий при текущих допущениях и стабильном исполнении плана." },
-    { key: "growth", label: "ОПТИМИСТИЧНЫЙ",  tone: "#34d399", rgb: "52,211,153", rev: 1.7,  be: 0.65,
-      note: "PMF найден, органика и сетевой эффект работают, привлечение дешевеет с масштабом." },
+    { key: "crisis", label: "PESSIMISTIC", tone: "#f87171", rgb: "248,113,113", rev: 0.55, be: 1.6,
+      note: "Slow growth, high CAC, market contraction. Requires runway and tight burn control." },
+    { key: "base",   label: "BASE",        tone: "#a5b4fc", rgb: "99,102,241", rev: 1.0,  be: 1.0,
+      note: "Realistic scenario under current assumptions and steady plan execution." },
+    { key: "growth", label: "OPTIMISTIC",  tone: "#34d399", rgb: "52,211,153", rev: 1.7,  be: 0.65,
+      note: "PMF found, organic growth and network effects kick in, acquisition gets cheaper at scale." },
   ];
 
   return (
     <div style={{ borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", overflow: "hidden" }}>
       <div className="term-mono" style={{ padding: "13px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 11, letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textTransform: "uppercase" }}>
-        // сценарный анализ — выручка год 3
+        // scenario analysis — year 3 revenue
       </div>
       <div className="grid grid-cols-1 md:grid-cols-3" style={{ gap: 0 }}>
         {SC.map((s, i) => {
@@ -1539,7 +1539,7 @@ function ScenariosPanel({ financials }: { financials: { label: string; value: st
                 <span className="term-mono" style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", color: s.tone }}>{s.label}</span>
               </div>
               <div className="term-value" style={{ fontSize: 30, fontWeight: 800, color: "#fff", lineHeight: 1, marginBottom: 4 }}>{fmtMoney(rev)}</div>
-              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>окупаемость ≈ {be} мес</div>
+              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.35)", marginBottom: 14 }}>breakeven ≈ {be} mo</div>
               {/* bar */}
               <div style={{ height: 4, borderRadius: 2, background: "rgba(255,255,255,0.06)", overflow: "hidden", marginBottom: 14 }}>
                 <div style={{ height: "100%", borderRadius: 2, background: s.tone, width: animated ? `${Math.min(100, s.rev / 1.7 * 100)}%` : "0%", transition: `width 1.2s cubic-bezier(0.22,1,0.36,1) ${200 + i * 100}ms` }} />
@@ -1558,23 +1558,23 @@ function ScenariosPanel({ financials }: { financials: { label: string; value: st
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
   const animated = useAnimated(100);
-  const cfo = aiResults.find((r: { role: string }) => r.role === "CFO" || r.role?.toLowerCase().includes("финанс"));
-  const coo = aiResults.find((r: { role: string }) => r.role === "COO" || r.role?.toLowerCase().includes("операц"));
+  const cfo = aiResults.find((r: { role: string }) => r.role === "CFO" || r.role?.toLowerCase().includes("financ"));
+  const coo = aiResults.find((r: { role: string }) => r.role === "COO" || r.role?.toLowerCase().includes("operatio"));
   const ceo = aiResults.find((r: { role: string }) => r.role === "CEO" || r.role?.toLowerCase().includes("ceo"));
 
   const FIN_AGENTS = [
-    cfo ? { ...cfo, color: "#3b82f6", letter: "J", subtitle: "Финансовый директор — прогноз", opinion: [cfo.analysis, cfo.recommendations, cfo.forecast].filter(Boolean).join(" ").slice(0, 500) } : null,
-    coo ? { ...coo, color: "#10b981", letter: "E", subtitle: "Операционный директор — бюджет", opinion: [coo.analysis, coo.recommendations].filter(Boolean).join(" ").slice(0, 450) } : null,
-    ceo ? { ...ceo, color: "#8b5cf6", letter: "V", subtitle: "Генеральный директор — стратегия", opinion: [ceo.summary, ceo.forecast].filter(Boolean).join(" ").slice(0, 450) } : null,
+    cfo ? { ...cfo, color: "#3b82f6", letter: "J", subtitle: "Chief Financial Officer — forecast", opinion: [cfo.analysis, cfo.recommendations, cfo.forecast].filter(Boolean).join(" ").slice(0, 500) } : null,
+    coo ? { ...coo, color: "#10b981", letter: "E", subtitle: "Chief Operating Officer — budget", opinion: [coo.analysis, coo.recommendations].filter(Boolean).join(" ").slice(0, 450) } : null,
+    ceo ? { ...ceo, color: "#8b5cf6", letter: "V", subtitle: "Chief Executive Officer — strategy", opinion: [ceo.summary, ceo.forecast].filter(Boolean).join(" ").slice(0, 450) } : null,
   ].filter(Boolean) as { role: string; name: string; color: string; letter: string; subtitle: string; score: number; opinion: string }[];
 
-  const yr1 = project.financials.find(f => f.label.toLowerCase().includes("год 1") || f.label.toLowerCase().includes("year 1"));
-  const yr3 = project.financials.find(f => f.label.toLowerCase().includes("год 3") || f.label.toLowerCase().includes("year 3"));
-  const breakeven = project.financials.find(f => f.label.toLowerCase().includes("безубыточ"));
+  const yr1 = project.financials.find(f => f.label.toLowerCase().includes("year 1"));
+  const yr3 = project.financials.find(f => f.label.toLowerCase().includes("year 3"));
+  const breakeven = project.financials.find(f => f.label.toLowerCase().includes("breakeven"));
   const ltv = project.financials.find(f => f.label.toLowerCase().includes("ltv"));
   const cac = project.financials.find(f => f.label.toLowerCase().includes("cac") && !f.label.toLowerCase().includes("/"));
   const ltvcac = project.financials.find(f => f.label.toLowerCase().includes("ltv/cac") || f.label.toLowerCase().includes("ltv/"));
-  const timeframeVal = project.financials.find(f => f.label.toLowerCase().includes("таймфрейм") || f.label.toLowerCase().includes("timeframe"));
+  const timeframeVal = project.financials.find(f => f.label.toLowerCase().includes("timeframe"));
 
   // Icon SVGs as inline components
   const IconRevYear = () => (
@@ -1622,18 +1622,18 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
 
   const IND = "#6366f1", INDRGB = "99,102,241";
   const rightCards = [
-    { label: "ПРОГНОЗ (ГОД 1):", value: yr1?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconRevYear },
-    { label: "ПРОГНОЗ (ГОД 3):", value: yr3?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconTrendUp },
-    { label: "ТОЧКА БЕЗУБЫТОЧНОСТИ:", value: breakeven?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconClock },
+    { label: "FORECAST (YEAR 1):", value: yr1?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconRevYear },
+    { label: "FORECAST (YEAR 3):", value: yr3?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconTrendUp },
+    { label: "BREAKEVEN POINT:", value: breakeven?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconClock },
   ];
   const bottomCards = [
-    { label: "LTV ПОЛЬЗОВАТЕЛЯ:", value: ltv?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconUser },
+    { label: "USER LTV:", value: ltv?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconUser },
     { label: "CAC:", value: cac?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconFilter },
     { label: "LTV/CAC RATIO:", value: ltvcac?.value ?? "—", suffix: true, color: "#10b981", rgb: "16,185,129", Icon: IconCalc },
-    { label: "ТАЙМФРЕЙМ:", value: timeframeVal?.value ?? (project.financials[5]?.value ?? "—"), color: IND, rgb: INDRGB, Icon: IconCalendar },
+    { label: "TIMEFRAME:", value: timeframeVal?.value ?? (project.financials[5]?.value ?? "—"), color: IND, rgb: INDRGB, Icon: IconCalendar },
   ];
 
-  const finBrief = `Коротко о финансах: выручка растёт с ${project.financials[0]?.value ?? ""} до ${project.financials[1]?.value ?? ""} за 3 года, окупаемость — ${project.financials.find(f => f.label.toLowerCase().includes("безубыт"))?.value ?? "около 18 месяцев"}. Соотношение LTV к CAC здоровое. Держите burn под контролем и запас хода минимум 18 месяцев.`;
+  const finBrief = `Quick financial rundown: revenue grows from ${project.financials[0]?.value ?? ""} to ${project.financials[1]?.value ?? ""} over 3 years, breakeven is ${project.financials.find(f => f.label.toLowerCase().includes("breakeven"))?.value ?? "around 18 months"}. The LTV-to-CAC ratio is healthy. Keep burn under control and maintain a runway of at least 18 months.`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -1678,18 +1678,18 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {FIN_AGENTS.map((ag, i) => (
             <AgentPanel key={i} letter={ag.letter} name={ag.role} subtitle={ag.subtitle}
-              color={ag.color} score={ag.score} opinion={ag.opinion || "Финансовый анализ недоступен. Запустите AI-анализ."} delay={i * 120} />
+              color={ag.color} score={ag.score} opinion={ag.opinion || "Financial analysis unavailable. Run the AI analysis."} delay={i * 120} />
           ))}
         </div>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           {[
-            { letter: "J", name: "CFO", subtitle: "Спец. Оценка финансового директора", color: "#3b82f6", score: 79,
-              opinion: "Финансовая структура проекта в целом корректна и требует только доработки в части прогнозирования выручки. Burn rate следует оптимизировать до уровня максимум 15% месячного MRR с первого дня. CAC нужно снизить на 20% для достижения прибыльности в плановые сроки. Создайте runway минимум на 18 месяцев до следующего раунда привлечения инвестиций. P&L должен выйти в плюс не позднее месяца 20 от даты запуска. Revenue-based financing стоит рассмотреть как альтернативу equity dilution на раннем этапе. Unit economics жизнеспособны при достижении масштаба 1000+ активных клиентов. Финансовые KPI необходимо мониторить еженедельно для оперативного реагирования на отклонения." },
-            { letter: "E", name: "COO", subtitle: "Операционный директор — операционные расходы", color: "#10b981", score: 76,
-              opinion: "С операционной точки зрения проект имеет реалистичную структуру затрат для выбранной стадии. Операционные расходы можно оптимизировать на 20–25% при внедрении автоматизации с первых месяцев. COGS следует контролировать еженедельно и не допускать роста выше 35% от выручки. Операционный рычаг начнёт проявляться после достижения 500 платящих клиентов в системе. Fixed costs необходимо удерживать на минимуме в первые 18 месяцев операционной деятельности." },
-            { letter: "V", name: "CEO", subtitle: "Генеральный директор — стратегия роста", color: "#8b5cf6", score: 82,
-              opinion: "Стратегически проект движется в правильном направлении, однако требует чёткой расстановки приоритетов. Следующий раунд финансирования следует поднимать при достижении $100K MRR. Инвестиционная привлекательность проекта высокая при демонстрации устойчивого роста более 15% в месяц. Capital efficiency должна превышать 1.5x MRR/burn на протяжении всего периода до прибыльности." },
+            { letter: "J", name: "CFO", subtitle: "Chief Financial Officer's assessment", color: "#3b82f6", score: 79,
+              opinion: "The project's financial structure is generally sound and only needs refinement in revenue forecasting. Burn rate should be optimized to a maximum of 15% of monthly MRR from day one. CAC needs to drop 20% to hit profitability on schedule. Build a runway of at least 18 months before the next funding round. P&L should turn positive no later than month 20 from launch. Revenue-based financing is worth considering as an early-stage alternative to equity dilution. Unit economics become viable at a scale of 1000+ active customers. Financial KPIs need weekly monitoring to catch deviations early." },
+            { letter: "E", name: "COO", subtitle: "Chief Operating Officer — operating expenses", color: "#10b981", score: 76,
+              opinion: "Operationally, the project has a realistic cost structure for its current stage. Operating expenses can be optimized by 20-25% by introducing automation from the early months. COGS should be tracked weekly and kept under 35% of revenue. Operating leverage will start showing once the system reaches 500 paying customers. Fixed costs need to stay minimal through the first 18 months of operations." },
+            { letter: "V", name: "CEO", subtitle: "Chief Executive Officer — growth strategy", color: "#8b5cf6", score: 82,
+              opinion: "Strategically the project is moving in the right direction, but needs clear prioritization. The next funding round should be raised upon reaching $100K MRR. Investment attractiveness is high when demonstrating sustained growth of over 15% per month. Capital efficiency should exceed 1.5x MRR/burn throughout the period up to profitability." },
           ].map((ag, i) => (
             <AgentPanel key={i} letter={ag.letter} name={ag.name} subtitle={ag.subtitle}
               color={ag.color} score={ag.score} opinion={ag.opinion} delay={i * 120} />
@@ -1705,32 +1705,32 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: any[] }) {
   const animated = useAnimated(100);
-  const ba = aiResults.find((r: { role: string }) => r.role === "Business Analyst" || r.role?.toLowerCase().includes("аналитик"));
-  const cmo = aiResults.find((r: { role: string }) => r.role === "CMO" || r.role?.toLowerCase().includes("маркетинг"));
+  const ba = aiResults.find((r: { role: string }) => r.role === "Business Analyst" || r.role?.toLowerCase().includes("analyst"));
+  const cmo = aiResults.find((r: { role: string }) => r.role === "CMO" || r.role?.toLowerCase().includes("marketing"));
   const ceo = aiResults.find((r: { role: string }) => r.role === "CEO" || r.role?.toLowerCase().includes("ceo"));
 
   const MKT_AGENTS = [
-    ba ? { letter: "M", name: "Business Analyst", subtitle: "Бизнес-аналитик — рыночный анализ", color: "#f59e0b", score: ba.score, opinion: [ba.analysis, ba.facts].filter(Boolean).join(" ").slice(0, 500) } : null,
-    cmo ? { letter: "S", name: "CMO", subtitle: "Директор по маркетингу — стратегия", color: "#f43f5e", score: cmo.score, opinion: [cmo.analysis, cmo.recommendations].filter(Boolean).join(" ").slice(0, 500) } : null,
-    ceo ? { letter: "V", name: "CEO", subtitle: "Генеральный директор — рыночная позиция", color: "#8b5cf6", score: ceo.score, opinion: [ceo.summary, ceo.analysis].filter(Boolean).join(" ").slice(0, 450) } : null,
+    ba ? { letter: "M", name: "Business Analyst", subtitle: "Business Analyst — market analysis", color: "#f59e0b", score: ba.score, opinion: [ba.analysis, ba.facts].filter(Boolean).join(" ").slice(0, 500) } : null,
+    cmo ? { letter: "S", name: "CMO", subtitle: "Chief Marketing Officer — strategy", color: "#f43f5e", score: cmo.score, opinion: [cmo.analysis, cmo.recommendations].filter(Boolean).join(" ").slice(0, 500) } : null,
+    ceo ? { letter: "V", name: "CEO", subtitle: "Chief Executive Officer — market position", color: "#8b5cf6", score: ceo.score, opinion: [ceo.summary, ceo.analysis].filter(Boolean).join(" ").slice(0, 450) } : null,
   ].filter(Boolean) as { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string }[];
 
   const fallbackAgents = [
-    { letter: "M", name: "Бизнес-аналитик", subtitle: "Рыночный анализ и конкурентная среда", color: "#f59e0b", score: 80,
-      opinion: "Рыночный анализ подтверждает наличие реального спроса в целевом сегменте аудитории. Конкуренты не полностью закрывают ключевой pain point, который адресует данный проект. Тренды рынка положительные: CAGR 15–25% прогнозируется на следующие 5 лет. Барьеры входа умеренные — window of opportunity открыт для быстрого движения на рынок. Поведение потребителей меняется в пользу данного решения по всем ключевым метрикам. Конкурентная карта показывает незанятую нишу в средней ценовой категории рынка. Сезонность требует отдельного учёта при планировании cashflow и маркетинговых активностей. Географическая экспансия возможна после достижения PMF в локальном рынке присутствия." },
-    { letter: "S", name: "CMO", subtitle: "Маркетинговая стратегия и GTM", color: "#f43f5e", score: 84,
-      opinion: "Рыночное позиционирование требует более чёткой дифференциации от ключевых конкурентов в сегменте. Контент-маркетинг является оптимальным первичным acquisition channel для данного типа продукта. Brand voice должен быть задокументирован строго до первого публичного контакта с аудиторией. CAC через органику может быть в 3–5 раз ниже paid при правильной долгосрочной SEO стратегии. Email retention программа способна снизить churn на 15–20% при качественной реализации. Партнёрство с лидерами мнений в нише обеспечит быстрый initial traction в первые 90 дней. A/B тестирование landing page и онбординга обязательно с первого дня привлечения трафика. Community-building вокруг продукта создаёт органический acquisition loop с нулевым CAC." },
-    { letter: "V", name: "CEO", subtitle: "Стратегическая позиция на рынке", color: "#8b5cf6", score: 82,
-      opinion: "Рыночная позиция проекта выглядит сильно при условии правильного позиционирования в нише. Своевременный вход на рынок создаёт первопроходческое преимущество перед потенциальными конкурентами. Партнёрства с complementary продуктами ускорят market penetration без значительных затрат. Ecosystem стратегия через интеграции создаёт высокие switching costs для клиентов компании. Географическое масштабирование следует начинать только после достижения unit economics в первой локации. Network effects должны быть намеренно встроены в product roadmap с первой версии продукта. Доминирование в одной нише лучше слабого присутствия в нескольких направлениях одновременно. Стратегический партнёр с дистрибуцией может accelerate market share лучше, чем органический рост." },
+    { letter: "M", name: "Business Analyst", subtitle: "Market analysis and competitive landscape", color: "#f59e0b", score: 80,
+      opinion: "Market analysis confirms real demand exists in the target audience segment. Competitors don't fully address the key pain point this project targets. Market trends are positive: CAGR of 15-25% is forecast over the next 5 years. Entry barriers are moderate — the window of opportunity is open for fast market entry. Consumer behavior is shifting in favor of this solution across all key metrics. The competitive map shows an unoccupied niche in the mid-price category. Seasonality needs separate accounting when planning cashflow and marketing activity. Geographic expansion is possible once PMF is reached in the local home market." },
+    { letter: "S", name: "CMO", subtitle: "Marketing strategy and GTM", color: "#f43f5e", score: 84,
+      opinion: "Market positioning needs clearer differentiation from key competitors in the segment. Content marketing is the optimal primary acquisition channel for this type of product. Brand voice must be strictly documented before the first public contact with the audience. Organic CAC can run 3-5x lower than paid with the right long-term SEO strategy. An email retention program can cut churn by 15-20% when executed well. Partnering with niche opinion leaders will deliver fast initial traction in the first 90 days. A/B testing the landing page and onboarding is mandatory from the first day of traffic acquisition. Community-building around the product creates an organic acquisition loop with zero CAC." },
+    { letter: "V", name: "CEO", subtitle: "Strategic market position", color: "#8b5cf6", score: 82,
+      opinion: "The project's market position looks strong given the right niche positioning. Timely market entry creates a first-mover advantage over potential competitors. Partnerships with complementary products will accelerate market penetration without significant cost. An ecosystem strategy through integrations creates high switching costs for the company's customers. Geographic scaling should only start after reaching unit economics in the first location. Network effects need to be deliberately built into the product roadmap from version one. Dominating a single niche beats a weak presence across several directions at once. A strategic distribution partner can accelerate market share better than organic growth." },
   ];
 
   const agents = MKT_AGENTS.length >= 2 ? MKT_AGENTS : fallbackAgents;
 
-  const briefText = `Рынок большой — общий объём ${project.market[0]?.value ?? ""}, но реально мы целимся в ядро ${project.market[2]?.value ?? ""}. Спрос подтверждён, ниша не занята полностью, темп роста ${project.market[3]?.value ?? ""}. Главное — сфокусироваться на одном сегменте и занять его.`;
+  const briefText = `The market is big — total size ${project.market[0]?.value ?? ""}, but our real target is the core ${project.market[2]?.value ?? ""}. Demand is confirmed, the niche isn't fully taken, growth rate is ${project.market[3]?.value ?? ""}. The key is to focus on one segment and own it.`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <AgentBrief letter="K" name="Kim Park" role="Бизнес-аналитик" color="#0ea5e9" rgb="14,165,233" text={briefText} />
+      <AgentBrief letter="K" name="Kim Park" role="Business Analyst" color="#0ea5e9" rgb="14,165,233" text={briefText} />
       <MarketSphereChart items={project.market} />
 
       {/* Market metrics row */}
@@ -1902,15 +1902,15 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
   const [period, setPeriod] = useState<"month"|"quarter"|"year">("quarter");
 
   const RISK_META: Record<string, { color: string; rgb: string; label: string; badge: string; badgeColor: string }> = {
-    high:   { color: "#f43f5e", rgb: "244,63,94",  label: "ВЫСОКИЙ",  badge: "Требует Внимания",  badgeColor: "#f43f5e" },
-    medium: { color: "#f59e0b", rgb: "245,158,11",   label: "СРЕДНИЙ",  badge: "Приоритет",          badgeColor: "#f59e0b" },
-    low:    { color: "#10b981", rgb: "16,185,129",   label: "НИЗКИЙ",   badge: "Стабильно",          badgeColor: "#10b981" },
+    high:   { color: "#f43f5e", rgb: "244,63,94",  label: "HIGH",  badge: "Needs Attention",  badgeColor: "#f43f5e" },
+    medium: { color: "#f59e0b", rgb: "245,158,11",   label: "MEDIUM",  badge: "Priority",          badgeColor: "#f59e0b" },
+    low:    { color: "#10b981", rgb: "16,185,129",   label: "LOW",   badge: "Stable",          badgeColor: "#10b981" },
   };
 
   const risks = project.risks.length >= 2 ? project.risks : [
-    { level: "medium", title: "Конкурентная динамика",    desc: "Высокая активность конкурентов. Риск потери доли рынка без чёткого УТП." },
-    { level: "medium", title: "Оптимизация привлечения",  desc: "CAC растёт. Необходима диверсификация каналов и улучшение retention." },
-    { level: "low",    title: "Инфраструктурная устойчивость", desc: "Технический стек стабилен. Требуется планирование disaster recovery." },
+    { level: "medium", title: "Competitive Dynamics",    desc: "High competitor activity. Risk of losing market share without a clear USP." },
+    { level: "medium", title: "Acquisition Optimization",  desc: "CAC is rising. Channel diversification and retention improvements are needed." },
+    { level: "low",    title: "Infrastructure Resilience", desc: "The tech stack is stable. Disaster recovery planning is required." },
   ];
 
   const lv: Record<string, number> = { high: 72, medium: 55, low: 28 };
@@ -1928,9 +1928,9 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
       .slice(0, 3)
       .map((s: string) => s.trim().slice(0, 80));
     const defaultSteps = [
-      ["Формализовать УТП: Ревизия ценностного предложения.", "Оптимизировать LTV: Запуск программы лояльности.", "Конкурентная разведка: Еженедельный мониторинг."],
-      ["Аудит CAC: Анализ эффективности каналов.", "Ремаркетинг: Запуск A/B тестов для удержания.", "Чат-бот ИИ: Внедрение ИИ-поддержки."],
-      ["Проактивный мониторинг: ИИ-прогнозирование сбоев.", "Облачное дублирование: Тестирование аварийного восстановления.", "Кибер-аудит: Регулярный вудит и обучение команды."],
+      ["Formalize USP: Review the value proposition.", "Optimize LTV: Launch a loyalty program.", "Competitive intel: Weekly monitoring."],
+      ["CAC audit: Analyze channel efficiency.", "Remarketing: Launch A/B tests for retention.", "AI chatbot: Roll out AI-powered support."],
+      ["Proactive monitoring: AI-based failure prediction.", "Cloud redundancy: Test disaster recovery.", "Cyber audit: Regular audits and team training."],
     ];
     return steps.length >= 2 ? steps : defaultSteps[i] ?? defaultSteps[0];
   });
@@ -1959,7 +1959,7 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
   const dateStr = `Q${Math.ceil((now.getMonth()+1)/3)}.${String(now.getDate()).padStart(2,"0")}.${now.getFullYear()}`;
 
   const highCount = risks.filter(r => r.level === "high").length;
-  const riskBrief = `Общий уровень риска — ${globalScore >= 65 ? "повышенный" : globalScore >= 45 ? "умеренный" : "низкий"}. ${highCount > 0 ? `Главное внимание — ${risks.find(r => r.level === "high")?.title.toLowerCase()}.` : "Критичных угроз нет."} Финансовый риск обычно опаснее всего: держите резерв 20% бюджета. Ниже — план действий по каждому пункту.`;
+  const riskBrief = `Overall risk level is ${globalScore >= 65 ? "elevated" : globalScore >= 45 ? "moderate" : "low"}. ${highCount > 0 ? `The main focus is ${risks.find(r => r.level === "high")?.title.toLowerCase()}.` : "No critical threats."} Financial risk is usually the most dangerous: keep a 20% budget reserve. Below is the action plan for each item.`;
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -1969,13 +1969,13 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
         @keyframes rsk-pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
       `}</style>
 
-      <AgentBrief letter="O" name="Omar Hassan" role="Риск-менеджер" color="#f43f5e" rgb="244,63,94" text={riskBrief} />
+      <AgentBrief letter="O" name="Omar Hassan" role="Risk Manager" color="#f43f5e" rgb="244,63,94" text={riskBrief} />
 
       {/* ── HEADER ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#f43f5e", boxShadow: "0 0 8px #f43f5e" }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Оценка рисков проекта</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.85)" }}>Project Risk Assessment</span>
           <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>{dateStr}</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
@@ -1987,7 +1987,7 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
               color: period === p ? "#a5b4fc" : "rgba(255,255,255,0.35)",
               transition: "all 0.15s",
             }}>
-              {p === "month" ? "Месяц" : p === "quarter" ? "Квартал" : "Год"}
+              {p === "month" ? "Month" : p === "quarter" ? "Quarter" : "Year"}
             </button>
           ))}
         </div>
@@ -2113,9 +2113,9 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
             <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between", marginBottom:8 }}>
               <div>
                 <span style={{ fontSize:11, fontWeight:700, color:"rgba(255,255,255,0.75)" }}>
-                  Глобальный Индекс Риска: <span style={{ color:"#f59e0b" }}>{globalScore}/100</span>
+                  Global Risk Index: <span style={{ color:"#f59e0b" }}>{globalScore}/100</span>
                 </span>
-                <span style={{ marginLeft:8, fontSize:9, color:"rgba(255,255,255,0.3)" }}>(Снижение на 3 п.)</span>
+                <span style={{ marginLeft:8, fontSize:9, color:"rgba(255,255,255,0.3)" }}>(Down 3 pts)</span>
               </div>
               <svg viewBox="0 0 28 28" fill="none" style={{ width:24, height:24 }}>
                 <circle cx="14" cy="14" r="11" stroke="rgba(245,158,11,0.2)" strokeWidth="2.5"/>
@@ -2125,16 +2125,16 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
                   style={{ filter:"drop-shadow(0 0 4px #f59e0b)", transition:"stroke-dasharray 1.5s ease-out 0.8s" }}/>
               </svg>
             </div>
-            <div style={{ fontSize:9.5, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:6 }}>Рекомендации ИИ по рискам</div>
+            <div style={{ fontSize:9.5, fontWeight:700, color:"rgba(255,255,255,0.45)", marginBottom:6 }}>AI Risk Recommendations</div>
             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:5 }}>
               {(() => {
                 const src = aiResults.find((r: {role:string}) => r.role==="Risk Manager")?.recommendations ||
                             aiResults.find((r: {role:string}) => r.role==="CEO")?.recommendations || "";
                 const lines = src ? src.split(/[.!]\s+/).filter((s:string) => s.length > 15).slice(0,4)
-                  : ["Увеличить LTV-фокус в сегменте SMB.", "Оптимизировать конкуренцию в ключевых каналах.", "Ввести ежеквартальный risk-review процесс.", "Усилить рост охвата по ключевым сегментам."];
+                  : ["Increase LTV focus in the SMB segment.", "Optimize competitive positioning in key channels.", "Introduce a quarterly risk-review process.", "Strengthen reach growth in key segments."];
                 return lines.map((rec:string, i:number) => (
                   <div key={i} style={{ fontSize:9, color:"rgba(255,255,255,0.3)", display:"flex", gap:5, alignItems:"flex-start" }}>
-                    <span style={{ color:"#8b5cf6", fontWeight:700, flexShrink:0 }}>ИИ:</span>
+                    <span style={{ color:"#8b5cf6", fontWeight:700, flexShrink:0 }}>AI:</span>
                     <span>{rec.slice(0,60)}</span>
                   </div>
                 ));
@@ -2174,11 +2174,11 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
 
                   {/* Desc */}
                   <div style={{ fontSize:11, color:"rgba(255,255,255,0.45)", lineHeight:1.6, marginBottom:12 }}>
-                    {risk.desc || `Уровень угрозы: ${meta.label.toLowerCase()}. Мониторинг и контроль приоритетны.`}
+                    {risk.desc || `Threat level: ${meta.label.toLowerCase()}. Monitoring and control are the priority.`}
                   </div>
 
                   {/* Action plan */}
-                  <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.14em", marginBottom:8 }}>ПЛАН ДЕЙСТВИЙ</div>
+                  <div style={{ fontSize:8, fontWeight:700, color:"rgba(255,255,255,0.3)", textTransform:"uppercase", letterSpacing:"0.14em", marginBottom:8 }}>ACTION PLAN</div>
                   <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                     {plans.map((step:string, si:number) => (
                       <div key={si} style={{ fontSize:10.5, color:"rgba(255,255,255,0.55)", display:"flex", gap:8, alignItems:"flex-start" }}>
@@ -2210,7 +2210,7 @@ export default function ProjectPage() {
   const params = useParams();
   const router = useRouter();
   const id = typeof params.id === "string" ? params.id : "demo";
-  const [activeTab, setActiveTab] = useState("Диагностика");
+  const [activeTab, setActiveTab] = useState("Diagnostics");
   const [project, setProject] = useState<ProjectData>(PROJECTS_DATA[id] ?? PROJECTS_DATA["demo"]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [aiResults, setAiResults] = useState<any[]>([]);
@@ -2245,7 +2245,7 @@ export default function ProjectPage() {
 
   async function handleReanalyze() {
     if (!rawProject) return;
-    setIsReanalyzing(true); setReanalyzeProgress(0); setActiveTab("AI Команда");
+    setIsReanalyzing(true); setReanalyzeProgress(0); setActiveTab("AI Team");
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const collected: any[] = [];
     abortRef.current = new AbortController();
@@ -2292,7 +2292,7 @@ export default function ProjectPage() {
         onMouseEnter={e => (e.currentTarget.style.color = "rgba(255,255,255,0.6)")}
         onMouseLeave={e => (e.currentTarget.style.color = "rgba(255,255,255,0.3)")}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
-        Назад к проектам
+        Back to projects
       </button>
 
       {/* Header */}
@@ -2302,9 +2302,9 @@ export default function ProjectPage() {
             <h1 style={{ fontSize: 22, fontWeight: 800, color: "white", margin: 0, letterSpacing: "-0.02em" }}>{project.name}</h1>
             <span style={{
               fontSize: 10, fontWeight: 700, padding: "3px 10px", borderRadius: 99, letterSpacing: "0.08em",
-              background: project.status === "Завершён" ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)",
-              color: project.status === "Завершён" ? "#10b981" : "#f59e0b",
-              border: `1px solid ${project.status === "Завершён" ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
+              background: project.status === "Complete" ? "rgba(16,185,129,0.1)" : "rgba(245,158,11,0.1)",
+              color: project.status === "Complete" ? "#10b981" : "#f59e0b",
+              border: `1px solid ${project.status === "Complete" ? "rgba(16,185,129,0.2)" : "rgba(245,158,11,0.2)"}`,
             }}>● {project.status}</span>
           </div>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.3)", margin: 0 }}>{project.subtitle}</p>
@@ -2318,20 +2318,20 @@ export default function ProjectPage() {
                 background: "rgba(99,102,241,0.06)", borderRadius: 10, cursor: "pointer",
                 display: "flex", alignItems: "center", gap: 8, transition: "all 0.15s",
               }}>
-              {isReanalyzing ? `↻ ${reanalyzeProgress}/8 агентов` : "↻ Обновить анализ"}
+              {isReanalyzing ? `↻ ${reanalyzeProgress}/8 agents` : "↻ Refresh Analysis"}
             </button>
           )}
           <button style={{
             height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600,
             border: "1px solid rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)",
             background: "rgba(255,255,255,0.03)", borderRadius: 10, cursor: "pointer",
-          }}>Экспорт PDF</button>
+          }}>Export PDF</button>
           <button style={{
             height: 36, padding: "0 18px", fontSize: 11, fontWeight: 600,
             background: "linear-gradient(135deg,#6366f1,#4f46e5)",
             color: "white", border: "none", borderRadius: 10, cursor: "pointer",
             boxShadow: "0 0 20px rgba(99,102,241,0.25)",
-          }}>Уточнить стратегию</button>
+          }}>Refine Strategy</button>
         </div>
       </div>
 
@@ -2352,14 +2352,14 @@ export default function ProjectPage() {
       </div>
 
       {/* Tab content */}
-      {activeTab === "Диагностика" && <DiagnosticsTab project={project} aiResults={aiResults} />}
-      {activeTab === "AI Команда" && (
+      {activeTab === "Diagnostics" && <DiagnosticsTab project={project} aiResults={aiResults} />}
+      {activeTab === "AI Team" && (
         <AITeamTab aiResults={aiResults} isUserProject={isUserProject} isReanalyzing={isReanalyzing}
           reanalyzeProgress={reanalyzeProgress} onReanalyze={handleReanalyze} />
       )}
-      {activeTab === "Финансы" && <FinanceTab project={project} aiResults={aiResults} />}
-      {activeTab === "Рынок" && <MarketTab project={project} aiResults={aiResults} />}
-      {activeTab === "Риски" && <RisksTab project={project} aiResults={aiResults} />}
+      {activeTab === "Finance" && <FinanceTab project={project} aiResults={aiResults} />}
+      {activeTab === "Market" && <MarketTab project={project} aiResults={aiResults} />}
+      {activeTab === "Risks" && <RisksTab project={project} aiResults={aiResults} />}
     </div>
   );
 }

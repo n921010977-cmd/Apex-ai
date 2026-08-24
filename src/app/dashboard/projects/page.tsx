@@ -45,7 +45,7 @@ const DEFAULT_PROJECTS: Project[] = [
   {
     id: "demo",
     name: "AI-Powered Fitness Platform",
-    description: "Мобильное приложение с персонализированными планами тренировок и питания на основе AI-алгоритмов",
+    description: "Mobile app with personalized workout and nutrition plans powered by AI algorithms",
     industry: "Mobile App · SaaS",
     stage: "Growth",
     score: 87,
@@ -53,24 +53,24 @@ const DEFAULT_PROJECTS: Project[] = [
     riskScore: 24,
     status: "complete",
     executives: 20,
-    date: "2 часа назад",
+    date: "2 hours ago",
     revenue: "$2.4M",
     revenueRaw: 2400000,
     market: "$4.2B",
     tam: "$18B",
-    growth: "+24%/год",
-    burnRate: "$45K/мес",
+    growth: "+24%/yr",
+    burnRate: "$45K/mo",
     confidence: 94,
     color: "#8b5cf6",
     rgb: "139,92,246",
     sparkline: [42, 58, 51, 67, 73, 69, 82, 87],
     opportunities: 4,
-    insights: ["Высокий потенциал масштабирования", "Рекомендован выход на EU"],
+    insights: ["High scaling potential", "EU expansion recommended"],
   },
   {
     id: "2",
     name: "SaaS Invoice Platform",
-    description: "Автоматизированное выставление счетов и управление платежами для фрилансеров и агентств",
+    description: "Automated invoicing and payment management for freelancers and agencies",
     industry: "SaaS · FinTech",
     stage: "Scale",
     score: 91,
@@ -78,24 +78,24 @@ const DEFAULT_PROJECTS: Project[] = [
     riskScore: 18,
     status: "complete",
     executives: 20,
-    date: "Вчера",
+    date: "Yesterday",
     revenue: "$1.8M",
     revenueRaw: 1800000,
     market: "$2.1B",
     tam: "$9B",
-    growth: "+18%/год",
-    burnRate: "$28K/мес",
+    growth: "+18%/yr",
+    burnRate: "$28K/mo",
     confidence: 97,
     color: "#10b981",
     rgb: "16,185,129",
     sparkline: [55, 62, 58, 71, 79, 85, 89, 91],
     opportunities: 3,
-    insights: ["Готов к Series A", "Высокая unit-экономика"],
+    insights: ["Ready for Series A", "Strong unit economics"],
   },
   {
     id: "3",
     name: "Local Restaurant Chain",
-    description: "Стратегия расширения для регионального ресторанного бренда в сегменте fast-casual",
+    description: "Expansion strategy for a regional fast-casual restaurant brand",
     industry: "Restaurant · Food",
     stage: "Validation",
     score: 72,
@@ -103,35 +103,35 @@ const DEFAULT_PROJECTS: Project[] = [
     riskScore: 41,
     status: "in_progress",
     executives: 20,
-    date: "В процессе",
-    revenue: "Считается…",
+    date: "In progress",
+    revenue: "Calculating…",
     revenueRaw: 0,
     market: "$890M",
     tam: "$3.2B",
-    growth: "+9%/год",
+    growth: "+9%/yr",
     burnRate: "—",
     confidence: 71,
     color: "#f59e0b",
     rgb: "245,158,11",
     sparkline: [60, 55, 63, 58, 68, 65, 70, 72],
     opportunities: 2,
-    insights: ["Требует доработки стратегии", "Обнаружены 2 риска"],
+    insights: ["Strategy needs refinement", "2 risks detected"],
   },
 ];
 
 const FEED_EVENTS = [
-  { agent: "Sophia Rivers", role: "CEO", icon: Brain, color: "#8b5cf6", rgb: "139,92,246", action: "обновила стратегию масштабирования", project: "AI Fitness Platform", time: "3м" },
-  { agent: "Marcus Chen",   role: "CFO", icon: DollarSign, color: "#3b82f6", rgb: "59,130,246", action: "пересчитал финансовую модель",  project: "SaaS Invoice Platform", time: "11м" },
-  { agent: "Elena Torres",  role: "CMO", icon: TrendingUp, color: "#10b981", rgb: "16,185,129", action: "обнаружила новый рыночный сегмент", project: "AI Fitness Platform", time: "28м" },
-  { agent: "James Wright",  role: "COO", icon: Activity, color: "#f59e0b", rgb: "245,158,11", action: "выявил операционный риск", project: "Restaurant Chain", time: "1ч" },
-  { agent: "Sara Patel",    role: "PM",  icon: Layers, color: "#e879f9", rgb: "232,121,249", action: "составила product roadmap", project: "SaaS Invoice Platform", time: "2ч" },
+  { agent: "Sophia Rivers", role: "CEO", icon: Brain, color: "#8b5cf6", rgb: "139,92,246", action: "updated the scaling strategy", project: "AI Fitness Platform", time: "3m" },
+  { agent: "Marcus Chen",   role: "CFO", icon: DollarSign, color: "#3b82f6", rgb: "59,130,246", action: "recalculated the financial model",  project: "SaaS Invoice Platform", time: "11m" },
+  { agent: "Elena Torres",  role: "CMO", icon: TrendingUp, color: "#10b981", rgb: "16,185,129", action: "discovered a new market segment", project: "AI Fitness Platform", time: "28m" },
+  { agent: "James Wright",  role: "COO", icon: Activity, color: "#f59e0b", rgb: "245,158,11", action: "identified an operational risk", project: "Restaurant Chain", time: "1h" },
+  { agent: "Sara Patel",    role: "PM",  icon: Layers, color: "#e879f9", rgb: "232,121,249", action: "drafted the product roadmap", project: "SaaS Invoice Platform", time: "2h" },
 ];
 
 const PORTFOLIO_INSIGHTS = [
-  { type: "scale",   icon: Rocket, color: "#10b981", rgb: "16,185,129",  title: "Готов к масштабированию", desc: "SaaS Invoice Platform показывает unit-экономику +340%. Рекомендуется Series A.",   impact: "Высокий", prob: 92, gain: "+$3.2M" },
-  { type: "risk",    icon: AlertTriangle, color: "#f43f5e", rgb: "244,63,94", title: "Риск для Restaurant Chain", desc: "Высокий операционный риск в цепочке поставок. Требует корректировки стратегии.", impact: "Средний", prob: 67, gain: "−12%" },
-  { type: "opport",  icon: Globe, color: "#3b82f6", rgb: "59,130,246",  title: "Выход на EU рынок",         desc: "AI Fitness Platform готова к европейской экспансии. Германия — первый таргет.",   impact: "Высокий", prob: 78, gain: "+$1.8M" },
-  { type: "update",  icon: Zap, color: "#f59e0b", rgb: "245,158,11",    title: "Обновить стратегию",         desc: "Restaurant Chain: последний AI-анализ был 7 дней назад. Рекомендован реанализ.",   impact: "Низкий",  prob: 55, gain: "+8%" },
+  { type: "scale",   icon: Rocket, color: "#10b981", rgb: "16,185,129",  title: "Ready to scale", desc: "SaaS Invoice Platform shows unit economics of +340%. Series A is recommended.",   impact: "High", prob: 92, gain: "+$3.2M" },
+  { type: "risk",    icon: AlertTriangle, color: "#f43f5e", rgb: "244,63,94", title: "Risk for Restaurant Chain", desc: "High operational risk in the supply chain. Strategy adjustment needed.", impact: "Medium", prob: 67, gain: "−12%" },
+  { type: "opport",  icon: Globe, color: "#3b82f6", rgb: "59,130,246",  title: "EU market entry",         desc: "AI Fitness Platform is ready for European expansion. Germany is the first target.",   impact: "High", prob: 78, gain: "+$1.8M" },
+  { type: "update",  icon: Zap, color: "#f59e0b", rgb: "245,158,11",    title: "Refresh strategy",         desc: "Restaurant Chain: the last AI analysis was 7 days ago. A re-analysis is recommended.",   impact: "Low",  prob: 55, gain: "+8%" },
 ];
 
 // ─── SVG Sparkline ────────────────────────────────────────────────────────────
@@ -238,11 +238,11 @@ function scoreColor(s: number) {
 
 // живые действия совета — крутятся в карточке
 const EXEC_LIVE: { who: string; act: string; ago: string }[] = [
-  { who: "CFO", act: "пересчитал юнит-экономику",   ago: "3м назад" },
-  { who: "CMO", act: "обновила план каналов",        ago: "7м назад" },
-  { who: "CEO", act: "пересмотрела приоритеты",      ago: "12м назад" },
-  { who: "CTO", act: "оценил стоимость MVP",         ago: "18м назад" },
-  { who: "COO", act: "переработала процесс",         ago: "24м назад" },
+  { who: "CFO", act: "recalculated unit economics",   ago: "3m ago" },
+  { who: "CMO", act: "updated the channel plan",        ago: "7m ago" },
+  { who: "CEO", act: "revised priorities",      ago: "12m ago" },
+  { who: "CTO", act: "estimated MVP cost",         ago: "18m ago" },
+  { who: "COO", act: "reworked the process",         ago: "24m ago" },
 ];
 
 function ProjectCard({ project, compact }: { project: Project; compact?: boolean }) {
@@ -351,7 +351,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
                 <span style={{ padding: "2px 7px", borderRadius: 6, fontSize: 9, fontWeight: 700, background: stage.bg, color: stage.text, border: `1px solid ${stage.border}` }}>{project.stage}</span>
                 <span style={{ padding: "2px 7px", borderRadius: 6, fontSize: 9, fontWeight: 600, background: analyzing ? "rgba(245,158,11,0.08)" : "rgba(16,185,129,0.08)", color: analyzing ? "#f59e0b" : "#10b981", border: `1px solid ${analyzing ? "rgba(245,158,11,0.22)" : "rgba(16,185,129,0.22)"}`, display: "inline-flex", alignItems: "center", gap: 4 }}>
                   <span style={{ width: 4, height: 4, borderRadius: "50%", background: analyzing ? "#f59e0b" : "#10b981", boxShadow: `0 0 5px ${analyzing ? "#f59e0b" : "#10b981"}` }} />
-                  {analyzing ? "Анализ" : "Завершён"}
+                  {analyzing ? "Analyzing" : "Complete"}
                 </span>
                 <span style={{ fontSize: 9.5, fontFamily: "var(--font-geist-mono), monospace", color: "rgba(255,255,255,0.32)" }}>
                   {project.date}
@@ -396,19 +396,19 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
       <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12, marginBottom: 14 }}>
           <div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Прогноз</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Forecast</div>
             <div style={{ fontSize: 14, fontWeight: 800, color: "#10b981" }}>{project.revenue}</div>
             <div style={{ fontSize: 9, color: "rgba(16,185,129,0.6)", marginTop: 1 }}>{project.growth}</div>
           </div>
           <div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Рынок (SAM)</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Market (SAM)</div>
             <div style={{ fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.72)" }}>{project.market}</div>
             <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>TAM {project.tam}</div>
           </div>
           <div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Агенты</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>Agents</div>
             <div style={{ fontSize: 14, fontWeight: 800, color: "rgba(255,255,255,0.72)" }}>{project.executives}</div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>AI директоров</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.25)", marginTop: 1 }}>AI executives</div>
           </div>
         </div>
 
@@ -423,7 +423,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
       <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "stretch", gap: 14 }}>
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-geist-mono), monospace" }}>AI Score · динамика</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-geist-mono), monospace" }}>AI Score · trend</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9.5, fontWeight: 700, color: project.color, fontVariantNumeric: "tabular-nums" }}>
               <TrendingUp size={9} strokeWidth={2.5} />
               +{Math.max(0, project.sparkline[project.sparkline.length - 1] - project.sparkline[0])}
@@ -438,7 +438,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
           <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-geist-mono), monospace" }}>Confidence</span>
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: project.color, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{project.confidence}%</div>
-            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", marginTop: 3 }}>AI уверенность</div>
+            <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", marginTop: 3 }}>AI confidence</div>
           </div>
         </div>
       </div>
@@ -449,19 +449,19 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
           onClick={e => e.stopPropagation()}
           style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 8, background: `rgba(${project.rgb},0.1)`, border: `1px solid rgba(${project.rgb},0.22)`, fontSize: 10, fontWeight: 600, color: project.color, textDecoration: "none", flexShrink: 0 }}
         >
-          <ArrowUpRight size={10} /> Открыть
+          <ArrowUpRight size={10} /> Open
         </Link>
         <Link href="/dashboard/reports"
           onClick={e => e.stopPropagation()}
           style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.45)", textDecoration: "none", flexShrink: 0 }}
         >
-          <FileText size={10} /> Отчёт
+          <FileText size={10} /> Report
         </Link>
         <Link href="/dashboard/chat"
           onClick={e => e.stopPropagation()}
           style={{ display: "flex", alignItems: "center", gap: 4, padding: "5px 10px", borderRadius: 8, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", fontSize: 10, fontWeight: 600, color: "rgba(255,255,255,0.45)", textDecoration: "none", flexShrink: 0 }}
         >
-          <MessageSquare size={10} /> AI Чат
+          <MessageSquare size={10} /> AI Chat
         </Link>
         <button
           onClick={e => e.stopPropagation()}
@@ -506,7 +506,7 @@ function InsightCard({ insight, delay }: { insight: typeof PORTFOLIO_INSIGHTS[0]
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 9, fontWeight: 700, color: insight.color }}>{insight.gain}</span>
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>·</span>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Вероятность {insight.prob}%</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.3)" }}>Probability {insight.prob}%</span>
             <span style={{ fontSize: 9, color: "rgba(255,255,255,0.2)" }}>·</span>
             <span style={{ fontSize: 9, fontWeight: 600, padding: "1px 5px", borderRadius: 4, background: `rgba(${insight.rgb},0.1)`, color: insight.color }}>{insight.impact}</span>
           </div>
@@ -525,8 +525,8 @@ function useLiveFeed() {
     let n = 0;
     const t = setInterval(() => {
       const src = FEED_EVENTS[n % FEED_EVENTS.length]; n++;
-      setItems(prev => [{ ...src, time: "сейчас", key: `f-live-${Date.now()}` },
-        ...prev.slice(0, 5).map(p => p.time === "сейчас" ? { ...p, time: "1м" } : p)]);
+      setItems(prev => [{ ...src, time: "now", key: `f-live-${Date.now()}` },
+        ...prev.slice(0, 5).map(p => p.time === "now" ? { ...p, time: "1m" } : p)]);
     }, 8000);
     return () => clearInterval(t);
   }, []);
@@ -579,7 +579,7 @@ function FeedEvent({ ev, idx }: { ev: typeof FEED_EVENTS[0]; idx: number }) {
           <span style={{ fontWeight: 700, color: ev.color }}>{ev.agent}</span>
           {" "}<span style={{ color: "rgba(255,255,255,0.35)" }}>{ev.action}</span>
         </div>
-        <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.22)", marginTop: 2 }}>{ev.project} · {ev.time} назад</div>
+        <div style={{ fontSize: 9.5, color: "rgba(255,255,255,0.22)", marginTop: 2 }}>{ev.project} · {ev.time} ago</div>
       </div>
       <span style={{ width: 6, height: 6, borderRadius: "50%", background: ev.color, boxShadow: `0 0 5px ${ev.color}`, flexShrink: 0, marginTop: 4 }} />
     </motion.div>
@@ -591,15 +591,15 @@ function FeedEvent({ ev, idx }: { ev: typeof FEED_EVENTS[0]; idx: number }) {
 import { Rocket } from "lucide-react";
 
 const VIEW_MODES = [
-  { id: "cards", icon: LayoutGrid, label: "Карточки" },
-  { id: "list",  icon: List,       label: "Список" },
+  { id: "cards", icon: LayoutGrid, label: "Cards" },
+  { id: "list",  icon: List,       label: "List" },
 ] as const;
 
-const FILTER_TABS = ["Все", "Завершённые", "В работе"] as const;
-const SORT_OPTIONS = ["AI Score ↓", "AI Score ↑", "Выручка", "Рост", "Дата"] as const;
+const FILTER_TABS = ["All", "Completed", "In progress"] as const;
+const SORT_OPTIONS = ["AI Score ↓", "AI Score ↑", "Revenue", "Growth", "Date"] as const;
 
 export default function ProjectsPage() {
-  const [filter, setFilter]   = useState<string>("Все");
+  const [filter, setFilter]   = useState<string>("All");
   const [view, setView]       = useState<"cards" | "list">("cards");
   const [search, setSearch]   = useState("");
   const [sort, setSort]       = useState<string>("AI Score ↓");
@@ -613,16 +613,16 @@ export default function ProjectsPage() {
       const score = Number(p.score ?? p.overall_score) || 78;
       return {
         id: p.id,
-        name: p.name ?? p.title ?? "Без названия",
+        name: p.name ?? p.title ?? "Untitled",
         description: p.description || "",
-        industry: p.industry || "Бизнес",
+        industry: p.industry || "Business",
         stage: p.stage || "Growth",
         score,
         growthScore: Math.round(score * 0.95),
         riskScore: Math.round(100 - score * 0.7),
         status: "complete",
         executives: 20,
-        date: p.date || (p.created_at ? new Date(p.created_at).toLocaleDateString("ru") : "Только что"),
+        date: p.date || (p.created_at ? new Date(p.created_at).toLocaleDateString("en-US") : "Just now"),
         revenue: p.revenue || p.target_revenue || "—",
         revenueRaw: 0,
         market: p.market || "—",
@@ -665,16 +665,16 @@ export default function ProjectsPage() {
 
   const filtered = ALL_PROJECTS
     .filter(p => {
-      if (filter === "Завершённые") return p.status === "complete";
-      if (filter === "В работе")    return p.status === "in_progress";
+      if (filter === "Completed") return p.status === "complete";
+      if (filter === "In progress")    return p.status === "in_progress";
       return true;
     })
     .filter(p => !search || p.name.toLowerCase().includes(search.toLowerCase()) || p.industry.toLowerCase().includes(search.toLowerCase()))
     .sort((a, b) => {
       if (sort === "AI Score ↓") return b.score - a.score;
       if (sort === "AI Score ↑") return a.score - b.score;
-      if (sort === "Выручка")    return b.revenueRaw - a.revenueRaw;
-      if (sort === "Рост")       return b.growthScore - a.growthScore;
+      if (sort === "Revenue")    return b.revenueRaw - a.revenueRaw;
+      if (sort === "Growth")       return b.growthScore - a.growthScore;
       return 0;
     });
 
@@ -707,9 +707,9 @@ export default function ProjectsPage() {
           </div>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", flex: 1 }}>
             <span style={{ color: "#8b5cf6", fontWeight: 700 }}>AI Portfolio Summary: </span>
-            Ваш портфель демонстрирует высокий потенциал роста. Обнаружено <span style={{ color: "#10b981", fontWeight: 600 }}>{totalOpps} возможностей масштабирования</span>, 1 потенциальный риск. Рекомендуется обновить стратегию для <span style={{ color: "#f59e0b", fontWeight: 600 }}>Local Restaurant Chain</span>.
+            Your portfolio is showing strong growth potential. Found <span style={{ color: "#10b981", fontWeight: 600 }}>{totalOpps} scaling opportunities</span>, 1 potential risk. A strategy refresh is recommended for <span style={{ color: "#f59e0b", fontWeight: 600 }}>Local Restaurant Chain</span>.
           </p>
-          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", flexShrink: 0 }}>20 агентов · обновлено сейчас</span>
+          <span style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", flexShrink: 0 }}>20 agents · updated just now</span>
         </motion.div>
 
         {/* Hero header */}
@@ -728,19 +728,19 @@ export default function ProjectsPage() {
             style={{ display: "flex", alignItems: "center", gap: 8, height: 40, padding: "0 18px", borderRadius: 12, background: "linear-gradient(135deg, #8b5cf6, #3b82f6)", fontSize: 13, fontWeight: 600, color: "#fff", textDecoration: "none", boxShadow: "0 4px 20px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.15)", flexShrink: 0 }}
           >
             <Zap size={14} />
-            Новая стратегия
+            New strategy
           </Link>
         </div>
 
         {/* KPI row */}
         <div className="kpi-grid" style={{ display: "grid", gap: 10, marginBottom: 24 }}>
           {[
-            { label: "Проектов",      value: ALL_PROJECTS.length, suffix: "", prefix: "",  color: "#8b5cf6", rgb: "139,92,246", icon: Layers,     sub: `+${userProjects.length} новых` },
-            { label: "Прогноз",       value: Math.round(totalRevenue / 100000) / 10, suffix: "M", prefix: "$", color: "#10b981", rgb: "16,185,129",  icon: DollarSign, sub: "+24% vs Q1" },
-            { label: "Avg AI Score",  value: avgScore, suffix: "", prefix: "",  color: "#3b82f6", rgb: "59,130,246", icon: Star,        sub: "Топ 8% рынка" },
-            { label: "Возможности",   value: totalOpps, suffix: "", prefix: "",  color: "#f59e0b", rgb: "245,158,11",  icon: Target,      sub: "AI обнаружил" },
-            { label: "Здоровье",      value: healthScore, suffix: "%", prefix: "",  color: "#10b981", rgb: "16,185,129",  icon: Activity,    sub: "Портфель" },
-            { label: "Завершено",     value: completedCount, suffix: `/${ALL_PROJECTS.length}`, prefix: "",  color: "#a78bfa", rgb: "167,139,250", icon: CheckCircle, sub: "Стратегий" },
+            { label: "Projects",      value: ALL_PROJECTS.length, suffix: "", prefix: "",  color: "#8b5cf6", rgb: "139,92,246", icon: Layers,     sub: `+${userProjects.length} new` },
+            { label: "Forecast",       value: Math.round(totalRevenue / 100000) / 10, suffix: "M", prefix: "$", color: "#10b981", rgb: "16,185,129",  icon: DollarSign, sub: "+24% vs Q1" },
+            { label: "Avg AI Score",  value: avgScore, suffix: "", prefix: "",  color: "#3b82f6", rgb: "59,130,246", icon: Star,        sub: "Top 8% of market" },
+            { label: "Opportunities",   value: totalOpps, suffix: "", prefix: "",  color: "#f59e0b", rgb: "245,158,11",  icon: Target,      sub: "AI detected" },
+            { label: "Health",      value: healthScore, suffix: "%", prefix: "",  color: "#10b981", rgb: "16,185,129",  icon: Activity,    sub: "Portfolio" },
+            { label: "Completed",     value: completedCount, suffix: `/${ALL_PROJECTS.length}`, prefix: "",  color: "#a78bfa", rgb: "167,139,250", icon: CheckCircle, sub: "Strategies" },
           ].map((kpi, i) => {
             const Icon = kpi.icon;
             return (
@@ -778,7 +778,7 @@ export default function ProjectsPage() {
                 <input
                   value={search}
                   onChange={e => setSearch(e.target.value)}
-                  placeholder="Поиск проектов, отраслей…"
+                  placeholder="Search projects, industries…"
                   style={{ width: "100%", height: 34, paddingLeft: 30, paddingRight: 12, borderRadius: 10, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.07)", fontSize: 12, color: "rgba(255,255,255,0.65)", outline: "none" }}
                 />
               </div>
@@ -829,12 +829,12 @@ export default function ProjectsPage() {
                 style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", marginBottom: 14, borderRadius: 14,
                   background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.22)" }}
               >
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a5b4fc", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>Пример</span>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a5b4fc", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>Example</span>
                 <span style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
-                  Это демонстрационные проекты. Запустите свой анализ — здесь появятся ваши стратегии.
+                  These are demo projects. Run your own analysis and your strategies will appear here.
                 </span>
                 <Link href="/dashboard/new" style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, height: 34, padding: "0 15px", borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 12.5, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(99,102,241,0.32)" }}>
-                  Создать стратегию
+                  Create strategy
                 </Link>
               </motion.div>
             )}
@@ -874,7 +874,7 @@ export default function ProjectsPage() {
 
             {filtered.length === 0 && (
               <div style={{ padding: "48px 0", textAlign: "center", color: "rgba(255,255,255,0.2)", fontSize: 13 }}>
-                Нет проектов в этой категории
+                No projects in this category
               </div>
             )}
           </div>
@@ -887,11 +887,11 @@ export default function ProjectsPage() {
               <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.12em", marginBottom: 14 }}>Portfolio Intelligence</div>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                 {[
-                  { label: "Лучший AI Score", value: `${bestProject?.score} — ${bestProject?.name.split(" ")[0]}`, color: "#10b981" },
-                  { label: "Самый быстрый рост", value: "SaaS Invoice +18%/год",  color: "#3b82f6" },
-                  { label: "Высокий риск", value: `${riskProject?.name.split(" ")[0]} · ${riskProject?.riskScore}pts`, color: "#f43f5e" },
-                  { label: "Общий прогноз",  value: `$${(totalRevenue / 1e6).toFixed(1)}M ARR`, color: "#8b5cf6" },
-                  { label: "AI возможности", value: `${totalOpps} обнаружено`, color: "#f59e0b" },
+                  { label: "Best AI Score", value: `${bestProject?.score} — ${bestProject?.name.split(" ")[0]}`, color: "#10b981" },
+                  { label: "Fastest growth", value: "SaaS Invoice +18%/yr",  color: "#3b82f6" },
+                  { label: "Highest risk", value: `${riskProject?.name.split(" ")[0]} · ${riskProject?.riskScore}pts`, color: "#f43f5e" },
+                  { label: "Total forecast",  value: `$${(totalRevenue / 1e6).toFixed(1)}M ARR`, color: "#8b5cf6" },
+                  { label: "AI opportunities", value: `${totalOpps} detected`, color: "#f59e0b" },
                 ].map(m => (
                   <div key={m.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.04)" }}>
                     <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.32)" }}>{m.label}</span>

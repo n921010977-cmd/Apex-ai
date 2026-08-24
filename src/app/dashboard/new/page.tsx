@@ -22,71 +22,71 @@ const INDUSTRIES = [
 
 // Quick-start templates — prefill the brief so a founder starts in seconds
 const TEMPLATES = [
-  { emoji: "🧩", name: "SaaS-платформа", industry: "SaaS / Software", stage: "idea",
-    desc: "B2B SaaS-сервис, решающий конкретную боль бизнеса. Модель — подписка (MRR). Целевая аудитория — малый и средний бизнес. Продукт автоматизирует рутинный процесс и экономит время команды. Основные каналы привлечения — контент и органика." },
-  { emoji: "🍽️", name: "Ресторан / кафе", industry: "Restaurant / Food", stage: "planning",
-    desc: "Заведение формата fast-casual в городе с высоким трафиком. Выручка — средний чек × поток гостей. Ключевые метрики — food cost, оборачиваемость столов, повторные визиты. Дифференциация — уникальное меню и атмосфера." },
-  { emoji: "🛒", name: "Маркетплейс", industry: "Marketplace", stage: "idea",
-    desc: "Двусторонний маркетплейс, соединяющий покупателей и продавцов в конкретной нише. Монетизация — комиссия со сделок. Главный вызов — chicken-and-egg: набрать критическую массу с обеих сторон. Сетевой эффект как барьер." },
-  { emoji: "📈", name: "Агентство", industry: "Agency / Services", stage: "launched",
-    desc: "Сервисное агентство (маркетинг / разработка / дизайн) с проектной и ретейнер-моделью. Выручка — часы × ставка. Рост через реферралы и кейсы. Задача — переход от услуг к продуктизации и повышение маржи." },
-  { emoji: "📱", name: "Мобильное приложение", industry: "Mobile App", stage: "building",
-    desc: "B2C мобильное приложение с freemium-моделью и Premium-подпиской. Ключевые метрики — retention D1/D7/D30, конверсия в платящих, LTV. Привлечение через ASO, инфлюенсеров и вирусные механики." },
-  { emoji: "🛍️", name: "Интернет-магазин", industry: "E-commerce", stage: "planning",
-    desc: "D2C интернет-магазин в узкой товарной категории. Выручка — трафик × конверсия × средний чек. Ключевые метрики — CAC, ROAS, повторные покупки. Дифференциация — бренд, качество и клиентский опыт." },
+  { emoji: "🧩", name: "SaaS Platform", industry: "SaaS / Software", stage: "idea",
+    desc: "A B2B SaaS service solving a specific business pain point. Model — subscription (MRR). Target audience — small and mid-size businesses. The product automates a routine process and saves the team time. Primary acquisition channels — content and organic." },
+  { emoji: "🍽️", name: "Restaurant / Cafe", industry: "Restaurant / Food", stage: "planning",
+    desc: "A fast-casual venue in a high-traffic city. Revenue — average check × guest flow. Key metrics — food cost, table turnover, repeat visits. Differentiation — a unique menu and atmosphere." },
+  { emoji: "🛒", name: "Marketplace", industry: "Marketplace", stage: "idea",
+    desc: "A two-sided marketplace connecting buyers and sellers in a specific niche. Monetization — transaction commission. Main challenge — chicken-and-egg: building critical mass on both sides. Network effect as a barrier." },
+  { emoji: "📈", name: "Agency", industry: "Agency / Services", stage: "launched",
+    desc: "A service agency (marketing / development / design) with a project and retainer model. Revenue — hours × rate. Growth through referrals and case studies. Goal — transitioning from services to productization and improving margins." },
+  { emoji: "📱", name: "Mobile App", industry: "Mobile App", stage: "building",
+    desc: "A B2C mobile app with a freemium model and Premium subscription. Key metrics — D1/D7/D30 retention, paid conversion, LTV. Acquisition through ASO, influencers, and viral mechanics." },
+  { emoji: "🛍️", name: "Online Store", industry: "E-commerce", stage: "planning",
+    desc: "A D2C online store in a narrow product category. Revenue — traffic × conversion × average order value. Key metrics — CAC, ROAS, repeat purchases. Differentiation — brand, quality, and customer experience." },
 ];
 const STAGES = [
-  { id: "idea",     label: "Просто идея",    desc: "Ещё не начинал",        icon: Lightbulb },
-  { id: "planning", label: "Планирование",   desc: "Изучаю рынок",          icon: Target },
-  { id: "building", label: "Создаю MVP",     desc: "В разработке",          icon: Cpu },
-  { id: "launched", label: "Уже запущен",    desc: "Нужна стратегия роста", icon: TrendingUp },
+  { id: "idea",     label: "Just an Idea",    desc: "Haven't started yet",        icon: Lightbulb },
+  { id: "planning", label: "Planning",   desc: "Researching the market",          icon: Target },
+  { id: "building", label: "Building MVP",     desc: "In development",          icon: Cpu },
+  { id: "launched", label: "Already Launched",    desc: "Need a growth strategy", icon: TrendingUp },
 ];
 const GOALS = [
-  "Цели и план компании","Новые идеи и инновации","Понять свою ЦА",
-  "Тенденции рынка","Упаковаться под инвестиции",
-  "Привлечь инвестиции","Быстрый запуск","Product-market fit",
-  "Масштабировать выручку","Выйти на новый рынок","Снизить расходы",
-  "Нанять команду","Exit стратегия","Улучшить unit-экономику",
-  "Запустить новый продукт","Автоматизировать процессы","IPO",
+  "Company Goals & Plan","New Ideas & Innovation","Understand My Audience",
+  "Market Trends","Get Investment-Ready",
+  "Raise Investment","Fast Launch","Product-Market Fit",
+  "Scale Revenue","Enter a New Market","Reduce Costs",
+  "Hire a Team","Exit Strategy","Improve Unit Economics",
+  "Launch a New Product","Automate Processes","IPO",
 ];
 
 const BIZ_MODELS = ["B2B","B2C","B2B2C","D2C","Marketplace","SaaS","Freemium","Enterprise","Franchise"];
 const TEAM_SIZES = [
-  { id:"solo",   label:"Только я",  desc:"Соло-основатель" },
-  { id:"small",  label:"2–5",       desc:"Микрокоманда" },
-  { id:"mid",    label:"6–20",      desc:"Небольшой стартап" },
-  { id:"growth", label:"21–100",    desc:"Стадия роста" },
-  { id:"large",  label:"100+",      desc:"Масштабная компания" },
+  { id:"solo",   label:"Just Me",  desc:"Solo founder" },
+  { id:"small",  label:"2-5",       desc:"Micro team" },
+  { id:"mid",    label:"6-20",      desc:"Small startup" },
+  { id:"growth", label:"21-100",    desc:"Growth stage" },
+  { id:"large",  label:"100+",      desc:"Large company" },
 ];
-const GEOS = ["Россия / СНГ","США / Канада","Европа","Азия / MENA","Латинская Америка","Глобально"];
-const REVENUES = ["Ещё нет выручки","До $10k/мес","$10k–$50k/мес","$50k–$200k/мес","$200k–$1M/мес","$1M+/мес"];
+const GEOS = ["Russia / CIS","US / Canada","Europe","Asia / MENA","Latin America","Global"];
+const REVENUES = ["No Revenue Yet","Up to $10k/mo","$10k-$50k/mo","$50k-$200k/mo","$200k-$1M/mo","$1M+/mo"];
 const AGENTS = [
-  { role: "CEO",              label: "Генеральный директор",      color: "#8b5cf6", rgb: "139,92,246",  icon: Brain,      name: "Sophia Rivers"  },
-  { role: "CFO",              label: "Финансовый директор",       color: "#3b82f6", rgb: "59,130,246",  icon: DollarSign, name: "Marcus Chen"    },
-  { role: "CMO",              label: "Директор по маркетингу",    color: "#10b981", rgb: "16,185,129",   icon: TrendingUp, name: "Elena Torres"   },
-  { role: "COO",              label: "Операционный директор",     color: "#f59e0b", rgb: "245,158,11",   icon: Activity,   name: "James Wright"   },
-  { role: "CTO",              label: "Технический директор",      color: "#a78bfa", rgb: "167,139,250", icon: Cpu,        name: "Aiden Park"     },
-  { role: "Business Analyst", label: "Бизнес-аналитик",          color: "#f43f5e", rgb: "244,63,94",  icon: BarChart2,  name: "Kim Park"       },
-  { role: "Sales Director",   label: "Директор по продажам",     color: "#34d399", rgb: "52,211,153",  icon: Users,      name: "Ryan Cole"      },
-  { role: "Legal Advisor",    label: "Юридический советник",     color: "#94a3b8", rgb: "148,163,184", icon: Shield,     name: "Mia Larson"     },
-  { role: "Growth Hacker",    label: "Директор по росту",        color: "#f97316", rgb: "249,115,22",  icon: Rocket,     name: "Alex Kim"       },
-  { role: "Product Manager",  label: "Продукт-менеджер",         color: "#e879f9", rgb: "232,121,249", icon: Layers,     name: "Sara Patel"     },
-  { role: "Data Scientist",   label: "Датa-сайентист",           color: "#38bdf8", rgb: "56,189,248",  icon: PieChart,   name: "Leo Zhang"      },
-  { role: "HR Director",      label: "HR Директор",              color: "#fb7185", rgb: "251,113,133", icon: Star,       name: "Maya Scott"     },
-  { role: "Investor Relations",label:"Инвесторские отношения",   color: "#4ade80", rgb: "74,222,128",  icon: Briefcase,  name: "Tom Evans"      },
-  { role: "Market Research",  label: "Рыночный аналитик",        color: "#fbbf24", rgb: "251,191,36",  icon: Search,     name: "Nina Brown"     },
-  { role: "Risk Manager",     label: "Риск-менеджер",            color: "#f43f5e", rgb: "244,63,94",   icon: Shield,     name: "Omar Hassan"    },
-  { role: "Brand Strategist", label: "Бренд-стратег",            color: "#818cf8", rgb: "129,140,248", icon: Target,     name: "Chloe Martin"   },
-  { role: "Supply Chain",     label: "Цепочка поставок",         color: "#2dd4bf", rgb: "45,212,191",  icon: Globe,      name: "Jake Turner"    },
-  { role: "UX Researcher",    label: "UX-исследователь",         color: "#c084fc", rgb: "192,132,252", icon: Lightbulb,  name: "Zoe Carter"     },
-  { role: "PR Director",      label: "PR Директор",              color: "#fdba74", rgb: "253,186,116", icon: Globe,      name: "Liam Foster"    },
-  { role: "Strategy Advisor", label: "Стратегический советник",  color: "#8b5cf6", rgb: "139,92,246",  icon: Zap,        name: "Diana Wells"    },
+  { role: "CEO",              label: "Chief Executive Officer",      color: "#8b5cf6", rgb: "139,92,246",  icon: Brain,      name: "Sophia Rivers"  },
+  { role: "CFO",              label: "Chief Financial Officer",       color: "#3b82f6", rgb: "59,130,246",  icon: DollarSign, name: "Marcus Chen"    },
+  { role: "CMO",              label: "Chief Marketing Officer",    color: "#10b981", rgb: "16,185,129",   icon: TrendingUp, name: "Elena Torres"   },
+  { role: "COO",              label: "Chief Operating Officer",     color: "#f59e0b", rgb: "245,158,11",   icon: Activity,   name: "James Wright"   },
+  { role: "CTO",              label: "Chief Technology Officer",      color: "#a78bfa", rgb: "167,139,250", icon: Cpu,        name: "Aiden Park"     },
+  { role: "Business Analyst", label: "Business Analyst",          color: "#f43f5e", rgb: "244,63,94",  icon: BarChart2,  name: "Kim Park"       },
+  { role: "Sales Director",   label: "Sales Director",     color: "#34d399", rgb: "52,211,153",  icon: Users,      name: "Ryan Cole"      },
+  { role: "Legal Advisor",    label: "Legal Advisor",     color: "#94a3b8", rgb: "148,163,184", icon: Shield,     name: "Mia Larson"     },
+  { role: "Growth Hacker",    label: "Growth Director",        color: "#f97316", rgb: "249,115,22",  icon: Rocket,     name: "Alex Kim"       },
+  { role: "Product Manager",  label: "Product Manager",         color: "#e879f9", rgb: "232,121,249", icon: Layers,     name: "Sara Patel"     },
+  { role: "Data Scientist",   label: "Data Scientist",           color: "#38bdf8", rgb: "56,189,248",  icon: PieChart,   name: "Leo Zhang"      },
+  { role: "HR Director",      label: "HR Director",              color: "#fb7185", rgb: "251,113,133", icon: Star,       name: "Maya Scott"     },
+  { role: "Investor Relations",label:"Investor Relations",   color: "#4ade80", rgb: "74,222,128",  icon: Briefcase,  name: "Tom Evans"      },
+  { role: "Market Research",  label: "Market Analyst",        color: "#fbbf24", rgb: "251,191,36",  icon: Search,     name: "Nina Brown"     },
+  { role: "Risk Manager",     label: "Risk Manager",            color: "#f43f5e", rgb: "244,63,94",   icon: Shield,     name: "Omar Hassan"    },
+  { role: "Brand Strategist", label: "Brand Strategist",            color: "#818cf8", rgb: "129,140,248", icon: Target,     name: "Chloe Martin"   },
+  { role: "Supply Chain",     label: "Supply Chain",         color: "#2dd4bf", rgb: "45,212,191",  icon: Globe,      name: "Jake Turner"    },
+  { role: "UX Researcher",    label: "UX Researcher",         color: "#c084fc", rgb: "192,132,252", icon: Lightbulb,  name: "Zoe Carter"     },
+  { role: "PR Director",      label: "PR Director",              color: "#fdba74", rgb: "253,186,116", icon: Globe,      name: "Liam Foster"    },
+  { role: "Strategy Advisor", label: "Strategy Advisor",  color: "#8b5cf6", rgb: "139,92,246",  icon: Zap,        name: "Diana Wells"    },
 ];
 
 const STEP_TIMELINE = [
-  { id: 1, label: "Business",       desc: "Описание & идея",     icon: Brain },
-  { id: 2, label: "Market",         desc: "Контекст & рынок",    icon: Globe },
-  { id: 3, label: "Executive Report",desc: "Цели & параметры",   icon: FileText },
+  { id: 1, label: "Business",       desc: "Description & idea",     icon: Brain },
+  { id: 2, label: "Market",         desc: "Context & market",    icon: Globe },
+  { id: 3, label: "Executive Report",desc: "Goals & parameters",   icon: FileText },
 ];
 
 // ─── AI entity detection ─────────────────────────────────────────────────────
@@ -95,22 +95,22 @@ function detectEntities(text: string) {
   const t = text.toLowerCase();
   const entities: { label: string; value: string; color: string }[] = [];
 
-  if (t.includes("saas") || t.includes("подписка") || t.includes("subscription"))
-    entities.push({ label: "Модель", value: "SaaS", color: "#8b5cf6" });
-  if (t.includes("b2b") || t.includes("бизнес") || t.includes("корпоратив") || t.includes("enterprise"))
-    entities.push({ label: "Аудитория", value: "B2B", color: "#3b82f6" });
-  if (t.includes("b2c") || t.includes("потребител") || t.includes("пользовател"))
-    entities.push({ label: "Аудитория", value: "B2C", color: "#10b981" });
-  if (t.includes("mobile") || t.includes("мобильн") || t.includes("приложени"))
-    entities.push({ label: "Платформа", value: "Mobile", color: "#f59e0b" });
-  if (t.includes("маркетплейс") || t.includes("marketplace") || t.includes("платформ"))
-    entities.push({ label: "Тип", value: "Marketplace", color: "#f43f5e" });
-  if (t.includes("ai") || t.includes("искусственн") || t.includes("нейро") || t.includes("machine"))
-    entities.push({ label: "Технология", value: "AI/ML", color: "#a78bfa" });
-  if (t.includes("fintech") || t.includes("банк") || t.includes("платёж") || t.includes("финанс"))
-    entities.push({ label: "Сектор", value: "FinTech", color: "#34d399" });
-  if (t.includes("конкурент") || t.includes("competitor") || t.includes("рынок"))
-    entities.push({ label: "Анализ", value: "Competitive", color: "#3b82f6" });
+  if (t.includes("saas") || t.includes("subscription"))
+    entities.push({ label: "Model", value: "SaaS", color: "#8b5cf6" });
+  if (t.includes("b2b") || t.includes("business") || t.includes("corporate") || t.includes("enterprise"))
+    entities.push({ label: "Audience", value: "B2B", color: "#3b82f6" });
+  if (t.includes("b2c") || t.includes("consumer") || t.includes("user"))
+    entities.push({ label: "Audience", value: "B2C", color: "#10b981" });
+  if (t.includes("mobile") || t.includes("app"))
+    entities.push({ label: "Platform", value: "Mobile", color: "#f59e0b" });
+  if (t.includes("marketplace") || t.includes("platform"))
+    entities.push({ label: "Type", value: "Marketplace", color: "#f43f5e" });
+  if (t.includes("ai") || t.includes("artificial intelligence") || t.includes("neural") || t.includes("machine"))
+    entities.push({ label: "Technology", value: "AI/ML", color: "#a78bfa" });
+  if (t.includes("fintech") || t.includes("bank") || t.includes("payment") || t.includes("financ"))
+    entities.push({ label: "Sector", value: "FinTech", color: "#34d399" });
+  if (t.includes("competitor") || t.includes("market"))
+    entities.push({ label: "Analysis", value: "Competitive", color: "#3b82f6" });
 
   return entities;
 }
@@ -123,7 +123,7 @@ function qualityScore(name: string, desc: string): number {
   score += Math.min(40, wc * 1.5);
   const entities = detectEntities(desc);
   score += Math.min(20, entities.length * 5);
-  if (desc.includes("?") || desc.includes("клиент") || desc.includes("пробл")) score += 10;
+  if (desc.includes("?") || desc.includes("client") || desc.includes("problem")) score += 10;
   if (desc.length > 200) score += 10;
   if (desc.length > 400) score += 5;
   return Math.min(100, Math.round(score));
@@ -132,26 +132,26 @@ function qualityScore(name: string, desc: string): number {
 // ─── Live AI Agent Panel ──────────────────────────────────────────────────────
 
 const AGENT_THOUGHTS: Record<string, string[]> = {
-  CEO:                 ["Формирую стратегическое видение...", "Анализирую рыночную позицию...",  "Оцениваю конкурентов..."],
-  CFO:                 ["Строю финансовую модель...",         "Прогнозирую cash flow...",         "Считаю Unit Economics..."],
-  CMO:                 ["Изучаю целевую аудиторию...",        "Анализирую каналы роста...",       "Разрабатываю go-to-market..."],
-  COO:                 ["Проектирую операции...",             "Оптимизирую процессы...",          "Определяю KPI..."],
-  CTO:                 ["Анализирую технический стек...",     "Проектирую архитектуру...",        "Оцениваю риски..."],
-  "Business Analyst":  ["Анализирую данные рынка...",        "Оцениваю потенциал...",            "Строю прогнозы..."],
-  "Sales Director":    ["Строю воронку продаж...",           "Анализирую CAC/LTV...",            "Прогнозирую конверсию..."],
-  "Legal Advisor":     ["Проверяю юридические риски...",     "Анализирую требования...",         "Оцениваю структуру..."],
-  "Growth Hacker":     ["Ищу точки взрывного роста...",      "Тестирую growth-каналы...",        "Оптимизирую воронку..."],
-  "Product Manager":   ["Анализирую пользователей...",       "Приоритизирую фичи...",            "Строю roadmap..."],
-  "Data Scientist":    ["Обрабатываю массивы данных...",     "Строю предиктивные модели...",     "Валидирую гипотезы..."],
-  "HR Director":       ["Проектирую org-структуру...",       "Оцениваю кадровые риски...",       "Планирую найм..."],
-  "Investor Relations":["Готовлю investor pitch...",         "Анализирую cap table...",          "Оцениваю раунды..."],
-  "Market Research":   ["Сканирую рыночные тренды...",       "Анализирую конкурентов...",        "Оцениваю TAM/SAM/SOM..."],
-  "Risk Manager":      ["Идентифицирую риски...",            "Строю матрицу рисков...",          "Разрабатываю mitigation..."],
-  "Brand Strategist":  ["Формирую brand identity...",        "Анализирую позиционирование...",   "Строю brand voice..."],
-  "Supply Chain":      ["Оцениваю цепочку поставок...",      "Анализирую зависимости...",        "Оптимизирую логистику..."],
-  "UX Researcher":     ["Исследую user journey...",          "Выявляю pain points...",           "Проектирую UX стратегию..."],
-  "PR Director":       ["Строю PR стратегию...",             "Анализирую медиа-пространство...", "Готовлю key messages..."],
-  "Strategy Advisor":  ["Синтезирую стратегии...",           "Оцениваю синергию...",             "Финализирую рекомендации..."],
+  CEO:                 ["Forming strategic vision...", "Analyzing market position...",  "Evaluating competitors..."],
+  CFO:                 ["Building the financial model...",         "Forecasting cash flow...",         "Calculating unit economics..."],
+  CMO:                 ["Studying the target audience...",        "Analyzing growth channels...",       "Developing go-to-market..."],
+  COO:                 ["Designing operations...",             "Optimizing processes...",          "Defining KPIs..."],
+  CTO:                 ["Analyzing the tech stack...",     "Designing architecture...",        "Assessing risks..."],
+  "Business Analyst":  ["Analyzing market data...",        "Assessing potential...",            "Building forecasts..."],
+  "Sales Director":    ["Building the sales funnel...",           "Analyzing CAC/LTV...",            "Forecasting conversion..."],
+  "Legal Advisor":     ["Checking legal risks...",     "Analyzing requirements...",         "Assessing structure..."],
+  "Growth Hacker":     ["Finding explosive growth angles...",      "Testing growth channels...",        "Optimizing the funnel..."],
+  "Product Manager":   ["Analyzing users...",       "Prioritizing features...",            "Building the roadmap..."],
+  "Data Scientist":    ["Processing data sets...",     "Building predictive models...",     "Validating hypotheses..."],
+  "HR Director":       ["Designing the org structure...",       "Assessing hiring risks...",       "Planning hiring..."],
+  "Investor Relations":["Preparing the investor pitch...",         "Analyzing the cap table...",          "Assessing funding rounds..."],
+  "Market Research":   ["Scanning market trends...",       "Analyzing competitors...",        "Assessing TAM/SAM/SOM..."],
+  "Risk Manager":      ["Identifying risks...",            "Building the risk matrix...",          "Developing mitigation..."],
+  "Brand Strategist":  ["Shaping brand identity...",        "Analyzing positioning...",   "Building brand voice..."],
+  "Supply Chain":      ["Assessing the supply chain...",      "Analyzing dependencies...",        "Optimizing logistics..."],
+  "UX Researcher":     ["Researching the user journey...",          "Identifying pain points...",           "Designing UX strategy..."],
+  "PR Director":       ["Building PR strategy...",             "Analyzing the media landscape...", "Preparing key messages..."],
+  "Strategy Advisor":  ["Synthesizing strategies...",           "Assessing synergy...",             "Finalizing recommendations..."],
 };
 
 function LiveAgentPanel({ hasText }: { hasText: boolean }) {
@@ -255,7 +255,7 @@ function LiveAgentPanel({ hasText }: { hasText: boolean }) {
                     </span>
                   )}
                   <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {active ? (thoughts[a.role] || "Ожидает данных...") : "Ожидает брифинга..."}
+                    {active ? (thoughts[a.role] || "Waiting for data...") : "Awaiting briefing..."}
                   </span>
                 </div>
               </div>
@@ -296,7 +296,7 @@ function AgentAnalysisCard({ agent, done, result }: {
   result?: AgentResult;
 }) {
   const Icon = agent.icon;
-  const thoughts = AGENT_THOUGHTS[agent.role] ?? ["Анализирует..."];
+  const thoughts = AGENT_THOUGHTS[agent.role] ?? ["Analyzing..."];
   const [thoughtIdx, setThoughtIdx] = useState(0);
   const [flash, setFlash] = useState(false);
 
@@ -382,7 +382,7 @@ function AgentAnalysisCard({ agent, done, result }: {
                 animate={{ opacity: 1, y: 0 }}
                 style={{ fontSize: 10, fontWeight: 700, color: agent.color }}
               >
-                ✓ Балл: {result?.score ?? "—"}
+                ✓ Score: {result?.score ?? "—"}
               </motion.div>
             ) : (
               <motion.div
@@ -484,7 +484,7 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
           transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
           style={{ fontSize: 20, fontWeight: 800, color: "#fff", letterSpacing: "-0.03em", marginBottom: 6, textAlign: "center" }}
         >
-          Executive Board в работе
+          Executive Board at Work
         </motion.h2>
         <motion.p
           initial={{ opacity: 0 }}
@@ -492,14 +492,14 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
           transition={{ delay: 0.15, duration: 0.5 }}
           style={{ fontSize: 13, color: "rgba(255,255,255,0.35)", textAlign: "center" }}
         >
-          20 AI-директоров анализируют проект параллельно
+          20 AI directors are analyzing the project in parallel
         </motion.p>
       </div>
 
       {/* ── PROGRESS BAR ── */}
       <div style={{ width: "100%", maxWidth: 560, marginBottom: 20 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}>
-          <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Прогресс анализа</span>
+          <span style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)", fontWeight: 600 }}>Analysis Progress</span>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             {/* Live latest thought */}
             <AnimatePresence mode="wait">
@@ -512,7 +512,7 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
                   transition={{ duration: 0.3 }}
                   style={{ fontSize: 9.5, color: "rgba(255,255,255,0.22)", fontFamily: "ui-monospace, monospace" }}
                 >
-                  {latestDone.role} завершил
+                  {latestDone.role} finished
                 </motion.span>
               )}
             </AnimatePresence>
@@ -567,8 +567,8 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
               boxShadow: "0 0 40px rgba(16,185,129,0.12)",
             }}
           >
-            <div style={{ fontSize: 15, fontWeight: 800, color: "#10b981", marginBottom: 4 }}>Анализ завершён ✓</div>
-            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Перехожу к результатам…</div>
+            <div style={{ fontSize: 15, fontWeight: 800, color: "#10b981", marginBottom: 4 }}>Analysis Complete ✓</div>
+            <div style={{ fontSize: 12, color: "rgba(255,255,255,0.4)" }}>Moving to results…</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -644,13 +644,13 @@ export default function NewStrategyPage() {
     } catch {
       const fallbackScore = Math.floor(70 + Math.random() * 20);
       const fallbackTitles: Record<string, string> = {
-        CEO: "Генеральный директор", CFO: "Финансовый директор", CMO: "Директор по маркетингу",
-        COO: "Операционный директор", "Business Analyst": "Бизнес-аналитик",
-        CTO: "Технический директор", "Sales Director": "Директор по продажам", "Legal Advisor": "Юридический советник",
+        CEO: "Chief Executive Officer", CFO: "Chief Financial Officer", CMO: "Chief Marketing Officer",
+        COO: "Chief Operating Officer", "Business Analyst": "Business Analyst",
+        CTO: "Chief Technology Officer", "Sales Director": "Sales Director", "Legal Advisor": "Legal Advisor",
       };
       for (const a of AGENTS) {
         const s = Math.floor(fallbackScore - 5 + Math.random() * 15);
-        collectedResults.push({ role: a.role, title: fallbackTitles[a.role] ?? a.label, summary: `Анализ для "${form.name}".`, analysis: `Стадия "${form.stage}".`, facts: "Офлайн-режим.", risks: "Настройте API-ключ.", recommendations: "1. Настройте ANTHROPIC_API_KEY.", confidence: "низкая", score: s });
+        collectedResults.push({ role: a.role, title: fallbackTitles[a.role] ?? a.label, summary: `Analysis for "${form.name}".`, analysis: `Stage "${form.stage}".`, facts: "Offline mode.", risks: "Set up your API key.", recommendations: "1. Configure ANTHROPIC_API_KEY.", confidence: "low", score: s });
         setDoneAgents(prev => new Set([...prev, a.role]));
         setAgentResults([...collectedResults]);
         await new Promise(r => setTimeout(r, 400));
@@ -662,9 +662,9 @@ export default function NewStrategyPage() {
     const newProject = {
       id, name: form.name, description: form.description, industry: form.industry,
       stage: form.stage, goals: form.goals, targetRevenue: form.targetRevenue,
-      timeframe: form.timeframe, score, status: "complete", date: "Только что",
+      timeframe: form.timeframe, score, status: "complete", date: "Just now",
       revenue: form.targetRevenue || `$${(score * 25000 / 1000).toFixed(1)}M`,
-      market: `$${(score * 50).toFixed(0)}M`, growth: `+${Math.floor(10 + score / 5)}%/год`,
+      market: `$${(score * 50).toFixed(0)}M`, growth: `+${Math.floor(10 + score / 5)}%/yr`,
       aiResults: collectedResults,
     };
     // Persist to the server first so plan limits are enforced. On the free
@@ -685,7 +685,7 @@ export default function NewStrategyPage() {
   if (analyzing) return <AnalyzingScreen doneAgents={doneAgents} agentResults={agentResults} />;
 
   const qualityColor = quality >= 70 ? "#10b981" : quality >= 40 ? "#f59e0b" : "#f43f5e";
-  const qualityLabel = quality >= 70 ? "Отлично" : quality >= 40 ? "Хорошо" : "Добавьте деталей";
+  const qualityLabel = quality >= 70 ? "Excellent" : quality >= 40 ? "Good" : "Add more detail";
 
   return (
     <div className="min-h-full" style={{ background: "#040404" }}>
@@ -737,7 +737,7 @@ export default function NewStrategyPage() {
                   AI BRIEFING<span style={{ color:"rgba(255,255,255,0.25)" }}>_</span>CONSOLE
                 </h1>
                 <p className="term-mono" style={{ fontSize:12.5, color:"rgba(255,255,255,0.4)", lineHeight:1.6, letterSpacing:"0.03em" }}>
-                  // чем подробнее бриф — тем точнее анализ от 20 AI-директоров
+                  // the more detail in the brief — the more accurate the analysis from 20 AI directors
                 </p>
               </div>
 
@@ -809,12 +809,12 @@ export default function NewStrategyPage() {
                 {step === 1 && (
                   <div style={{ borderRadius:22, overflow:"hidden", background:"rgba(14,16,21,0.9)", border:"1px solid rgba(255,255,255,0.07)", backdropFilter:"blur(20px)", boxShadow:"0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
                     <div style={{ padding:"24px 28px 0" }}>
-                      <div className="term-mono" style={{ fontSize:9, letterSpacing:"0.2em", color:"#818cf8", textTransform:"uppercase", marginBottom:6 }}>// шаг 1 · business brief</div>
-                      <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:14 }}>Расскажите о вашем бизнесе</h2>
+                      <div className="term-mono" style={{ fontSize:9, letterSpacing:"0.2em", color:"#818cf8", textTransform:"uppercase", marginBottom:6 }}>// step 1 · business brief</div>
+                      <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:14 }}>Tell us about your business</h2>
 
                       {/* Quick-start templates */}
                       <div style={{ marginBottom:20 }}>
-                        <div className="term-mono" style={{ fontSize:9.5, letterSpacing:"0.12em", color:"rgba(255,255,255,0.3)", marginBottom:9, textTransform:"uppercase" }}>// быстрый старт по шаблону</div>
+                        <div className="term-mono" style={{ fontSize:9.5, letterSpacing:"0.12em", color:"rgba(255,255,255,0.3)", marginBottom:9, textTransform:"uppercase" }}>// quick start from a template</div>
                         <div style={{ display:"flex", gap:8, flexWrap:"wrap" }}>
                           {TEMPLATES.map(t => (
                             <button key={t.name}
@@ -835,10 +835,10 @@ export default function NewStrategyPage() {
                     <div style={{ padding:"0 28px 28px", display:"flex", flexDirection:"column", gap:20 }}>
                       {/* Name */}
                       <div>
-                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8, letterSpacing:"0.02em" }}>Название проекта</label>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8, letterSpacing:"0.02em" }}>Project Name</label>
                         <input
                           type="text"
-                          placeholder="например: AI-Powered Fitness Platform"
+                          placeholder="e.g.: AI-Powered Fitness Platform"
                           value={form.name}
                           onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
                           className="np-input"
@@ -849,8 +849,8 @@ export default function NewStrategyPage() {
                       {/* Description */}
                       <div>
                         <div className="flex items-center justify-between mb-2">
-                          <label style={{ fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", letterSpacing:"0.02em" }}>Описание бизнеса</label>
-                          <span style={{ fontSize:10, color:"rgba(255,255,255,0.2)" }}>{form.description.length} симв.</span>
+                          <label style={{ fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", letterSpacing:"0.02em" }}>Business Description</label>
+                          <span style={{ fontSize:10, color:"rgba(255,255,255,0.2)" }}>{form.description.length} chars</span>
                         </div>
 
                         {/* Workspace textarea */}
@@ -858,7 +858,7 @@ export default function NewStrategyPage() {
                           {/* Hint bubbles */}
                           {form.description.length === 0 && (
                             <div style={{ position:"absolute", top:12, left:14, right:14, display:"flex", flexWrap:"wrap", gap:6, pointerEvents:"none", zIndex:2 }}>
-                              {["Опишите проблему","Кто ваши клиенты","Как зарабатываете","Что делает продукт уникальным"].map(h => (
+                              {["Describe the problem","Who are your customers","How you make money","What makes the product unique"].map(h => (
                                 <span key={h} style={{ fontSize:10, color:"rgba(255,255,255,0.22)", background:"rgba(139,92,246,0.07)", border:"1px solid rgba(139,92,246,0.15)", borderRadius:6, padding:"3px 8px" }}>
                                   {h}
                                 </span>
@@ -901,7 +901,7 @@ export default function NewStrategyPage() {
                           <div style={{ marginTop:12, padding:"12px 14px", borderRadius:12, background:"rgba(255,255,255,0.025)", border:"1px solid rgba(255,255,255,0.06)", display:"flex", alignItems:"center", gap:12 }}>
                             <div style={{ flex:1 }}>
                               <div className="flex items-center justify-between mb-1.5">
-                                <span style={{ fontSize:10, color:"rgba(255,255,255,0.4)", fontWeight:600 }}>Качество описания</span>
+                                <span style={{ fontSize:10, color:"rgba(255,255,255,0.4)", fontWeight:600 }}>Description Quality</span>
                                 <span style={{ fontSize:11, fontWeight:800, color:qualityColor }}>{quality}% — {qualityLabel}</span>
                               </div>
                               <div style={{ height:3, background:"rgba(255,255,255,0.06)", borderRadius:2, overflow:"hidden" }}>
@@ -914,7 +914,7 @@ export default function NewStrategyPage() {
                             </div>
                             {quality < 60 && (
                               <div style={{ fontSize:10, color:"rgba(245,158,11,0.8)", maxWidth:160, lineHeight:1.4 }}>
-                                Добавьте бизнес-модель и целевую аудиторию
+                                Add your business model and target audience
                               </div>
                             )}
                           </div>
@@ -927,12 +927,12 @@ export default function NewStrategyPage() {
                 {/* Step 2: Market */}
                 {step === 2 && (
                   <div style={{ borderRadius:22, overflow:"hidden", background:"rgba(14,16,21,0.9)", border:"1px solid rgba(255,255,255,0.07)", backdropFilter:"blur(20px)", boxShadow:"0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)", padding:"24px 28px 28px" }}>
-                    <div style={{ fontSize:9, fontWeight:800, letterSpacing:"0.2em", color:"#3b82f6", textTransform:"uppercase", marginBottom:6 }}>Шаг 2 · Market Context</div>
-                    <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:24 }}>Контекст бизнеса</h2>
+                    <div style={{ fontSize:9, fontWeight:800, letterSpacing:"0.2em", color:"#3b82f6", textTransform:"uppercase", marginBottom:6 }}>Step 2 · Market Context</div>
+                    <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:24 }}>Business Context</h2>
 
                     {/* Industry */}
                     <div style={{ marginBottom:22 }}>
-                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Индустрия</label>
+                      <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Industry</label>
                       <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                         {INDUSTRIES.map(ind => (
                           <button key={ind} onClick={() => setForm(f => ({ ...f, industry:ind }))}
@@ -947,7 +947,7 @@ export default function NewStrategyPage() {
                     {/* Business Model */}
                     <div style={{ marginBottom:22 }}>
                       <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>
-                        Бизнес-модель <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>(можно несколько)</span>
+                        Business Model <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>(select any)</span>
                       </label>
                       <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                         {BIZ_MODELS.map(bm => {
@@ -966,7 +966,7 @@ export default function NewStrategyPage() {
                     {/* Stage + Team size */}
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18, marginBottom:22 }}>
                       <div>
-                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Текущая стадия</label>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Current Stage</label>
                         <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
                           {STAGES.map(stage => {
                             const SIcon = stage.icon;
@@ -987,7 +987,7 @@ export default function NewStrategyPage() {
                         </div>
                       </div>
                       <div>
-                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Размер команды</label>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Team Size</label>
                         <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
                           {TEAM_SIZES.map(ts => {
                             const sel = form.teamSize === ts.id;
@@ -997,7 +997,7 @@ export default function NewStrategyPage() {
                                   background: sel ? "rgba(16,185,129,0.1)" : "rgba(255,255,255,0.025)",
                                   border:     sel ? "1px solid rgba(16,185,129,0.35)" : "1px solid rgba(255,255,255,0.06)" }}>
                                 <div style={{ display:"flex", alignItems:"center", justifyContent:"space-between" }}>
-                                  <span style={{ fontSize:11, fontWeight:700, color: sel ? "#6ee7b7" : "rgba(255,255,255,0.6)" }}>{ts.label} чел.</span>
+                                  <span style={{ fontSize:11, fontWeight:700, color: sel ? "#6ee7b7" : "rgba(255,255,255,0.6)" }}>{ts.label} people</span>
                                   <span style={{ fontSize:10, color:"rgba(255,255,255,0.25)" }}>{ts.desc}</span>
                                 </div>
                               </button>
@@ -1010,7 +1010,7 @@ export default function NewStrategyPage() {
                     {/* Geography + Current Revenue */}
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:18 }}>
                       <div>
-                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>География / Целевой рынок</label>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Geography / Target Market</label>
                         <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                           {GEOS.map(g => {
                             const sel = form.geography === g;
@@ -1025,7 +1025,7 @@ export default function NewStrategyPage() {
                         </div>
                       </div>
                       <div>
-                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Текущая выручка</label>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:10 }}>Current Revenue</label>
                         <div style={{ display:"flex", flexDirection:"column", gap:6 }}>
                           {REVENUES.map(r => {
                             const sel = form.currentRevenue === r;
@@ -1046,14 +1046,14 @@ export default function NewStrategyPage() {
                 {/* Step 3: Goals & Strategy Context */}
                 {step === 3 && (
                   <div style={{ borderRadius:22, overflow:"hidden", background:"rgba(14,16,21,0.9)", border:"1px solid rgba(255,255,255,0.07)", backdropFilter:"blur(20px)", boxShadow:"0 8px 40px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.06)", padding:"24px 28px 28px" }}>
-                    <div style={{ fontSize:9, fontWeight:800, letterSpacing:"0.2em", color:"#10b981", textTransform:"uppercase", marginBottom:6 }}>Шаг 3 · Executive Report</div>
-                    <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:4 }}>Цели и стратегический контекст</h2>
-                    <p style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginBottom:24 }}>Чем больше деталей — тем точнее AI-анализ от 20 директоров</p>
+                    <div style={{ fontSize:9, fontWeight:800, letterSpacing:"0.2em", color:"#10b981", textTransform:"uppercase", marginBottom:6 }}>Step 3 · Executive Report</div>
+                    <h2 style={{ fontSize:20, fontWeight:800, color:"#fff", letterSpacing:"-0.02em", marginBottom:4 }}>Goals & Strategic Context</h2>
+                    <p style={{ fontSize:12, color:"rgba(255,255,255,0.35)", marginBottom:24 }}>The more detail — the more accurate the AI analysis from 20 directors</p>
 
                     {/* Goals */}
                     <div style={{ marginBottom:22 }}>
                       <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:12 }}>
-                        Ключевые цели <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>(можно несколько)</span>
+                        Key Goals <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>(select any)</span>
                       </label>
                       <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
                         {GOALS.map(goal => {
@@ -1074,13 +1074,13 @@ export default function NewStrategyPage() {
                     {/* Revenue + timeframe */}
                     <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr", gap:14, marginBottom:22 }}>
                       <div>
-                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>Целевая выручка</label>
-                        <input type="text" placeholder="например: $1M ARR" value={form.targetRevenue} onChange={e => setForm(f => ({ ...f, targetRevenue: e.target.value }))} className="np-input" style={{ height:42, padding:"0 14px" }} />
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>Target Revenue</label>
+                        <input type="text" placeholder="e.g.: $1M ARR" value={form.targetRevenue} onChange={e => setForm(f => ({ ...f, targetRevenue: e.target.value }))} className="np-input" style={{ height:42, padding:"0 14px" }} />
                       </div>
                       <div>
-                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>Таймфрейм</label>
+                        <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>Timeframe</label>
                         <select value={form.timeframe} onChange={e => setForm(f => ({ ...f, timeframe: e.target.value }))} className="np-input" style={{ height:42, padding:"0 14px", appearance:"none", cursor:"pointer", color:"rgba(255,255,255,0.7)" }}>
-                          {[["3","3 месяца"],["6","6 месяцев"],["12","12 месяцев"],["24","24 месяца"],["36","36 месяцев"]].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
+                          {[["3","3 months"],["6","6 months"],["12","12 months"],["24","24 months"],["36","36 months"]].map(([v,l]) => <option key={v} value={v}>{l}</option>)}
                         </select>
                       </div>
                     </div>
@@ -1088,10 +1088,10 @@ export default function NewStrategyPage() {
                     {/* Budget */}
                     <div style={{ marginBottom:22 }}>
                       <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
-                        Бюджет на развитие <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— поможет CFO и CMO составить реалистичный план</span>
+                        Growth Budget <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— helps the CFO and CMO build a realistic plan</span>
                       </label>
                       <div style={{ display:"flex", flexWrap:"wrap", gap:7 }}>
-                        {["До $5k","$5k–$20k","$20k–$100k","$100k–$500k","$500k–$2M","$2M+","Ищу инвестиции"].map(b => {
+                        {["Under $5k","$5k-$20k","$20k-$100k","$100k-$500k","$500k-$2M","$2M+","Seeking Investment"].map(b => {
                           const sel = form.budget === b;
                           return (
                             <button key={b} onClick={() => setForm(f => ({ ...f, budget: sel ? "" : b }))}
@@ -1109,11 +1109,11 @@ export default function NewStrategyPage() {
                     {/* Competitors */}
                     <div style={{ marginBottom:22 }}>
                       <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
-                        Главные конкуренты <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— кто уже решает эту задачу?</span>
+                        Main Competitors <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— who's already solving this problem?</span>
                       </label>
                       <input
                         type="text"
-                        placeholder="например: Notion, Airtable, Monday.com"
+                        placeholder="e.g.: Notion, Airtable, Monday.com"
                         value={form.competitors}
                         onChange={e => setForm(f => ({ ...f, competitors: e.target.value }))}
                         className="np-input"
@@ -1124,11 +1124,11 @@ export default function NewStrategyPage() {
                     {/* USP */}
                     <div style={{ marginBottom:22 }}>
                       <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
-                        Уникальное преимущество / USP <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— почему клиент выберет вас?</span>
+                        Unique Advantage / USP <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— why would a customer choose you?</span>
                       </label>
                       <input
                         type="text"
-                        placeholder="например: Единственный продукт с AI + интеграцией в 1С"
+                        placeholder="e.g.: The only product with AI + native accounting integration"
                         value={form.usp}
                         onChange={e => setForm(f => ({ ...f, usp: e.target.value }))}
                         className="np-input"
@@ -1139,10 +1139,10 @@ export default function NewStrategyPage() {
                     {/* Challenges */}
                     <div style={{ marginBottom:24 }}>
                       <label style={{ display:"block", fontSize:12, fontWeight:600, color:"rgba(255,255,255,0.5)", marginBottom:8 }}>
-                        Главные проблемы / боли <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— что мешает расти прямо сейчас?</span>
+                        Main Challenges / Pain Points <span style={{ color:"rgba(255,255,255,0.22)", fontWeight:400 }}>— what's holding back growth right now?</span>
                       </label>
                       <textarea
-                        placeholder="например: Высокий CAC, сложная интеграция с CRM клиентов, нехватка sales-менеджеров..."
+                        placeholder="e.g.: High CAC, difficult CRM integration, not enough sales reps..."
                         value={form.challenges}
                         onChange={e => setForm(f => ({ ...f, challenges: e.target.value }))}
                         className="np-input"
@@ -1153,23 +1153,23 @@ export default function NewStrategyPage() {
 
                     {/* Summary card */}
                     <div style={{ padding:"16px 18px", borderRadius:14, background:"rgba(255,255,255,0.025)", border:"1px solid rgba(255,255,255,0.06)" }}>
-                      <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.2em", color:"rgba(255,255,255,0.22)", textTransform:"uppercase", marginBottom:12 }}>Резюме брифинга</div>
+                      <div style={{ fontSize:9, fontWeight:700, letterSpacing:"0.2em", color:"rgba(255,255,255,0.22)", textTransform:"uppercase", marginBottom:12 }}>Briefing Summary</div>
                       <div style={{ display:"flex", flexDirection:"column", gap:7 }}>
                         {([
-                          ["Проект",       form.name||"—"],
-                          ["Индустрия",    form.industry||"—"],
-                          ["Стадия",       STAGES.find(s => s.id===form.stage)?.label||"—"],
-                          ["Бизнес-модель",form.bizModels.join(", ")||"—"],
-                          ["Команда",      TEAM_SIZES.find(t => t.id===form.teamSize)?.label||"—"],
-                          ["География",    form.geography||"—"],
-                          ["Выручка сейчас",form.currentRevenue||"—"],
-                          ["Цели",         form.goals.join(", ")||"—"],
-                          ["Целевая выручка",form.targetRevenue||"—"],
-                          ["Таймфрейм",    form.timeframe ? `${form.timeframe} мес.` : "—"],
-                          ["Бюджет",       form.budget||"—"],
-                          ["Конкуренты",   form.competitors||"—"],
+                          ["Project",       form.name||"—"],
+                          ["Industry",    form.industry||"—"],
+                          ["Stage",       STAGES.find(s => s.id===form.stage)?.label||"—"],
+                          ["Business Model",form.bizModels.join(", ")||"—"],
+                          ["Team",      TEAM_SIZES.find(t => t.id===form.teamSize)?.label||"—"],
+                          ["Geography",    form.geography||"—"],
+                          ["Current Revenue",form.currentRevenue||"—"],
+                          ["Goals",         form.goals.join(", ")||"—"],
+                          ["Target Revenue",form.targetRevenue||"—"],
+                          ["Timeframe",    form.timeframe ? `${form.timeframe} mo.` : "—"],
+                          ["Budget",       form.budget||"—"],
+                          ["Competitors",   form.competitors||"—"],
                           ["USP",          form.usp||"—"],
-                          ["Боли",         form.challenges||"—"],
+                          ["Pain Points",         form.challenges||"—"],
                         ] as [string,string][]).map(([k,v]) => v && v !== "—" ? (
                           <div key={k} style={{ display:"flex", gap:10, fontSize:11.5 }}>
                             <span style={{ color:"rgba(255,255,255,0.28)", width:110, flexShrink:0 }}>{k}:</span>
@@ -1191,7 +1191,7 @@ export default function NewStrategyPage() {
                 disabled={step === 1}
                 style={{ height:38, padding:"0 16px", borderRadius:10, fontSize:13, color:"rgba(255,255,255,0.35)", background:"none", border:"1px solid rgba(255,255,255,0.07)", cursor: step===1 ? "not-allowed" : "pointer", opacity: step===1 ? 0 : 1, transition:"opacity 0.2s" }}
               >
-                ← Назад
+                ← Back
               </button>
 
               {step < 3 ? (
@@ -1208,7 +1208,7 @@ export default function NewStrategyPage() {
                     display:"flex", alignItems:"center", gap:8, transition:"background 0.3s",
                   }}
                 >
-                  Продолжить <ChevronRight size={14} />
+                  Continue <ChevronRight size={14} />
                 </motion.button>
               ) : (
                 <motion.button
@@ -1228,7 +1228,7 @@ export default function NewStrategyPage() {
                 >
                   <Zap size={16} color="white" />
                   <div style={{ textAlign:"left" }}>
-                    <div style={{ fontSize:13, fontWeight:800, color:"#fff", lineHeight:1.2 }}>Запустить AI-анализ</div>
+                    <div style={{ fontSize:13, fontWeight:800, color:"#fff", lineHeight:1.2 }}>Run AI Analysis</div>
                     <div style={{ fontSize:10, color:"rgba(255,255,255,0.6)", lineHeight:1.2 }}>Estimated time: ~2 min</div>
                   </div>
                   <ArrowRight size={15} color="rgba(255,255,255,0.7)" style={{ marginLeft:4 }} />
@@ -1250,7 +1250,7 @@ export default function NewStrategyPage() {
                 </div>
               </div>
               <div style={{ fontSize:11, color:"rgba(255,255,255,0.35)", marginBottom:14 }}>
-                <span style={{ color:"#818cf8", fontWeight:700 }}>20</span> AI-директоров {hasText ? "анализируют бриф" : "готовы к работе"}
+                <span style={{ color:"#818cf8", fontWeight:700 }}>20</span> AI directors {hasText ? "are analyzing the brief" : "are ready to work"}
               </div>
               <LiveAgentPanel hasText={hasText} />
             </div>
@@ -1263,10 +1263,10 @@ export default function NewStrategyPage() {
               </div>
               <div className="space-y-2.5">
                 {[
-                  { tip:"Опишите бизнес-модель", ok: form.description.includes("подписка") || form.description.includes("saas") || form.description.includes("subscription") || form.description.length > 100 },
-                  { tip:"Укажите целевую аудиторию", ok: form.description.toLowerCase().includes("b2b") || form.description.toLowerCase().includes("клиент") || form.description.length > 150 },
-                  { tip:"Опишите конкурентов", ok: form.description.toLowerCase().includes("конкурент") || form.description.length > 250 },
-                  { tip:"Добавьте уникальность продукта", ok: form.description.length > 200 },
+                  { tip:"Describe your business model", ok: form.description.includes("saas") || form.description.includes("subscription") || form.description.length > 100 },
+                  { tip:"State your target audience", ok: form.description.toLowerCase().includes("b2b") || form.description.toLowerCase().includes("customer") || form.description.length > 150 },
+                  { tip:"Describe your competitors", ok: form.description.toLowerCase().includes("competitor") || form.description.length > 250 },
+                  { tip:"Add what makes the product unique", ok: form.description.length > 200 },
                 ].map((t, i) => (
                   <div key={i} className="flex items-start gap-2.5">
                     <div style={{ width:16, height:16, borderRadius:"50%", display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0, marginTop:1, background: t.ok ? "rgba(16,185,129,0.15)" : "rgba(255,255,255,0.05)", border: t.ok ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(255,255,255,0.08)" }}>
@@ -1283,14 +1283,14 @@ export default function NewStrategyPage() {
               <motion.div initial={{ opacity:0, y:8 }} animate={{ opacity:1, y:0 }} style={{ borderRadius:18, padding:"16px 18px", background:"rgba(16,185,129,0.04)", border:"1px solid rgba(16,185,129,0.12)" }}>
                 <div className="flex items-center gap-2 mb-3">
                   <Brain size={12} style={{ color:"#10b981" }} />
-                  <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(16,185,129,0.8)" }}>Предварительный анализ</span>
+                  <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(16,185,129,0.8)" }}>Preliminary Analysis</span>
                 </div>
                 <div className="space-y-2">
                   {[
-                    { label:"Рынок",     value: form.industry ? `${form.industry} — активный` : "Определяю...", color:"#3b82f6" },
-                    { label:"Риск",      value: quality > 60 ? "Средний" : "Оцениваю...",                       color:"#f59e0b" },
-                    { label:"AI Score",  value: `${quality}% качество брифа`,                                   color:"#8b5cf6" },
-                    { label:"Стратегия", value: form.stage ? `Stage: ${form.stage}` : "Определяю...",          color:"#10b981" },
+                    { label:"Market",     value: form.industry ? `${form.industry} — active` : "Determining...", color:"#3b82f6" },
+                    { label:"Risk",      value: quality > 60 ? "Medium" : "Assessing...",                       color:"#f59e0b" },
+                    { label:"AI Score",  value: `${quality}% brief quality`,                                   color:"#8b5cf6" },
+                    { label:"Strategy", value: form.stage ? `Stage: ${form.stage}` : "Determining...",          color:"#10b981" },
                   ].map(r => (
                     <div key={r.label} className="flex items-center justify-between">
                       <span style={{ fontSize:11, color:"rgba(255,255,255,0.35)" }}>{r.label}</span>
