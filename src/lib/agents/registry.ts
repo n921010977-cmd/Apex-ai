@@ -4,7 +4,7 @@ export const AGENT_REGISTRY: Record<string, AgentConfig> = {
   ceo: {
     id: "ceo",
     role: "CEO",
-    name: "CEO — Стратег",
+    name: "CEO — Strategist",
     slug: "ceo",
     model: "claude-haiku-4-5-20251001",
     temperature: 0.7,
@@ -28,11 +28,11 @@ THINKING CHAIN:
 6. What are the concrete next steps?
 
 RESPONSE FORMAT (strict markdown):
-## Стратегическая оценка
-## Ключевые возможности
-## Рекомендация (with ICE scores)
-## Следующие шаги (checklist with deadlines)
-## Риски и митигация ⚠️
+## Strategic Assessment
+## Key Opportunities
+## Recommendation (with ICE scores)
+## Next Steps (checklist with deadlines)
+## Risks & Mitigation ⚠️
 
 RULES: Never invent numbers. No flattery. End every response with a concrete action. Speak in the user's language.`,
   },
@@ -40,7 +40,7 @@ RULES: Never invent numbers. No flattery. End every response with a concrete act
   cfo: {
     id: "cfo",
     role: "CFO",
-    name: "CFO — Финансист",
+    name: "CFO — Financier",
     slug: "cfo",
     model: "claude-haiku-4-5-20251001",
     temperature: 0.3,
@@ -65,12 +65,12 @@ THINKING CHAIN:
 6. Financial verdict
 
 RESPONSE FORMAT (strict markdown):
-## Финансовое резюме
-## Ключевые расчёты (table)
-## Допущения
-## Сценарии Bear/Base/Bull (table)
-## Финансовые риски ⚠️
-## Рекомендация
+## Financial Summary
+## Key Calculations (table)
+## Assumptions
+## Bear/Base/Bull Scenarios (table)
+## Financial Risks ⚠️
+## Recommendation
 
 RULES: Never invent numbers. Always show assumptions. Think cash flow not profit. Always respond in the user's language.`,
   },
@@ -78,7 +78,7 @@ RULES: Never invent numbers. Always show assumptions. Think cash flow not profit
   cmo: {
     id: "cmo",
     role: "CMO",
-    name: "CMO — Маркетолог",
+    name: "CMO — Marketer",
     slug: "cmo",
     model: "claude-haiku-4-5-20251001",
     temperature: 0.8,
@@ -103,12 +103,12 @@ THINKING CHAIN:
 6. What's the minimum viable marketing experiment?
 
 RESPONSE FORMAT (strict markdown):
-## Маркетинговый анализ
-## Целевые сегменты (with pains and channels)
-## Стратегия позиционирования
-## Приоритетные каналы (with budget allocation and metrics)
-## Первые 30 дней (action checklist)
-## Ключевые метрики (CAC, LTV, conversion targets)
+## Marketing Analysis
+## Target Segments (with pains and channels)
+## Positioning Strategy
+## Priority Channels (with budget allocation and metrics)
+## First 30 Days (action checklist)
+## Key Metrics (CAC, LTV, conversion targets)
 
 RULES: Speak in segments not "target audience". Always include ROI. First 30 days must be actionable. Always respond in the user's language.`,
   },
@@ -116,7 +116,7 @@ RULES: Speak in segments not "target audience". Always include ROI. First 30 day
   coo: {
     id: "coo",
     role: "COO",
-    name: "COO — Операционист",
+    name: "COO — Operations Lead",
     slug: "coo",
     model: "claude-haiku-4-5-20251001",
     temperature: 0.4,
@@ -141,12 +141,12 @@ THINKING CHAIN:
 6. What's the escalation plan if things go wrong?
 
 RESPONSE FORMAT (strict markdown):
-## Операционная оценка
-## Операционный план (table: phase / tasks / deadline / owner / metric)
-## Критический путь ⚠️
-## Структура команды
-## Чеклист запуска
-## Метрики успеха
+## Operational Assessment
+## Operational Plan (table: phase / tasks / deadline / owner / metric)
+## Critical Path ⚠️
+## Team Structure
+## Launch Checklist
+## Success Metrics
 
 RULES: Specific dates not "soon". Every task has an owner. Always identify the critical path. Always respond in the user's language.`,
   },
@@ -154,7 +154,7 @@ RULES: Specific dates not "soon". Every task has an owner. Always identify the c
   cto: {
     id: "cto",
     role: "CTO",
-    name: "CTO — Технолог",
+    name: "CTO — Technologist",
     slug: "cto",
     model: "claude-haiku-4-5-20251001",
     temperature: 0.4,
@@ -179,12 +179,12 @@ THINKING CHAIN:
 6. What's the engineering roadmap?
 
 RESPONSE FORMAT (strict markdown):
-## Технический анализ
-## Рекомендуемый стек
-## Архитектура (описание)
-## Технический долг и риски ⚠️
-## Roadmap разработки
-## Команда инженеров
+## Technical Analysis
+## Recommended Stack
+## Architecture (description)
+## Technical Debt & Risks ⚠️
+## Development Roadmap
+## Engineering Team
 
 RULES: Match complexity to stage. Don't over-engineer MVP. Always include security considerations. Always respond in the user's language.`,
   },
@@ -218,13 +218,13 @@ THINKING CHAIN:
 6. Translate insights into recommendations
 
 RESPONSE FORMAT (strict markdown):
-## Аналитическое резюме
-## Анализ рынка (TAM/SAM/SOM)
-## SWOT-анализ (table)
-## Конкурентный анализ (table)
+## Analytical Summary
+## Market Analysis (TAM/SAM/SOM)
+## SWOT Analysis (table)
+## Competitive Analysis (table)
 ## Customer Persona
-## Ключевые инсайты
-## Рекомендации
+## Key Insights
+## Recommendations
 
 RULES: Separate facts from assumptions clearly. Cite limitations. Always respond in the user's language.`,
   },
@@ -249,12 +249,12 @@ CORE RESPONSIBILITIES:
 - Revenue forecasting
 
 RESPONSE FORMAT (strict markdown):
-## Анализ продаж
+## Sales Analysis
 ## ICP (Ideal Customer Profile)
-## Воронка продаж
-## Скрипты и возражения
-## KPI продаж
-## Прогноз выручки
+## Sales Funnel
+## Scripts & Objections
+## Sales KPIs
+## Revenue Forecast
 
 RULES: Always quantify revenue potential. Focus on repeatable process. Always respond in the user's language.`,
   },
@@ -281,12 +281,12 @@ CORE RESPONSIBILITIES:
 IMPORTANT DISCLAIMER: Always note that you provide general legal information, not legal advice. Recommend consulting a qualified attorney for specific legal matters.
 
 RESPONSE FORMAT (strict markdown):
-## Правовой анализ
-## Структура бизнеса
-## Ключевые правовые риски ⚠️
-## Рекомендуемые документы
-## Compliance требования
-## Следующие шаги
+## Legal Analysis
+## Business Structure
+## Key Legal Risks ⚠️
+## Recommended Documents
+## Compliance Requirements
+## Next Steps
 
 RULES: Always include disclaimer. Never give specific legal advice. Flag high-risk areas clearly. Always respond in the user's language.`,
   },
