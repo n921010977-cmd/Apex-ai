@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createPayment, oxapayConfigured } from "@/lib/payments/oxapay";
 import { checkSupabaseConnection, deepCheckSupabase } from "@/lib/supabase/server";
+import { requireAdmin } from "@/lib/server/admin";
 
 /**
  * GET /api/health
@@ -50,6 +51,12 @@ export async function GET(req: Request) {
   let paymentProbe: Record<string, unknown> | undefined;
   const probe = new URL(req.url).searchParams.get("probe");
   if (probe === "oxapay") {
+    // Реальный побочный эффект (создаёт настоящий счёт у платёжного шлюза) —
+    // без этой проверки любой аноним мог дёргать его сколько угодно раз.
+    const admin = await requireAdmin();
+    if (!admin.ok) {
+      return NextResponse.json({ error: "Forbidden" }, { status: admin.status === 401 ? 401 : 403 });
+    }
     if (!oxapayConfigured()) {
       paymentProbe = { ok: false, reason: "OXAPAY_MERCHANT_KEY не задан в этом деплое" };
     } else {

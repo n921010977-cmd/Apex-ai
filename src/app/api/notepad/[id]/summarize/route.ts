@@ -67,6 +67,7 @@ export async function POST(_req: NextRequest, { params }: { params: Promise<{ id
     .from("notes")
     .update({ ai_summary: summary, updated_at: new Date().toISOString() })
     .eq("id", id)
+    .eq("user_id", session.user.id)
     .select()
     .single();
 
