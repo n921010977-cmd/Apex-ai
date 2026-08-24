@@ -281,7 +281,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
           }}
         >
           <div style={{ position: "relative", flexShrink: 0 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg, rgba(${project.rgb},0.22), rgba(${project.rgb},0.06))`, border: `1px solid rgba(${project.rgb},0.28)`, display: "flex", alignItems: "center", justifyContent: "center", color: project.color, fontFamily: "var(--font-geist-mono), monospace", fontSize: 11.5, fontWeight: 800, letterSpacing: "-0.02em", boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08)` }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: `linear-gradient(135deg, rgba(${project.rgb},0.22), rgba(${project.rgb},0.06))`, border: `1px solid rgba(${project.rgb},0.28)`, display: "flex", alignItems: "center", justifyContent: "center", color: project.color, fontSize: 11.5, fontWeight: 800, letterSpacing: "-0.02em", boxShadow: `inset 0 1px 0 rgba(255,255,255,0.08)` }}>
               {project.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase().slice(0, 2)}
             </div>
             <span style={{ position: "absolute", right: -1, bottom: -1, width: 8, height: 8, borderRadius: "50%",
@@ -336,7 +336,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
           <div style={{ display: "flex", alignItems: "center", gap: 12, minWidth: 0 }}>
             {/* Аватар проекта — уникальные инициалы вместо мозга у всех */}
             <div style={{ position: "relative", flexShrink: 0 }}>
-              <div style={{ width: 44, height: 44, borderRadius: 13, background: `linear-gradient(135deg, rgba(${project.rgb},0.28), rgba(${project.rgb},0.08))`, border: `1px solid rgba(${project.rgb},0.32)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 18px rgba(${project.rgb},0.22), inset 0 1px 0 rgba(255,255,255,0.12)`, color: project.color, fontFamily: "var(--font-geist-mono), monospace", fontSize: 14, fontWeight: 800, letterSpacing: "-0.02em" }}>
+              <div style={{ width: 44, height: 44, borderRadius: 13, background: `linear-gradient(135deg, rgba(${project.rgb},0.28), rgba(${project.rgb},0.08))`, border: `1px solid rgba(${project.rgb},0.32)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 6px 18px rgba(${project.rgb},0.22), inset 0 1px 0 rgba(255,255,255,0.12)`, color: project.color, fontSize: 14, fontWeight: 800, letterSpacing: "-0.02em" }}>
                 {project.name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase().slice(0, 2)}
               </div>
               {/* живой статус-точка */}
@@ -353,7 +353,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
                   <span style={{ width: 4, height: 4, borderRadius: "50%", background: analyzing ? "#f59e0b" : "#10b981", boxShadow: `0 0 5px ${analyzing ? "#f59e0b" : "#10b981"}` }} />
                   {analyzing ? "Analyzing" : "Complete"}
                 </span>
-                <span style={{ fontSize: 9.5, fontFamily: "var(--font-geist-mono), monospace", color: "rgba(255,255,255,0.32)" }}>
+                <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.32)" }}>
                   {project.date}
                 </span>
               </div>
@@ -388,7 +388,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
               <b style={{ color: project.color, fontWeight: 800 }}>{live.who}</b> {live.act}
             </motion.span>
           </AnimatePresence>
-          <span style={{ fontSize: 9.5, fontFamily: "var(--font-geist-mono), monospace", color: "rgba(255,255,255,0.28)", flexShrink: 0 }}>{live.ago}</span>
+          <span style={{ fontSize: 9.5, color: "rgba(255,255,255,0.28)", flexShrink: 0 }}>{live.ago}</span>
         </div>
       </div>
 
@@ -423,7 +423,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
       <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", alignItems: "stretch", gap: 14 }}>
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 6 }}>
-            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-geist-mono), monospace" }}>AI Score · trend</span>
+            <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em" }}>AI Score · trend</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 4, fontSize: 9.5, fontWeight: 700, color: project.color, fontVariantNumeric: "tabular-nums" }}>
               <TrendingUp size={9} strokeWidth={2.5} />
               +{Math.max(0, project.sparkline[project.sparkline.length - 1] - project.sparkline[0])}
@@ -435,7 +435,7 @@ function ProjectCard({ project, compact }: { project: Project; compact?: boolean
         </div>
         <div style={{ width: 1, background: "rgba(255,255,255,0.05)", flexShrink: 0 }} />
         <div style={{ flexShrink: 0, textAlign: "right", display: "flex", flexDirection: "column", justifyContent: "space-between", minWidth: 82 }}>
-          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "var(--font-geist-mono), monospace" }}>Confidence</span>
+          <span style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", textTransform: "uppercase", letterSpacing: "0.08em" }}>Confidence</span>
           <div>
             <div style={{ fontSize: 22, fontWeight: 800, color: project.color, lineHeight: 1, letterSpacing: "-0.02em", fontVariantNumeric: "tabular-nums" }}>{project.confidence}%</div>
             <div style={{ fontSize: 9, color: "rgba(255,255,255,0.28)", marginTop: 3 }}>AI confidence</div>
@@ -541,7 +541,7 @@ function LiveFeedBlock() {
       <div aria-hidden style={{ position: "absolute", top: 0, left: "10%", right: "10%", height: 1, background: "linear-gradient(90deg, transparent, rgba(16,185,129,0.4), transparent)" }} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
         <div style={{ fontSize: 11, fontWeight: 700, color: "rgba(255,255,255,0.5)", textTransform: "uppercase", letterSpacing: "0.12em" }}>Live Executive Feed</div>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 9, fontWeight: 700, color: "#10b981", fontFamily: "var(--font-geist-mono), monospace" }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 9, fontWeight: 700, color: "#10b981" }}>
           <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px rgba(16,185,129,0.8)", animation: "pf-pulse 1.8s ease-in-out infinite" }} />
           LIVE
         </span>
@@ -715,17 +715,17 @@ export default function ProjectsPage() {
         {/* Hero header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
           <div>
-            <div className="term-mono" style={{ fontSize: 10.5, letterSpacing: "0.16em", color: "rgba(99,102,241,0.7)", marginBottom: 8, textTransform: "uppercase" }}>// portfolio</div>
-            <h1 className="term-mono" style={{ fontSize: 26, fontWeight: 800, color: "#fff", letterSpacing: "0.01em", lineHeight: 1.1, marginBottom: 8 }}>
-              PORTFOLIO<span style={{ color: "rgba(255,255,255,0.25)" }}>_</span>INTEL
+            <div style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(99,102,241,0.75)", marginBottom: 8, textTransform: "uppercase", fontWeight: 700 }}>Portfolio</div>
+            <h1 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 8 }}>
+              My projects
             </h1>
-            <p className="term-mono" style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", letterSpacing: "0.04em", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981" }} />{ALL_PROJECTS.length} STRATEGIES · TRACKED
+            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", display: "inline-flex", alignItems: "center", gap: 6 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }} />{ALL_PROJECTS.length} strategies tracked
             </p>
           </div>
           <Link
             href="/dashboard/new"
-            style={{ display: "flex", alignItems: "center", gap: 8, height: 40, padding: "0 18px", borderRadius: 12, background: "linear-gradient(135deg, #8b5cf6, #3b82f6)", fontSize: 13, fontWeight: 600, color: "#fff", textDecoration: "none", boxShadow: "0 4px 20px rgba(139,92,246,0.35), inset 0 1px 0 rgba(255,255,255,0.15)", flexShrink: 0 }}
+            style={{ display: "flex", alignItems: "center", gap: 8, height: 40, padding: "0 18px", borderRadius: 12, background: "linear-gradient(135deg,#6366f1,#4f46e5)", fontSize: 13, fontWeight: 700, color: "#fff", textDecoration: "none", boxShadow: "0 4px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.15)", flexShrink: 0 }}
           >
             <Zap size={14} />
             New strategy
