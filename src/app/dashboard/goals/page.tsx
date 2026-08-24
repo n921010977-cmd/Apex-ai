@@ -88,24 +88,24 @@ function fmt(n: number): string {
 type Analysis = { status: "nodata" | "done" | "stalled" | "ontrack" | "behind"; hint: string };
 
 function analyze(g: Goal): Analysis {
-  if (progress(g) >= 100) return { status: "done", hint: "Цель достигнута 🎉" };
+  if (progress(g) >= 100) return { status: "done", hint: "Goal achieved 🎉" };
   const checks = g.checks;
-  if (checks.length < 2) return { status: "nodata", hint: "Обнови прогресс ещё раз — покажу темп" };
+  if (checks.length < 2) return { status: "nodata", hint: "Update progress once more — I'll show the pace" };
   const first = checks[0], last = checks[checks.length - 1];
   const weeksElapsed = Math.max(0.15, (last.ts - first.ts) / WEEK);
   const vel = (last.value - first.value) / weeksElapsed; // за неделю
   const remaining = g.target - g.current;
-  if (vel <= 0) return { status: "stalled", hint: "Прогресс стоит — нужен рывок на этой неделе" };
+  if (vel <= 0) return { status: "stalled", hint: "Progress has stalled — a push is needed this week" };
 
   const dl = parseDeadline(g.deadline);
   if (dl && dl > Date.now()) {
     const weeksLeft = (dl - Date.now()) / WEEK;
     const needed = remaining / weeksLeft;
-    if (vel >= needed) return { status: "ontrack", hint: `В графике: темп +${fmt(vel)}/нед` };
-    return { status: "behind", hint: `Отстаём: нужно +${fmt(needed)}/нед, сейчас +${fmt(vel)}` };
+    if (vel >= needed) return { status: "ontrack", hint: `On track: pace +${fmt(vel)}/wk` };
+    return { status: "behind", hint: `Behind: need +${fmt(needed)}/wk, currently +${fmt(vel)}` };
   }
   const weeksToTarget = Math.ceil(remaining / vel);
-  return { status: "ontrack", hint: `При темпе +${fmt(vel)}/нед — цель через ~${weeksToTarget} нед` };
+  return { status: "ontrack", hint: `At this pace +${fmt(vel)}/wk — goal in ~${weeksToTarget} wk` };
 }
 
 // Мини-спарклайн истории чек-инов.
@@ -193,7 +193,7 @@ function GoalsPageInner() {
   );
 
   const addGoal = () => {
-    if (!draft.title.trim()) { setError("Укажите название цели"); return; }
+    if (!draft.title.trim()) { setError("Enter a goal name"); return; }
     const start = Number(draft.start) || 0;
     const g: Goal = {
       id: `${Date.now()}`,
@@ -218,7 +218,7 @@ function GoalsPageInner() {
   const remove = (id: string) => save(goals.filter(g => g.id !== id));
 
   const getFocus = async () => {
-    if (goals.length === 0) { setError("Сначала добавьте цели"); return; }
+    if (goals.length === 0) { setError("Add some goals first"); return; }
     setBusy(true); setError(""); setFocus("");
     try {
       const res = await fetch("/api/artifacts/weekly-focus", {
@@ -226,10 +226,10 @@ function GoalsPageInner() {
         body: JSON.stringify({ industry, goals: goals.map(g => ({ title: g.title, metric: g.metric, current: g.current, target: g.target, deadline: g.deadline })) }),
       });
       const data = await res.json();
-      if (!res.ok || !data.success) { setError(data.error || "Не удалось получить фокус"); return; }
+      if (!res.ok || !data.success) { setError(data.error || "Could not get a focus"); return; }
       setFocus(data.focus);
       track(EVENTS.AI_ANALYSIS_COMPLETED, { kind: "weekly_focus" });
-    } catch { setError("Ошибка сети"); }
+    } catch { setError("Network error"); }
     finally { setBusy(false); }
   };
 
@@ -240,8 +240,8 @@ function GoalsPageInner() {
           <Flag size={20} color="#fff" />
         </div>
         <div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>Цели и фокус недели</h1>
-          <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Отслеживай прогресс и получай от AI фокус на неделю</div>
+          <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: 0 }}>Goals & Weekly Focus</h1>
+          <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Track progress and get an AI focus for the week</div>
         </div>
       </div>
 
@@ -252,14 +252,14 @@ function GoalsPageInner() {
             <span style={{ fontSize: 18 }}>🔥</span>
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: streak > 0 ? "#fbbf24" : "rgba(255,255,255,0.5)", lineHeight: 1 }}>{streak}</div>
-              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>недель подряд</div>
+              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>weeks in a row</div>
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 9, padding: "10px 14px", borderRadius: 12, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
             <TrendingUp size={16} style={{ color: "#a5b4fc" }} />
             <div>
               <div style={{ fontSize: 16, fontWeight: 800, color: "#fff", lineHeight: 1 }}>{avgProgress}%</div>
-              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>средний прогресс</div>
+              <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.45)", marginTop: 3 }}>average progress</div>
             </div>
           </div>
         </div>
@@ -270,7 +270,7 @@ function GoalsPageInner() {
         <div style={{ display: "flex", alignItems: "center", gap: 11, marginTop: 14, padding: "12px 15px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)" }}>
           <CalendarClock size={17} style={{ color: "#fbbf24", flexShrink: 0 }} />
           <div style={{ fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.45 }}>
-            Ты не обновлял прогресс <b style={{ color: "#fff" }}>{daysStale} дн.</b> {streak > 0 ? "— обнови хотя бы одну цель, чтобы не потерять серию 🔥" : "— зайди и отметь движение по целям."}
+            You haven't updated progress in <b style={{ color: "#fff" }}>{daysStale} days.</b> {streak > 0 ? "— update at least one goal to keep your streak 🔥" : "— come back and log some movement on your goals."}
           </div>
         </div>
       )}
@@ -279,29 +279,29 @@ function GoalsPageInner() {
         {/* Левая колонка — цели */}
         <div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>Мои цели ({goals.length})</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "rgba(255,255,255,0.7)" }}>My Goals ({goals.length})</div>
             <button onClick={() => { setAdding(a => !a); setError(""); }}
               style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12.5, fontWeight: 650, padding: "7px 12px", borderRadius: 9, cursor: "pointer", color: adding ? "rgba(255,255,255,0.6)" : "#fff", background: adding ? "rgba(255,255,255,0.05)" : `rgba(${RGB},0.16)`, border: adding ? "1px solid rgba(255,255,255,0.1)" : `1px solid rgba(${RGB},0.4)` }}>
-              {adding ? <X size={13} /> : <Plus size={13} />} {adding ? "Отмена" : "Цель"}
+              {adding ? <X size={13} /> : <Plus size={13} />} {adding ? "Cancel" : "Goal"}
             </button>
           </div>
 
           {adding && (
             <div style={{ borderRadius: 14, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", padding: 14, marginBottom: 14, display: "flex", flexDirection: "column", gap: 9 }}>
-              <input autoFocus placeholder="Название цели (напр. Выручка в месяц)" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} style={inp} />
+              <input autoFocus placeholder="Goal name (e.g. Monthly revenue)" value={draft.title} onChange={e => setDraft({ ...draft, title: e.target.value })} style={inp} />
               <div style={{ display: "flex", gap: 8 }}>
-                <input placeholder="Сейчас" value={draft.current} onChange={e => setDraft({ ...draft, current: e.target.value })} inputMode="numeric" style={inp} />
-                <input placeholder="Цель" value={draft.target} onChange={e => setDraft({ ...draft, target: e.target.value })} inputMode="numeric" style={inp} />
-                <input placeholder="Ед. (₽, шт, %)" value={draft.metric} onChange={e => setDraft({ ...draft, metric: e.target.value })} style={inp} />
+                <input placeholder="Current" value={draft.current} onChange={e => setDraft({ ...draft, current: e.target.value })} inputMode="numeric" style={inp} />
+                <input placeholder="Target" value={draft.target} onChange={e => setDraft({ ...draft, target: e.target.value })} inputMode="numeric" style={inp} />
+                <input placeholder="Unit ($, pcs, %)" value={draft.metric} onChange={e => setDraft({ ...draft, metric: e.target.value })} style={inp} />
               </div>
-              <input placeholder="Дедлайн (напр. 31.12.2026)" value={draft.deadline} onChange={e => setDraft({ ...draft, deadline: e.target.value })} style={inp} />
-              <button onClick={addGoal} style={{ padding: "9px 14px", borderRadius: 10, border: "none", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Добавить цель</button>
+              <input placeholder="Deadline (e.g. 12/31/2026)" value={draft.deadline} onChange={e => setDraft({ ...draft, deadline: e.target.value })} style={inp} />
+              <button onClick={addGoal} style={{ padding: "9px 14px", borderRadius: 10, border: "none", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Add Goal</button>
             </div>
           )}
 
           {goals.length === 0 && !adding && (
             <div style={{ borderRadius: 14, border: "1px dashed rgba(255,255,255,0.12)", padding: "28px 16px", textAlign: "center", color: "rgba(255,255,255,0.35)", fontSize: 13 }}>
-              Пока нет целей. Добавь первую — и AI будет держать тебя в фокусе каждую неделю.
+              No goals yet. Add your first one — and AI will help you stay focused every week.
             </div>
           )}
 
@@ -312,7 +312,7 @@ function GoalsPageInner() {
                 <div key={g.id} style={{ borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)", padding: 15 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10 }}>
                     <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{g.title}</div>
-                    <button onClick={() => remove(g.id)} title="Удалить" style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", flexShrink: 0 }}><Trash2 size={14} /></button>
+                    <button onClick={() => remove(g.id)} title="Delete" style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", flexShrink: 0 }}><Trash2 size={14} /></button>
                   </div>
                   <div style={{ fontSize: 12, color: "rgba(255,255,255,0.5)", marginTop: 3, display: "flex", gap: 10, flexWrap: "wrap" }}>
                     <span><b style={{ color: "#fff" }}>{g.current}</b> / {g.target} {g.metric}</span>
@@ -322,12 +322,12 @@ function GoalsPageInner() {
                     <div style={{ width: `${p}%`, height: "100%", borderRadius: 4, background: p >= 100 ? "#10b981" : `linear-gradient(90deg,${ACCENT},#4f46e5)`, transition: "width .6s cubic-bezier(0.22,1,0.36,1)" }} />
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", flexShrink: 0 }}>Обновить:</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", flexShrink: 0 }}>Update:</span>
                     <input type="number" defaultValue={g.current} key={g.current}
                       onKeyDown={e => { if (e.key === "Enter") updateProgress(g.id, Number((e.target as HTMLInputElement).value)); }}
                       onBlur={e => { const v = Number(e.target.value); if (v !== g.current) updateProgress(g.id, v); }}
                       style={{ width: 90, ...inp, padding: "6px 9px", fontSize: 12.5 }} />
-                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{p}% · {g.checks.length} чек-инов</span>
+                    <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)" }}>{p}% · {g.checks.length} check-ins</span>
                   </div>
                   {/* Умный авто-анализ: темп + спарклайн истории */}
                   {(() => {
@@ -349,7 +349,7 @@ function GoalsPageInner() {
         {/* Правая колонка — фокус недели */}
         <div style={{ position: "sticky", top: 16 }}>
           <div style={{ borderRadius: 16, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)", padding: 16 }}>
-            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Ниша</div>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Industry</div>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 14 }}>
               {INDUSTRIES.map(ind => {
                 const sel = industry === ind.id;
@@ -364,7 +364,7 @@ function GoalsPageInner() {
             <button onClick={getFocus} disabled={busy}
               style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "11px 18px", borderRadius: 12, border: "none", fontSize: 14, fontWeight: 700, color: "#fff", cursor: busy ? "default" : "pointer", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 6px 22px rgba(${RGB},0.32)`, opacity: busy ? 0.7 : 1 }}>
               {busy ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={15} />}
-              {busy ? "Думаю…" : "Фокус на неделю"}
+              {busy ? "Thinking…" : "Weekly Focus"}
             </button>
             {error && <div style={{ marginTop: 10, fontSize: 12.5, color: "#fca5a5" }}>{error}</div>}
             {focus && (
@@ -375,7 +375,7 @@ function GoalsPageInner() {
             {!focus && !busy && (
               <div style={{ marginTop: 14, fontSize: 12, color: "rgba(255,255,255,0.35)", lineHeight: 1.5, display: "flex", gap: 7 }}>
                 <TrendingUp size={14} style={{ flexShrink: 0, marginTop: 1 }} />
-                Заходи раз в неделю, обновляй прогресс и получай новый фокус — так цели двигаются, а не забываются.
+                Come back once a week, update your progress, and get a new focus — that's how goals keep moving instead of being forgotten.
               </div>
             )}
           </div>

@@ -115,10 +115,10 @@ function formatInline(text: string): React.ReactNode {
 }
 
 const AGENT_NAMES: Record<string, string> = {
-  ceo: "CEO — Стратег",
-  cfo: "CFO — Финансист",
-  cmo: "CMO — Маркетолог",
-  coo: "COO — Операционист",
+  ceo: "CEO — Strategist",
+  cfo: "CFO — Finance",
+  cmo: "CMO — Marketing",
+  coo: "COO — Operations",
   analyst: "Business Analyst",
   general: "AI Assistant",
 };
@@ -131,7 +131,7 @@ interface AgentProfile {
   team?: { slug: string; name: string; role: string; title: string; color: string; ab: string }[];
 }
 
-const SPEED_RU: Record<string, string> = { fast: "Быстрый", medium: "Средний", slow: "Медленный" };
+const SPEED_RU: Record<string, string> = { fast: "Fast", medium: "Medium", slow: "Slow" };
 
 export default function ChatPage() {
   const params = useParams();
@@ -155,8 +155,8 @@ export default function ChatPage() {
       setAgent({
         id: tm.slug, name: tm.name, role: `${tm.role} · ${tm.title}`, color: tm.c, ab: tm.ab,
         description: tm.slug === "ceo"
-          ? `Генеральный директор. Ваш вопрос обсудят все ${team.length} агентов компании, после чего ${tm.name} вынесет финальный вердикт.`
-          : `${tm.title}. Ваш вопрос обсудит команда из ${team.length} агентов, после чего ${tm.name} вынесет финальный вердикт.`,
+          ? `CEO. Your question will be discussed by all ${team.length} agents in the company, after which ${tm.name} will deliver the final verdict.`
+          : `${tm.title}. Your question will be discussed by a team of ${team.length} agents, after which ${tm.name} will deliver the final verdict.`,
         team: team.map(t => ({ slug: t.slug, name: t.name, role: t.role, title: t.title, color: t.c, ab: t.ab })),
       });
       return;
@@ -172,7 +172,7 @@ export default function ChatPage() {
 
   const agentColor = agent?.color ?? "#8b5cf6";
   const persona = agent
-    ? `${agent.prompt ?? `Ты — ${agent.name}, ${agent.role}.`}\n\nТвоя роль: ${agent.role}. Отвечай по-русски, профессионально, в характере своей роли, конкретно и по делу.`
+    ? `${agent.prompt ?? `You are ${agent.name}, ${agent.role}.`}\n\nYour role: ${agent.role}. Reply in English, professionally, in character for your role, concretely and to the point.`
     : undefined;
 
   // единый аватар ассистента: эмодзи агента в его цвете, иначе — звезда Vertlix
@@ -227,7 +227,7 @@ export default function ChatPage() {
     }
 
     const rec = new SR();
-    rec.lang = "ru-RU";
+    rec.lang = "en-US";
     rec.continuous = false;
     rec.interimResults = true;
 
@@ -298,7 +298,7 @@ export default function ChatPage() {
       }
     } catch { /* fallthrough to fallback */ }
     if (!acc.trim()) {
-      acc = `Со своей стороны (${speaker.role}): нужно больше вводных, но направление рабочее. Живое обсуждение включится после настройки ANTHROPIC_API_KEY.`;
+      acc = `From my side (${speaker.role}): more input is needed, but the direction is workable. Live discussion turns on once ANTHROPIC_API_KEY is configured.`;
       put(acc);
     }
     return acc;
@@ -312,13 +312,13 @@ export default function ChatPage() {
     const opinions: { name: string; title: string; text: string; color: string }[] = [];
     for (const m of agent.team) {
       const prev = opinions.slice(-5).map(o => `${o.name} (${o.title}): ${o.text.slice(0, big ? 200 : 400)}`).join("\n\n");
-      const persona = `Ты — ${m.name}, ${m.title} в Vertlix AI, в команде ${agent.name} (${agent.role}). Руководитель собрал ${big ? "общее совещание всей компании" : "команду"} обсудить вопрос основателя.${prev ? `\n\nПоследние реплики коллег:\n${prev}\n\nДополни новым углом или аргументированно поспорь, не повторяйся.` : "\nТы говоришь первым."}\nВыскажи мнение строго из своей зоны: ${big ? "1–2 предложения, только самое важное" : "2–4 предложения, конкретика и цифры где уместно"}, по-русски, обычный текст без markdown.`;
+      const persona = `You are ${m.name}, ${m.title} at Vertlix AI, on ${agent.name}'s team (${agent.role}). The lead has convened ${big ? "a company-wide meeting" : "the team"} to discuss the founder's question.${prev ? `\n\nColleagues' latest remarks:\n${prev}\n\nAdd a new angle or push back with reasoning, don't repeat.` : "\nYou speak first."}\nGive your opinion strictly from your own area: ${big ? "1–2 sentences, only what matters most" : "2–4 sentences, specifics and numbers where relevant"}, in English, plain text without markdown.`;
       const text = await streamSpeaker(question, persona, { slug: m.slug, name: m.name, role: m.title, color: m.color, ab: m.ab });
       opinions.push({ name: m.name, title: m.title, text, color: m.color });
       await new Promise(r => setTimeout(r, big ? 120 : 250));
     }
-    const verdictPersona = `Ты — ${agent.name}, ${agent.role} в Vertlix AI. ${big ? "Вся компания" : "Твоя команда"} обсудила вопрос основателя:\n\n${opinions.map(o => `${o.name} (${o.title}): ${o.text.slice(0, big ? 140 : 400)}`).join("\n\n")}\n\nКак руководитель вынеси ФИНАЛЬНЫЙ ВЕРДИКТ: короткое решение (1–2 предложения), затем 3 конкретных шага (1., 2., 3.). Учти и примири мнения команды. По-русски, без markdown-звёздочек.`;
-    const verdict = await streamSpeaker(question, verdictPersona, { slug: agent.id, name: agent.name, role: "Финальный вердикт", color: agentColor, ab: agent.ab ?? "AI", verdict: true });
+    const verdictPersona = `You are ${agent.name}, ${agent.role} at Vertlix AI. ${big ? "The whole company" : "Your team"} has discussed the founder's question:\n\n${opinions.map(o => `${o.name} (${o.title}): ${o.text.slice(0, big ? 140 : 400)}`).join("\n\n")}\n\nAs the lead, deliver the FINAL VERDICT: a short decision (1–2 sentences), then 3 concrete steps (1., 2., 3.). Take the team's opinions into account and reconcile them. In English, without markdown asterisks.`;
+    const verdict = await streamSpeaker(question, verdictPersona, { slug: agent.id, name: agent.name, role: "Final Verdict", color: agentColor, ab: agent.ab ?? "AI", verdict: true });
     // Save the whole team meeting to История диалогов.
     saveAsk({ id: `chat-council-${Date.now()}`, kind: "council", question, date: Date.now(),
       responses: opinions.map(o => ({ role: o.title, name: o.name, text: o.text, color: o.color })),
@@ -452,13 +452,13 @@ export default function ChatPage() {
 
     } catch (e) {
       if ((e as Error).name !== "AbortError") {
-        const errMsg = (e as Error).message ?? "Неизвестная ошибка";
+        const errMsg = (e as Error).message ?? "Unknown error";
         setMessages(prev => {
           const filtered = prev.filter(m => m.id !== tempId);
           return [...filtered, {
             id: `err-${Date.now()}`,
             role: "assistant" as const,
-            content: `❌ Ошибка: ${errMsg}`,
+            content: `❌ Error: ${errMsg}`,
             created_at: new Date().toISOString(),
           }];
         });
@@ -486,7 +486,7 @@ export default function ChatPage() {
       <div className="flex items-center gap-3 px-6 py-3 border-b border-white/[0.06] bg-[#05060A]/80 backdrop-blur-sm flex-shrink-0">
         <button
           onClick={() => router.push("/dashboard/agents")}
-          title="К агентам"
+          title="Back to agents"
           className="size-7 rounded-lg hover:bg-white/[0.06] transition-colors flex items-center justify-center text-white/40 hover:text-white/70"
         >
           <svg className="size-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
@@ -507,7 +507,7 @@ export default function ChatPage() {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="flex items-center gap-1.5">
               <span className="size-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] text-emerald-400">Онлайн</span>
+              <span className="text-[10px] text-emerald-400">Online</span>
             </span>
             {agent?.model && (
               <span className="text-[9.5px] font-mono px-1.5 py-px rounded border border-white/10 bg-white/[0.04] text-white/40">
@@ -527,7 +527,7 @@ export default function ChatPage() {
                     </span>
                   ))}
                 </span>
-                <span className="text-[10px] text-white/35">команда {agent.team.length}</span>
+                <span className="text-[10px] text-white/35">team of {agent.team.length}</span>
               </span>
             )}
           </div>
@@ -555,15 +555,15 @@ export default function ChatPage() {
                 </svg>
               ))}
             </div>
-            <div className="text-base font-semibold text-white mb-1">{agent ? agent.name : "Готов к работе"}</div>
+            <div className="text-base font-semibold text-white mb-1">{agent ? agent.name : "Ready to Work"}</div>
             {agent?.role && <div className="text-xs font-medium mb-2" style={{ color: agentColor }}>{agent.role}</div>}
             <div className="text-sm text-white/35 max-w-sm leading-relaxed">
-              {agent?.description ?? "Задайте любой вопрос о бизнесе, стратегии, финансах или попросите создать задачу"}
+              {agent?.description ?? "Ask any question about business, strategy, finance, or ask me to create a task"}
             </div>
-            {/* команда директора: кто будет обсуждать */}
+            {/* director's team: who will discuss */}
             {agent?.team && agent.team.length > 0 && (
               <div className="mt-5 w-full max-w-md">
-                <div className="text-[10px] uppercase tracking-widest text-white/30 mb-2.5 font-semibold">Ваш вопрос обсудят</div>
+                <div className="text-[10px] uppercase tracking-widest text-white/30 mb-2.5 font-semibold">Your Question Will Be Discussed By</div>
                 <div className="grid grid-cols-2 gap-2">
                   {agent.team.map(t => (
                     <div key={t.slug} className="flex items-center gap-2.5 px-3 py-2 rounded-xl border border-white/[0.07] bg-white/[0.03] text-left">
@@ -580,11 +580,11 @@ export default function ChatPage() {
                 </div>
                 <div className="mt-2.5 text-[11px] text-white/35 flex items-center justify-center gap-1.5">
                   <span className="size-1 rounded-full" style={{ background: agentColor }} />
-                  затем {agent.name} вынесет финальный вердикт
+                  then {agent.name} will deliver the final verdict
                 </div>
               </div>
             )}
-            {/* характеристики агента */}
+            {/* agent characteristics */}
             {agent && (
               <div className="mt-4 flex flex-wrap gap-1.5 justify-center max-w-md">
                 {agent.model && (
@@ -607,15 +607,15 @@ export default function ChatPage() {
             )}
             <div className="mt-6 flex flex-wrap gap-2 justify-center max-w-md">
               {(agent ? [
-                `Экспресс-анализ по зоне: ${agent.role}`,
-                "Дай 3 конкретные рекомендации",
-                "Какие метрики мне отслеживать?",
-                "Составь план на 30 дней",
+                `Quick analysis for: ${agent.role}`,
+                "Give me 3 concrete recommendations",
+                "What metrics should I track?",
+                "Draft a 30-day plan",
               ] : [
-                "Сделай SWOT-анализ моего стартапа",
-                "Посчитай LTV и CAC",
-                "Создай задачу: исследование рынка",
-                "Какие каналы привлечения лучше?",
+                "Do a SWOT analysis of my startup",
+                "Calculate LTV and CAC",
+                "Create a task: market research",
+                "Which acquisition channels are best?",
               ]).map((suggestion) => (
                 <button
                   key={suggestion}
@@ -650,7 +650,7 @@ export default function ChatPage() {
                     <span className="text-[11px] font-semibold" style={{ color: msg.speaker.color }}>{msg.speaker.name}</span>
                     <span className={`text-[10px] ${msg.speaker.verdict ? "font-bold uppercase tracking-wide" : "text-white/30"}`}
                       style={msg.speaker.verdict ? { color: msg.speaker.color } : undefined}>
-                      {msg.speaker.verdict ? "★ Финальный вердикт" : `· ${msg.speaker.role}`}
+                      {msg.speaker.verdict ? "★ Final Verdict" : `· ${msg.speaker.role}`}
                     </span>
                   </div>
                 )}
@@ -661,7 +661,7 @@ export default function ChatPage() {
                       <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/[0.04] border border-white/[0.07] text-[11px] text-white/50">
                         <span>{TOOL_ICONS[tc.tool] ?? "🔧"}</span>
                         <span className="font-medium text-white/70">{tc.tool}</span>
-                        <span className="text-white/30">выполнен</span>
+                        <span className="text-white/30">completed</span>
                       </div>
                     ))}
                   </div>
@@ -681,7 +681,7 @@ export default function ChatPage() {
                   )}
                 </div>
                 <div className="text-[10px] text-white/20 px-1">
-                  {new Date(msg.created_at).toLocaleTimeString("ru-RU", { hour: "2-digit", minute: "2-digit" })}
+                  {new Date(msg.created_at).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" })}
                 </div>
               </div>
             </motion.div>
@@ -696,7 +696,7 @@ export default function ChatPage() {
               {activeTools.map((tool) => (
                 <div key={tool} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-[11px]">
                   <div className="size-3 rounded-full border-2 border-amber-400 border-t-transparent animate-spin" />
-                  <span className="text-amber-400">{TOOL_ICONS[tool] ?? "🔧"} Выполняю {tool}...</span>
+                  <span className="text-amber-400">{TOOL_ICONS[tool] ?? "🔧"} Running {tool}...</span>
                 </div>
               ))}
             </div>
@@ -741,7 +741,7 @@ export default function ChatPage() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Введите сообщение... (Enter для отправки, Shift+Enter для новой строки)"
+            placeholder="Type a message... (Enter to send, Shift+Enter for a new line)"
             rows={1}
             className="flex-1 bg-transparent text-sm text-white placeholder-white/25 resize-none outline-none leading-relaxed max-h-32 overflow-y-auto"
             style={{ minHeight: "24px" }}
@@ -759,7 +759,7 @@ export default function ChatPage() {
             {voiceSupported && !sending && (
               <button
                 onClick={toggleVoice}
-                title={isRecording ? "Остановить запись" : "Голосовой ввод"}
+                title={isRecording ? "Stop recording" : "Voice input"}
                 className="size-8 rounded-xl flex items-center justify-center transition-all relative"
                 style={isRecording
                   ? { background: "rgba(239,68,68,0.15)", border: "1px solid rgba(239,68,68,0.35)", color: "#ef4444" }
@@ -788,7 +788,7 @@ export default function ChatPage() {
         </div>
         <div className="flex items-center justify-center mt-2 gap-2 text-[10px] text-white/20">
           <svg className="size-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span>AI может ошибаться. Проверяйте важные данные.</span>
+          <span>AI can make mistakes. Verify important data.</span>
         </div>
       </div>
     </div>

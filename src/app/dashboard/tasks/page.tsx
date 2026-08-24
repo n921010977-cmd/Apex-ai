@@ -19,9 +19,9 @@ const MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const PRIO: Record<Priority, { label: string; color: string }> = {
-  high:   { label: "Высокий", color: "#ef4444" },
-  medium: { label: "Средний", color: "#f59e0b" },
-  low:    { label: "Низкий",  color: "#10b981" },
+  high:   { label: "High", color: "#ef4444" },
+  medium: { label: "Medium", color: "#f59e0b" },
+  low:    { label: "Low",  color: "#10b981" },
 };
 const PRIO_ORDER: Record<Priority, number> = { high: 0, medium: 1, low: 2 };
 
@@ -69,16 +69,16 @@ export default function TasksPage() {
             <span style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
               <CheckSquare size={18} color="#fff" />
             </span>
-            <h1 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 800, color: TP, letterSpacing: "-0.02em", margin: 0 }}>Задачи</h1>
+            <h1 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 800, color: TP, letterSpacing: "-0.02em", margin: 0 }}>Tasks</h1>
           </div>
           <p style={{ fontSize: 13.5, color: TS, marginTop: 8, maxWidth: 560, lineHeight: 1.6 }}>
-            Превращайте рекомендации совета в конкретные действия и отслеживайте прогресс.
+            Turn board recommendations into concrete actions and track your progress.
           </p>
         </div>
         {stats.done > 0 && (
           <button onClick={() => { clearDone(); refresh(); }}
             style={{ display: "flex", alignItems: "center", gap: 7, height: 40, padding: "0 15px", borderRadius: 11, cursor: "pointer", background: "rgba(255,255,255,0.04)", border: `1px solid ${BORD}`, color: TS, fontSize: 12.5, fontWeight: 600 }}>
-            <Trash2 size={13} /> Очистить выполненные
+            <Trash2 size={13} /> Clear completed
           </button>
         )}
       </motion.div>
@@ -88,8 +88,8 @@ export default function TasksPage() {
         <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE, delay: 0.05 }}
           className="surface-card" style={{ marginTop: 22, padding: "16px 18px", borderRadius: 16 }}>
           <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: 10 }}>
-            <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: TM }}>Прогресс</span>
-            <span style={{ fontSize: 13, color: TS }}><b style={{ color: TP }}>{stats.done}</b> из {stats.total} · {stats.pct}%</span>
+            <span style={{ fontFamily: MONO, fontSize: 10, fontWeight: 600, letterSpacing: "0.14em", textTransform: "uppercase", color: TM }}>Progress</span>
+            <span style={{ fontSize: 13, color: TS }}><b style={{ color: TP }}>{stats.done}</b> of {stats.total} · {stats.pct}%</span>
           </div>
           <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
             <motion.div initial={{ width: 0 }} animate={{ width: `${stats.pct}%` }} transition={{ duration: 0.9, ease: EASE }}
@@ -101,7 +101,7 @@ export default function TasksPage() {
       {/* Add task */}
       <div style={{ display: "flex", gap: 10, marginTop: 16, flexWrap: "wrap" }}>
         <input value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter") add(); }}
-          placeholder="Новая задача… (Enter — добавить)"
+          placeholder="New task… (Enter to add)"
           style={{ flex: "1 1 260px", minWidth: 220, height: 46, padding: "0 14px", borderRadius: 12, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 14, outline: "none", boxSizing: "border-box" }}
           onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
         {/* priority selector */}
@@ -127,13 +127,13 @@ export default function TasksPage() {
         <button onClick={add} disabled={!title.trim()}
           style={{ height: 46, padding: "0 20px", borderRadius: 12, border: "none", cursor: title.trim() ? "pointer" : "default", fontSize: 13.5, fontWeight: 700, color: "#fff",
             background: title.trim() ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.06)", boxShadow: title.trim() ? "0 6px 20px rgba(99,102,241,0.32)" : "none", display: "flex", alignItems: "center", gap: 8 }}>
-          <Plus size={16} /> Добавить
+          <Plus size={16} /> Add
         </button>
       </div>
 
       {/* Filter */}
       <div style={{ display: "flex", gap: 8, marginTop: 14 }}>
-        {([["active", "Активные", stats.active], ["all", "Все", stats.total], ["done", "Выполнено", stats.done]] as const).map(([key, label, n]) => {
+        {([["active", "Active", stats.active], ["all", "All", stats.total], ["done", "Done", stats.done]] as const).map(([key, label, n]) => {
           const active = filter === key;
           return (
             <button key={key} onClick={() => setFilter(key)}
@@ -151,8 +151,8 @@ export default function TasksPage() {
             <div style={{ width: 52, height: 52, borderRadius: 15, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
               <Sparkles size={20} style={{ color: ACCENT }} />
             </div>
-            <div style={{ fontSize: 14.5, fontWeight: 700, color: TS }}>{filter === "done" ? "Пока ничего не выполнено" : "Задач нет"}</div>
-            <div style={{ fontSize: 12.5, color: TM, marginTop: 4 }}>Добавьте задачу выше или создайте её из ответа совета.</div>
+            <div style={{ fontSize: 14.5, fontWeight: 700, color: TS }}>{filter === "done" ? "Nothing completed yet" : "No tasks"}</div>
+            <div style={{ fontSize: 12.5, color: TM, marginTop: 4 }}>Add a task above or create one from a board response.</div>
           </div>
         )}
         <AnimatePresence mode="popLayout">
@@ -175,11 +175,11 @@ export default function TasksPage() {
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, color: t.done ? TM : TP, textDecoration: t.done ? "line-through" : "none", lineHeight: 1.4 }}>{t.title}</div>
                   {t.source && t.source !== "Вручную" && (
-                    <div style={{ fontFamily: MONO, fontSize: 9.5, color: TM, marginTop: 3 }}>из: {t.source}</div>
+                    <div style={{ fontFamily: MONO, fontSize: 9.5, color: TM, marginTop: 3 }}>from: {t.source}</div>
                   )}
                 </div>
                 {/* delete */}
-                <button onClick={() => deleteTask(t.id)} title="Удалить"
+                <button onClick={() => deleteTask(t.id)} title="Delete"
                   style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "transparent", border: "none", color: TM, cursor: "pointer" }}
                   onMouseOver={e => (e.currentTarget.style.color = "#ef4444")} onMouseOut={e => (e.currentTarget.style.color = TM)}>
                   <Trash2 size={14} />
