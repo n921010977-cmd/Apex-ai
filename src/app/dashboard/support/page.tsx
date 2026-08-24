@@ -12,27 +12,27 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 // ─── DATA ─────────────────────────────────────────────────────────────────────
 
 const FAQS = [
-  { q: "Как работает AI Executive Board?", a: "20 AI-агентов (CEO, CFO, CMO, CTO, COO и специалисты их отделов) анализируют ваш бизнес с разных углов. Каждый агент специализируется в своей области и даёт конкретные, применимые рекомендации с учётом вашего рынка." },
-  { q: "Сколько проектов я могу создать?", a: "На плане Starter — до 3 проектов одновременно. На плане Pro — неограниченно." },
-  { q: "Как долго длится AI-анализ?", a: "Стандартный анализ занимает 2–5 минут. Глубокий анализ с финансовыми моделями и рыночным исследованием — до 10–15 минут." },
-  { q: "Могу ли я обучить AI под свой бизнес?", a: "Да. В разделе Настройки → AI Ассистент задайте персональные инструкции: отрасль, приоритеты и стиль общения. AI учитывает их во всех сессиях." },
-  { q: "Могу ли я экспортировать отчёты?", a: "Все отчёты доступны для скачивания в PDF со страницы каждого отчёта." },
+  { q: "How does the AI Executive Board work?", a: "20 AI agents (CEO, CFO, CMO, CTO, COO and specialists from their departments) analyze your business from different angles. Each agent specializes in its own area and gives concrete, actionable recommendations tailored to your market." },
+  { q: "How many projects can I create?", a: "On the Starter plan — up to 3 projects at a time. On the Pro plan — unlimited." },
+  { q: "How long does AI analysis take?", a: "A standard analysis takes 2–5 minutes. A deep analysis with financial models and market research — up to 10–15 minutes." },
+  { q: "Can I train the AI on my business?", a: "Yes. In Settings → AI Assistant, set personal instructions: industry, priorities, and communication style. The AI takes them into account in every session." },
+  { q: "Can I export reports?", a: "All reports can be downloaded as PDF from each report's page." },
 ];
 
 const SERVICES = [
   { name: "API", status: "ok" },
-  { name: "AI Агенты", status: "ok" },
-  { name: "Генерация отчётов", status: "ok" },
-  { name: "Авторизация", status: "ok" },
+  { name: "AI Agents", status: "ok" },
+  { name: "Report Generation", status: "ok" },
+  { name: "Authentication", status: "ok" },
 ];
 
-const AI_SUGGESTIONS = ["Как создать проект?", "Как работает AI-совет?", "Как экспортировать отчёт?"];
+const AI_SUGGESTIONS = ["How do I create a project?", "How does the AI board work?", "How do I export a report?"];
 
 const STATUS_RU: Record<string, { label: string; color: string; bg: string }> = {
-  open:        { label: "Открыт",   color: "#6366f1", bg: "rgba(99,102,241,0.1)" },
-  in_progress: { label: "В работе", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
-  resolved:    { label: "Решён",    color: "#10b981", bg: "rgba(16,185,129,0.1)" },
-  closed:      { label: "Закрыт",   color: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
+  open:        { label: "Open",     color: "#6366f1", bg: "rgba(99,102,241,0.1)" },
+  in_progress: { label: "In Progress", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+  resolved:    { label: "Resolved", color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+  closed:      { label: "Closed",   color: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
 };
 
 interface TicketRow {
@@ -83,7 +83,7 @@ function AIChat() {
       next[next.length - 1] = { role: "ai", text: t };
       return next;
     });
-    const persona = "Ты — агент поддержки Vertlix AI (платформа с AI-командой: 20 агентов, стратегии, отчёты, аналитика, блокнот). Отвечай по-русски, дружелюбно и кратко (3–5 предложений), с конкретными шагами. Если вопрос про оплату — направь в Настройки. Если проблема техническая и не решается — предложи создать тикет на этой странице.";
+    const persona = "You are a Vertlix AI support agent (a platform with an AI team: 20 agents, strategies, reports, analytics, notepad). Reply in English, friendly and concise (3–5 sentences), with concrete steps. If the question is about billing — point to Settings. If it's a technical issue that can't be resolved — suggest creating a ticket on this page.";
     let acc = "";
     try {
       const res = await fetch("/api/chat/direct", {
@@ -110,9 +110,9 @@ function AIChat() {
           } catch { /* ignore */ }
         }
       }
-    } catch { /* fallback ниже */ }
+    } catch { /* fallback below */ }
     if (!acc.trim()) {
-      put("Я готов помочь! Опишите вопрос подробнее — или создайте тикет справа, команда ответит на почту. (Живые ответы AI включатся после настройки ANTHROPIC_API_KEY.)");
+      put("I'm ready to help! Describe your question in more detail — or create a ticket on the right, and the team will reply by email. (Live AI answers turn on once ANTHROPIC_API_KEY is configured.)");
     }
     setTyping(false);
   }, [input, typing]);
@@ -124,9 +124,9 @@ function AIChat() {
           <Bot size={15} color="#fff" />
         </div>
         <div style={{ flex: 1 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>AI Помощник</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>AI Assistant</div>
           <div style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, color: "#10b981" }}>
-            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981" }} />онлайн · отвечает мгновенно
+            <span style={{ width: 5, height: 5, borderRadius: "50%", background: "#10b981" }} />online · replies instantly
           </div>
         </div>
       </div>
@@ -135,7 +135,7 @@ function AIChat() {
         {messages.length === 0 && (
           <div style={{ margin: "auto", textAlign: "center" }}>
             <Sparkles size={22} style={{ color: "rgba(99,102,241,0.6)", marginBottom: 10 }} />
-            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 14 }}>Задайте вопрос — отвечу сразу</div>
+            <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 14 }}>Ask a question — I'll answer right away</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
               {AI_SUGGESTIONS.map(s => (
                 <button key={s} onClick={() => void send(s)}
@@ -166,7 +166,7 @@ function AIChat() {
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === "Enter") void send(""); }}
-          placeholder="Ваш вопрос…"
+          placeholder="Your question…"
           disabled={typing}
           style={{ ...inputStyle, flex: 1 }}
           spellCheck={false}
@@ -192,7 +192,7 @@ function TicketModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
   const [result, setResult] = useState<{ ai?: string | null } | null>(null);
 
   const submit = async () => {
-    if (!subject.trim() || !desc.trim()) { setError("Заполните тему и описание"); return; }
+    if (!subject.trim() || !desc.trim()) { setError("Fill in the subject and description"); return; }
     setLoading(true); setError("");
     try {
       const r = await fetch("/api/support/tickets", {
@@ -202,8 +202,8 @@ function TicketModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
       });
       const d = await r.json();
       if (d.success) { setResult({ ai: d.data?.ai_response }); onCreated(); }
-      else setError(d.error || "Не удалось создать тикет");
-    } catch { setError("Ошибка сети — попробуйте ещё раз"); }
+      else setError(d.error || "Could not create ticket");
+    } catch { setError("Network error — please try again"); }
     finally { setLoading(false); }
   };
 
@@ -216,7 +216,7 @@ function TicketModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
       <motion.div initial={{ opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.98 }} transition={{ duration: 0.24, ease: EASE }}
         onClick={e => e.stopPropagation()}
         style={{ width: "min(560px, 100%)", maxHeight: "86vh", overflowY: "auto", borderRadius: 20, padding: 24, background: "#0a0c15", border: "1px solid rgba(255,255,255,0.1)", boxShadow: "0 24px 64px rgba(0,0,0,0.6)", position: "relative" }}>
-        <button onClick={onClose} aria-label="Закрыть"
+        <button onClick={onClose} aria-label="Close"
           style={{ position: "absolute", top: 16, right: 16, width: 32, height: 32, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)", cursor: "pointer" }}>
           <X size={15} />
         </button>
@@ -225,53 +225,53 @@ function TicketModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
               <CheckCircle size={20} style={{ color: "#10b981" }} />
-              <div style={{ fontSize: 17, fontWeight: 800, color: "#fff" }}>Тикет создан</div>
+              <div style={{ fontSize: 17, fontWeight: 800, color: "#fff" }}>Ticket Created</div>
             </div>
             <p style={{ fontSize: 13, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 14px" }}>
-              Мы получили обращение и вернёмся с ответом. Статус можно отслеживать в списке «Мои тикеты».
+              We've received your request and will get back to you. You can track its status in the "My Tickets" list.
             </p>
             {result.ai && (
               <div style={{ padding: "12px 14px", borderRadius: 12, background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.2)", marginBottom: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "#a5b4fc", marginBottom: 8 }}>
-                  <Bot size={12} /> Мгновенный ответ AI
+                  <Bot size={12} /> Instant AI Reply
                 </div>
                 <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.75)", lineHeight: 1.65, margin: 0, whiteSpace: "pre-wrap" }}>{result.ai}</p>
               </div>
             )}
             <button onClick={onClose}
               style={{ padding: "10px 18px", borderRadius: 11, fontSize: 12.5, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer" }}>
-              Готово
+              Done
             </button>
           </div>
         ) : (
           <div>
-            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Создать тикет</div>
-            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", margin: "0 0 18px" }}>Опишите проблему — AI даст мгновенный ответ, команда подключится следом.</p>
+            <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 4 }}>Create Ticket</div>
+            <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", margin: "0 0 18px" }}>Describe the issue — AI will give an instant reply, and the team will follow up.</p>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Тема обращения" style={inputStyle} spellCheck={false} />
+              <input value={subject} onChange={e => setSubject(e.target.value)} placeholder="Ticket subject" style={inputStyle} spellCheck={false} />
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
                 <select value={category} onChange={e => setCategory(e.target.value)} style={selStyle}>
-                  <option value="general">Общий вопрос</option>
-                  <option value="technical">Техническая проблема</option>
-                  <option value="billing">Оплата</option>
-                  <option value="feature">Предложение</option>
-                  <option value="bug">Баг</option>
+                  <option value="general">General question</option>
+                  <option value="technical">Technical issue</option>
+                  <option value="billing">Billing</option>
+                  <option value="feature">Feature request</option>
+                  <option value="bug">Bug</option>
                 </select>
                 <select value={priority} onChange={e => setPriority(e.target.value)} style={selStyle}>
-                  <option value="low">Низкий приоритет</option>
-                  <option value="medium">Средний приоритет</option>
-                  <option value="high">Высокий приоритет</option>
-                  <option value="urgent">Срочно</option>
+                  <option value="low">Low priority</option>
+                  <option value="medium">Medium priority</option>
+                  <option value="high">High priority</option>
+                  <option value="urgent">Urgent</option>
                 </select>
               </div>
-              <textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="Опишите подробно: что делали, что ожидали, что произошло…" rows={5}
+              <textarea value={desc} onChange={e => setDesc(e.target.value)} placeholder="Describe in detail: what you did, what you expected, what happened…" rows={5}
                 style={{ ...inputStyle, resize: "none", lineHeight: 1.6 }} />
               {error && <div style={{ fontSize: 12, color: "#f87171" }}>{error}</div>}
               <button onClick={() => void submit()} disabled={loading}
                 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "11px 0", borderRadius: 12, fontSize: 13, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer", opacity: loading ? 0.6 : 1 }}>
                 {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Send size={14} />}
-                {loading ? "Отправка…" : "Отправить тикет"}
+                {loading ? "Sending…" : "Send Ticket"}
               </button>
             </div>
           </div>
@@ -307,9 +307,9 @@ export default function SupportPage() {
 
         {/* Header */}
         <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: EASE }} style={{ marginBottom: 26 }}>
-          <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.03em", color: "#F3F4F6", margin: "0 0 8px" }}>Поддержка</h1>
+          <h1 style={{ fontSize: 30, fontWeight: 800, letterSpacing: "-0.03em", color: "#F3F4F6", margin: "0 0 8px" }}>Support</h1>
           <p style={{ fontSize: 14, color: "rgba(255,255,255,0.5)", margin: 0, maxWidth: 560, lineHeight: 1.6 }}>
-            AI отвечает мгновенно. Если нужен человек — создайте тикет, и мы вернёмся с решением.
+            AI replies instantly. If you need a human — create a ticket, and we'll get back to you with a solution.
           </p>
         </motion.div>
 
@@ -324,21 +324,21 @@ export default function SupportPage() {
             <div style={{ ...card, padding: 16, flex: 1 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, color: "#fff" }}>
-                  <Ticket size={14} style={{ color: "#818cf8" }} /> Мои тикеты
+                  <Ticket size={14} style={{ color: "#818cf8" }} /> My Tickets
                 </div>
                 <button onClick={() => setShowTicket(true)}
                   style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 11px", borderRadius: 9, fontSize: 11, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer" }}>
-                  <Plus size={11} /> Создать
+                  <Plus size={11} /> Create
                 </button>
               </div>
 
               {ticketsLoading ? (
                 <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "18px 0", fontSize: 12, color: "rgba(255,255,255,0.35)" }}>
-                  <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Загрузка…
+                  <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Loading…
                 </div>
               ) : tickets.length === 0 ? (
                 <div style={{ padding: "16px 0", fontSize: 12.5, color: "rgba(255,255,255,0.38)", lineHeight: 1.6 }}>
-                  Обращений пока нет. Если что-то не работает — создайте тикет, AI ответит мгновенно.
+                  No tickets yet. If something isn't working — create a ticket, and AI will respond instantly.
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -351,8 +351,8 @@ export default function SupportPage() {
                           <span style={{ flexShrink: 0, fontSize: 9.5, fontWeight: 700, padding: "2px 8px", borderRadius: 6, color: st.color, background: st.bg }}>{st.label}</span>
                         </div>
                         <div style={{ fontSize: 10.5, color: "rgba(255,255,255,0.3)" }}>
-                          {new Date(t.created_at).toLocaleDateString("ru-RU", { day: "numeric", month: "short" })}
-                          {t.ai_response ? " · AI уже ответил" : ""}
+                          {new Date(t.created_at).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+                          {t.ai_response ? " · AI already replied" : ""}
                         </div>
                       </div>
                     );
@@ -364,7 +364,7 @@ export default function SupportPage() {
             {/* Статус системы */}
             <div style={{ ...card, padding: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, fontWeight: 700, color: "#fff", marginBottom: 12 }}>
-                <Activity size={14} style={{ color: "#10b981" }} /> Статус системы
+                <Activity size={14} style={{ color: "#10b981" }} /> System Status
               </div>
               <div style={{ display: "flex", flexDirection: "column", gap: 7 }}>
                 {SERVICES.map(s => (
@@ -372,7 +372,7 @@ export default function SupportPage() {
                     <span style={{ fontSize: 12, color: "rgba(255,255,255,0.55)" }}>{s.name}</span>
                     <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "#10b981" }}>
                       <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10b981", boxShadow: "0 0 6px #10b981" }} />
-                      работает
+                      operational
                     </span>
                   </div>
                 ))}
@@ -389,7 +389,7 @@ export default function SupportPage() {
 
         {/* FAQ */}
         <motion.div initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: "-40px" }} transition={{ duration: 0.5, ease: EASE }}>
-          <h2 style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.01em", color: "#E5E7EB", margin: "0 0 14px" }}>Частые вопросы</h2>
+          <h2 style={{ fontSize: 17, fontWeight: 800, letterSpacing: "-0.01em", color: "#E5E7EB", margin: "0 0 14px" }}>Frequently Asked Questions</h2>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {FAQS.map((f, i) => {
               const open = openFaq === i;

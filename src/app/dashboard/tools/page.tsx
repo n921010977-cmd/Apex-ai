@@ -18,38 +18,38 @@ const ACCENT = "#6366f1";
 const RGB = "99,102,241";
 
 const HORIZONS = [
-  { id: "6", label: "6 месяцев" },
-  { id: "12", label: "12 месяцев" },
-  { id: "24", label: "24 месяца" },
+  { id: "6", label: "6 months" },
+  { id: "12", label: "12 months" },
+  { id: "24", label: "24 months" },
 ];
 const FOCUSES = [
-  { id: "growth", label: "Рост", hint: "выручка и клиенты" },
-  { id: "profit", label: "Прибыльность", hint: "юнит-экономика" },
-  { id: "invest", label: "Инвестиции", hint: "готовность к раунду" },
+  { id: "growth", label: "Growth", hint: "revenue and customers" },
+  { id: "profit", label: "Profitability", hint: "unit economics" },
+  { id: "invest", label: "Investment", hint: "readiness for a raise" },
 ];
 const EXAMPLES = [
-  "SaaS для автоматизации найма",
-  "Кофейня у метро",
-  "Онлайн-школа английского",
-  "Маркетплейс хендмейда",
+  "SaaS for hiring automation",
+  "Coffee shop near the subway",
+  "Online English school",
+  "Handmade goods marketplace",
 ];
 
 function buildPersona(horizonId: string, focusId: string, industryId: string): string {
-  const horizon = HORIZONS.find(h => h.id === horizonId)?.label ?? "12 месяцев";
+  const horizon = HORIZONS.find(h => h.id === horizonId)?.label ?? "12 months";
   const focusText =
-    focusId === "profit" ? "прибыльность и здоровая юнит-экономика"
-    : focusId === "invest" ? "подготовка к привлечению инвестиций"
-    : "рост выручки и клиентской базы";
+    focusId === "profit" ? "profitability and healthy unit economics"
+    : focusId === "invest" ? "preparing to raise investment"
+    : "revenue and customer base growth";
   return (
-    `Ты — опытный CEO-стратег. Составь план развития бизнеса. Горизонт планирования: ${horizon}. ` +
-    `Приоритет основателя: ${focusText}. Структура ответа строго в markdown:\n` +
-    `## Главная цель — одно измеримое предложение на весь горизонт.\n` +
-    `## Ключевые цели — 4–5 SMART-целей списком, каждая с метрикой.\n` +
-    `## План 30/60/90 — подзаголовки ### Дни 1–30, ### Дни 31–60, ### Дни 61–90, в каждом 3–5 конкретных шагов.\n` +
-    `## Метрики недели — 4–6 метрик, которые отслеживать еженедельно.\n` +
-    `## Риски — 3 главных риска и способ снять каждый.\n` +
-    `Пиши кратко и конкретно, без воды. Только на русском.` +
-    // отраслевая экспертиза по выбранной нише — метрики и бенчмарки именно её
+    `You are an experienced CEO strategist. Draft a business development plan. Planning horizon: ${horizon}. ` +
+    `Founder priority: ${focusText}. Response structure strictly in markdown:\n` +
+    `## Main Goal — one measurable statement for the entire horizon.\n` +
+    `## Key Goals — 4–5 SMART goals as a list, each with a metric.\n` +
+    `## Plan 30/60/90 — subheadings ### Days 1–30, ### Days 31–60, ### Days 61–90, each with 3–5 concrete steps.\n` +
+    `## Weekly Metrics — 4–6 metrics to track weekly.\n` +
+    `## Risks — 3 top risks and how to mitigate each.\n` +
+    `Write concisely and concretely, no fluff. English only.` +
+    // industry expertise for the selected niche — its own metrics and benchmarks
     industryPromptBlock(industryId)
   );
 }
@@ -169,10 +169,10 @@ function extractTasks(md: string): Task[] {
     if (!mi) continue;
     const text = mi[1].replace(/\*\*/g, "").trim();
     if (!text) continue;
-    const phase = h3 || h2 || "Шаги";
+    const phase = h3 || h2 || "Steps";
     const task = { id: hashStr(phase + "|" + text), text, phase };
     all.push(task);
-    if (/план|30\/60\/90|дн[ия]/i.test(h2 + " " + h3)) inPlan.push(task);
+    if (/plan|30\/60\/90|day/i.test(h2 + " " + h3)) inPlan.push(task);
   }
   return inPlan.length ? inPlan : all;
 }
@@ -211,7 +211,7 @@ function Checklist({ md, briefKey }: { md: string; briefKey: string }) {
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 12 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <Check size={15} style={{ color: ACCENT }} />
-          <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Чек-лист выполнения</span>
+          <span style={{ fontSize: 13, fontWeight: 700, color: "#fff" }}>Execution Checklist</span>
         </div>
         <span style={{ fontSize: 12, fontWeight: 700, color: pct === 100 ? "#34d399" : "rgba(255,255,255,0.6)", fontVariantNumeric: "tabular-nums" }}>
           {doneCount} / {tasks.length} · {pct}%
@@ -291,10 +291,10 @@ function GoalsPlanStudioInner() {
         body: JSON.stringify({ message, persona: buildPersona(horizon, focus, industry), history: hist }),
         signal: ctrl.signal,
       });
-      if (res.status === 401) { setError("Войдите в аккаунт, чтобы построить план."); return null; }
-      if (res.status === 503) { setError("AI временно недоступен (не настроен ключ)."); return null; }
-      if (res.status === 429) { setError("Слишком много запросов — попробуйте через минуту."); return null; }
-      if (!res.ok || !res.body) { setError("Не удалось получить ответ. Попробуйте ещё раз."); return null; }
+      if (res.status === 401) { setError("Sign in to build a plan."); return null; }
+      if (res.status === 503) { setError("AI is temporarily unavailable (key not configured)."); return null; }
+      if (res.status === 429) { setError("Too many requests — try again in a minute."); return null; }
+      if (!res.ok || !res.body) { setError("Could not get a response. Please try again."); return null; }
       const reader = res.body.getReader();
       const dec = new TextDecoder();
       let buf = "";
@@ -309,15 +309,15 @@ function GoalsPlanStudioInner() {
           try {
             const ev = JSON.parse(m[1]);
             if (ev.type === "token") { full += ev.token; setOut(o => o + ev.token); }
-            if (ev.type === "error") setError(ev.message || "Ошибка AI");
+            if (ev.type === "error") setError(ev.message || "AI error");
           } catch { /* noop */ }
         }
       }
-      if (!full) { setError("Пустой ответ. Попробуйте переформулировать."); return null; }
+      if (!full) { setError("Empty response. Try rephrasing."); return null; }
       setDone(true);
       return full;
     } catch (e) {
-      if ((e as Error)?.name !== "AbortError") setError("Сбой соединения. Попробуйте ещё раз.");
+      if ((e as Error)?.name !== "AbortError") setError("Connection failed. Please try again.");
       return null;
     } finally {
       setBusy(false);
@@ -331,7 +331,7 @@ function GoalsPlanStudioInner() {
     if (overrideBrief) setBrief(overrideBrief);
     track(EVENTS.CHAT_MESSAGE_SENT, { source: "goals_plan", horizon, focus });
     setRefineCount(0);
-    const userMsg = `Бизнес: ${text}`;
+    const userMsg = `Business: ${text}`;
     const answer = await stream(userMsg, []);
     if (answer) {
       turnsRef.current = [{ role: "user", content: userMsg }, { role: "assistant", content: answer }];
@@ -347,7 +347,7 @@ function GoalsPlanStudioInner() {
     setRefine("");
     track(EVENTS.CHAT_MESSAGE_SENT, { source: "goals_plan_refine" });
     const answer = await stream(
-      `Уточнение к плану: ${q}. Обнови план целиком с учётом уточнения, сохрани ту же структуру разделов.`,
+      `Plan refinement: ${q}. Update the entire plan to account for this, keeping the same section structure.`,
       turnsRef.current.slice(-6),
     );
     if (answer) {
@@ -362,10 +362,10 @@ function GoalsPlanStudioInner() {
   const copy = async () => { try { await navigator.clipboard.writeText(out); setCopied(true); setTimeout(() => setCopied(false), 1600); } catch { /* noop */ } };
 
   const downloadMd = () => {
-    const blob = new Blob([`# План: ${brief.trim()}\n\n${out}`], { type: "text/markdown;charset=utf-8" });
+    const blob = new Blob([`# Plan: ${brief.trim()}\n\n${out}`], { type: "text/markdown;charset=utf-8" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
-    a.download = `план-${brief.trim().slice(0, 30).replace(/\s+/g, "-") || "компании"}.md`;
+    a.download = `plan-${brief.trim().slice(0, 30).replace(/\s+/g, "-") || "company"}.md`;
     a.click();
     URL.revokeObjectURL(a.href);
   };
@@ -377,7 +377,7 @@ function GoalsPlanStudioInner() {
       const res = await fetch("/api/notepad", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title: `План: ${brief.trim().slice(0, 60)}`, content: out, emoji: "🎯", tags: ["план", "цели"], folder: "general" }),
+        body: JSON.stringify({ title: `Plan: ${brief.trim().slice(0, 60)}`, content: out, emoji: "🎯", tags: ["plan", "goals"], folder: "general" }),
       });
       setSaved(res.ok ? "ok" : "fail");
     } catch { setSaved("fail"); }
@@ -387,7 +387,7 @@ function GoalsPlanStudioInner() {
   const restore = (h: HistoryItem) => {
     setBrief(h.brief); setHorizon(h.horizon); setFocus(h.focus); setIndustry(h.industry ?? "saas");
     setOut(h.answer); setDone(true); setError(""); setRefineCount(0);
-    turnsRef.current = [{ role: "user", content: `Бизнес: ${h.brief}` }, { role: "assistant", content: h.answer }];
+    turnsRef.current = [{ role: "user", content: `Business: ${h.brief}` }, { role: "assistant", content: h.answer }];
     setShowHistory(false);
   };
 
@@ -409,7 +409,7 @@ function GoalsPlanStudioInner() {
         .gp-act:hover { background: rgba(255,255,255,0.08) !important; color: #fff !important; }
       `}</style>
 
-      {/* ── Шапка инструмента ── */}
+      {/* ── Tool header ── */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 14, marginBottom: 22 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 15 }}>
           <div style={{ width: 48, height: 48, borderRadius: 14, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(145deg, rgba(${RGB},0.24), rgba(${RGB},0.08))`, border: `1px solid rgba(${RGB},0.35)`, boxShadow: `0 0 28px rgba(${RGB},0.16)` }}>
@@ -417,31 +417,31 @@ function GoalsPlanStudioInner() {
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <h1 style={{ fontSize: "clamp(21px,2.6vw,27px)", fontWeight: 800, letterSpacing: "-0.02em", color: "#fff", margin: 0 }}>Цели и план компании</h1>
-              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a5b4fc", padding: "3px 8px", borderRadius: 6, background: `rgba(${RGB},0.12)`, border: `1px solid rgba(${RGB},0.3)` }}>AI-студия</span>
+              <h1 style={{ fontSize: "clamp(21px,2.6vw,27px)", fontWeight: 800, letterSpacing: "-0.02em", color: "#fff", margin: 0 }}>Company Goals & Plan</h1>
+              <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "#a5b4fc", padding: "3px 8px", borderRadius: 6, background: `rgba(${RGB},0.12)`, border: `1px solid rgba(${RGB},0.3)` }}>AI Studio</span>
             </div>
-            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.48)", margin: "3px 0 0" }}>Измеримая цель, SMART-задачи и план 30/60/90 — под ваш горизонт и приоритет.</p>
+            <p style={{ fontSize: 13, color: "rgba(255,255,255,0.48)", margin: "3px 0 0" }}>A measurable goal, SMART tasks, and a 30/60/90 plan — tailored to your horizon and priority.</p>
           </div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <button className="gp-act" onClick={() => setShowHistory(s => !s)}
             style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 600, padding: "9px 14px", borderRadius: 10, cursor: "pointer", color: showHistory ? "#fff" : "rgba(255,255,255,0.6)", background: showHistory ? "rgba(255,255,255,0.08)" : "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", transition: "all .15s" }}>
-            <History size={14} /> История{history.length ? ` · ${history.length}` : ""}
+            <History size={14} /> History{history.length ? ` · ${history.length}` : ""}
           </button>
           {(out || brief) && (
             <button className="gp-act" onClick={newPlan}
               style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12.5, fontWeight: 600, padding: "9px 14px", borderRadius: 10, cursor: "pointer", color: "rgba(255,255,255,0.6)", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", transition: "all .15s" }}>
-              <FilePlus2 size={14} /> Новый план
+              <FilePlus2 size={14} /> New Plan
             </button>
           )}
         </div>
       </div>
 
-      {/* ── История запусков ── */}
+      {/* ── Run history ── */}
       {showHistory && (
         <div style={{ marginBottom: 18, padding: 14, borderRadius: 14, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.08)" }}>
           {history.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Пока пусто — постройте первый план, и он появится здесь.</div>
+            <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)" }}>Nothing here yet — build your first plan and it will appear here.</div>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {history.map(h => (
@@ -450,7 +450,7 @@ function GoalsPlanStudioInner() {
                   className="gp-act">
                   <span style={{ fontSize: 13, fontWeight: 600, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{h.brief}</span>
                   <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", flexShrink: 0 }}>{HORIZONS.find(x => x.id === h.horizon)?.label} · {FOCUSES.find(x => x.id === h.focus)?.label}</span>
-                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{new Date(h.ts).toLocaleDateString("ru-RU")}</span>
+                  <span style={{ fontSize: 11, color: "rgba(255,255,255,0.3)", flexShrink: 0, fontVariantNumeric: "tabular-nums" }}>{new Date(h.ts).toLocaleDateString("en-US")}</span>
                 </button>
               ))}
             </div>
@@ -459,18 +459,18 @@ function GoalsPlanStudioInner() {
       )}
 
       <div className="gp-grid">
-        {/* ── Левая колонка: бриф ── */}
+        {/* ── Left column: brief ── */}
         <div style={{ borderRadius: 18, border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.02)", overflow: "hidden", position: "sticky", top: 16 }}>
           <div style={{ height: 3, background: `linear-gradient(90deg, ${ACCENT}, transparent 85%)` }} />
           <div style={{ padding: "18px 18px 20px", display: "flex", flexDirection: "column", gap: 15 }}>
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Опишите бизнес</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Describe the Business</label>
               <div style={{ position: "relative" }}>
                 <textarea
                   value={brief}
                   onChange={e => setBrief(e.target.value)}
                   onKeyDown={e => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") { e.preventDefault(); run(); } }}
-                  placeholder="Чем занимаетесь, для кого, на какой стадии…"
+                  placeholder="What you do, for whom, at what stage…"
                   rows={4}
                   maxLength={4000}
                   disabled={busy}
@@ -491,7 +491,7 @@ function GoalsPlanStudioInner() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Горизонт</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Horizon</label>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 6 }}>
                 {HORIZONS.map(h => {
                   const sel = horizon === h.id;
@@ -506,7 +506,7 @@ function GoalsPlanStudioInner() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Ниша</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Industry</label>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
                 {INDUSTRIES.map(ind => {
                   const sel = industry === ind.id;
@@ -522,7 +522,7 @@ function GoalsPlanStudioInner() {
             </div>
 
             <div>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Приоритет</label>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: 8 }}>Priority</label>
               <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {FOCUSES.map(f => {
                   const sel = focus === f.id;
@@ -540,13 +540,13 @@ function GoalsPlanStudioInner() {
             {!busy ? (
               <button onClick={() => run()} disabled={!canRun}
                 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "12px 18px", borderRadius: 12, border: "1px solid transparent", fontSize: 14, fontWeight: 700, color: "#fff", cursor: canRun ? "pointer" : "not-allowed", opacity: canRun ? 1 : 0.5, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: `0 6px 22px rgba(${RGB},0.32), inset 0 1px 0 rgba(255,255,255,0.16)`, transition: "opacity .15s" }}>
-                <Sparkles size={15} /> Построить план
+                <Sparkles size={15} /> Build Plan
                 <kbd style={{ display: "inline-flex", alignItems: "center", gap: 2, padding: "2px 6px", borderRadius: 5, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.18)", fontSize: 10, fontWeight: 600 }}>⌘<CornerDownLeft size={9} /></kbd>
               </button>
             ) : (
               <button onClick={stop}
                 style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "12px 18px", borderRadius: 12, fontSize: 14, fontWeight: 700, color: "#fff", cursor: "pointer", background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.14)" }}>
-                <Square size={12} fill="currentColor" /> Остановить генерацию
+                <Square size={12} fill="currentColor" /> Stop Generating
               </button>
             )}
 
@@ -556,30 +556,30 @@ function GoalsPlanStudioInner() {
           </div>
         </div>
 
-        {/* ── Правая колонка: документ плана ── */}
+        {/* ── Right column: plan document ── */}
         <div style={{ borderRadius: 18, border: `1px solid rgba(${RGB},0.14)`, background: "rgba(0,0,0,0.24)", overflow: "hidden", minHeight: 420, display: "flex", flexDirection: "column" }}>
-          {/* Тулбар документа */}
+          {/* Document toolbar */}
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)", flexWrap: "wrap" }}>
-            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.13em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Документ плана</span>
+            <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.13em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>Plan Document</span>
             {done && out && (
-              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", fontVariantNumeric: "tabular-nums" }}>· {words} слов{refineCount > 0 ? ` · ${refineCount} уточн.` : ""}</span>
+              <span style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", fontVariantNumeric: "tabular-nums" }}>· {words} words{refineCount > 0 ? ` · ${refineCount} refinements` : ""}</span>
             )}
             <div style={{ marginLeft: "auto", display: "flex", gap: 6 }}>
               {out && !busy && (
                 <>
-                  <button className="gp-act" onClick={() => run()} title="Пересоздать" style={tbBtn}><RotateCcw size={14} /></button>
-                  <button className="gp-act" onClick={copy} title="Копировать" style={tbBtn}>{copied ? <Check size={14} style={{ color: "#10b981" }} /> : <Copy size={14} />}</button>
-                  <button className="gp-act" onClick={downloadMd} title="Скачать .md" style={tbBtn}><Download size={14} /></button>
-                  <button className="gp-act" onClick={saveToNotepad} title="Сохранить в Блокнот" style={{ ...tbBtn, width: "auto", padding: "0 11px", gap: 6, fontSize: 12 }}>
+                  <button className="gp-act" onClick={() => run()} title="Regenerate" style={tbBtn}><RotateCcw size={14} /></button>
+                  <button className="gp-act" onClick={copy} title="Copy" style={tbBtn}>{copied ? <Check size={14} style={{ color: "#10b981" }} /> : <Copy size={14} />}</button>
+                  <button className="gp-act" onClick={downloadMd} title="Download .md" style={tbBtn}><Download size={14} /></button>
+                  <button className="gp-act" onClick={saveToNotepad} title="Save to Notepad" style={{ ...tbBtn, width: "auto", padding: "0 11px", gap: 6, fontSize: 12 }}>
                     <BookOpen size={14} />
-                    {saved === "saving" ? "Сохраняю…" : saved === "ok" ? "Сохранено ✓" : saved === "fail" ? "Не удалось" : "В Блокнот"}
+                    {saved === "saving" ? "Saving…" : saved === "ok" ? "Saved ✓" : saved === "fail" ? "Failed" : "To Notepad"}
                   </button>
                 </>
               )}
             </div>
           </div>
 
-          {/* Навигация по секциям */}
+          {/* Section navigation */}
           {sections.length > 1 && (
             <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "9px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", overflowX: "auto" }}>
               <ListTree size={13} style={{ color: "rgba(255,255,255,0.35)", flexShrink: 0 }} />
@@ -593,7 +593,7 @@ function GoalsPlanStudioInner() {
             </div>
           )}
 
-          {/* Тело документа */}
+          {/* Document body */}
           <div ref={resultRef} style={{ padding: "18px 20px", overflowY: "auto", flex: 1, maxHeight: 640 }}>
             {!out && !busy && (
               <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%", minHeight: 320, gap: 12, color: "rgba(255,255,255,0.35)" }}>
@@ -601,14 +601,14 @@ function GoalsPlanStudioInner() {
                   <Target size={22} style={{ opacity: 0.55 }} />
                 </div>
                 <div style={{ fontSize: 13.5, textAlign: "center", maxWidth: 300, lineHeight: 1.6 }}>
-                  Опишите бизнес слева, выберите горизонт и приоритет — план появится здесь.
+                  Describe the business on the left, choose a horizon and priority — the plan will appear here.
                 </div>
               </div>
             )}
             {busy && !out && (
               <div style={{ display: "flex", alignItems: "center", gap: 10, color: "rgba(255,255,255,0.5)", fontSize: 13.5, paddingTop: 8 }}>
                 <span style={{ width: 15, height: 15, borderRadius: "50%", border: `2px solid rgba(255,255,255,0.25)`, borderTopColor: ACCENT, display: "inline-block", animation: "gpspin 0.7s linear infinite" }} />
-                AI-стратег составляет план…
+                AI strategist is drafting the plan…
               </div>
             )}
             {out && <Markdown text={out} />}
@@ -616,14 +616,14 @@ function GoalsPlanStudioInner() {
             {done && out && !busy && <Checklist md={out} briefKey={brief.trim()} />}
           </div>
 
-          {/* Уточнение плана */}
+          {/* Plan refinement ── */}
           {done && out && !busy && (
             <div style={{ display: "flex", gap: 8, padding: "12px 16px", borderTop: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.015)" }}>
               <input
                 value={refine}
                 onChange={e => setRefine(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter") { e.preventDefault(); runRefine(); } }}
-                placeholder="Уточнить план: «бюджет $10k», «без найма», «фокус на B2B»…"
+                placeholder="Refine the plan: “budget $10k”, “no hiring”, “focus on B2B”…"
                 maxLength={500}
                 style={{ flex: 1, height: 40, background: "rgba(0,0,0,0.24)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: 11, color: "#fff", fontSize: 13, padding: "0 13px", outline: "none" }}
                 onFocus={e => { e.currentTarget.style.borderColor = `rgba(${RGB},0.5)`; }}
@@ -631,7 +631,7 @@ function GoalsPlanStudioInner() {
               />
               <button onClick={runRefine} disabled={!refine.trim()}
                 style={{ display: "flex", alignItems: "center", gap: 7, padding: "0 16px", borderRadius: 11, border: "1px solid transparent", fontSize: 13, fontWeight: 700, color: "#fff", cursor: refine.trim() ? "pointer" : "not-allowed", opacity: refine.trim() ? 1 : 0.5, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)` }}>
-                <SendHorizonal size={14} /> Уточнить
+                <SendHorizonal size={14} /> Refine
               </button>
             </div>
           )}
