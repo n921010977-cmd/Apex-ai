@@ -38,46 +38,58 @@ function LoginForm() {
 
   const handleCredentials = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (needsTotp) {
-      if (!/^\d{6}$/.test(totpCode)) { setError("Enter the 6-digit code"); return; }
+    // Без try/catch сбой сети здесь обрывал выполнение молча: setLoading(null)
+    // не вызывался, кнопка выглядела так, будто ничего не произошло.
+    try {
+      if (needsTotp) {
+        if (!/^\d{6}$/.test(totpCode)) { setError("Enter the 6-digit code"); return; }
+        setLoading("credentials");
+        setError("");
+        const res = await signIn("credentials", { name, email, password, totpCode, redirect: false, callbackUrl });
+        setLoading(null);
+        if (res?.error === "2FA_INVALID") { setError("Invalid 2FA code"); setTotpCode(""); }
+        else if (res?.error === "RATE_LIMITED") setError("Too many sign-in attempts, try again in 15 minutes");
+        else if (res?.error) setError("Sign-in failed, please try again");
+        else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
+        return;
+      }
+
+      if (!name || !email || !password) { setError("Please fill in all fields"); return; }
+      if (password.length < 6) { setError("Password must be at least 6 characters"); return; }
       setLoading("credentials");
       setError("");
-      const res = await signIn("credentials", { name, email, password, totpCode, redirect: false, callbackUrl });
+      const res = await signIn("credentials", { name, email, password, redirect: false, callbackUrl });
       setLoading(null);
-      if (res?.error === "2FA_INVALID") { setError("Invalid 2FA code"); setTotpCode(""); }
+      if (res?.error === "2FA_REQUIRED") { setNeedsTotp(true); setError(""); }
       else if (res?.error === "RATE_LIMITED") setError("Too many sign-in attempts, try again in 15 minutes");
-      else if (res?.error) setError("Sign-in failed, please try again");
+      else if (res?.error) setError("Invalid email or password");
       else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
-      return;
+    } catch {
+      setLoading(null);
+      setError("Network error, please try again");
     }
-
-    if (!name || !email || !password) { setError("Please fill in all fields"); return; }
-    if (password.length < 6) { setError("Password must be at least 6 characters"); return; }
-    setLoading("credentials");
-    setError("");
-    const res = await signIn("credentials", { name, email, password, redirect: false, callbackUrl });
-    setLoading(null);
-    if (res?.error === "2FA_REQUIRED") { setNeedsTotp(true); setError(""); }
-    else if (res?.error === "RATE_LIMITED") setError("Too many sign-in attempts, try again in 15 minutes");
-    else if (res?.error) setError("Invalid email or password");
-    else { track(EVENTS.SIGN_IN, { method: "credentials" }); router.push(callbackUrl); router.refresh(); }
   };
 
   // ── Вход без регистрации ──────────────────────────────────────────────
   const handleGuest = async () => {
     setLoading("guest");
     setError("");
-    const res = await signIn("guest", { redirect: false, callbackUrl });
-    setLoading(null);
-    if (res?.error) {
-      setError(res.error === "RATE_LIMITED"
-        ? "Too many attempts, try again later"
-        : "Guest sign-in unavailable");
-      return;
+    try {
+      const res = await signIn("guest", { redirect: false, callbackUrl });
+      setLoading(null);
+      if (res?.error) {
+        setError(res.error === "RATE_LIMITED"
+          ? "Too many attempts, try again later"
+          : "Guest sign-in unavailable");
+        return;
+      }
+      track(EVENTS.SIGN_IN, { method: "guest" });
+      router.push(callbackUrl);
+      router.refresh();
+    } catch {
+      setLoading(null);
+      setError("Network error, please try again");
     }
-    track(EVENTS.SIGN_IN, { method: "guest" });
-    router.push(callbackUrl);
-    router.refresh();
   };
 
   // ── Passkey (WebAuthn) sign-in ────────────────────────────────────────

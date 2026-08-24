@@ -59,33 +59,46 @@ export default function RegisterPage() {
 
     setLoading(true);
 
-    const res = await fetch("/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
-    });
+    // Без try/catch любой сбой сети, таймаут или не-JSON ответ сервера обрывал
+    // выполнение здесь молча: setLoading(false) не вызывался, ошибка не
+    // показывалась — пользователь видел, что кнопка «ничего не делает».
+    try {
+      const res = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password }),
+      });
 
-    const data = await res.json();
+      let data: { error?: string } = {};
+      try {
+        data = await res.json();
+      } catch {
+        // Сервер ответил не-JSON (например, HTML-страница ошибки с edge/proxy).
+      }
 
-    if (!res.ok) {
-      setError(data.error ?? "Server error, please try again");
+      if (!res.ok) {
+        setError(data.error ?? "Server error, please try again");
+        setLoading(false);
+        return;
+      }
+
+      setSuccess(true);
+      track(EVENTS.SIGN_UP, { method: "credentials" });
+
+      // Вход сразу после регистрации. redirect:true обязателен: при redirect:false
+      // клиент next-auth в этой конфигурации не сохраняет cookie сессии, и человек
+      // после регистрации оказывался снова на экране входа. С redirect:true сервер
+      // отдаёт 302 с Set-Cookie и сам уводит на /dashboard — надёжно.
+      await signIn("credentials", {
+        name: name.trim(),
+        email: email.trim(),
+        password,
+        callbackUrl: "/dashboard",
+      });
+    } catch {
+      setError("Network error, please try again");
       setLoading(false);
-      return;
     }
-
-    setSuccess(true);
-    track(EVENTS.SIGN_UP, { method: "credentials" });
-
-    // Вход сразу после регистрации. redirect:true обязателен: при redirect:false
-    // клиент next-auth в этой конфигурации не сохраняет cookie сессии, и человек
-    // после регистрации оказывался снова на экране входа. С redirect:true сервер
-    // отдаёт 302 с Set-Cookie и сам уводит на /dashboard — надёжно.
-    await signIn("credentials", {
-      name: name.trim(),
-      email: email.trim(),
-      password,
-      callbackUrl: "/dashboard",
-    });
   };
 
   const fieldStyle: React.CSSProperties = {
