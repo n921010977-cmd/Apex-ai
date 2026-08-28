@@ -133,6 +133,68 @@ interface AgentProfile {
 
 const SPEED_RU: Record<string, string> = { fast: "Fast", medium: "Medium", slow: "Slow" };
 
+// Follow-up suggestions per C-level role (matched by TEAM slug) and per
+// department (fallback for specialists loaded from the Agent Studio, who
+// don't carry a slug from TEAM). Without this every agent — CFO, CMO, COO,
+// CTO, CEO — showed the exact same three generic prompts.
+const ROLE_SUGGESTIONS: Record<string, string[]> = {
+  ceo: [
+    "What's our biggest strategic risk right now?",
+    "How should we prioritize this quarter?",
+    "Draft a 90-day roadmap",
+  ],
+  cfo: [
+    "Calculate our burn rate and runway",
+    "What's our LTV to CAC ratio?",
+    "Where can we cut costs without hurting growth?",
+  ],
+  cmo: [
+    "Which acquisition channel should we double down on?",
+    "Draft a go-to-market plan",
+    "How do we improve conversion rate?",
+  ],
+  coo: [
+    "Where are the bottlenecks in our process?",
+    "What KPIs should we track weekly?",
+    "Draft a hiring plan for next quarter",
+  ],
+  cto: [
+    "What's our biggest technical risk?",
+    "Should we rebuild or refactor this system?",
+    "Draft a 90-day engineering roadmap",
+  ],
+};
+
+const DEPT_SUGGESTIONS: Record<string, string[]> = {
+  finance:    ROLE_SUGGESTIONS.cfo,
+  marketing:  ROLE_SUGGESTIONS.cmo,
+  operations: ROLE_SUGGESTIONS.coo,
+  tech:       ROLE_SUGGESTIONS.cto,
+  leadership: ROLE_SUGGESTIONS.ceo,
+  product: [
+    "What should the next release focus on?",
+    "Draft a product roadmap for this quarter",
+    "What's the biggest friction point for users?",
+  ],
+  sales: [
+    "Draft a sales pitch for this product",
+    "What objections should we prepare for?",
+    "How do we shorten the sales cycle?",
+  ],
+};
+
+const DEFAULT_SUGGESTIONS = [
+  "Give me 3 concrete recommendations",
+  "What metrics should I track?",
+  "Draft a 30-day plan",
+];
+
+function suggestionsFor(agent: AgentProfile | null): string[] {
+  if (!agent) return [];
+  const specific = ROLE_SUGGESTIONS[agent.id] ?? (agent.dept ? DEPT_SUGGESTIONS[agent.dept] : undefined) ?? DEFAULT_SUGGESTIONS;
+  return [`Quick analysis for: ${agent.role}`, ...specific];
+}
+
 export default function ChatPage() {
   const params = useParams();
   const router = useRouter();
@@ -606,12 +668,7 @@ export default function ChatPage() {
               </div>
             )}
             <div className="mt-6 flex flex-wrap gap-2 justify-center max-w-md">
-              {(agent ? [
-                `Quick analysis for: ${agent.role}`,
-                "Give me 3 concrete recommendations",
-                "What metrics should I track?",
-                "Draft a 30-day plan",
-              ] : [
+              {(agent ? suggestionsFor(agent) : [
                 "Do a SWOT analysis of my startup",
                 "Calculate LTV and CAC",
                 "Create a task: market research",
