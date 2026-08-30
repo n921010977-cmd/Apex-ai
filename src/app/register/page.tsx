@@ -296,7 +296,12 @@ export default function RegisterPage() {
                         style={{ display: "flex", alignItems: "flex-start", gap: 8, padding: "10px 12px", borderRadius: 10, background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", fontSize: 12.5, lineHeight: 1.5, color: "#f87171" }}
                       >
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" style={{ flexShrink: 0, marginTop: 2 }}><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                        {error}
+                        <span>
+                          {error}
+                          {/already registered/i.test(error) && (
+                            <>{" "}<Link href="/login" style={{ color: "#f87171", textDecoration: "underline", fontWeight: 600 }}>Sign in instead →</Link></>
+                          )}
+                        </span>
                       </motion.div>
                     )}
                   </AnimatePresence>
