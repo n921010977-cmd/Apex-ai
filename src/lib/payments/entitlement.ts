@@ -98,8 +98,13 @@ export async function setEntitlement(
  * Точечная выдача тарифа на N дней (промокоды, ручные бонусы) — в отличие от
  * setEntitlement() не привязана к оплате и не считает месяцами. Остаток
  * действующей подписки так же не обнуляется (RPC прибавляет срок).
+ *
+ * Возвращает true, только если тариф реально лёг в Postgres. false означает
+ * «сохранилось только в памяти процесса» — на serverless (Vercel) это исчезает
+ * уже на следующем запросе, поэтому вызывающий код должен честно сообщить об
+ * ошибке, а не показать «активировано» по факту отсутствия исключения.
  */
-export async function grantTrialDays(userId: string, plan: PlanId, days: number): Promise<void> {
+export async function grantTrialDays(userId: string, plan: PlanId, days: number): Promise<boolean> {
   const client = await db();
 
   if (client) {
@@ -113,23 +118,30 @@ export async function grantTrialDays(userId: string, plan: PlanId, days: number)
         p_currency: "USD",
         p_days: days,
       });
-      if (!error) return;
+      if (!error) return true;
       console.error("[subscriptions] grantTrialDays failed:", error.message);
     } catch (e) {
       console.error("[subscriptions] grantTrialDays error:", e instanceof Error ? e.message : String(e));
     }
   }
 
-  const current = await readFallback(userId);
-  const base = current && current.expiresAt > Date.now() ? current.expiresAt : Date.now();
-  const expiresAt = base + days * 24 * 60 * 60 * 1000;
-  const ttlMs = Math.max(60_000, expiresAt - Date.now());
-
-  if (upstashConfigured()) {
-    try { await upstash([["SET", key(userId), plan, "PX", ttlMs]]); return; }
-    catch { /* память ниже */ }
+  // Настоящей базы нет (демо-режим) — резервное хранилище тут единственный
+  // источник правды, а не деградация, поэтому это тоже честный успех.
+  if (!isSupabaseConfigured()) {
+    const current = await readFallback(userId);
+    const base = current && current.expiresAt > Date.now() ? current.expiresAt : Date.now();
+    const expiresAt = base + days * 24 * 60 * 60 * 1000;
+    const ttlMs = Math.max(60_000, expiresAt - Date.now());
+    if (upstashConfigured()) {
+      try { await upstash([["SET", key(userId), plan, "PX", ttlMs]]); return true; }
+      catch { /* память ниже */ }
+    }
+    store.set(key(userId), { plan, expiresAt });
+    return true;
   }
-  store.set(key(userId), { plan, expiresAt });
+
+  // База настроена, но запись в неё упала — не притворяемся, что всё хорошо.
+  return false;
 }
 
 async function readFallback(userId: string): Promise<{ plan: PlanId; expiresAt: number } | null> {

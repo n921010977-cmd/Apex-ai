@@ -53,7 +53,13 @@ export async function POST(req: NextRequest) {
     } catch { /* не удалось проверить — не блокируем, ниже всё равно best-effort */ }
   }
 
-  await grantTrialDays(userId, PROMO_PLAN, PROMO_DAYS);
+  const granted = await grantTrialDays(userId, PROMO_PLAN, PROMO_DAYS);
+  if (!granted) {
+    return NextResponse.json(
+      { success: false, error: "Could not activate the plan right now — please try again in a minute." },
+      { status: 500 },
+    );
+  }
   void logEvent("promo_redeemed", userId, { code, plan: PROMO_PLAN, days: PROMO_DAYS });
 
   return NextResponse.json({ success: true, plan: PROMO_PLAN, days: PROMO_DAYS });
