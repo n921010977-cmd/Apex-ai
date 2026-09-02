@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Minus, Sparkles, ShieldCheck, Loader2, AlertTriangle, TrendingUp, X } from "lucide-react";
+import { Check, Minus, Sparkles, ShieldCheck, Loader2, AlertTriangle, TrendingUp, X, Clock } from "lucide-react";
 import { PLANS, PLAN_BY_ID, type Plan, type PlanFeatures, type PlanId } from "@/lib/plans";
 import { usePlan } from "@/lib/use-plan";
 import { trackEvent } from "@/lib/track-client";
@@ -75,6 +75,7 @@ export default function BillingPage() {
   const [busy, setBusy] = useState<string | null>(null);
 
   const [serverPlan, setServerPlan] = useState<PlanId | "none" | null>(null);
+  const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [usage, setUsage] = useState<Usage | null>(null);
   const [pay, setPay] = useState<"idle" | "pending" | "done" | "canceled">("idle");
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -87,6 +88,7 @@ export default function BillingPage() {
       const d = await r.json();
       if (!d.success) return null;
       setServerPlan(d.plan);
+      setExpiresAt(d.expiresAt ?? null);
       const u: Usage = {};
       for (const k of Object.keys(d.usage)) u[k] = d.usage[k];
       setUsage(u);
@@ -206,9 +208,22 @@ export default function BillingPage() {
           Starter unlocks the whole product except three premium tools. Pro unlocks them all; Max has the same features with much higher limits.
         </p>
         {active !== "none" && (
-          <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginTop: 14, padding: "6px 14px", borderRadius: 999, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)" }}>
-            <ShieldCheck size={15} style={{ color: "#34d399" }} />
-            <span style={{ fontSize: 13, fontWeight: 600, color: "#34d399" }}>Your plan: {PLAN_BY_ID[active].name}</span>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 10, marginTop: 14 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 999, background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.25)" }}>
+              <ShieldCheck size={15} style={{ color: "#34d399" }} />
+              <span style={{ fontSize: 13, fontWeight: 600, color: "#34d399" }}>Your plan: {PLAN_BY_ID[active].name}</span>
+            </div>
+            {expiresAt && (() => {
+              const daysLeft = Math.max(0, Math.ceil((new Date(expiresAt).getTime() - Date.now()) / 86_400_000));
+              return (
+                <div style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 999, background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.25)" }}>
+                  <Clock size={15} style={{ color: "#c4b5fd" }} />
+                  <span style={{ fontSize: 13, fontWeight: 600, color: "#c4b5fd" }}>
+                    {daysLeft === 0 ? "Expires today" : `${daysLeft} day${daysLeft === 1 ? "" : "s"} left`}
+                  </span>
+                </div>
+              );
+            })()}
           </div>
         )}
       </motion.div>
