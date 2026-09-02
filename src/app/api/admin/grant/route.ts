@@ -4,12 +4,12 @@ import { setEntitlement } from "@/lib/payments/entitlement";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import type { PlanId } from "@/lib/plans";
 
-const VALID_PLANS = new Set(["starter", "pro", "max"]);
+const VALID_PLANS = new Set(["basic", "starter", "pro", "max"]);
 
 // POST /api/admin/grant — админ выдаёт тариф пользователю вручную.
 // Нужен для оплат по статичной платёжной ссылке OxaPay: в них нет userId,
 // поэтому после оплаты клиент называет свой email, а админ включает тариф.
-// { email?: string, userId?: string, plan: "starter"|"pro"|"max", months?: number }
+// { email?: string, userId?: string, plan: "basic"|"starter"|"pro"|"max", months?: number }
 
 export async function POST(req: NextRequest) {
   const admin = await requireAdmin();

@@ -5,7 +5,7 @@ import { PricingCards } from "@/components/landing/PricingCards";
 export const metadata: Metadata = {
   // Шаблон корневого layout сам добавит « | Vertlix AI» — дублировать не нужно.
   title: "Pricing",
-  description: "Three Vertlix AI plans: Starter $29, Pro $39, Max $49. Transparent limits, cancel anytime.",
+  description: "Four Vertlix AI plans: Basic $5, Starter $29, Pro $39, Max $49. Transparent limits, cancel anytime.",
   alternates: { canonical: "/pricing" },
 };
 

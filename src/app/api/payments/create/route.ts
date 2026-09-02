@@ -29,6 +29,7 @@ function baseUrl(req: NextRequest): string {
 /** Статичная платёжная ссылка: env-переменная, иначе — вшитая в код (paylinks.ts). */
 function staticLinkFor(plan: PlanId): string | null {
   const map: Record<PlanId, string | undefined> = {
+    basic:   process.env.NEXT_PUBLIC_PAYLINK_BASIC,
     starter: process.env.NEXT_PUBLIC_PAYLINK_STARTER,
     pro:     process.env.NEXT_PUBLIC_PAYLINK_PRO,
     max:     process.env.NEXT_PUBLIC_PAYLINK_MAX,

@@ -99,7 +99,7 @@ async function readFallback(userId: string): Promise<{ plan: PlanId; expiresAt: 
     try {
       const r = await upstash([["GET", key(userId)], ["PTTL", key(userId)]]);
       const v = r[0]?.result;
-      if (v === "starter" || v === "pro" || v === "max") {
+      if (v === "basic" || v === "starter" || v === "pro" || v === "max") {
         const pttl = Number(r[1]?.result ?? 0);
         return { plan: v, expiresAt: Date.now() + (pttl > 0 ? pttl : 0) };
       }

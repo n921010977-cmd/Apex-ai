@@ -81,12 +81,12 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
           );
         })()}
         <p style={{ fontSize: 16, color: "rgba(255,255,255,0.5)", maxWidth: 560, margin: "0 auto", lineHeight: 1.6 }}>
-          Starter unlocks the whole product except three premium tools. Pro unlocks them all; Max has the same features with much higher limits.
+          Basic gets you the AI board itself. Starter unlocks the whole product except three premium tools. Pro unlocks them all; Max has the same features with much higher limits.
         </p>
       </motion.div>
 
       {/* Карточки */}
-      <div ref={gridRef} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18, alignItems: "start" }}>
+      <div ref={gridRef} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 18, alignItems: "start" }}>
         {PLANS.map((plan: Plan, i) => {
           const hot = plan.highlight;
           return (

@@ -8,7 +8,7 @@
 // Себестоимость AI низкая (модель Haiku), поэтому лимиты щедрые: они защищают
 // от абьюза, а не режут честного пользователя.
 
-export type PlanId = "starter" | "pro" | "max";
+export type PlanId = "basic" | "starter" | "pro" | "max";
 
 /** Возможности, которые тариф может открывать или нет. */
 export interface PlanFeatures {
@@ -43,6 +43,34 @@ export interface Plan {
 }
 
 export const PLANS: Plan[] = [
+  {
+    id: "basic",
+    name: "Basic",
+    priceMonthly: 5,
+    tagline: "Try the AI board with light usage",
+    features: {
+      pitchDeck: false,
+      goalsPlan: false,
+      weeklyFocus: false,
+      strategies: true,
+      boardMeetings: true,
+      agents: true,
+      webResearch: false,
+    },
+    limits: {
+      aiMessages: 40,
+      pitchDecks: 0,
+      strategies: 3,
+      boardMeetings: 3,
+      weeklyFocus: 0,
+    },
+    perks: [
+      "Board of 20 AI directors",
+      "Strategy generation",
+      "AI agent library",
+      "40 AI messages per month",
+    ],
+  },
   {
     id: "starter",
     name: "Starter",

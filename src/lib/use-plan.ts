@@ -17,7 +17,7 @@ const EVENT = "vertlix-plan-change";
 function read(): ActivePlan {
   if (typeof window === "undefined") return "none";
   const v = window.localStorage.getItem(KEY);
-  return v === "starter" || v === "pro" || v === "max" ? v : "none";
+  return v === "basic" || v === "starter" || v === "pro" || v === "max" ? v : "none";
 }
 
 function subscribe(cb: () => void) {
@@ -50,7 +50,7 @@ export function usePlan() {
         .then(r => (r.ok ? r.json() : null))
         .then(d => {
           if (!alive || !d?.success) return;
-          const p = d.plan === "starter" || d.plan === "pro" || d.plan === "max" ? d.plan : "none";
+          const p = d.plan === "basic" || d.plan === "starter" || d.plan === "pro" || d.plan === "max" ? d.plan : "none";
           if (p !== read()) setActivePlan(p);
         })
         .catch(() => {});

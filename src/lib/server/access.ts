@@ -8,7 +8,7 @@
 
 import { auth } from "@/auth";
 import { getSubscription } from "@/lib/payments/entitlement";
-import { PLAN_BY_ID, planAllows, limitsFor, type PlanId, type PlanFeatures } from "@/lib/plans";
+import { PLANS, PLAN_BY_ID, planAllows, limitsFor, type PlanId, type PlanFeatures } from "@/lib/plans";
 import { enforceUsage, type QuotaKey, type UsageResult } from "@/lib/middleware/usage-limit";
 import { logEvent } from "@/lib/analytics/server";
 import { checkUsageThresholds } from "@/lib/analytics/growth";
@@ -46,10 +46,16 @@ export function canUseFeature(plan: ActivePlan, feature: Feature): boolean {
 
 /** Минимальный тариф, на котором функция открыта (для текста «нужен Pro»). */
 export function minPlanFor(feature: Feature): PlanId | null {
-  for (const id of ["starter", "pro", "max"] as PlanId[]) {
+  for (const id of ["basic", "starter", "pro", "max"] as PlanId[]) {
     if (planAllows(id, feature)) return id;
   }
   return null;
+}
+
+/** Следующий по цене тариф — куда предлагать апгрейд при упоре в лимит. */
+function nextPlanUp(plan: ActivePlan): PlanId | null {
+  const idx = plan === "none" ? -1 : PLANS.findIndex(p => p.id === plan);
+  return PLANS[idx + 1]?.id ?? null;
 }
 
 export type DenyCode = "UNAUTHORIZED" | "PLAN_REQUIRED" | "FEATURE_LOCKED" | "QUOTA_EXCEEDED";
@@ -117,7 +123,7 @@ export async function requireFeature(
     return {
       allowed: false, userId, plan, usage, code: "QUOTA_EXCEEDED", status: 429,
       reason: "Monthly limit reached. Upgrade your plan or wait for the new month.",
-      requiredPlan: plan === "max" ? null : plan === "pro" ? "max" : "pro",
+      requiredPlan: nextPlanUp(plan),
     };
   }
 

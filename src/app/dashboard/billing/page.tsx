@@ -246,7 +246,7 @@ export default function BillingPage() {
       )}
 
       {/* Карточки */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 18, alignItems: "start" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 18, alignItems: "start" }}>
         {PLANS.map((plan, i) => {
           const hot = plan.highlight;
           const isCurrent = active === plan.id;

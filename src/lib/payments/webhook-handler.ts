@@ -16,7 +16,7 @@ import { logEvent } from "@/lib/analytics/server";
 import { notifySubscriptionActivated } from "@/lib/notifications";
 import type { PlanId } from "@/lib/plans";
 
-const VALID_PLANS = new Set(["starter", "pro", "max"]);
+const VALID_PLANS = new Set(["basic", "starter", "pro", "max"]);
 
 // ─── Идемпотентность без БД ───────────────────────────────────────────────────
 // В Supabase-режиме дубль webhook отсекает журнал платежей (`status = PAID`).
