@@ -128,7 +128,8 @@ export type ProductEvent =
   // События для будущих писем/уведомлений (пока только пишутся в ленту)
   | "welcome" | "first_result"
   | "usage_50_percent" | "usage_80_percent" | "usage_100_percent"
-  | "subscription_expiring";
+  | "subscription_expiring"
+  | "promo_redeemed";
 
 export interface Acquisition {
   utm_source?: string; utm_medium?: string; utm_campaign?: string;

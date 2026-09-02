@@ -7,7 +7,7 @@ import { PLANS, PLAN_BY_ID, type Plan, type PlanFeatures, type PlanId } from "@/
 import { usePlan } from "@/lib/use-plan";
 import { trackEvent } from "@/lib/track-client";
 import { useToast } from "@/components/ui/Toast";
-import { PaymentFlowNote } from "@/components/dashboard/PaymentFlowNote";
+import { PromoRedeem } from "@/components/dashboard/PromoRedeem";
 
 // ─── Plans & billing внутри приложения ──────────────────────────────────────
 // Умная страница биллинга: выбор тарифа (оплата криптой через OxaPay или демо),
@@ -331,7 +331,7 @@ export default function BillingPage() {
       </div>
 
       {/* Как проходит оплата */}
-      <PaymentFlowNote />
+      <PromoRedeem onRedeemed={() => loadUsage()} />
 
       <p style={{ textAlign: "center", marginTop: 20, fontSize: 12.5, color: "rgba(255,255,255,0.35)", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
         <Sparkles size={13} /> Cancel anytime. Limits reset every month.

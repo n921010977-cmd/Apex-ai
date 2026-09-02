@@ -94,6 +94,44 @@ export async function setEntitlement(
   store.set(key(userId), { plan, expiresAt });
 }
 
+/**
+ * Точечная выдача тарифа на N дней (промокоды, ручные бонусы) — в отличие от
+ * setEntitlement() не привязана к оплате и не считает месяцами. Остаток
+ * действующей подписки так же не обнуляется (RPC прибавляет срок).
+ */
+export async function grantTrialDays(userId: string, plan: PlanId, days: number): Promise<void> {
+  const client = await db();
+
+  if (client) {
+    try {
+      const { error } = await client.rpc("activate_subscription", {
+        p_user_id: userId,
+        p_plan: plan,
+        p_months: 0,
+        p_payment_id: null,
+        p_amount: null,
+        p_currency: "USD",
+        p_days: days,
+      });
+      if (!error) return;
+      console.error("[subscriptions] grantTrialDays failed:", error.message);
+    } catch (e) {
+      console.error("[subscriptions] grantTrialDays error:", e instanceof Error ? e.message : String(e));
+    }
+  }
+
+  const current = await readFallback(userId);
+  const base = current && current.expiresAt > Date.now() ? current.expiresAt : Date.now();
+  const expiresAt = base + days * 24 * 60 * 60 * 1000;
+  const ttlMs = Math.max(60_000, expiresAt - Date.now());
+
+  if (upstashConfigured()) {
+    try { await upstash([["SET", key(userId), plan, "PX", ttlMs]]); return; }
+    catch { /* память ниже */ }
+  }
+  store.set(key(userId), { plan, expiresAt });
+}
+
 async function readFallback(userId: string): Promise<{ plan: PlanId; expiresAt: number } | null> {
   if (upstashConfigured()) {
     try {
