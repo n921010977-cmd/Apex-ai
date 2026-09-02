@@ -13,8 +13,7 @@
 import type { PlanId } from "@/lib/plans";
 
 export const PAYLINKS: Record<PlanId, string> = {
-  basic:   "", // Vertlix Basic — $5. Создать ссылку в кабинете OxaPay и вставить сюда;
-               // до тех пор для этого тарифа работает только API-счёт (OXAPAY_MERCHANT_KEY).
+  basic:   "https://pay.oxapay.com/11072714", // Vertlix Basic — $5
   starter: "https://pay.oxapay.com/16728329", // Vertlix Starter — $29
   pro:     "https://pay.oxapay.com/13847766", // Vertlix Pro — $39
   max:     "https://pay.oxapay.com/16314539", // Vertlix Max — $49
