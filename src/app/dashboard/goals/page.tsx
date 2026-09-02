@@ -12,8 +12,8 @@ import { track, EVENTS } from "@/lib/analytics/events";
 // базы (демо-режим), переживает перезагрузку. Каждое обновление прогресса
 // пишется в историю чек-инов — видно динамику и «серию» недель.
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 const KEY = "vertlix_goals";
 
 type Check = { value: number; ts: number };
@@ -236,7 +236,7 @@ function GoalsPageInner() {
   return (
     <div style={{ maxWidth: 960, margin: "0 auto", padding: "28px 24px 80px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 4 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 16px rgba(${RGB},0.35)` }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 16px rgba(${RGB},0.35)` }}>
           <Flag size={20} color="#fff" />
         </div>
         <div>
@@ -295,7 +295,7 @@ function GoalsPageInner() {
                 <input placeholder="Unit ($, pcs, %)" value={draft.metric} onChange={e => setDraft({ ...draft, metric: e.target.value })} style={inp} />
               </div>
               <input placeholder="Deadline (e.g. 12/31/2026)" value={draft.deadline} onChange={e => setDraft({ ...draft, deadline: e.target.value })} style={inp} />
-              <button onClick={addGoal} style={{ padding: "9px 14px", borderRadius: 10, border: "none", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Add Goal</button>
+              <button onClick={addGoal} style={{ padding: "9px 14px", borderRadius: 10, border: "none", background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, color: "#fff", fontSize: 13, fontWeight: 700, cursor: "pointer" }}>Add Goal</button>
             </div>
           )}
 
@@ -319,7 +319,7 @@ function GoalsPageInner() {
                     {g.deadline && <span style={{ display: "flex", alignItems: "center", gap: 4 }}><CalendarClock size={11} /> {g.deadline}</span>}
                   </div>
                   <div style={{ marginTop: 10, height: 7, borderRadius: 4, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
-                    <div style={{ width: `${p}%`, height: "100%", borderRadius: 4, background: p >= 100 ? "#10b981" : `linear-gradient(90deg,${ACCENT},#4f46e5)`, transition: "width .6s cubic-bezier(0.22,1,0.36,1)" }} />
+                    <div style={{ width: `${p}%`, height: "100%", borderRadius: 4, background: p >= 100 ? "#10b981" : `linear-gradient(90deg,${ACCENT},#6D28D9)`, transition: "width .6s cubic-bezier(0.22,1,0.36,1)" }} />
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 10 }}>
                     <span style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", flexShrink: 0 }}>Update:</span>
@@ -362,7 +362,7 @@ function GoalsPageInner() {
               })}
             </div>
             <button onClick={getFocus} disabled={busy}
-              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "11px 18px", borderRadius: 12, border: "none", fontSize: 14, fontWeight: 700, color: "#fff", cursor: busy ? "default" : "pointer", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 6px 22px rgba(${RGB},0.32)`, opacity: busy ? 0.7 : 1 }}>
+              style={{ width: "100%", display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "11px 18px", borderRadius: 12, border: "none", fontSize: 14, fontWeight: 700, color: "#fff", cursor: busy ? "default" : "pointer", background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, boxShadow: `0 6px 22px rgba(${RGB},0.32)`, opacity: busy ? 0.7 : 1 }}>
               {busy ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={15} />}
               {busy ? "Thinking…" : "Weekly Focus"}
             </button>

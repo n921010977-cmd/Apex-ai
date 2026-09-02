@@ -14,11 +14,11 @@ export default function OpengraphImage() {
         style={{
           width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "center",
           padding: "0 84px", background: "#05060A", color: "#fff",
-          backgroundImage: "radial-gradient(900px 420px at 78% 12%, rgba(99,102,241,0.28), transparent 70%)",
+          backgroundImage: "radial-gradient(900px 420px at 78% 12%, rgba(124,58,237,0.28), transparent 70%)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 42 }}>
-          <div style={{ width: 62, height: 62, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#6366f1,#4f46e5)" }}>
+          <div style={{ width: 62, height: 62, borderRadius: 16, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#7C3AED,#6D28D9)" }}>
             <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>

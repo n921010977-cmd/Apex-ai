@@ -17,11 +17,11 @@ const RINGS = [
 ];
 
 const ROLES_20: [string, string][] = [
-  ["CEO", "#8b5cf6"], ["CFO", "#6366f1"], ["CMO", "#3b82f6"], ["COO", "#06b6d4"],
+  ["CEO", "#D946EF"], ["CFO", "#7C3AED"], ["CMO", "#3b82f6"], ["COO", "#06b6d4"],
   ["CTO", "#10b981"], ["PM", "#f59e0b"], ["Growth", "#ec4899"], ["Data", "#22d3ee"],
-  ["Legal", "#8b5cf6"], ["HR", "#6366f1"], ["Sales", "#3b82f6"], ["Brand", "#06b6d4"],
+  ["Legal", "#D946EF"], ["HR", "#7C3AED"], ["Sales", "#3b82f6"], ["Brand", "#06b6d4"],
   ["UX", "#10b981"], ["SEO", "#f59e0b"], ["Research", "#ec4899"], ["Finance", "#22d3ee"],
-  ["Ops", "#8b5cf6"], ["CS", "#6366f1"], ["DevOps", "#3b82f6"], ["AI", "#06b6d4"],
+  ["Ops", "#D946EF"], ["CS", "#7C3AED"], ["DevOps", "#3b82f6"], ["AI", "#06b6d4"],
 ];
 
 // distribute 20 across rings: 8 / 7 / 5
@@ -201,7 +201,7 @@ function OrbCore() {
           const x = 200 + Math.cos(rad) * 185;
           const y = 200 + Math.sin(rad) * 68;
           return (
-            <circle key={i} cx={x} cy={y} r="3" fill={ORBITERS[i]?.color ?? "#8b5cf6"} opacity="0.5">
+            <circle key={i} cx={x} cy={y} r="3" fill={ORBITERS[i]?.color ?? "#D946EF"} opacity="0.5">
               <animate attributeName="opacity" values="0.4;0.9;0.4" dur="2s" begin={`${i * 0.4}s`} repeatCount="indefinite" />
             </circle>
           );
@@ -498,8 +498,8 @@ export function HeroSection() {
               href="/register"
               className="relative inline-flex items-center gap-2.5 h-13 px-8 text-[15px] font-semibold text-white rounded-2xl overflow-hidden transition-all duration-200 hover:scale-[1.04] hover:brightness-110"
               style={{
-                background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                boxShadow: "0 4px 18px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.16)",
+                background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+                boxShadow: "0 4px 18px rgba(124,58,237,0.3), inset 0 1px 0 rgba(255,255,255,0.16)",
                 height: 52,
               }}
             >

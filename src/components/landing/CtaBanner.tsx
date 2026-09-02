@@ -20,7 +20,7 @@ export function CtaBanner() {
         className="absolute left-1/2 top-1/2 pointer-events-none rounded-full"
         style={{
           width: 640, height: 320, x: "-50%", y: "-50%",
-          background: "radial-gradient(ellipse, rgba(99,102,241,0.12) 0%, transparent 68%)",
+          background: "radial-gradient(ellipse, rgba(124,58,237,0.12) 0%, transparent 68%)",
           filter: "blur(30px)",
         }}
         initial={{ opacity: 0, scale: 0.9 }}

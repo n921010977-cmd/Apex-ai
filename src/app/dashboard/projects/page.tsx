@@ -61,8 +61,8 @@ const DEFAULT_PROJECTS: Project[] = [
     growth: "+24%/yr",
     burnRate: "$45K/mo",
     confidence: 94,
-    color: "#8b5cf6",
-    rgb: "139,92,246",
+    color: "#D946EF",
+    rgb: "217,70,239",
     sparkline: [42, 58, 51, 67, 73, 69, 82, 87],
     opportunities: 4,
     insights: ["High scaling potential", "EU expansion recommended"],
@@ -120,7 +120,7 @@ const DEFAULT_PROJECTS: Project[] = [
 ];
 
 const FEED_EVENTS = [
-  { agent: "Sophia Rivers", role: "CEO", icon: Brain, color: "#8b5cf6", rgb: "139,92,246", action: "updated the scaling strategy", project: "AI Fitness Platform", time: "3m" },
+  { agent: "Sophia Rivers", role: "CEO", icon: Brain, color: "#D946EF", rgb: "217,70,239", action: "updated the scaling strategy", project: "AI Fitness Platform", time: "3m" },
   { agent: "Marcus Chen",   role: "CFO", icon: DollarSign, color: "#3b82f6", rgb: "59,130,246", action: "recalculated the financial model",  project: "SaaS Invoice Platform", time: "11m" },
   { agent: "Elena Torres",  role: "CMO", icon: TrendingUp, color: "#10b981", rgb: "16,185,129", action: "discovered a new market segment", project: "AI Fitness Platform", time: "28m" },
   { agent: "James Wright",  role: "COO", icon: Activity, color: "#f59e0b", rgb: "245,158,11", action: "identified an operational risk", project: "Restaurant Chain", time: "1h" },
@@ -225,7 +225,7 @@ function MicroBar({ value, color, label, max = 100 }: { value: number; color: st
 
 const STAGE_COLORS: Record<string, { bg: string; text: string; border: string }> = {
   Validation: { bg: "rgba(245,158,11,0.08)",  text: "#f59e0b", border: "rgba(245,158,11,0.2)"  },
-  Growth:     { bg: "rgba(139,92,246,0.08)", text: "#8b5cf6", border: "rgba(139,92,246,0.2)" },
+  Growth:     { bg: "rgba(217,70,239,0.08)", text: "#D946EF", border: "rgba(217,70,239,0.2)" },
   Scale:      { bg: "rgba(16,185,129,0.08)",  text: "#10b981", border: "rgba(16,185,129,0.2)"  },
   Mature:     { bg: "rgba(59,130,246,0.08)", text: "#3b82f6", border: "rgba(59,130,246,0.2)" },
 };
@@ -630,8 +630,8 @@ export default function ProjectsPage() {
         growth: p.growth || "—",
         burnRate: "—",
         confidence: score,
-        color: "#8b5cf6",
-        rgb: "139,92,246",
+        color: "#D946EF",
+        rgb: "217,70,239",
         sparkline: [50, 55, 60, 58, 65, 70, 75, score],
         opportunities: 2,
         insights: [],
@@ -690,7 +690,7 @@ export default function ProjectsPage() {
     <div style={{ minHeight: "100vh", position: "relative" }}>
       {/* Background */}
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", top: "-20%", left: "-10%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 65%)" }} />
+        <div style={{ position: "absolute", top: "-20%", left: "-10%", width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(217,70,239,0.06) 0%, transparent 65%)" }} />
         <div style={{ position: "absolute", bottom: "-10%", right: "5%",  width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 65%)" }} />
       </div>
 
@@ -700,13 +700,13 @@ export default function ProjectsPage() {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          style={{ marginBottom: 24, padding: "12px 18px", borderRadius: 14, background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.16)", display: "flex", alignItems: "center", gap: 12 }}
+          style={{ marginBottom: 24, padding: "12px 18px", borderRadius: 14, background: "rgba(217,70,239,0.06)", border: "1px solid rgba(217,70,239,0.16)", display: "flex", alignItems: "center", gap: 12 }}
         >
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #8b5cf6, #3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 0 12px rgba(139,92,246,0.4)" }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: "linear-gradient(135deg, #D946EF, #3b82f6)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, boxShadow: "0 0 12px rgba(217,70,239,0.4)" }}>
             <Sparkles size={13} color="white" />
           </div>
           <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", flex: 1 }}>
-            <span style={{ color: "#8b5cf6", fontWeight: 700 }}>AI Portfolio Summary: </span>
+            <span style={{ color: "#D946EF", fontWeight: 700 }}>AI Portfolio Summary: </span>
             Your portfolio is showing strong growth potential. Found <span style={{ color: "#10b981", fontWeight: 600 }}>{totalOpps} scaling opportunities</span>, 1 potential risk. A strategy refresh is recommended for <span style={{ color: "#f59e0b", fontWeight: 600 }}>Local Restaurant Chain</span>.
           </p>
           <span style={{ fontSize: 10, color: "rgba(255,255,255,0.22)", flexShrink: 0 }}>20 agents · updated just now</span>
@@ -715,17 +715,17 @@ export default function ProjectsPage() {
         {/* Hero header */}
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: 24 }}>
           <div>
-            <div style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(99,102,241,0.75)", marginBottom: 8, textTransform: "uppercase", fontWeight: 700 }}>Portfolio</div>
+            <div style={{ fontSize: 10.5, letterSpacing: "0.14em", color: "rgba(124,58,237,0.75)", marginBottom: 8, textTransform: "uppercase", fontWeight: 700 }}>Portfolio</div>
             <h1 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", lineHeight: 1.1, marginBottom: 8 }}>
               My projects
             </h1>
             <p style={{ fontSize: 12.5, color: "rgba(255,255,255,0.4)", display: "inline-flex", alignItems: "center", gap: 6 }}>
-              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }} />{ALL_PROJECTS.length} strategies tracked
+              <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#7C3AED", boxShadow: "0 0 6px rgba(124,58,237,0.7)" }} />{ALL_PROJECTS.length} strategies tracked
             </p>
           </div>
           <Link
             href="/dashboard/new"
-            style={{ display: "flex", alignItems: "center", gap: 8, height: 40, padding: "0 18px", borderRadius: 12, background: "linear-gradient(135deg,#6366f1,#4f46e5)", fontSize: 13, fontWeight: 700, color: "#fff", textDecoration: "none", boxShadow: "0 4px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.15)", flexShrink: 0 }}
+            style={{ display: "flex", alignItems: "center", gap: 8, height: 40, padding: "0 18px", borderRadius: 12, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", fontSize: 13, fontWeight: 700, color: "#fff", textDecoration: "none", boxShadow: "0 4px 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.15)", flexShrink: 0 }}
           >
             <Zap size={14} />
             New strategy
@@ -735,7 +735,7 @@ export default function ProjectsPage() {
         {/* KPI row */}
         <div className="kpi-grid" style={{ display: "grid", gap: 10, marginBottom: 24 }}>
           {[
-            { label: "Projects",      value: ALL_PROJECTS.length, suffix: "", prefix: "",  color: "#8b5cf6", rgb: "139,92,246", icon: Layers,     sub: `+${userProjects.length} new` },
+            { label: "Projects",      value: ALL_PROJECTS.length, suffix: "", prefix: "",  color: "#D946EF", rgb: "217,70,239", icon: Layers,     sub: `+${userProjects.length} new` },
             { label: "Forecast",       value: Math.round(totalRevenue / 100000) / 10, suffix: "M", prefix: "$", color: "#10b981", rgb: "16,185,129",  icon: DollarSign, sub: "+24% vs Q1" },
             { label: "Avg AI Score",  value: avgScore, suffix: "", prefix: "",  color: "#3b82f6", rgb: "59,130,246", icon: Star,        sub: "Top 8% of market" },
             { label: "Opportunities",   value: totalOpps, suffix: "", prefix: "",  color: "#f59e0b", rgb: "245,158,11",  icon: Target,      sub: "AI detected" },
@@ -789,7 +789,7 @@ export default function ProjectsPage() {
                   <button
                     key={f}
                     onClick={() => setFilter(f)}
-                    style={{ padding: "4px 10px", borderRadius: 7, fontSize: 11, fontWeight: 600, background: filter === f ? "rgba(139,92,246,0.2)" : "transparent", color: filter === f ? "#a78bfa" : "rgba(255,255,255,0.35)", border: filter === f ? "1px solid rgba(139,92,246,0.2)" : "1px solid transparent", cursor: "pointer", transition: "all 0.2s" }}
+                    style={{ padding: "4px 10px", borderRadius: 7, fontSize: 11, fontWeight: 600, background: filter === f ? "rgba(217,70,239,0.2)" : "transparent", color: filter === f ? "#a78bfa" : "rgba(255,255,255,0.35)", border: filter === f ? "1px solid rgba(217,70,239,0.2)" : "1px solid transparent", cursor: "pointer", transition: "all 0.2s" }}
                   >
                     {f}
                   </button>
@@ -813,7 +813,7 @@ export default function ProjectsPage() {
                     <button
                       key={m.id}
                       onClick={() => setView(m.id)}
-                      style={{ width: 28, height: 28, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", background: view === m.id ? "rgba(139,92,246,0.2)" : "transparent", color: view === m.id ? "#a78bfa" : "rgba(255,255,255,0.3)", border: "none", cursor: "pointer" }}
+                      style={{ width: 28, height: 28, borderRadius: 7, display: "flex", alignItems: "center", justifyContent: "center", background: view === m.id ? "rgba(217,70,239,0.2)" : "transparent", color: view === m.id ? "#a78bfa" : "rgba(255,255,255,0.3)", border: "none", cursor: "pointer" }}
                     >
                       <Icon size={13} />
                     </button>
@@ -827,13 +827,13 @@ export default function ProjectsPage() {
               <motion.div
                 initial={{ opacity: 0, y: -8 }} animate={{ opacity: 1, y: 0 }}
                 style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", marginBottom: 14, borderRadius: 14,
-                  background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.22)" }}
+                  background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.22)" }}
               >
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a5b4fc", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>Example</span>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a5b4fc", background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>Example</span>
                 <span style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
                   These are demo projects. Run your own analysis and your strategies will appear here.
                 </span>
-                <Link href="/dashboard/new" style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, height: 34, padding: "0 15px", borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 12.5, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(99,102,241,0.32)" }}>
+                <Link href="/dashboard/new" style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, height: 34, padding: "0 15px", borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", fontSize: 12.5, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(124,58,237,0.32)" }}>
                   Create strategy
                 </Link>
               </motion.div>
@@ -890,7 +890,7 @@ export default function ProjectsPage() {
                   { label: "Best AI Score", value: `${bestProject?.score} — ${bestProject?.name.split(" ")[0]}`, color: "#10b981" },
                   { label: "Fastest growth", value: "SaaS Invoice +18%/yr",  color: "#3b82f6" },
                   { label: "Highest risk", value: `${riskProject?.name.split(" ")[0]} · ${riskProject?.riskScore}pts`, color: "#f43f5e" },
-                  { label: "Total forecast",  value: `$${(totalRevenue / 1e6).toFixed(1)}M ARR`, color: "#8b5cf6" },
+                  { label: "Total forecast",  value: `$${(totalRevenue / 1e6).toFixed(1)}M ARR`, color: "#D946EF" },
                   { label: "AI opportunities", value: `${totalOpps} detected`, color: "#f59e0b" },
                 ].map(m => (
                   <div key={m.label} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 10px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.04)" }}>

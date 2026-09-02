@@ -154,13 +154,13 @@ export function EngagementPanel() {
             <span style={{ fontSize: 11, fontWeight: 700, color: "#f59e0b" }}>{xpEarned} XP</span>
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.25)" }}>/ {xpTotal} XP</span>
           </div>
-          <button onClick={() => setShowDetail(v => !v)} style={{ fontSize: 10, color: "rgba(99,102,241,0.8)", background: "none", border: "none", cursor: "pointer" }}>
+          <button onClick={() => setShowDetail(v => !v)} style={{ fontSize: 10, color: "rgba(124,58,237,0.8)", background: "none", border: "none", cursor: "pointer" }}>
             {showDetail ? "скрыть" : `${pct}% пройдено →`}
           </button>
         </div>
         <div style={{ height: 5, borderRadius: 99, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
           <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ delay: 0.4, duration: 0.9, ease: EASE }}
-            style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #6366f1, #8b5cf6)" }} />
+            style={{ height: "100%", borderRadius: 99, background: "linear-gradient(90deg, #7C3AED, #D946EF)" }} />
         </div>
 
         {/* Milestone detail */}
@@ -199,7 +199,7 @@ export function EngagementPanel() {
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.18, ease: EASE }}
         style={{
-          background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.2)",
+          background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.2)",
           borderRadius: 16, padding: "16px 18px",
         }}
       >
@@ -212,7 +212,7 @@ export function EngagementPanel() {
         <button onClick={() => router.push("/dashboard/executives")}
           style={{
             display: "flex", alignItems: "center", gap: 6, padding: "8px 14px", borderRadius: 10, cursor: "pointer",
-            background: "rgba(99,102,241,0.15)", border: "1px solid rgba(99,102,241,0.3)",
+            background: "rgba(124,58,237,0.15)", border: "1px solid rgba(124,58,237,0.3)",
             color: "#a5b4fc", fontSize: 12, fontWeight: 700,
           }}>
           <Zap size={12} />Спросить совет <ArrowRight size={11} />
@@ -232,11 +232,11 @@ export function EngagementPanel() {
             display: "flex", alignItems: "center", gap: 12,
           }}
         >
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Trophy size={16} color="#8b5cf6" />
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(217,70,239,0.12)", border: "1px solid rgba(217,70,239,0.25)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Trophy size={16} color="#D946EF" />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <div style={{ fontSize: 11, color: "rgba(139,92,246,0.8)", fontWeight: 700, marginBottom: 2 }}>СЛЕДУЮЩАЯ ЦЕЛЬ</div>
+            <div style={{ fontSize: 11, color: "rgba(217,70,239,0.8)", fontWeight: 700, marginBottom: 2 }}>СЛЕДУЮЩАЯ ЦЕЛЬ</div>
             <div style={{ fontSize: 13, color: "#E5E7EB", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{nextMilestone.label}</div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>

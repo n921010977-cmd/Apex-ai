@@ -60,7 +60,7 @@ export function CookieBanner() {
       >
         {/* Заголовок */}
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 30, height: 30, borderRadius: 9, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+          <div style={{ width: 30, height: 30, borderRadius: 9, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" width="15" height="15"><circle cx="12" cy="12" r="9" /><circle cx="9" cy="10" r="1" fill="#fff" /><circle cx="14" cy="14" r="1" fill="#fff" /><circle cx="15" cy="9" r="1" fill="#fff" /></svg>
           </div>
           <span style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Cookies on Vertlix AI</span>
@@ -126,7 +126,7 @@ function Row({ title, desc, on, locked, onToggle }: { title: string; desc: strin
         aria-label={`${title}: ${on ? "on" : "off"}`}
         style={{
           flexShrink: 0, width: 42, height: 24, borderRadius: 999, border: "none",
-          background: on ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.14)",
+          background: on ? "linear-gradient(135deg,#7C3AED,#6D28D9)" : "rgba(255,255,255,0.14)",
           cursor: locked ? "not-allowed" : "pointer", opacity: locked ? 0.6 : 1,
           position: "relative", transition: "background .2s", padding: 0, marginTop: 2,
         }}
@@ -143,8 +143,8 @@ const btnBase: React.CSSProperties = {
 };
 const btnPrimary: React.CSSProperties = {
   ...btnBase, color: "#fff",
-  background: "linear-gradient(135deg,#6366f1,#4f46e5)",
-  boxShadow: "0 6px 20px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.16)",
+  background: "linear-gradient(135deg,#7C3AED,#6D28D9)",
+  boxShadow: "0 6px 20px rgba(124,58,237,0.3), inset 0 1px 0 rgba(255,255,255,0.16)",
 };
 const btnGhost: React.CSSProperties = {
   ...btnBase, color: "rgba(255,255,255,0.8)",

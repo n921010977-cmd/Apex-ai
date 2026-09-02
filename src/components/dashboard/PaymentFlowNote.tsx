@@ -7,8 +7,8 @@ import { MousePointerClick, Wallet, ShieldCheck, Unlock } from "lucide-react";
 // Успокаивает клиента перед оплатой: платёж через OxaPay в USDT, мы проверяем
 // подпись, тариф включается автоматически. Ставится над таблицей сравнения.
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const STEPS = [
@@ -37,7 +37,7 @@ export function PaymentFlowNote() {
         {STEPS.map((s, i) => (
           <div key={i} style={{ position: "relative", display: "flex", flexDirection: "column", gap: 8 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 4px 14px rgba(${RGB},0.35)` }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, boxShadow: `0 4px 14px rgba(${RGB},0.35)` }}>
                 <s.icon size={16} color="#fff" />
               </div>
               <span style={{ fontFamily: "var(--font-geist-mono), monospace", fontSize: 12, fontWeight: 700, color: "rgba(255,255,255,0.35)" }}>0{i + 1}</span>

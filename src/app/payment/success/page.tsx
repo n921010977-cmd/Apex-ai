@@ -10,8 +10,8 @@ import { PLAN_BY_ID, type PlanId } from "@/lib/plans";
 // сервер (/api/usage) и объявляет успех только когда webhook реально включил
 // тариф. До этого показывает «подтверждаем в сети».
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 
 type State = "checking" | "active" | "slow" | "unauthed";
 
@@ -68,7 +68,7 @@ export default function PaymentSuccessPage() {
             <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 24px" }}>
               Everything in your plan is now unlocked. Thanks for being with us!
             </p>
-            <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 48, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 8px 24px rgba(${RGB},0.4)` }}>
+            <Link href="/dashboard" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 48, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, boxShadow: `0 8px 24px rgba(${RGB},0.4)` }}>
               Go to dashboard <ArrowRight size={16} />
             </Link>
           </>
@@ -93,7 +93,7 @@ export default function PaymentSuccessPage() {
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 20px" }}>
               Your payment is processed on the server regardless of sign-in. Sign in with the account you paid from and you\u2019ll see the plan active.
             </p>
-            <Link href="/login?callbackUrl=/payment/success" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 24px", borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)` }}>
+            <Link href="/login?callbackUrl=/payment/success" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 24px", borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#6D28D9)` }}>
               Sign in
             </Link>
           </>

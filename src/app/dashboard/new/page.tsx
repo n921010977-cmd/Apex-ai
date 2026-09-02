@@ -61,7 +61,7 @@ const TEAM_SIZES = [
 const GEOS = ["Russia / CIS","US / Canada","Europe","Asia / MENA","Latin America","Global"];
 const REVENUES = ["No Revenue Yet","Up to $10k/mo","$10k-$50k/mo","$50k-$200k/mo","$200k-$1M/mo","$1M+/mo"];
 const AGENTS = [
-  { role: "CEO",              label: "Chief Executive Officer",      color: "#8b5cf6", rgb: "139,92,246",  icon: Brain,      name: "Sophia Rivers"  },
+  { role: "CEO",              label: "Chief Executive Officer",      color: "#D946EF", rgb: "217,70,239",  icon: Brain,      name: "Sophia Rivers"  },
   { role: "CFO",              label: "Chief Financial Officer",       color: "#3b82f6", rgb: "59,130,246",  icon: DollarSign, name: "Marcus Chen"    },
   { role: "CMO",              label: "Chief Marketing Officer",    color: "#10b981", rgb: "16,185,129",   icon: TrendingUp, name: "Elena Torres"   },
   { role: "COO",              label: "Chief Operating Officer",     color: "#f59e0b", rgb: "245,158,11",   icon: Activity,   name: "James Wright"   },
@@ -80,7 +80,7 @@ const AGENTS = [
   { role: "Supply Chain",     label: "Supply Chain",         color: "#2dd4bf", rgb: "45,212,191",  icon: Globe,      name: "Jake Turner"    },
   { role: "UX Researcher",    label: "UX Researcher",         color: "#c084fc", rgb: "192,132,252", icon: Lightbulb,  name: "Zoe Carter"     },
   { role: "PR Director",      label: "PR Director",              color: "#fdba74", rgb: "253,186,116", icon: Globe,      name: "Liam Foster"    },
-  { role: "Strategy Advisor", label: "Strategy Advisor",  color: "#8b5cf6", rgb: "139,92,246",  icon: Zap,        name: "Diana Wells"    },
+  { role: "Strategy Advisor", label: "Strategy Advisor",  color: "#D946EF", rgb: "217,70,239",  icon: Zap,        name: "Diana Wells"    },
 ];
 
 const STEP_TIMELINE = [
@@ -96,7 +96,7 @@ function detectEntities(text: string) {
   const entities: { label: string; value: string; color: string }[] = [];
 
   if (t.includes("saas") || t.includes("subscription"))
-    entities.push({ label: "Model", value: "SaaS", color: "#8b5cf6" });
+    entities.push({ label: "Model", value: "SaaS", color: "#D946EF" });
   if (t.includes("b2b") || t.includes("business") || t.includes("corporate") || t.includes("enterprise"))
     entities.push({ label: "Audience", value: "B2B", color: "#3b82f6" });
   if (t.includes("b2c") || t.includes("consumer") || t.includes("user"))
@@ -444,12 +444,12 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
   return (
     <div
       className="min-h-screen flex flex-col items-center p-6 pt-10"
-      style={{ background: "radial-gradient(ellipse 90% 55% at 50% 0%, rgba(139,92,246,0.14) 0%, #040404 55%)" }}
+      style={{ background: "radial-gradient(ellipse 90% 55% at 50% 0%, rgba(217,70,239,0.14) 0%, #040404 55%)" }}
     >
       <style>{`
         @keyframes an-spin  { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
         @keyframes an-spin2 { from{transform:rotate(0deg)} to{transform:rotate(-360deg)} }
-        @keyframes an-breathe { 0%,100%{box-shadow:0 0 50px rgba(139,92,246,0.45),0 0 100px rgba(139,92,246,0.18)} 50%{box-shadow:0 0 80px rgba(139,92,246,0.65),0 0 150px rgba(139,92,246,0.28)} }
+        @keyframes an-breathe { 0%,100%{box-shadow:0 0 50px rgba(217,70,239,0.45),0 0 100px rgba(217,70,239,0.18)} 50%{box-shadow:0 0 80px rgba(217,70,239,0.65),0 0 150px rgba(217,70,239,0.28)} }
       `}</style>
 
       {/* ── HEADER ── */}
@@ -458,15 +458,15 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
         <div style={{ position: "relative", marginBottom: 20 }}>
           <div style={{
             width: 72, height: 72, borderRadius: "50%",
-            background: "linear-gradient(135deg, #8b5cf6 0%, #3b82f6 60%, #10b981 100%)",
+            background: "linear-gradient(135deg, #D946EF 0%, #3b82f6 60%, #10b981 100%)",
             display: "flex", alignItems: "center", justifyContent: "center",
             animation: "an-breathe 2.8s ease-in-out infinite",
           }}>
             <Zap size={28} color="white" />
           </div>
           {/* Ring 1 */}
-          <div style={{ position: "absolute", inset: -10, borderRadius: "50%", border: "1px solid rgba(139,92,246,0.35)", animation: "an-spin 4s linear infinite" }}>
-            <div style={{ position: "absolute", top: -3, left: "50%", width: 6, height: 6, borderRadius: "50%", background: "#8b5cf6", transform: "translateX(-50%)", boxShadow: "0 0 8px #8b5cf6" }} />
+          <div style={{ position: "absolute", inset: -10, borderRadius: "50%", border: "1px solid rgba(217,70,239,0.35)", animation: "an-spin 4s linear infinite" }}>
+            <div style={{ position: "absolute", top: -3, left: "50%", width: 6, height: 6, borderRadius: "50%", background: "#D946EF", transform: "translateX(-50%)", boxShadow: "0 0 8px #D946EF" }} />
           </div>
           {/* Ring 2 */}
           <div style={{ position: "absolute", inset: -20, borderRadius: "50%", border: "1px dashed rgba(59,130,246,0.2)", animation: "an-spin2 7s linear infinite" }}>
@@ -516,7 +516,7 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
                 </motion.span>
               )}
             </AnimatePresence>
-            <span style={{ fontSize: 11, fontWeight: 800, color: "#8b5cf6", fontVariantNumeric: "tabular-nums" }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: "#D946EF", fontVariantNumeric: "tabular-nums" }}>
               {doneCount} / {AGENTS.length}
             </span>
           </div>
@@ -525,7 +525,7 @@ function AnalyzingScreen({ doneAgents, agentResults }: { doneAgents: Set<string>
           <motion.div
             animate={{ width: `${progress}%` }}
             transition={{ duration: 0.7, ease: "easeOut" }}
-            style={{ position: "absolute", inset: 0, borderRadius: 5, background: "linear-gradient(90deg, #8b5cf6, #3b82f6 50%, #10b981)" }}
+            style={{ position: "absolute", inset: 0, borderRadius: 5, background: "linear-gradient(90deg, #D946EF, #3b82f6 50%, #10b981)" }}
           />
           {/* Shimmer */}
           <motion.div
@@ -694,7 +694,7 @@ export default function NewStrategyPage() {
         @keyframes lp-typing { 0%,100%{opacity:0.25;transform:translateY(0)} 50%{opacity:1;transform:translateY(-1.5px)} }
         @keyframes np-drift  { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-55%) scale(1.08)} }
         .np-input { width:100%; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.07); border-radius:14px; color:#fff; font-size:14px; outline:none; transition:border-color 0.2s, box-shadow 0.2s; -webkit-appearance:none; }
-        .np-input:focus { border-color:rgba(99,102,241,0.45); box-shadow:0 0 0 3px rgba(99,102,241,0.08); }
+        .np-input:focus { border-color:rgba(124,58,237,0.45); box-shadow:0 0 0 3px rgba(124,58,237,0.08); }
         .np-input::placeholder { color:rgba(255,255,255,0.2); }
         .new-content-grid { grid-template-columns: 1fr 320px; }
         @media (max-width: 1023px) { .new-content-grid { grid-template-columns: 1fr; } }
@@ -705,7 +705,7 @@ export default function NewStrategyPage() {
 
       {/* Background */}
       <div aria-hidden style={{ position:"fixed", inset:0, pointerEvents:"none", zIndex:0 }}>
-        <div style={{ position:"absolute", top:"10%", left:"20%", width:600, height:600, background:"radial-gradient(circle, rgba(139,92,246,0.08) 0%, transparent 65%)", filter:"blur(80px)", animation:"np-drift 14s ease-in-out infinite" }} />
+        <div style={{ position:"absolute", top:"10%", left:"20%", width:600, height:600, background:"radial-gradient(circle, rgba(217,70,239,0.08) 0%, transparent 65%)", filter:"blur(80px)", animation:"np-drift 14s ease-in-out infinite" }} />
         <div style={{ position:"absolute", bottom:"15%", right:"15%", width:500, height:500, background:"radial-gradient(circle, rgba(59,130,246,0.06) 0%, transparent 65%)", filter:"blur(70px)", animation:"np-drift 18s ease-in-out infinite reverse" }} />
         <div style={{ position:"absolute", inset:0, backgroundImage:"linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px)", backgroundSize:"52px 52px", maskImage:"radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%)", WebkitMaskImage:"radial-gradient(ellipse 90% 90% at 50% 50%, black 20%, transparent 100%)" }} />
       </div>
@@ -713,7 +713,7 @@ export default function NewStrategyPage() {
       <div style={{ position:"relative", zIndex:1 }}>
 
         {/* ─── HERO ─── */}
-        <div style={{ background:"linear-gradient(180deg, rgba(139,92,246,0.06) 0%, transparent 100%)", borderBottom:"1px solid rgba(255,255,255,0.05)", padding:"28px 40px 24px" }}>
+        <div style={{ background:"linear-gradient(180deg, rgba(217,70,239,0.06) 0%, transparent 100%)", borderBottom:"1px solid rgba(255,255,255,0.05)", padding:"28px 40px 24px" }}>
           <div style={{ maxWidth:1200, margin:"0 auto" }}>
             <div className="flex flex-wrap items-start gap-6 justify-between">
 
@@ -723,7 +723,7 @@ export default function NewStrategyPage() {
                   {[
                     { label:"Market Synced",         color:"#10b981", rgb:"16,185,129" },
                     { label:"Financial Models Ready", color:"#3b82f6", rgb:"59,130,246" },
-                    { label:"20 AI Directors Online", color:"#8b5cf6", rgb:"139,92,246" },
+                    { label:"20 AI Directors Online", color:"#D946EF", rgb:"217,70,239" },
                     { label:"Competitors Loaded",     color:"#f59e0b", rgb:"245,158,11" },
                   ].map(s => (
                     <div key={s.label} className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background:`rgba(${s.rgb},0.07)`, border:`1px solid rgba(${s.rgb},0.18)`, fontSize:9, fontWeight:700, color:s.color, letterSpacing:"0.05em" }}>
@@ -743,8 +743,8 @@ export default function NewStrategyPage() {
 
               {/* Right: confidence */}
               <div className="flex items-center gap-4">
-                <div className="text-center px-5 py-3 rounded-2xl" style={{ background:"rgba(139,92,246,0.08)", border:"1px solid rgba(139,92,246,0.2)" }}>
-                  <div style={{ fontSize:28, fontWeight:800, color:"#8b5cf6", lineHeight:1 }}>98%</div>
+                <div className="text-center px-5 py-3 rounded-2xl" style={{ background:"rgba(217,70,239,0.08)", border:"1px solid rgba(217,70,239,0.2)" }}>
+                  <div style={{ fontSize:28, fontWeight:800, color:"#D946EF", lineHeight:1 }}>98%</div>
                   <div style={{ fontSize:9, color:"rgba(255,255,255,0.3)", marginTop:4, letterSpacing:"0.1em", textTransform:"uppercase" }}>AI Confidence</div>
                 </div>
                 <div className="text-center px-5 py-3 rounded-2xl" style={{ background:"rgba(16,185,129,0.06)", border:"1px solid rgba(16,185,129,0.15)" }}>
@@ -768,9 +768,9 @@ export default function NewStrategyPage() {
                   <div className="flex items-center gap-2.5" style={{ opacity: active ? 1 : complete ? 0.8 : 0.35 }}>
                     <div style={{
                       width:32, height:32, borderRadius:10, display:"flex", alignItems:"center", justifyContent:"center", flexShrink:0,
-                      background: complete ? "rgba(16,185,129,0.12)" : active ? "rgba(139,92,246,0.18)" : "rgba(255,255,255,0.04)",
-                      border: complete ? "1px solid rgba(16,185,129,0.3)" : active ? "1px solid rgba(139,92,246,0.4)" : "1px solid rgba(255,255,255,0.08)",
-                      color: complete ? "#10b981" : active ? "#8b5cf6" : "rgba(255,255,255,0.3)",
+                      background: complete ? "rgba(16,185,129,0.12)" : active ? "rgba(217,70,239,0.18)" : "rgba(255,255,255,0.04)",
+                      border: complete ? "1px solid rgba(16,185,129,0.3)" : active ? "1px solid rgba(217,70,239,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                      color: complete ? "#10b981" : active ? "#D946EF" : "rgba(255,255,255,0.3)",
                     }}>
                       {complete ? <CheckCircle size={14}/> : <Icon size={14}/>}
                     </div>
@@ -781,7 +781,7 @@ export default function NewStrategyPage() {
                   </div>
                   {i < STEP_TIMELINE.length - 1 && (
                     <div style={{ flex:1, height:1, borderRadius:1, background:"rgba(255,255,255,0.06)", position:"relative", overflow:"hidden" }}>
-                      <motion.div animate={{ width: complete ? "100%" : "0%" }} transition={{ duration:0.5 }} style={{ position:"absolute", inset:0, background:"linear-gradient(90deg, #8b5cf6, #10b981)", borderRadius:1 }} />
+                      <motion.div animate={{ width: complete ? "100%" : "0%" }} transition={{ duration:0.5 }} style={{ position:"absolute", inset:0, background:"linear-gradient(90deg, #D946EF, #10b981)", borderRadius:1 }} />
                     </div>
                   )}
                 </div>
@@ -820,11 +820,11 @@ export default function NewStrategyPage() {
                             <button key={t.name}
                               onClick={() => setForm(f => ({ ...f, name: f.name || t.name, description: t.desc, industry: t.industry, stage: t.stage }))}
                               style={{ display:"inline-flex", alignItems:"center", gap:7, padding:"8px 12px", borderRadius:10, cursor:"pointer",
-                                background: form.industry === t.industry ? "rgba(99,102,241,0.14)" : "rgba(255,255,255,0.03)",
-                                border: form.industry === t.industry ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.08)",
+                                background: form.industry === t.industry ? "rgba(124,58,237,0.14)" : "rgba(255,255,255,0.03)",
+                                border: form.industry === t.industry ? "1px solid rgba(124,58,237,0.4)" : "1px solid rgba(255,255,255,0.08)",
                                 color: "rgba(255,255,255,0.7)", fontSize:12, fontWeight:600, transition:"all 0.15s" }}
-                              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.35)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
-                              onMouseLeave={e => { e.currentTarget.style.borderColor = form.industry === t.industry ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; }}>
+                              onMouseEnter={e => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.35)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
+                              onMouseLeave={e => { e.currentTarget.style.borderColor = form.industry === t.industry ? "rgba(124,58,237,0.4)" : "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; }}>
                               <span style={{ fontSize:15 }}>{t.emoji}</span>{t.name}
                             </button>
                           ))}
@@ -854,12 +854,12 @@ export default function NewStrategyPage() {
                         </div>
 
                         {/* Workspace textarea */}
-                        <div style={{ position:"relative", borderRadius:14, overflow:"hidden", border:`1px solid ${form.description.length > 0 ? "rgba(139,92,246,0.35)" : "rgba(255,255,255,0.07)"}`, background:"rgba(255,255,255,0.025)", transition:"border-color 0.25s" }}>
+                        <div style={{ position:"relative", borderRadius:14, overflow:"hidden", border:`1px solid ${form.description.length > 0 ? "rgba(217,70,239,0.35)" : "rgba(255,255,255,0.07)"}`, background:"rgba(255,255,255,0.025)", transition:"border-color 0.25s" }}>
                           {/* Hint bubbles */}
                           {form.description.length === 0 && (
                             <div style={{ position:"absolute", top:12, left:14, right:14, display:"flex", flexWrap:"wrap", gap:6, pointerEvents:"none", zIndex:2 }}>
                               {["Describe the problem","Who are your customers","How you make money","What makes the product unique"].map(h => (
-                                <span key={h} style={{ fontSize:10, color:"rgba(255,255,255,0.22)", background:"rgba(139,92,246,0.07)", border:"1px solid rgba(139,92,246,0.15)", borderRadius:6, padding:"3px 8px" }}>
+                                <span key={h} style={{ fontSize:10, color:"rgba(255,255,255,0.22)", background:"rgba(217,70,239,0.07)", border:"1px solid rgba(217,70,239,0.15)", borderRadius:6, padding:"3px 8px" }}>
                                   {h}
                                 </span>
                               ))}
@@ -908,7 +908,7 @@ export default function NewStrategyPage() {
                                 <motion.div
                                   animate={{ width:`${quality}%` }}
                                   transition={{ duration:0.5, ease:"easeOut" }}
-                                  style={{ height:"100%", borderRadius:2, background:`linear-gradient(90deg, rgba(139,92,246,0.6), ${qualityColor})` }}
+                                  style={{ height:"100%", borderRadius:2, background:`linear-gradient(90deg, rgba(217,70,239,0.6), ${qualityColor})` }}
                                 />
                               </div>
                             </div>
@@ -955,8 +955,8 @@ export default function NewStrategyPage() {
                           return (
                             <button key={bm} onClick={() => setForm(f => ({ ...f, bizModels: sel ? f.bizModels.filter(x=>x!==bm) : [...f.bizModels, bm] }))}
                               style={{ padding:"6px 12px", borderRadius:9, fontSize:11, fontWeight:500, cursor:"pointer", transition:"all 0.15s",
-                                background: sel ? "rgba(139,92,246,0.18)" : "rgba(255,255,255,0.035)",
-                                border:     sel ? "1px solid rgba(139,92,246,0.45)" : "1px solid rgba(255,255,255,0.07)",
+                                background: sel ? "rgba(217,70,239,0.18)" : "rgba(255,255,255,0.035)",
+                                border:     sel ? "1px solid rgba(217,70,239,0.45)" : "1px solid rgba(255,255,255,0.07)",
                                 color:      sel ? "#c4b5fd" : "rgba(255,255,255,0.45)" }}>{bm}</button>
                           );
                         })}
@@ -974,8 +974,8 @@ export default function NewStrategyPage() {
                             return (
                               <button key={stage.id} onClick={() => setForm(f => ({ ...f, stage: stage.id }))}
                                 style={{ padding:"10px 14px", borderRadius:11, textAlign:"left", cursor:"pointer", transition:"all 0.2s",
-                                  background: sel ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.025)",
-                                  border:     sel ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.06)" }}>
+                                  background: sel ? "rgba(124,58,237,0.12)" : "rgba(255,255,255,0.025)",
+                                  border:     sel ? "1px solid rgba(124,58,237,0.4)" : "1px solid rgba(255,255,255,0.06)" }}>
                                 <div style={{ display:"flex", alignItems:"center", gap:7, marginBottom:2 }}>
                                   <SIcon size={12} style={{ color: sel ? "#818cf8" : "rgba(255,255,255,0.3)" }} />
                                   <span style={{ fontSize:11, fontWeight:700, color: sel ? "#c7d2fe" : "rgba(255,255,255,0.6)" }}>{stage.label}</span>
@@ -1201,9 +1201,9 @@ export default function NewStrategyPage() {
                   whileTap={{ scale: 0.98 }}
                   style={{
                     height:42, padding:"0 24px", borderRadius:12, fontSize:13, fontWeight:700, color:"#fff", cursor: canNext() ? "pointer" : "not-allowed",
-                    background: canNext() ? "linear-gradient(135deg, #8b5cf6, #3b82f6)" : "rgba(255,255,255,0.06)",
+                    background: canNext() ? "linear-gradient(135deg, #D946EF, #3b82f6)" : "rgba(255,255,255,0.06)",
                     border: canNext() ? "none" : "1px solid rgba(255,255,255,0.08)",
-                    boxShadow: canNext() ? "0 6px 24px rgba(139,92,246,0.4), inset 0 1px 0 rgba(255,255,255,0.15)" : "none",
+                    boxShadow: canNext() ? "0 6px 24px rgba(217,70,239,0.4), inset 0 1px 0 rgba(255,255,255,0.15)" : "none",
                     opacity: canNext() ? 1 : 0.45,
                     display:"flex", alignItems:"center", gap:8, transition:"background 0.3s",
                   }}
@@ -1219,10 +1219,10 @@ export default function NewStrategyPage() {
                   transition={{ duration: 0.25, ease:[0.22,1,0.36,1] }}
                   style={{
                     height:50, padding:"0 32px", borderRadius:14, cursor:"pointer", border:"none",
-                    background:"linear-gradient(135deg, #8b5cf6 0%, #3b82f6 60%, #10b981 100%)",
+                    background:"linear-gradient(135deg, #D946EF 0%, #3b82f6 60%, #10b981 100%)",
                     boxShadow: btnHovered
-                      ? "0 12px 40px rgba(139,92,246,0.6), 0 0 0 1px rgba(139,92,246,0.3)"
-                      : "0 8px 28px rgba(139,92,246,0.45), inset 0 1px 0 rgba(255,255,255,0.2)",
+                      ? "0 12px 40px rgba(217,70,239,0.6), 0 0 0 1px rgba(217,70,239,0.3)"
+                      : "0 8px 28px rgba(217,70,239,0.45), inset 0 1px 0 rgba(255,255,255,0.2)",
                     display:"flex", alignItems:"center", gap:10,
                   }}
                 >
@@ -1256,10 +1256,10 @@ export default function NewStrategyPage() {
             </div>
 
             {/* AI Tips */}
-            <div style={{ borderRadius:18, padding:"16px 18px", background:"rgba(99,102,241,0.06)", border:"1px solid rgba(99,102,241,0.15)" }}>
+            <div style={{ borderRadius:18, padding:"16px 18px", background:"rgba(124,58,237,0.06)", border:"1px solid rgba(124,58,237,0.15)" }}>
               <div className="flex items-center gap-2 mb-3">
-                <Sparkles size={12} style={{ color:"#6366f1" }} />
-                <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(99,102,241,0.9)" }}>AI Tips</span>
+                <Sparkles size={12} style={{ color:"#7C3AED" }} />
+                <span style={{ fontSize:10, fontWeight:700, letterSpacing:"0.15em", textTransform:"uppercase", color:"rgba(124,58,237,0.9)" }}>AI Tips</span>
               </div>
               <div className="space-y-2.5">
                 {[
@@ -1289,7 +1289,7 @@ export default function NewStrategyPage() {
                   {[
                     { label:"Market",     value: form.industry ? `${form.industry} — active` : "Determining...", color:"#3b82f6" },
                     { label:"Risk",      value: quality > 60 ? "Medium" : "Assessing...",                       color:"#f59e0b" },
-                    { label:"AI Score",  value: `${quality}% brief quality`,                                   color:"#8b5cf6" },
+                    { label:"AI Score",  value: `${quality}% brief quality`,                                   color:"#D946EF" },
                     { label:"Strategy", value: form.stage ? `Stage: ${form.stage}` : "Determining...",          color:"#10b981" },
                   ].map(r => (
                     <div key={r.label} className="flex items-center justify-between">

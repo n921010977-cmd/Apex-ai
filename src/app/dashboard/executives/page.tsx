@@ -36,7 +36,7 @@ const TP     = "#E5E7EB";
 const TS     = "rgba(255,255,255,0.5)";
 const TM     = "rgba(255,255,255,0.3)";
 const MONO   = "var(--font-geist-mono), ui-monospace, monospace";
-const ACCENT = "#6366f1";
+const ACCENT = "#7C3AED";
 
 // ── Agent data ────────────────────────────────────────────────────────────────
 const CHAR: Record<string, { specialty: string; confidence: number }> = {
@@ -173,7 +173,7 @@ export default function ExecutiveCouncilPage() {
       {/* Ambient */}
       <div aria-hidden style={{ position: "absolute", top: 0, left: "50%", transform: "translateX(-50%)",
         width: 1000, height: 340, pointerEvents: "none",
-        background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(99,102,241,0.08), transparent 70%)" }} />
+        background: "radial-gradient(ellipse 60% 40% at 50% 0%, rgba(124,58,237,0.08), transparent 70%)" }} />
 
       <div style={{ maxWidth: 1280, margin: "0 auto", padding: "32px 28px 80px", position: "relative" }}>
 
@@ -216,7 +216,7 @@ export default function ExecutiveCouncilPage() {
                 style={{ height: 36, width: 180, paddingLeft: 30, paddingRight: 12, borderRadius: 10,
                   background: SURF, border: `1px solid ${BORD}`, color: TP, fontSize: 12,
                   outline: "none", transition: "border-color 0.15s" }}
-                onFocus={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.45)"; }}
+                onFocus={e => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.45)"; }}
                 onBlur={e  => { e.currentTarget.style.borderColor = BORD; }} />
             </div>
 
@@ -254,7 +254,7 @@ export default function ExecutiveCouncilPage() {
                           setOpenDropdown(null);
                         }}
                           style={{ width: "100%", padding: "9px 14px", border: "none", textAlign: "left",
-                            background: label === opt ? "rgba(99,102,241,0.12)" : "transparent",
+                            background: label === opt ? "rgba(124,58,237,0.12)" : "transparent",
                             color: label === opt ? "#a5b4fc" : TS, fontSize: 12.5,
                             fontWeight: label === opt ? 600 : 400, cursor: "pointer", transition: "background 0.12s" }}
                           onMouseOver={e => { if (label !== opt) e.currentTarget.style.background = "rgba(255,255,255,0.04)"; }}
@@ -274,7 +274,7 @@ export default function ExecutiveCouncilPage() {
                 <button key={v} onClick={() => setView(v)}
                   style={{ width: 36, height: 36, display: "flex", alignItems: "center", justifyContent: "center",
                     border: "none", cursor: "pointer", transition: "all 0.15s",
-                    background: view === v ? "rgba(99,102,241,0.18)" : "transparent",
+                    background: view === v ? "rgba(124,58,237,0.18)" : "transparent",
                     color: view === v ? "#a5b4fc" : TM }}>
                   {v === "grid" ? <LayoutGrid size={13} /> : <List size={13} />}
                 </button>
@@ -587,15 +587,15 @@ function CouncilSession() {
     <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, ease: EASE }}
       style={{ marginBottom: 20, borderRadius: 22, overflow: "hidden", position: "relative",
-        border: "1px solid rgba(99,102,241,0.22)", background: "linear-gradient(160deg, rgba(99,102,241,0.06), rgba(255,255,255,0.02) 60%)",
+        border: "1px solid rgba(124,58,237,0.22)", background: "linear-gradient(160deg, rgba(124,58,237,0.06), rgba(255,255,255,0.02) 60%)",
         boxShadow: "0 20px 60px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.05)" }}>
       <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2,
-        background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.7), transparent)" }} />
+        background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.7), transparent)" }} />
 
       {/* Header */}
       <div style={{ padding: "20px 24px 16px", display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
         <div style={{ width: 40, height: 40, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-          background: "linear-gradient(135deg, #6366f1, #4f46e5)", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
+          background: "linear-gradient(135deg, #7C3AED, #6D28D9)", boxShadow: "0 6px 18px rgba(124,58,237,0.4)" }}>
           <MessagesSquare size={19} color="#fff" />
         </div>
         <div style={{ flex: 1, minWidth: 200 }}>
@@ -646,13 +646,13 @@ function CouncilSession() {
               rows={2}
               style={{ flex: 1, minWidth: 260, resize: "none", padding: "12px 14px", borderRadius: 12, fontSize: 13.5, lineHeight: 1.5,
                 background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`, color: TP, outline: "none", fontFamily: "inherit" }}
-              onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")}
+              onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")}
               onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
             <button onClick={() => convene()} disabled={!q.trim()}
               style={{ height: 46, padding: "0 22px", borderRadius: 12, fontSize: 13.5, fontWeight: 700, cursor: q.trim() ? "pointer" : "default",
                 border: "none", color: "#fff", whiteSpace: "nowrap",
-                background: q.trim() ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.06)",
-                boxShadow: q.trim() ? "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" : "none",
+                background: q.trim() ? "linear-gradient(135deg, #7C3AED, #6D28D9)" : "rgba(255,255,255,0.06)",
+                boxShadow: q.trim() ? "0 6px 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" : "none",
                 display: "flex", alignItems: "center", gap: 8 }}>
               <Zap size={15} /> Convene the board
             </button>
@@ -662,7 +662,7 @@ function CouncilSession() {
               <button key={ex} onClick={() => convene(ex)}
                 style={{ fontSize: 11.5, padding: "5px 11px", borderRadius: 8, cursor: "pointer",
                   background: "rgba(255,255,255,0.03)", border: `1px solid ${BORD}`, color: TS }}
-                onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.4)"; e.currentTarget.style.color = TP; }}
+                onMouseOver={e => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.4)"; e.currentTarget.style.color = TP; }}
                 onMouseOut={e => { e.currentTarget.style.borderColor = BORD; e.currentTarget.style.color = TS; }}>
                 {ex}
               </button>
@@ -791,9 +791,9 @@ function CouncilSession() {
                   initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ type: "spring", stiffness: 200, damping: 24 }}
                   style={{ margin: "10px 12px 8px", borderRadius: 14, padding: 16, position: "relative", overflow: "hidden",
-                    background: "linear-gradient(150deg, rgba(99,102,241,0.12), rgba(99,102,241,0.04) 70%)",
-                    border: "1px solid rgba(99,102,241,0.35)",
-                    boxShadow: "0 12px 34px rgba(99,102,241,0.14), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
+                    background: "linear-gradient(150deg, rgba(124,58,237,0.12), rgba(124,58,237,0.04) 70%)",
+                    border: "1px solid rgba(124,58,237,0.35)",
+                    boxShadow: "0 12px 34px rgba(124,58,237,0.14), inset 0 1px 0 rgba(255,255,255,0.06)" }}>
                   <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2,
                     background: "linear-gradient(90deg, transparent, rgba(129,140,248,0.9), transparent)" }} />
                   <div style={{ display: "flex", alignItems: "center", gap: 9, marginBottom: 10, flexWrap: "wrap" }}>
@@ -840,13 +840,13 @@ function CouncilSession() {
                 placeholder="Follow up with the board… (it remembers its last decision)"
                 style={{ flex: 1, height: 42, padding: "0 14px", borderRadius: 12, fontSize: 13,
                   background: "rgba(255,255,255,0.035)", border: `1px solid ${BORD}`, color: TP, outline: "none" }}
-                onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")}
+                onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")}
                 onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
               <button onClick={() => followQ.trim() && convene(followQ, true)} disabled={!followQ.trim()}
                 style={{ height: 42, padding: "0 18px", borderRadius: 12, fontSize: 13, fontWeight: 700, cursor: followQ.trim() ? "pointer" : "default",
                   border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7,
-                  background: followQ.trim() ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.06)",
-                  boxShadow: followQ.trim() ? "0 6px 18px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.16)" : "none" }}>
+                  background: followQ.trim() ? "linear-gradient(135deg, #7C3AED, #6D28D9)" : "rgba(255,255,255,0.06)",
+                  boxShadow: followQ.trim() ? "0 6px 18px rgba(124,58,237,0.3), inset 0 1px 0 rgba(255,255,255,0.16)" : "none" }}>
                 <CornerDownLeft size={14} /> Ask
               </button>
             </motion.div>
@@ -869,21 +869,21 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
     <motion.div onHoverStart={() => setHov(true)} onHoverEnd={() => setHov(false)}
       animate={{ y: hov ? -2 : 0 }} transition={{ duration: 0.28, ease: EASE }}
       style={{ position: "relative", overflow: "hidden", borderRadius: 20, cursor: "pointer",
-        background: `linear-gradient(135deg, rgba(99,102,241,0.12) 0%, rgba(255,255,255,0.02) 60%, rgba(99,102,241,0.06) 100%)`,
-        border: `1px solid ${hov ? "rgba(99,102,241,0.4)" : "rgba(99,102,241,0.2)"}`,
+        background: `linear-gradient(135deg, rgba(124,58,237,0.12) 0%, rgba(255,255,255,0.02) 60%, rgba(124,58,237,0.06) 100%)`,
+        border: `1px solid ${hov ? "rgba(124,58,237,0.4)" : "rgba(124,58,237,0.2)"}`,
         boxShadow: hov
-          ? "0 24px 64px rgba(99,102,241,0.18), inset 0 1px 0 rgba(255,255,255,0.08)"
+          ? "0 24px 64px rgba(124,58,237,0.18), inset 0 1px 0 rgba(255,255,255,0.08)"
           : "0 8px 32px rgba(0,0,0,0.32), inset 0 1px 0 rgba(255,255,255,0.05)",
         transition: "border-color 0.25s, box-shadow 0.25s" }}
       onClick={onAsk}>
 
       {/* Top shimmer */}
       <div aria-hidden style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1,
-        background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.4) 30%, rgba(99,102,241,0.5) 65%, transparent)" }} />
+        background: "linear-gradient(90deg, transparent, rgba(251,191,36,0.4) 30%, rgba(124,58,237,0.5) 65%, transparent)" }} />
       {/* Background orb */}
       <div aria-hidden style={{ position: "absolute", top: -80, left: -60, width: 400, height: 400,
         borderRadius: "50%", pointerEvents: "none",
-        background: "radial-gradient(circle, rgba(99,102,241,0.12), transparent 65%)" }} />
+        background: "radial-gradient(circle, rgba(124,58,237,0.12), transparent 65%)" }} />
 
       <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 0, alignItems: "stretch" }}>
 
@@ -956,9 +956,9 @@ function CeoHero({ a, mt, tick, reduce, onAsk, onMeet, totalAgents }: {
           <div style={{ display: "flex", flexDirection: "column", gap: 8, width: "100%" }}>
             <button onClick={e => { e.stopPropagation(); onAsk(); }}
               style={{ height: 38, borderRadius: 10, fontSize: 12, fontWeight: 700,
-                cursor: "pointer", color: "#fff", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
+                cursor: "pointer", color: "#fff", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", border: "none",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: 7,
-                boxShadow: "0 4px 16px rgba(99,102,241,0.42), inset 0 1px 0 rgba(255,255,255,0.18)",
+                boxShadow: "0 4px 16px rgba(124,58,237,0.42), inset 0 1px 0 rgba(255,255,255,0.18)",
                 transition: "all 0.18s" }}
               onMouseOver={e => { e.currentTarget.style.filter = "brightness(1.12)"; e.currentTarget.style.transform = "translateY(-1px)"; }}
               onMouseOut={e  => { e.currentTarget.style.filter = "brightness(1)";   e.currentTarget.style.transform = "translateY(0)"; }}>
@@ -1150,9 +1150,9 @@ function AgentListRow({ a, tick, delay, onAsk, onMeet }: {
               onClick={e => { e.stopPropagation(); onAsk(); }}
               style={{ height: 32, padding: "0 14px", borderRadius: 8, fontSize: 11, fontWeight: 700,
                 cursor: "pointer", color: "#fff",
-                background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none",
+                background: "linear-gradient(135deg,#7C3AED,#6D28D9)", border: "none",
                 display: "flex", alignItems: "center", gap: 5,
-                boxShadow: "0 3px 12px rgba(99,102,241,0.38)" }}>
+                boxShadow: "0 3px 12px rgba(124,58,237,0.38)" }}>
               <MessageSquare size={10} /> Ask
             </motion.button>
           )}

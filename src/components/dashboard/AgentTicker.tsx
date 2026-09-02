@@ -7,7 +7,7 @@ import { Bot, ChevronDown, ChevronUp, X } from "lucide-react";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const EVENTS = [
-  { agent: "CEO",      color: "#6366f1", msg: "Анализирует рыночную позицию" },
+  { agent: "CEO",      color: "#7C3AED", msg: "Анализирует рыночную позицию" },
   { agent: "CFO",      color: "#3b82f6", msg: "Обновляет финансовую модель" },
   { agent: "CMO",      color: "#10b981", msg: "Исследует каналы привлечения" },
   { agent: "Risk",     color: "#f43f5e", msg: "Оценивает регуляторные риски" },

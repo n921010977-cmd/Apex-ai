@@ -14,7 +14,7 @@ const BORD = "rgba(255,255,255,0.07)";
 const TP   = "#E5E7EB";
 const TS   = "rgba(255,255,255,0.5)";
 const TM   = "rgba(255,255,255,0.3)";
-const ACCENT = "#6366f1";
+const ACCENT = "#7C3AED";
 const MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -66,7 +66,7 @@ export default function TasksPage() {
         style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <span style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
+            <span style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 6px 18px rgba(124,58,237,0.4)" }}>
               <CheckSquare size={18} color="#fff" />
             </span>
             <h1 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 800, color: TP, letterSpacing: "-0.02em", margin: 0 }}>Tasks</h1>
@@ -93,7 +93,7 @@ export default function TasksPage() {
           </div>
           <div style={{ height: 8, borderRadius: 4, background: "rgba(255,255,255,0.06)", overflow: "hidden" }}>
             <motion.div initial={{ width: 0 }} animate={{ width: `${stats.pct}%` }} transition={{ duration: 0.9, ease: EASE }}
-              style={{ height: "100%", borderRadius: 4, background: "linear-gradient(90deg,#6366f1,#10b981)" }} />
+              style={{ height: "100%", borderRadius: 4, background: "linear-gradient(90deg,#7C3AED,#10b981)" }} />
           </div>
         </motion.div>
       )}
@@ -103,7 +103,7 @@ export default function TasksPage() {
         <input value={title} onChange={e => setTitle(e.target.value)} onKeyDown={e => { if (e.key === "Enter") add(); }}
           placeholder="New task… (Enter to add)"
           style={{ flex: "1 1 260px", minWidth: 220, height: 46, padding: "0 14px", borderRadius: 12, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 14, outline: "none", boxSizing: "border-box" }}
-          onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+          onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
         {/* priority selector */}
         <div style={{ position: "relative" }}>
           <button onClick={() => setPrioOpen(o => !o)}
@@ -126,7 +126,7 @@ export default function TasksPage() {
         </div>
         <button onClick={add} disabled={!title.trim()}
           style={{ height: 46, padding: "0 20px", borderRadius: 12, border: "none", cursor: title.trim() ? "pointer" : "default", fontSize: 13.5, fontWeight: 700, color: "#fff",
-            background: title.trim() ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.06)", boxShadow: title.trim() ? "0 6px 20px rgba(99,102,241,0.32)" : "none", display: "flex", alignItems: "center", gap: 8 }}>
+            background: title.trim() ? "linear-gradient(135deg,#7C3AED,#6D28D9)" : "rgba(255,255,255,0.06)", boxShadow: title.trim() ? "0 6px 20px rgba(124,58,237,0.32)" : "none", display: "flex", alignItems: "center", gap: 8 }}>
           <Plus size={16} /> Add
         </button>
       </div>
@@ -137,7 +137,7 @@ export default function TasksPage() {
           const active = filter === key;
           return (
             <button key={key} onClick={() => setFilter(key)}
-              style={{ display: "flex", alignItems: "center", gap: 6, height: 34, padding: "0 13px", borderRadius: 10, cursor: "pointer", border: `1px solid ${active ? "rgba(99,102,241,0.5)" : BORD}`, background: active ? "rgba(99,102,241,0.14)" : "transparent", color: active ? "#a5b4fc" : TS, fontSize: 12.5, fontWeight: 600 }}>
+              style={{ display: "flex", alignItems: "center", gap: 6, height: 34, padding: "0 13px", borderRadius: 10, cursor: "pointer", border: `1px solid ${active ? "rgba(124,58,237,0.5)" : BORD}`, background: active ? "rgba(124,58,237,0.14)" : "transparent", color: active ? "#a5b4fc" : TS, fontSize: 12.5, fontWeight: 600 }}>
               {key === "active" && <Filter size={12} />}{label}<span style={{ fontFamily: MONO, fontSize: 10, opacity: 0.7 }}>{n}</span>
             </button>
           );
@@ -148,7 +148,7 @@ export default function TasksPage() {
       <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 8 }}>
         {visible.length === 0 && (
           <div style={{ padding: "56px 0", textAlign: "center" }}>
-            <div style={{ width: 52, height: 52, borderRadius: 15, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 15, background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 12px" }}>
               <Sparkles size={20} style={{ color: ACCENT }} />
             </div>
             <div style={{ fontSize: 14.5, fontWeight: 700, color: TS }}>{filter === "done" ? "Nothing completed yet" : "No tasks"}</div>

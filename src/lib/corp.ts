@@ -15,11 +15,11 @@ export type Department = {
   deliverable: string;       // what this dept produces
 };
 
-export const CEO = { ab: "SR", name: "Sophia Rivers", role: "AI CEO", color: "#818cf8", g: ["#6366f1", "#4f46e5"] as [string, string] };
+export const CEO = { ab: "SR", name: "Sophia Rivers", role: "AI CEO", color: "#818cf8", g: ["#7C3AED", "#6D28D9"] as [string, string] };
 
 export const DEPARTMENTS: Department[] = [
   {
-    id: "strategy", name: "Стратегия", short: "STR", color: "#818cf8", g: ["#6366f1", "#4f46e5"],
+    id: "strategy", name: "Стратегия", short: "STR", color: "#818cf8", g: ["#7C3AED", "#6D28D9"],
     lead: { ab: "DW", name: "Diana Wells", role: "Стратег" },
     agents: [{ ab: "DW", name: "Diana Wells", role: "Стратег" }, { ab: "IV", name: "Igor Volkov", role: "Аналитик рынка" }, { ab: "MP", name: "Mara Popova", role: "Форсайт" }],
     thoughts: ["Разбиваю цель на 3 горизонта: 30/60/90 дней", "Определяю ключевую метрику успеха", "Нахожу самое узкое место в цели"],

@@ -58,7 +58,7 @@ function VerifyEmailInner() {
   return (
     <div style={{ minHeight: "100vh", background: "#05060A", display: "flex", alignItems: "center", justifyContent: "center", padding: 16, position: "relative", overflow: "hidden" }}>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-      <div aria-hidden style={{ position: "absolute", top: "38%", left: "50%", transform: "translate(-50%,-50%)", width: 560, height: 560, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.10), transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
+      <div aria-hidden style={{ position: "absolute", top: "38%", left: "50%", transform: "translate(-50%,-50%)", width: 560, height: 560, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,58,237,0.10), transparent 70%)", filter: "blur(60px)", pointerEvents: "none" }} />
 
       <motion.div
         initial={{ opacity: 0, y: 24, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -78,7 +78,7 @@ function VerifyEmailInner() {
           <div style={{ padding: "32px 24px 28px", textAlign: "center" }}>
             {status === "verifying" && (
               <>
-                <span style={{ width: 42, height: 42, display: "inline-block", border: "3px solid rgba(99,102,241,0.25)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: 18 }} />
+                <span style={{ width: 42, height: 42, display: "inline-block", border: "3px solid rgba(124,58,237,0.25)", borderTopColor: "#7C3AED", borderRadius: "50%", animation: "spin 0.8s linear infinite", marginBottom: 18 }} />
                 <div style={{ fontSize: 15, fontWeight: 700, color: "#E5E7EB" }}>Подтверждаем email…</div>
               </>
             )}
@@ -90,7 +90,7 @@ function VerifyEmailInner() {
                 </div>
                 <div style={{ fontSize: 17, fontWeight: 800, color: "#E5E7EB", letterSpacing: "-0.01em", marginBottom: 8 }}>Email подтверждён</div>
                 <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, marginBottom: 22 }}>{message}. Аккаунт активирован — можно входить.</div>
-                <Link href="/login" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", height: 44, padding: "0 22px", borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
+                <Link href="/login" style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", height: 44, padding: "0 22px", borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", fontSize: 13, fontWeight: 700, textDecoration: "none", boxShadow: "0 6px 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
                   Перейти ко входу →
                 </Link>
               </>
@@ -116,12 +116,12 @@ function VerifyEmailInner() {
                   <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
                     <input type="email" placeholder="you@example.com" value={resendEmail}
                       onChange={e => setResendEmail(e.target.value)} style={fieldStyle}
-                      onFocus={e => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.55)"; }}
+                      onFocus={e => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.55)"; }}
                       onBlur={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)"; }} />
                     <button onClick={resend} disabled={resending || !resendEmail.trim()}
                       className="term-mono"
                       style={{ height: 44, borderRadius: 10, border: "none", cursor: resending || !resendEmail.trim() ? "default" : "pointer",
-                        background: resendEmail.trim() ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.06)", color: "#fff",
+                        background: resendEmail.trim() ? "linear-gradient(135deg,#7C3AED,#6D28D9)" : "rgba(255,255,255,0.06)", color: "#fff",
                         fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                       {resending ? <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} /> : "Отправить ссылку"}
                     </button>

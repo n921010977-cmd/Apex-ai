@@ -224,15 +224,15 @@ function PaletteRow({ item, selected, onHover, onClick }: { item: CmdItem; selec
       style={{
         width: "100%", display: "flex", alignItems: "center", gap: 10,
         padding: "9px 10px", borderRadius: 10, cursor: "pointer",
-        background: selected ? "rgba(99,102,241,0.12)" : "transparent",
-        border: `1px solid ${selected ? "rgba(99,102,241,0.25)" : "transparent"}`,
+        background: selected ? "rgba(124,58,237,0.12)" : "transparent",
+        border: `1px solid ${selected ? "rgba(124,58,237,0.25)" : "transparent"}`,
         textAlign: "left", transition: "all 0.1s",
       }}
     >
       <div style={{
         width: 32, height: 32, borderRadius: 9, flexShrink: 0,
         display: "flex", alignItems: "center", justifyContent: "center",
-        background: selected ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.04)",
+        background: selected ? "rgba(124,58,237,0.15)" : "rgba(255,255,255,0.04)",
         border: "1px solid rgba(255,255,255,0.07)",
       }}>
         <Icon size={14} style={{ color: selected ? (item.color ?? "#a5b4fc") : "rgba(255,255,255,0.4)" }} />

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 
-const RGB = "99,102,241";
+const RGB = "124,58,237";
 
 // ─── Org data: hub (CEO) + two orbit rings ────────────────────────────────────
 type Agent = {
@@ -108,7 +108,7 @@ export function ExecutivesSection() {
           viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <div className="term-mono" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 8, marginBottom: 22, border: `1px solid rgba(${RGB},0.25)`, background: `rgba(${RGB},0.05)` }}>
-            <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#6366f1" }} />
+            <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#7C3AED" }} />
             <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(165,180,252,0.9)" }}>// орг-структура · 20 агентов</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.08, margin: "0 0 14px", color: "#fff" }}>
@@ -192,7 +192,7 @@ export function ExecutivesSection() {
                 style={{
                   position: "absolute", left: CX - 42, top: CY - 42, width: 84, height: 84,
                   borderRadius: 24, cursor: "pointer",
-                  background: sel === "ceo" ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(99,102,241,0.14)",
+                  background: sel === "ceo" ? "linear-gradient(135deg,#7C3AED,#6D28D9)" : "rgba(124,58,237,0.14)",
                   border: `1.5px solid rgba(${RGB},${sel === "ceo" ? 0.9 : 0.45})`,
                   boxShadow: sel === "ceo" ? `0 0 40px rgba(${RGB},0.45)` : `0 0 24px rgba(${RGB},0.18)`,
                   display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 3,
@@ -274,7 +274,7 @@ export function ExecutivesSection() {
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                       height: 42, borderRadius: 11, textDecoration: "none",
                       fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase",
-                      background: `linear-gradient(135deg, #6366f1, #4f46e5)`, color: "#fff",
+                      background: `linear-gradient(135deg, #7C3AED, #6D28D9)`, color: "#fff",
                       boxShadow: `0 5px 18px rgba(${RGB},0.3), inset 0 1px 0 rgba(255,255,255,0.15)`,
                     }}>
                     ▸ Talk to this agent

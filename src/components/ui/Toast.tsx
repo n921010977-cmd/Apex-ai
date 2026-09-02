@@ -28,7 +28,7 @@ export function useToast(): ToastContextValue {
 const STYLES: Record<ToastKind, { color: string; bg: string; Icon: typeof CheckCircle }> = {
   success: { color: "#10b981", bg: "rgba(16,185,129,0.12)", Icon: CheckCircle },
   error:   { color: "#ef4444", bg: "rgba(239,68,68,0.12)",  Icon: AlertTriangle },
-  info:    { color: "#6366f1", bg: "rgba(99,102,241,0.12)", Icon: Info },
+  info:    { color: "#7C3AED", bg: "rgba(124,58,237,0.12)", Icon: Info },
 };
 
 export function ToastProvider({ children }: { children: ReactNode }) {

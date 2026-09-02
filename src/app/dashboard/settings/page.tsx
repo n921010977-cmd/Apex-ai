@@ -87,9 +87,9 @@ function Toggle({ on, onChange }: { on: boolean; onChange: () => void }) {
       onClick={onChange}
       style={{
         position: "relative", width: 44, height: 24, borderRadius: 12,
-        background: on ? "#6366f1" : "rgba(255,255,255,0.1)",
+        background: on ? "#7C3AED" : "rgba(255,255,255,0.1)",
         border: "none", cursor: "pointer", transition: "background 0.25s", flexShrink: 0,
-        boxShadow: on ? "0 0 12px rgba(99,102,241,0.45)" : "none",
+        boxShadow: on ? "0 0 12px rgba(124,58,237,0.45)" : "none",
       }}
     >
       <motion.div
@@ -124,7 +124,7 @@ function FieldInput({
           onBlur={() => setFocused(false)}
           style={{
             width: "100%", padding: isPassword ? "10px 40px 10px 14px" : "10px 14px",
-            borderRadius: 10, border: `1px solid ${focused ? "rgba(99,102,241,0.5)" : "rgba(255,255,255,0.08)"}`,
+            borderRadius: 10, border: `1px solid ${focused ? "rgba(124,58,237,0.5)" : "rgba(255,255,255,0.08)"}`,
             background: disabled ? "rgba(255,255,255,0.02)" : "rgba(255,255,255,0.04)",
             color: disabled ? "rgba(255,255,255,0.3)" : "#fff", fontSize: 13,
             outline: "none", transition: "border-color 0.18s", boxSizing: "border-box",
@@ -192,10 +192,10 @@ function SaveBar({ onSave, loading }: { onSave: () => void; loading: boolean }) 
         disabled={loading}
         style={{
           padding: "10px 22px", borderRadius: 11, fontSize: 13, fontWeight: 700,
-          border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)",
+          border: "none", background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
           color: "#fff", cursor: loading ? "not-allowed" : "pointer",
           display: "flex", alignItems: "center", gap: 7,
-          boxShadow: "0 4px 20px rgba(99,102,241,0.35)",
+          boxShadow: "0 4px 20px rgba(124,58,237,0.35)",
           opacity: loading ? 0.7 : 1,
           transition: "opacity 0.2s",
         }}
@@ -299,15 +299,15 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
 
   return (
     <div>
-      <Section title="Profile" desc="The name your AI team sees" accent="#6366f1">
+      <Section title="Profile" desc="The name your AI team sees" accent="#7C3AED">
         <div style={{ display: "flex", alignItems: "center", gap: 18, marginBottom: 22, paddingBottom: 22, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <label title="Upload avatar"
-            style={{ position: "relative", width: 68, height: 68, flexShrink: 0, borderRadius: 20, cursor: avatarBusy ? "default" : "pointer", overflow: "hidden", display: "block", boxShadow: "0 8px 24px rgba(99,102,241,0.4)" }}>
+            style={{ position: "relative", width: 68, height: 68, flexShrink: 0, borderRadius: 20, cursor: avatarBusy ? "default" : "pointer", overflow: "hidden", display: "block", boxShadow: "0 8px 24px rgba(124,58,237,0.4)" }}>
             {avatar ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img src={avatar} alt="Avatar" width={68} height={68} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
             ) : (
-              <span style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 800, color: "#fff" }}>
+              <span style={{ width: "100%", height: "100%", background: "linear-gradient(135deg, #7C3AED, #6D28D9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 26, fontWeight: 800, color: "#fff" }}>
                 {form.firstName[0] || "F"}
               </span>
             )}
@@ -370,17 +370,17 @@ function AIPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpda
   };
 
   const MODELS = [
-    { id: "claude-sonnet-5", name: "Claude Sonnet 5", desc: "Balanced speed and quality", badge: "Recommended", color: "#6366f1" },
+    { id: "claude-sonnet-5", name: "Claude Sonnet 5", desc: "Balanced speed and quality", badge: "Recommended", color: "#7C3AED" },
     { id: "claude-opus-4-8", name: "Claude Opus 4.8", desc: "Highest quality",      badge: "Pro",           color: "#10b981" },
-    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", desc: "Fastest responses", badge: null, color: "#4f46e5" },
+    { id: "claude-haiku-4-5-20251001", name: "Claude Haiku 4.5", desc: "Fastest responses", badge: null, color: "#6D28D9" },
   ];
 
   return (
     <div>
-      <Section title="AI model" desc="Choose the power and speed for your agents" accent="#8b5cf6">
+      <Section title="AI model" desc="Choose the power and speed for your agents" accent="#D946EF">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {MODELS.map(m => (
-            <button key={m.id} onClick={() => setModel(m.id)} style={{ borderRadius: 14, padding: "16px 14px", background: model === m.id ? `rgba(${m.color === "#6366f1" ? "99,102,241" : m.color === "#10b981" ? "16,185,129" : "79,70,229"},0.12)` : "rgba(255,255,255,0.03)", border: `1.5px solid ${model === m.id ? m.color : "rgba(255,255,255,0.07)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s", position: "relative" }}>
+            <button key={m.id} onClick={() => setModel(m.id)} style={{ borderRadius: 14, padding: "16px 14px", background: model === m.id ? `rgba(${m.color === "#7C3AED" ? "124,58,237" : m.color === "#10b981" ? "16,185,129" : "79,70,229"},0.12)` : "rgba(255,255,255,0.03)", border: `1.5px solid ${model === m.id ? m.color : "rgba(255,255,255,0.07)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s", position: "relative" }}>
               {m.badge && <div style={{ position: "absolute", top: 8, right: 8, fontSize: 8.5, padding: "2px 7px", borderRadius: 5, background: `${m.color}22`, color: m.color, fontWeight: 700, letterSpacing: "0.05em" }}>{m.badge}</div>}
               <div style={{ width: 28, height: 28, borderRadius: 8, background: `${m.color}18`, border: `1px solid ${m.color}30`, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 10 }}>
                 <Bot size={13} style={{ color: m.color }} />
@@ -397,18 +397,18 @@ function AIPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpda
         </div>
       </Section>
 
-      <Section title="Behavior" desc="Response style and parameters" accent="#6366f1">
+      <Section title="Behavior" desc="Response style and parameters" accent="#7C3AED">
         <Row label="Creativity level" desc={`Temperature: ${(creativity / 100).toFixed(2)}`}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>Precise</span>
-            <input type="range" min={0} max={100} value={creativity} onChange={e => setCreativity(+e.target.value)} style={{ width: 120, accentColor: "#6366f1" }} />
+            <input type="range" min={0} max={100} value={creativity} onChange={e => setCreativity(+e.target.value)} style={{ width: 120, accentColor: "#7C3AED" }} />
             <span style={{ fontSize: 10, color: "rgba(255,255,255,0.3)", whiteSpace: "nowrap" }}>Creative</span>
           </div>
         </Row>
         <Row label="Communication style" desc="Tone and manner of AI responses">
           <div style={{ display: "flex", gap: 6 }}>
             {["Formal","Neutral","Friendly"].map(s => (
-              <button key={s} onClick={() => setTone(s)} style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: `1px solid ${tone === s ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.08)"}`, background: tone === s ? "rgba(99,102,241,0.12)" : "transparent", color: tone === s ? "#8b5cf6" : "rgba(255,255,255,0.4)", cursor: "pointer" }}>{s}</button>
+              <button key={s} onClick={() => setTone(s)} style={{ padding: "5px 10px", borderRadius: 7, fontSize: 10, fontWeight: 600, border: `1px solid ${tone === s ? "rgba(124,58,237,0.4)" : "rgba(255,255,255,0.08)"}`, background: tone === s ? "rgba(124,58,237,0.12)" : "transparent", color: tone === s ? "#D946EF" : "rgba(255,255,255,0.4)", cursor: "pointer" }}>{s}</button>
             ))}
           </div>
         </Row>
@@ -457,7 +457,7 @@ function NotificationsPanel({ settings, onUpdate, showToast }: { settings: Setti
 
   return (
     <div>
-      <Section title="Email notifications" desc="Control what lands in your inbox" accent="#6366f1">
+      <Section title="Email notifications" desc="Control what lands in your inbox" accent="#7C3AED">
         <Row label="Email notifications" desc="Enable all email notifications">
           <Toggle on={emailOn} onChange={() => setEmailOn(v => !v)} />
         </Row>
@@ -472,7 +472,7 @@ function NotificationsPanel({ settings, onUpdate, showToast }: { settings: Setti
         </Row>
       </Section>
 
-      <Section title="Push & messengers" accent="#8b5cf6">
+      <Section title="Push & messengers" accent="#D946EF">
         {([
           { key: "push" as const,    label: "Push notifications", desc: "Browser and mobile", Icon: Bell },
           { key: "tg" as const,      label: "Telegram",          desc: "@VertlixAI_bot",             Icon: MessageSquare },
@@ -639,7 +639,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
 
   return (
     <div>
-      <Section title="Password" desc="Change your account password" accent="#6366f1">
+      <Section title="Password" desc="Change your account password" accent="#7C3AED">
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <FieldInput label="Current password" type="password" value={curPw} onChange={setCurPw} placeholder="••••••••" hint="Leave empty if you only sign in with Google/GitHub" />
           <FieldInput label="New password" type="password" value={newPw} onChange={setNewPw} placeholder="At least 8 characters, letters and digits" />
@@ -647,7 +647,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
           <div>
             <button onClick={changePassword} disabled={pwLoading || !newPw}
               style={{ height: 42, padding: "0 20px", borderRadius: 11, border: "none", cursor: pwLoading || !newPw ? "default" : "pointer", fontSize: 13, fontWeight: 700, color: "#fff",
-                background: pwLoading || !newPw ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#6366f1,#4f46e5)", display: "inline-flex", alignItems: "center", gap: 8 }}>
+                background: pwLoading || !newPw ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#7C3AED,#6D28D9)", display: "inline-flex", alignItems: "center", gap: 8 }}>
               {pwLoading && <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />}
               {pwLoading ? "Saving…" : "Change password"}
             </button>
@@ -697,7 +697,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
           <Row label="2FA via app" desc="Google Authenticator, Authy" last>
             <button onClick={startEnroll} disabled={enrollLoading}
               style={{ height: 38, padding: "0 18px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: enrollLoading ? "default" : "pointer",
-                background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
+                background: "linear-gradient(135deg,#7C3AED,#6D28D9)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 8 }}>
               {enrollLoading && <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} />}
               Enable 2FA
             </button>
@@ -724,7 +724,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
                   </div>
                   <button onClick={confirmEnroll} disabled={enrollLoading || enrollCode.length !== 6}
                     style={{ height: 42, padding: "0 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: enrollLoading ? "default" : "pointer",
-                      background: enrollCode.length === 6 ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.06)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7 }}>
+                      background: enrollCode.length === 6 ? "linear-gradient(135deg,#7C3AED,#6D28D9)" : "rgba(255,255,255,0.06)", border: "none", color: "#fff", display: "flex", alignItems: "center", gap: 7 }}>
                     {enrollLoading && <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />}
                     Confirm
                   </button>
@@ -755,7 +755,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
                 <Copy size={12} /> Copy
               </button>
               <button onClick={finishEnroll}
-                style={{ height: 36, padding: "0 16px", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer", background: "linear-gradient(135deg,#6366f1,#4f46e5)", border: "none", color: "#fff" }}>
+                style={{ height: 36, padding: "0 16px", borderRadius: 9, fontSize: 12, fontWeight: 700, cursor: "pointer", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", border: "none", color: "#fff" }}>
                 Done
               </button>
             </div>
@@ -763,7 +763,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
         )}
       </Section>
 
-      <Section title="Passkeys" desc="Sign in with fingerprint, Face ID or device PIN — no password" accent="#8b5cf6">
+      <Section title="Passkeys" desc="Sign in with fingerprint, Face ID or device PIN — no password" accent="#D946EF">
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {!pkLoaded ? (
             <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.35)", fontSize: 12.5, padding: "8px 0" }}>
@@ -776,8 +776,8 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
           ) : (
             passkeys.map(pk => (
               <div key={pk.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "11px 12px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
-                <span style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(139,92,246,0.14)", border: "1px solid rgba(139,92,246,0.3)" }}>
-                  <Fingerprint size={15} style={{ color: "#8b5cf6" }} />
+                <span style={{ width: 32, height: 32, borderRadius: 9, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(217,70,239,0.14)", border: "1px solid rgba(217,70,239,0.3)" }}>
+                  <Fingerprint size={15} style={{ color: "#D946EF" }} />
                 </span>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 12.5, color: "#E5E7EB", fontWeight: 600 }}>{pk.device_label || "Passkey"}</div>
@@ -796,7 +796,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
           <div>
             <button onClick={addPasskey} disabled={pkAdding}
               style={{ height: 38, padding: "0 16px", borderRadius: 10, fontSize: 12.5, fontWeight: 700, cursor: pkAdding ? "default" : "pointer",
-                background: pkAdding ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#8b5cf6,#6d28d9)", border: "none", color: "#fff", display: "inline-flex", alignItems: "center", gap: 8 }}>
+                background: pkAdding ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#D946EF,#6d28d9)", border: "none", color: "#fff", display: "inline-flex", alignItems: "center", gap: 8 }}>
               {pkAdding ? <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> : <Plus size={14} />}
               {pkAdding ? "Adding…" : "Add passkey"}
             </button>
@@ -804,7 +804,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
         </div>
       </Section>
 
-      <Section title="Security log" desc="Recent actions on your account" accent="#6366f1">
+      <Section title="Security log" desc="Recent actions on your account" accent="#7C3AED">
         {!logLoaded ? (
           <div style={{ display: "flex", alignItems: "center", gap: 8, color: "rgba(255,255,255,0.35)", fontSize: 12.5, padding: "8px 0" }}>
             <Loader2 size={13} style={{ animation: "spin 1s linear infinite" }} /> Loading…
@@ -816,7 +816,7 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {log.map(ev => {
-              const meta = SECURITY_EVENT_META[ev.type] ?? { label: ev.type.replace("security.", ""), color: "#6366f1", Icon: Shield };
+              const meta = SECURITY_EVENT_META[ev.type] ?? { label: ev.type.replace("security.", ""), color: "#7C3AED", Icon: Shield };
               return (
                 <div key={ev.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "10px 12px", borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.05)" }}>
                   <span style={{ width: 30, height: 30, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: `${meta.color}16`, border: `1px solid ${meta.color}30` }}>
@@ -837,10 +837,10 @@ function SecurityPanel({ settings, onUpdate, showToast }: { settings: Settings; 
 }
 
 const SECURITY_EVENT_META: Record<string, { label: string; color: string; Icon: typeof Shield }> = {
-  "security.password_changed": { label: "Password changed",       color: "#6366f1", Icon: KeyRound },
+  "security.password_changed": { label: "Password changed",       color: "#7C3AED", Icon: KeyRound },
   "security.2fa_enabled":      { label: "2FA enabled",         color: "#10b981", Icon: ShieldCheck },
   "security.2fa_disabled":     { label: "2FA disabled",        color: "#f59e0b", Icon: Shield },
-  "security.passkey_added":    { label: "Passkey added",     color: "#8b5cf6", Icon: KeyRound },
+  "security.passkey_added":    { label: "Passkey added",     color: "#D946EF", Icon: KeyRound },
   "security.passkey_removed":  { label: "Passkey removed",       color: "#f59e0b", Icon: KeyRound },
   "security.login":            { label: "Account sign-in",       color: "#3b82f6", Icon: CheckCircle2 },
 };
@@ -905,7 +905,7 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
 
   return (
     <div>
-      <Section title="Your data" desc="A full copy of everything stored in your account" accent="#6366f1">
+      <Section title="Your data" desc="A full copy of everything stored in your account" accent="#7C3AED">
         <Row label="Download data archive" desc="Projects, strategies, reports, notes, history — as JSON" last>
           <button
             onClick={exportData}
@@ -913,7 +913,7 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
             style={{
               display: "flex", alignItems: "center", gap: 7, padding: "9px 16px", borderRadius: 10,
               fontSize: 12.5, fontWeight: 600, color: "#fff", cursor: exporting ? "default" : "pointer",
-              background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.3)",
+              background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.3)",
               opacity: exporting ? 0.6 : 1, flexShrink: 0,
             }}
           >
@@ -935,7 +935,7 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
         </Row>
       </Section>
 
-      <Section title="Legal documents" desc="Current versions" accent="#8b5cf6">
+      <Section title="Legal documents" desc="Current versions" accent="#D946EF">
         <div style={{ display: "flex", flexDirection: "column", gap: 2 }}>
           {LEGAL_DOCS.map(doc => (
             <a
@@ -950,7 +950,7 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
               onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.03)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}
             >
-              <FileText size={14} style={{ color: "rgba(139,92,246,0.7)", flexShrink: 0 }} />
+              <FileText size={14} style={{ color: "rgba(217,70,239,0.7)", flexShrink: 0 }} />
               <div style={{ flex: 1 }}>
                 <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.75)" }}>{doc.title}</div>
                 <div style={{ fontSize: 11, color: "rgba(255,255,255,0.28)", marginTop: 2 }}>{doc.desc}</div>
@@ -1030,7 +1030,7 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
 
 function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
   const [theme, setTheme] = useState(settings.theme || "dark");
-  const [accent, setAccent] = useState("#6366f1");
+  const [accent, setAccent] = useState("#7C3AED");
   const [compact, setCompact] = useState(false);
   const [animations, setAnimations] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -1048,34 +1048,34 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
 
   return (
     <div>
-      <Section title="Theme" accent="#6366f1">
+      <Section title="Theme" accent="#7C3AED">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {[
             { id: "dark",   label: "Dark",    Icon: Moon,    bg: "#0a0b0f" },
             { id: "light",  label: "Light",   Icon: Sun,     bg: "#f0f0f5" },
             { id: "system", label: "System",  Icon: Monitor, bg: "linear-gradient(135deg, #0a0b0f 50%, #f0f0f5 50%)" },
           ].map(t => (
-            <button key={t.id} onClick={() => setTheme(t.id)} style={{ borderRadius: 14, padding: "16px", background: theme === t.id ? "rgba(99,102,241,0.1)" : "rgba(255,255,255,0.025)", border: `2px solid ${theme === t.id ? "#6366f1" : "rgba(255,255,255,0.06)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
+            <button key={t.id} onClick={() => setTheme(t.id)} style={{ borderRadius: 14, padding: "16px", background: theme === t.id ? "rgba(124,58,237,0.1)" : "rgba(255,255,255,0.025)", border: `2px solid ${theme === t.id ? "#7C3AED" : "rgba(255,255,255,0.06)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
               <div style={{ width: "100%", height: 52, borderRadius: 8, background: t.bg, marginBottom: 10 }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                <t.Icon size={12} style={{ color: theme === t.id ? "#6366f1" : "rgba(255,255,255,0.35)" }} />
+                <t.Icon size={12} style={{ color: theme === t.id ? "#7C3AED" : "rgba(255,255,255,0.35)" }} />
                 <span style={{ fontSize: 12, fontWeight: 600, color: theme === t.id ? "#fff" : "rgba(255,255,255,0.4)" }}>{t.label}</span>
-                {theme === t.id && <Check size={11} style={{ color: "#6366f1", marginLeft: "auto" }} />}
+                {theme === t.id && <Check size={11} style={{ color: "#7C3AED", marginLeft: "auto" }} />}
               </div>
             </button>
           ))}
         </div>
       </Section>
 
-      <Section title="Accent color" accent="#8b5cf6">
+      <Section title="Accent color" accent="#D946EF">
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           {[
-            { color: "#6366f1", name: "Indigo" },
-            { color: "#4f46e5", name: "Violet" },
+            { color: "#7C3AED", name: "Indigo" },
+            { color: "#6D28D9", name: "Violet" },
             { color: "#10b981", name: "Emerald" },
             { color: "#ef4444", name: "Rose" },
             { color: "#f59e0b", name: "Amber" },
-            { color: "#8b5cf6", name: "Purple" },
+            { color: "#D946EF", name: "Purple" },
             { color: "#3b82f6", name: "Blue" },
           ].map(c => (
             <button key={c.color} onClick={() => setAccent(c.color)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, background: "transparent", border: "none", cursor: "pointer" }}>
@@ -1175,7 +1175,7 @@ function SettingsPageInner() {
       `}</style>
 
       {/* Ambient gradient */}
-      <div style={{ position: "fixed", top: -80, right: 0, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.04) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
+      <div style={{ position: "fixed", top: -80, right: 0, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,58,237,0.04) 0%, transparent 70%)", pointerEvents: "none", zIndex: 0 }} />
 
       {/* Left Nav */}
       <aside style={{ width: 216, flexShrink: 0, padding: "28px 10px", borderRight: "1px solid rgba(255,255,255,0.05)", position: "sticky", top: 0, height: "100vh", overflowY: "auto", zIndex: 10 }}>
@@ -1194,15 +1194,15 @@ function SettingsPageInner() {
                 style={{
                   width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "8px 10px",
                   borderRadius: 10, fontSize: 12, fontWeight: active === item.id ? 700 : 500,
-                  border: `1px solid ${active === item.id ? "rgba(99,102,241,0.22)" : "transparent"}`,
-                  background: active === item.id ? "rgba(99,102,241,0.1)" : "transparent",
+                  border: `1px solid ${active === item.id ? "rgba(124,58,237,0.22)" : "transparent"}`,
+                  background: active === item.id ? "rgba(124,58,237,0.1)" : "transparent",
                   color: active === item.id ? "#fff" : "rgba(255,255,255,0.38)",
                   cursor: "pointer", textAlign: "left", transition: "all 0.15s", marginBottom: 2,
                 }}
               >
-                <item.icon size={13} style={{ color: active === item.id ? "#6366f1" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                <item.icon size={13} style={{ color: active === item.id ? "#7C3AED" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>{item.label}</span>
-                {active === item.id && <ChevronRight size={11} style={{ color: "rgba(99,102,241,0.5)" }} />}
+                {active === item.id && <ChevronRight size={11} style={{ color: "rgba(124,58,237,0.5)" }} />}
               </button>
             ))}
           </div>
@@ -1215,8 +1215,8 @@ function SettingsPageInner() {
         <div style={{ marginBottom: 24, paddingBottom: 20, borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
             {current && (
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <current.icon size={15} style={{ color: "#6366f1" }} />
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <current.icon size={15} style={{ color: "#7C3AED" }} />
               </div>
             )}
             <h1 className="term-mono" style={{ fontSize: 19, fontWeight: 800, color: "#fff", letterSpacing: "0.01em", textTransform: "uppercase" }}>{current?.label}</h1>

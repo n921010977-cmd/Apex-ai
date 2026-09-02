@@ -14,8 +14,8 @@ import { EngagementPanel, markVisit } from "@/components/dashboard/EngagementPan
 import { UsageWidget } from "@/components/dashboard/UsageWidget";
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
-const ACCENT     = "#6366f1";
-const ACCENT_RGB = "99,102,241";
+const ACCENT     = "#7C3AED";
+const ACCENT_RGB = "124,58,237";
 const SUCCESS    = "#10b981";
 const WARNING    = "#f59e0b";
 const DANGER     = "#ef4444";
@@ -48,11 +48,11 @@ interface Project {
 // прогнозом $2.4M как чужой результат — обман. Пусто = пустое состояние с CTA.
 
 const EXECUTIVES = [
-  { role: "CEO", name: "Sophia Rivers", title: "Chief Strategy AI", specialty: "Strategy & Vision",    color: "#6366f1", rgb: "99,102,241",  confidence: 94, tasks: 12, icon: Brain,      slug: "ceo" },
+  { role: "CEO", name: "Sophia Rivers", title: "Chief Strategy AI", specialty: "Strategy & Vision",    color: "#7C3AED", rgb: "124,58,237",  confidence: 94, tasks: 12, icon: Brain,      slug: "ceo" },
   { role: "CFO", name: "Marcus Chen",   title: "Finance AI",         specialty: "Finance & Models",       color: "#3b82f6", rgb: "59,130,246",  confidence: 89, tasks: 8,  icon: DollarSign, slug: "cfo" },
   { role: "CMO", name: "Elena Torres",  title: "Growth AI",          specialty: "Marketing & Growth",       color: "#10b981", rgb: "16,185,129",  confidence: 91, tasks: 15, icon: TrendingUp, slug: "cmo" },
   { role: "COO", name: "James Wright",  title: "Operations AI",      specialty: "Operations & Process",    color: "#f59e0b", rgb: "245,158,11",  confidence: 86, tasks: 10, icon: Activity,   slug: "coo" },
-  { role: "CTO", name: "Park Aiden",    title: "Technology AI",      specialty: "Technology & Architecture", color: "#8b5cf6", rgb: "139,92,246",  confidence: 92, tasks: 9,  icon: Cpu,        slug: "cto" },
+  { role: "CTO", name: "Park Aiden",    title: "Technology AI",      specialty: "Technology & Architecture", color: "#D946EF", rgb: "217,70,239",  confidence: 92, tasks: 9,  icon: Cpu,        slug: "cto" },
 ];
 
 const NEXT_STEPS = [
@@ -115,8 +115,8 @@ function NeuralViz() {
     sprite.width = SP; sprite.height = SP;
     const sctx = sprite.getContext("2d")!;
     const g = sctx.createRadialGradient(SP/2, SP/2, 0, SP/2, SP/2, SP/2);
-    g.addColorStop(0, "rgba(99,102,241,0.9)");
-    g.addColorStop(1, "rgba(99,102,241,0)");
+    g.addColorStop(0, "rgba(124,58,237,0.9)");
+    g.addColorStop(1, "rgba(124,58,237,0)");
     sctx.fillStyle = g;
     sctx.fillRect(0, 0, SP, SP);
 
@@ -133,7 +133,7 @@ function NeuralViz() {
 
       // edges
       ctx!.globalCompositeOperation = "source-over";
-      ctx!.strokeStyle = "rgba(99,102,241,0.22)";
+      ctx!.strokeStyle = "rgba(124,58,237,0.22)";
       ctx!.lineWidth = 0.8;
       for (const [a, b] of edges) {
         ctx!.beginPath();
@@ -264,11 +264,11 @@ function CtaButton({ href, primary, icon: Icon, label }: {
           ? {
               background: hovered
                 ? "linear-gradient(135deg, #7c7ff3, #5855e8)"
-                : `linear-gradient(135deg, ${ACCENT}, #4f46e5)`,
+                : `linear-gradient(135deg, ${ACCENT}, #6D28D9)`,
               color: "#fff",
               boxShadow: hovered
-                ? "0 12px 40px rgba(99,102,241,0.45), inset 0 1px 0 rgba(255,255,255,0.2)"
-                : "0 4px 16px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.16)",
+                ? "0 12px 40px rgba(124,58,237,0.45), inset 0 1px 0 rgba(255,255,255,0.2)"
+                : "0 4px 16px rgba(124,58,237,0.3), inset 0 1px 0 rgba(255,255,255,0.16)",
               transform: hovered ? "translateY(-2px)" : "translateY(0)",
             }
           : {
@@ -362,7 +362,7 @@ function ProjectCard({ p, i }: { p: Project; i: number }) {
         <div className="flex gap-2">
           <Link href={`/dashboard/projects/${p.id}`}
             className="flex-1 flex items-center justify-center gap-1.5 font-semibold text-white transition-all hover:-translate-y-px"
-            style={{ height: 30, borderRadius: 9, fontSize: 11, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
+            style={{ height: 30, borderRadius: 9, fontSize: 11, background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
             <ArrowUpRight size={11} /> Open
           </Link>
           <Link href="/dashboard/reports"
@@ -486,7 +486,7 @@ function EmptyProjects() {
       </p>
       <Link href="/dashboard/new"
         className="inline-flex items-center gap-2 font-semibold text-white transition-all hover:-translate-y-px"
-        style={{ height: 42, padding: "0 22px", borderRadius: 12, fontSize: 14, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
+        style={{ height: 42, padding: "0 22px", borderRadius: 12, fontSize: 14, background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
         <Zap size={15} /> Start analysis
       </Link>
     </div>
@@ -554,7 +554,7 @@ export default function DashboardPage() {
             animate={reduce ? undefined : { x: [0, -30, 18, 0], y: [0, -18, 22, 0], scale: [1, 1.08, 0.94, 1] }}
             transition={reduce ? undefined : { duration: 26, repeat: Infinity, ease: "easeInOut", delay: 2 }}
             style={{ position: "absolute", top: "10%", left: "-8%", width: 520, height: 420, borderRadius: "50%",
-              background: "radial-gradient(ellipse at center, rgba(139,92,246,0.12), transparent 70%)", filter: "blur(10px)" }} />
+              background: "radial-gradient(ellipse at center, rgba(217,70,239,0.12), transparent 70%)", filter: "blur(10px)" }} />
           <motion.div
             animate={reduce ? undefined : { x: [0, 22, -14, 0], y: [0, -12, 16, 0], opacity: [0.5, 0.85, 0.55, 0.5] }}
             transition={reduce ? undefined : { duration: 16, repeat: Infinity, ease: "easeInOut", delay: 1 }}
@@ -589,7 +589,7 @@ export default function DashboardPage() {
               <motion.h1 initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08, duration: 0.55 }}
                 style={{ fontSize: "clamp(24px,3vw,40px)", fontWeight: 800, color: "#fff", lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: 8 }}>
                 {greeting}, {firstName}<br />
-                <span style={{ background: `linear-gradient(130deg, ${ACCENT} 0%, #8b5cf6 60%, #a78bfa 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
+                <span style={{ background: `linear-gradient(130deg, ${ACCENT} 0%, #D946EF 60%, #a78bfa 100%)`, WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}>
                   Vertlix Executive Board
                 </span>
               </motion.h1>
@@ -698,7 +698,7 @@ export default function DashboardPage() {
                       background: s.primary ? `linear-gradient(135deg, rgba(${ACCENT_RGB},0.16), rgba(${ACCENT_RGB},0.06))` : "rgba(255,255,255,0.03)",
                       border: `1px solid ${s.primary ? `rgba(${ACCENT_RGB},0.4)` : "rgba(255,255,255,0.08)"}` }}>
                     <span style={{ width: 36, height: 36, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                      background: s.primary ? `linear-gradient(135deg,${ACCENT},#4f46e5)` : "rgba(255,255,255,0.05)", border: s.primary ? "none" : "1px solid rgba(255,255,255,0.08)" }}>
+                      background: s.primary ? `linear-gradient(135deg,${ACCENT},#6D28D9)` : "rgba(255,255,255,0.05)", border: s.primary ? "none" : "1px solid rgba(255,255,255,0.08)" }}>
                       <s.icon size={17} style={{ color: s.primary ? "#fff" : "#818cf8" }} />
                     </span>
                     <div style={{ minWidth: 0 }}>
@@ -885,7 +885,7 @@ export default function DashboardPage() {
             </div>
             <Link href="/dashboard/new"
               className="flex items-center justify-center gap-2 font-semibold text-white transition-all hover:-translate-y-px"
-              style={{ height: 38, borderRadius: 10, fontSize: 12.5, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)", textDecoration: "none" }}>
+              style={{ height: 38, borderRadius: 10, fontSize: 12.5, background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)`, boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)", textDecoration: "none" }}>
               <Zap size={13} /> Start the review
             </Link>
           </motion.div>

@@ -39,7 +39,7 @@ const ROUTE_LABELS: Record<string, string> = {
 const DEMO_NOTIFICATIONS: Notification[] = [];  // Демо-уведомления удалены: показываем только настоящие.
 
 const TYPE_DOT: Record<string, string> = {
-  success: "#10b981", warning: "#f59e0b", danger: "#ef4444", error: "#ef4444", info: "#6366f1",
+  success: "#10b981", warning: "#f59e0b", danger: "#ef4444", error: "#ef4444", info: "#7C3AED",
 };
 
 function timeAgo(iso: string): string {
@@ -179,11 +179,11 @@ export function TopNav({ onMenuClick }: TopNavProps) {
 
       {/* Breadcrumb — terminal path */}
       <div className="hidden sm:flex items-center gap-2 flex-shrink-0 term-mono" style={{ fontSize: 11.5, color: "rgba(255,255,255,0.28)", letterSpacing: "0.04em" }}>
-        <Cpu size={13} style={{ color: "rgba(99,102,241,0.7)" }} />
+        <Cpu size={13} style={{ color: "rgba(124,58,237,0.7)" }} />
         <span style={{ color: "rgba(255,255,255,0.4)" }}>vertlix</span>
-        <span style={{ color: "rgba(99,102,241,0.5)" }}>/</span>
+        <span style={{ color: "rgba(124,58,237,0.5)" }}>/</span>
         <span style={{ color: "rgba(255,255,255,0.75)", fontWeight: 500 }}>{pageLabel}</span>
-        <span className="term-blink" style={{ color: "rgba(99,102,241,0.8)" }}>▋</span>
+        <span className="term-blink" style={{ color: "rgba(124,58,237,0.8)" }}>▋</span>
       </div>
 
       {/* Mobile page title */}
@@ -222,13 +222,13 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           style={{
             height:       34,
             background:   focused ? "rgba(255,255,255,0.055)" : "rgba(255,255,255,0.03)",
-            border:       `1px solid ${focused ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.06)"}`,
+            border:       `1px solid ${focused ? "rgba(124,58,237,0.4)" : "rgba(255,255,255,0.06)"}`,
             borderRadius: 10,
             paddingLeft:  32,
             paddingRight: 44,
             fontSize:     12,
             color:        "rgba(255,255,255,0.78)",
-            boxShadow:    focused ? "0 0 0 3px rgba(99,102,241,0.08)" : "none",
+            boxShadow:    focused ? "0 0 0 3px rgba(124,58,237,0.08)" : "none",
           }}
         />
         <div
@@ -269,8 +269,8 @@ export function TopNav({ onMenuClick }: TopNavProps) {
                       className="w-full flex items-center gap-3 text-left transition-colors"
                       style={{
                         padding: "9px 14px",
-                        background: sel ? "rgba(99,102,241,0.14)" : "transparent",
-                        borderLeft: `2px solid ${sel ? "#6366f1" : "transparent"}`,
+                        background: sel ? "rgba(124,58,237,0.14)" : "transparent",
+                        borderLeft: `2px solid ${sel ? "#7C3AED" : "transparent"}`,
                       }}
                     >
                       <span style={{ width: 28, height: 28, borderRadius: 8, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
@@ -305,8 +305,8 @@ export function TopNav({ onMenuClick }: TopNavProps) {
             padding:      "0 14px",
             borderRadius: 10,
             fontSize:     12,
-            background:   "linear-gradient(135deg, #6366f1, #4f46e5)",
-            boxShadow:    "0 4px 14px rgba(99,102,241,0.3), inset 0 1px 0 rgba(255,255,255,0.14)",
+            background:   "linear-gradient(135deg, #7C3AED, #6D28D9)",
+            boxShadow:    "0 4px 14px rgba(124,58,237,0.3), inset 0 1px 0 rgba(255,255,255,0.14)",
             whiteSpace:   "nowrap",
           }}
         >
@@ -341,7 +341,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
             {unread > 0 && (
               <span
                 className="absolute top-1.5 right-1.5 size-1.5 rounded-full pulse-dot"
-                style={{ background: "#6366f1", boxShadow: "0 0 5px rgba(99,102,241,0.8)" }}
+                style={{ background: "#7C3AED", boxShadow: "0 0 5px rgba(124,58,237,0.8)" }}
               />
             )}
           </button>
@@ -365,7 +365,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
                 </div>
                 <button
                   onClick={markAllRead}
-                  style={{ fontSize: 10, color: "rgba(99,102,241,0.8)", cursor: "pointer", background: "none", border: "none" }}
+                  style={{ fontSize: 10, color: "rgba(124,58,237,0.8)", cursor: "pointer", background: "none", border: "none" }}
                   className="hover:text-indigo-300 transition-colors"
                 >
                   Mark all read
@@ -376,7 +376,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
                   No notifications
                 </div>
               ) : notifications.map((n, i) => {
-                const dot = TYPE_DOT[n.type ?? "info"] ?? "#6366f1";
+                const dot = TYPE_DOT[n.type ?? "info"] ?? "#7C3AED";
                 return (
                   <div
                     key={n.id}
@@ -411,7 +411,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
         >
           <div
             className="size-7 rounded-xl flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
-            style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)", boxShadow: "0 2px 10px rgba(99,102,241,0.35)" }}
+            style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)", boxShadow: "0 2px 10px rgba(124,58,237,0.35)" }}
           >
             {userInitial}
           </div>

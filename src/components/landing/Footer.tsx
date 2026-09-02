@@ -97,8 +97,8 @@ export function Footer() {
               <div
                 className="size-10 rounded-xl flex items-center justify-center"
                 style={{
-                  background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                  boxShadow: "0 2px 12px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.16)",
+                  background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+                  boxShadow: "0 2px 12px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.16)",
                 }}
               >
                 <svg className="size-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
@@ -161,10 +161,10 @@ export function Footer() {
                 />
                 <button
                   type="submit"
-                  className="h-12 px-5 rounded-xl text-sm font-semibold text-white flex-shrink-0 transition-all duration-200 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(99,102,241,0.35)]"
+                  className="h-12 px-5 rounded-xl text-sm font-semibold text-white flex-shrink-0 transition-all duration-200 hover:-translate-y-px hover:shadow-[0_8px_24px_rgba(124,58,237,0.35)]"
                   style={{
-                    background: "linear-gradient(135deg, #6366f1, #4f46e5)",
-                    boxShadow: "0 4px 16px rgba(99,102,241,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
+                    background: "linear-gradient(135deg, #7C3AED, #6D28D9)",
+                    boxShadow: "0 4px 16px rgba(124,58,237,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
                   }}
                 >
                   Subscribe

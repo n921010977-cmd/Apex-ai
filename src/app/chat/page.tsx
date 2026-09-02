@@ -5,7 +5,7 @@ import Link from "next/link";
 
 // ─── Models (all routed to Claude backend for now; real keys added later) ─────
 const MODELS = [
-  { id: "vertlix",   name: "Vertlix AI",  sub: "Основная",   color: "#6366f1", rgb: "99,102,241" },
+  { id: "vertlix",   name: "Vertlix AI",  sub: "Основная",   color: "#7C3AED", rgb: "124,58,237" },
   { id: "claude", name: "Claude",   sub: "Anthropic",  color: "#d97757", rgb: "217,119,87" },
   { id: "gpt",    name: "GPT",      sub: "OpenAI",     color: "#10a37f", rgb: "16,163,127" },
   { id: "gemini", name: "Gemini",   sub: "Google",     color: "#4285f4", rgb: "66,133,244" },
@@ -123,23 +123,23 @@ export default function ChatPage() {
         @keyframes chat-pop { from{opacity:0;transform:scale(0.9)} to{opacity:1;transform:scale(1)} }
         .chat-scroll::-webkit-scrollbar{width:10px}
         .chat-scroll::-webkit-scrollbar-track{background:transparent}
-        .chat-scroll::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.25);border-radius:6px;border:3px solid transparent;background-clip:content-box}
-        .chat-scroll:hover::-webkit-scrollbar-thumb{background:rgba(99,102,241,0.45);background-clip:content-box}
-        .chat-scroll{scrollbar-width:thin;scrollbar-color:rgba(99,102,241,0.35) transparent}
+        .chat-scroll::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.25);border-radius:6px;border:3px solid transparent;background-clip:content-box}
+        .chat-scroll:hover::-webkit-scrollbar-thumb{background:rgba(124,58,237,0.45);background-clip:content-box}
+        .chat-scroll{scrollbar-width:thin;scrollbar-color:rgba(124,58,237,0.35) transparent}
         textarea::-webkit-scrollbar{width:6px}
         textarea::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.15);border-radius:3px}
       `}</style>
 
       {/* Ambient animated background */}
       <div aria-hidden style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
-        <div style={{ position: "absolute", top: "-10%", left: "20%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.10), transparent 70%)", filter: "blur(40px)", animation: "chat-orb 14s ease-in-out infinite" }} />
-        <div style={{ position: "absolute", bottom: "-10%", right: "10%", width: 460, height: 460, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.08), transparent 70%)", filter: "blur(40px)", animation: "chat-orb 18s ease-in-out infinite reverse" }} />
+        <div style={{ position: "absolute", top: "-10%", left: "20%", width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,58,237,0.10), transparent 70%)", filter: "blur(40px)", animation: "chat-orb 14s ease-in-out infinite" }} />
+        <div style={{ position: "absolute", bottom: "-10%", right: "10%", width: 460, height: 460, borderRadius: "50%", background: "radial-gradient(circle, rgba(217,70,239,0.08), transparent 70%)", filter: "blur(40px)", animation: "chat-orb 18s ease-in-out infinite reverse" }} />
       </div>
 
       {/* Top bar */}
       <header style={{ height: 58, flexShrink: 0, display: "flex", alignItems: "center", gap: 12, padding: "0 18px", borderBottom: "1px solid rgba(255,255,255,0.07)", background: "rgba(5,6,10,0.8)", backdropFilter: "blur(20px)", position: "sticky", top: 0, zIndex: 10 }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(99,102,241,0.4)" }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 4px 12px rgba(124,58,237,0.4)" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </div>
           <span style={{ fontSize: 15, fontWeight: 800, color: "#fff", letterSpacing: "-0.01em" }}>Vertlix AI</span>
@@ -174,7 +174,7 @@ export default function ChatPage() {
           {messages.length > 0 && (
             <button onClick={() => setMessages([])} style={{ height: 32, padding: "0 12px", borderRadius: 10, cursor: "pointer", fontSize: 12, fontWeight: 600, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.6)" }}>Новый чат</button>
           )}
-          <Link href="/dashboard" style={{ height: 32, padding: "0 14px", borderRadius: 10, display: "flex", alignItems: "center", fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", textDecoration: "none" }}>Дашборд</Link>
+          <Link href="/dashboard" style={{ height: 32, padding: "0 14px", borderRadius: 10, display: "flex", alignItems: "center", fontSize: 12, fontWeight: 700, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", textDecoration: "none" }}>Дашборд</Link>
         </div>
       </header>
 
@@ -183,7 +183,7 @@ export default function ChatPage() {
         <div style={{ maxWidth: 780, margin: "0 auto", padding: empty ? "0 20px" : "28px 20px 40px", minHeight: "100%", display: empty ? "flex" : "block", alignItems: "center", justifyContent: "center" }}>
           {empty ? (
             <div style={{ textAlign: "center", width: "100%", animation: "chat-in 0.5s" }}>
-              <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 20px", background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 34px rgba(99,102,241,0.5)", animation: "chat-orb 6s ease-in-out infinite" }}>
+              <div style={{ width: 64, height: 64, borderRadius: 20, margin: "0 auto 20px", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 12px 34px rgba(124,58,237,0.5)", animation: "chat-orb 6s ease-in-out infinite" }}>
                 <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" width="28" height="28"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
               </div>
               <h1 style={{ fontSize: 27, fontWeight: 800, margin: "0 0 8px", letterSpacing: "-0.02em" }}>Чем помочь?</h1>
@@ -195,9 +195,9 @@ export default function ChatPage() {
                     background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)", transition: "all 0.18s",
                     animation: `chat-in 0.5s ${0.1 + i * 0.07}s both`,
                   }}
-                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(99,102,241,0.07)"; e.currentTarget.style.borderColor = "rgba(99,102,241,0.3)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+                    onMouseEnter={e => { e.currentTarget.style.background = "rgba(124,58,237,0.07)"; e.currentTarget.style.borderColor = "rgba(124,58,237,0.3)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
                     onMouseLeave={e => { e.currentTarget.style.background = "rgba(255,255,255,0.03)"; e.currentTarget.style.borderColor = "rgba(255,255,255,0.08)"; e.currentTarget.style.transform = "translateY(0)"; }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: "rgba(99,102,241,0.12)", border: "1px solid rgba(99,102,241,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "#818cf8" }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, flexShrink: 0, background: "rgba(124,58,237,0.12)", border: "1px solid rgba(124,58,237,0.25)", display: "flex", alignItems: "center", justifyContent: "center", color: "#818cf8" }}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><path d={s.icon}/></svg>
                     </div>
                     <div>
@@ -212,7 +212,7 @@ export default function ChatPage() {
             <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
               {messages.map((m, i) => (
                 <div key={i} style={{ display: "flex", gap: 12, animation: "chat-in 0.35s", flexDirection: m.role === "user" ? "row-reverse" : "row" }}>
-                  <div style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: m.role === "user" ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#6366f1,#4f46e5)", fontSize: 12, fontWeight: 700 }}>
+                  <div style={{ width: 32, height: 32, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: m.role === "user" ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#7C3AED,#6D28D9)", fontSize: 12, fontWeight: 700 }}>
                     {m.role === "user" ? "Вы" : <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" width="15" height="15"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>}
                   </div>
                   <div style={{ maxWidth: "84%", display: "flex", flexDirection: "column", gap: 8, alignItems: m.role === "user" ? "flex-end" : "flex-start" }}>
@@ -220,7 +220,7 @@ export default function ChatPage() {
                     {(m.content || (busy && i === messages.length - 1)) && (
                       <div style={{ padding: "11px 15px", borderRadius: 16, fontSize: 14, lineHeight: 1.7, whiteSpace: "pre-wrap", wordBreak: "break-word",
                         ...(m.role === "user"
-                          ? { background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", borderTopRightRadius: 4 }
+                          ? { background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", borderTopRightRadius: 4 }
                           : { background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.88)", border: "1px solid rgba(255,255,255,0.07)", borderTopLeftRadius: 4 }) }}>
                         {m.content || <span style={{ display: "inline-flex", gap: 4 }}>{[0,1,2].map(d => <span key={d} style={{ width: 7, height: 7, borderRadius: "50%", background: "rgba(255,255,255,0.5)", animation: `chat-dot 1.2s ${d * 0.2}s infinite` }} />)}</span>}
                       </div>
@@ -238,7 +238,7 @@ export default function ChatPage() {
         <div style={{ maxWidth: 780, margin: "0 auto" }}>
           {/* Attach preview */}
           {attach && (
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "6px 10px 6px 6px", borderRadius: 10, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)", animation: "chat-pop 0.2s" }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 8, padding: "6px 10px 6px 6px", borderRadius: 10, background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)", animation: "chat-pop 0.2s" }}>
               <img src={attach.preview} alt="" style={{ width: 34, height: 34, borderRadius: 7, objectFit: "cover" }} />
               <span style={{ fontSize: 11, color: "rgba(255,255,255,0.6)" }}>Изображение прикреплено</span>
               <button onClick={() => setAttach(null)} style={{ width: 20, height: 20, borderRadius: 6, border: "none", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", cursor: "pointer", fontSize: 12 }}>×</button>
@@ -254,8 +254,8 @@ export default function ChatPage() {
             </button>
             {/* Research toggle */}
             <button onClick={() => setResearch(r => !r)} title="Режим глубокого исследования" style={{ height: 40, padding: "0 12px", borderRadius: 12, flexShrink: 0, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, fontSize: 12, fontWeight: 600, transition: "all 0.15s",
-              background: research ? "rgba(99,102,241,0.16)" : "rgba(255,255,255,0.03)",
-              border: `1px solid ${research ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.1)"}`,
+              background: research ? "rgba(124,58,237,0.16)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${research ? "rgba(124,58,237,0.4)" : "rgba(255,255,255,0.1)"}`,
               color: research ? "#a5b4fc" : "rgba(255,255,255,0.55)" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="16" height="16"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
               Исследование
@@ -265,8 +265,8 @@ export default function ChatPage() {
               style={{ flex: 1, resize: "none", maxHeight: 160, minHeight: 40, padding: "10px 12px", background: "transparent", border: "none", color: "#fff", fontSize: 14, outline: "none", fontFamily: "inherit", lineHeight: 1.5 }} />
 
             <button onClick={() => send()} disabled={busy || (!input.trim() && !attach)} style={{ width: 44, height: 44, borderRadius: 13, flexShrink: 0, border: "none", cursor: busy || (!input.trim() && !attach) ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center",
-              background: busy || (!input.trim() && !attach) ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#6366f1,#4f46e5)",
-              boxShadow: busy || (!input.trim() && !attach) ? "none" : "0 4px 14px rgba(99,102,241,0.4)", transition: "background 0.2s" }}>
+              background: busy || (!input.trim() && !attach) ? "rgba(255,255,255,0.06)" : "linear-gradient(135deg,#7C3AED,#6D28D9)",
+              boxShadow: busy || (!input.trim() && !attach) ? "none" : "0 4px 14px rgba(124,58,237,0.4)", transition: "background 0.2s" }}>
               <svg viewBox="0 0 24 24" fill="none" stroke={busy || (!input.trim() && !attach) ? "rgba(255,255,255,0.3)" : "#fff"} strokeWidth="2" width="19" height="19"><path d="M22 2 11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
             </button>
           </div>

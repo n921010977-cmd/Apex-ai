@@ -97,7 +97,7 @@ interface Agent {
 }
 
 const AGENTS_ALL: Agent[] = [
-  { id:"a1",  name:"Sophia Rivers",      role:"Chief Executive Officer",     dept:"exec",      emoji:"👑", color:"#6366f1", description:"Strategic leadership, key decision-making, and managing the executive team.",       model:"claude-opus-4-8",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$$", tools:["web","docs","analytics"],        memory:true,  created:"2024-01-15", prompt:"You are Sophia Rivers — a CEO with 20 years of experience. You make strategic decisions and coordinate the executive team." },
+  { id:"a1",  name:"Sophia Rivers",      role:"Chief Executive Officer",     dept:"exec",      emoji:"👑", color:"#7C3AED", description:"Strategic leadership, key decision-making, and managing the executive team.",       model:"claude-opus-4-8",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$$", tools:["web","docs","analytics"],        memory:true,  created:"2024-01-15", prompt:"You are Sophia Rivers — a CEO with 20 years of experience. You make strategic decisions and coordinate the executive team." },
   { id:"a2",  name:"Marcus Webb",        role:"Chief Strategy Officer",      dept:"exec",      emoji:"🎯", color:"#3b82f6", description:"Long-term planning, competitive analysis, and business model transformation.",                    model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["web","analytics","docs"],        memory:true,  created:"2024-01-20", prompt:"You are Marcus Webb — CSO. You build long-term strategies and analyze the market." },
   { id:"a3",  name:"James Wright",       role:"Chief Operating Officer",     dept:"exec",      emoji:"⚙️", color:"#f59e0b", description:"Operational optimization, KPIs, processes, and operational efficiency.",                               model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["docs","analytics"],              memory:true,  created:"2024-01-18", prompt:"You are James Wright — COO. You manage operational processes and optimize KPIs." },
   { id:"a4",  name:"Marcus Chen",        role:"Chief Financial Officer",     dept:"exec",      emoji:"💼", color:"#3b82f6", description:"Financial planning, budget, risk, and investment decisions.",                                 model:"claude-opus-4-8",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$$", tools:["docs","analytics","calculator"], memory:true,  created:"2024-01-16", prompt:"You are Marcus Chen — CFO. You manage finances, build forecasts, and analyze P&L." },
@@ -107,36 +107,36 @@ const AGENTS_ALL: Agent[] = [
   { id:"a8",  name:"Robert Kim",         role:"Investment Analyst",          dept:"finance",   emoji:"💹", color:"#10b981", description:"Investment evaluation, due diligence, and portfolio analysis.",                                            model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["web","calculator","docs"],       memory:false, created:"2024-02-12", prompt:"You are Robert Kim — an investment analyst. You run due diligence and evaluate projects." },
   { id:"a9",  name:"Natasha Orlov",      role:"Tax & Compliance",           dept:"finance",   emoji:"📋", color:"#3b82f6", description:"Tax planning, compliance, and regulatory reporting.",                                      model:"gpt-4o",           status:"active", runs:0, rating:0, speed:"medium", cost:"$$",  tools:["docs","web"],                    memory:true,  created:"2024-03-01", prompt:"You are Natasha Orlov — a tax specialist. You advise on taxes and compliance matters." },
   { id:"a10", name:"Felix Bauer",        role:"Budget Controller",           dept:"finance",   emoji:"🔢", color:"#f43f5e", description:"Budget control, plan/actual analysis, and expense optimization.",                                      model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$",   tools:["calculator","docs"],             memory:false, created:"2024-03-05", prompt:"You are Felix Bauer — a budget controller. You analyze plan-vs-actual and optimize expenses." },
-  { id:"a11", name:"Isabella Torres",    role:"Treasury Manager",            dept:"finance",   emoji:"🏦", color:"#8b5cf6", description:"Liquidity management, currency risk, and treasury operations.",                                  model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$",  tools:["calculator","web","docs"],       memory:true,  created:"2024-03-10", prompt:"You are Isabella Torres — a treasurer. You manage liquidity and hedge currency risk." },
+  { id:"a11", name:"Isabella Torres",    role:"Treasury Manager",            dept:"finance",   emoji:"🏦", color:"#D946EF", description:"Liquidity management, currency risk, and treasury operations.",                                  model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$",  tools:["calculator","web","docs"],       memory:true,  created:"2024-03-10", prompt:"You are Isabella Torres — a treasurer. You manage liquidity and hedge currency risk." },
   { id:"a12", name:"Leo Fontaine",       role:"Growth Hacker",               dept:"marketing", emoji:"🚀", color:"#f43f5e", description:"Growth experiments, A/B tests, and viral mechanics.",                                               model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$",   tools:["web","analytics"],               memory:false, created:"2024-02-15", prompt:"You are Leo Fontaine — a growth hacker. You run A/B tests and hunt for growth channels." },
   { id:"a13", name:"Maya Patel",         role:"Content Strategist",          dept:"marketing", emoji:"✍️", color:"#a78bfa", description:"Content strategy, SEO, and editorial planning.",                                                     model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$",   tools:["web","docs","image"],            memory:false, created:"2024-02-18", prompt:"You are Maya Patel — a content strategist. You build content plans and optimize SEO." },
   { id:"a14", name:"Ethan Brooks",       role:"Performance Marketer",        dept:"marketing", emoji:"📈", color:"#10b981", description:"Paid traffic, ROAS, attribution, and ad campaign optimization.",                                model:"gpt-4o",           status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["web","analytics","docs"],        memory:false, created:"2024-02-20", prompt:"You are Ethan Brooks — a performance marketer. You manage paid traffic and optimize ROAS." },
   { id:"a15", name:"Zoe Lambert",        role:"Brand Designer",              dept:"marketing", emoji:"🎨", color:"#f59e0b", description:"Visual identity, design system, and branding.",                                              model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$",  tools:["image","docs"],                  memory:true,  created:"2024-03-01", prompt:"You are Zoe Lambert — a brand designer. You create visual concepts and grow the design system." },
   { id:"a16", name:"Carlos Reyes",       role:"SEO Specialist",              dept:"marketing", emoji:"🔍", color:"#3b82f6", description:"Technical SEO, backlink profile, and ranking.",                                              model:"gpt-4o",           status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$",   tools:["web","docs","analytics"],        memory:false, created:"2024-03-10", prompt:"You are Carlos Reyes — an SEO specialist. You run technical audits and build the backlink profile." },
-  { id:"a17", name:"Nina Kowalski",      role:"Social Media Manager",        dept:"marketing", emoji:"📱", color:"#8b5cf6", description:"SMM strategy, content calendar, and community growth.",                                               model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$",   tools:["web","docs","image"],            memory:false, created:"2024-03-15", prompt:"You are Nina Kowalski — an SMM manager. You run social media and grow the community." },
+  { id:"a17", name:"Nina Kowalski",      role:"Social Media Manager",        dept:"marketing", emoji:"📱", color:"#D946EF", description:"SMM strategy, content calendar, and community growth.",                                               model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$",   tools:["web","docs","image"],            memory:false, created:"2024-03-15", prompt:"You are Nina Kowalski — an SMM manager. You run social media and grow the community." },
   { id:"a18", name:"Thomas Grant",       role:"Email Marketing",             dept:"marketing", emoji:"📧", color:"#f43f5e", description:"Email automation, trigger sequences, and conversion.",                                          model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$",   tools:["docs","analytics"],              memory:false, created:"2024-03-20", prompt:"You are Thomas Grant — an email marketer. You build trigger sequences and optimize conversion." },
   { id:"a19", name:"Olivia Nash",        role:"Account Executive",           dept:"sales",     emoji:"🤝", color:"#10b981", description:"Key account management, negotiation, and closing deals.",                                   model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["web","docs","crm"],              memory:true,  created:"2024-02-25", prompt:"You are Olivia Nash — an Account Executive. You manage key accounts and close deals." },
   { id:"a20", name:"Ryan Foster",        role:"Sales Development Rep",       dept:"sales",     emoji:"📞", color:"#f59e0b", description:"Lead qualification, cold calling, and filling the pipeline.",                                       model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$",   tools:["web","docs"],                    memory:false, created:"2024-03-01", prompt:"You are Ryan Foster — an SDR. You qualify leads and write cold emails." },
   { id:"a21", name:"Priya Sharma",       role:"Customer Success Manager",    dept:"sales",     emoji:"💎", color:"#a78bfa", description:"Onboarding, customer retention, and account growth.",                                             model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["docs","web","analytics"],        memory:true,  created:"2024-03-05", prompt:"You are Priya Sharma — a CSM. You handle onboarding, retention, and account growth." },
   { id:"a22", name:"Samuel Cole",        role:"Revenue Operations",          dept:"sales",     emoji:"⚡", color:"#3b82f6", description:"CRM, RevOps, revenue forecasting, and funnel optimization.",                                     model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["analytics","docs","calculator"], memory:true,  created:"2024-03-10", prompt:"You are Samuel Cole — RevOps. You manage the CRM and build revenue forecasts." },
-  { id:"a23", name:"Aria Bloom",         role:"Product Manager",             dept:"product",   emoji:"🗺️", color:"#8b5cf6", description:"Roadmap, prioritization, user research, and feature launches.",                             model:"claude-opus-4-8",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$$", tools:["docs","web","analytics"],        memory:true,  created:"2024-02-01", prompt:"You are Aria Bloom — a Product Manager. You own the roadmap and prioritize the backlog." },
+  { id:"a23", name:"Aria Bloom",         role:"Product Manager",             dept:"product",   emoji:"🗺️", color:"#D946EF", description:"Roadmap, prioritization, user research, and feature launches.",                             model:"claude-opus-4-8",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$$", tools:["docs","web","analytics"],        memory:true,  created:"2024-02-01", prompt:"You are Aria Bloom — a Product Manager. You own the roadmap and prioritize the backlog." },
   { id:"a24", name:"Nathan Cross",       role:"UX Researcher",               dept:"product",   emoji:"🔬", color:"#10b981", description:"Usability research, interviews, and insight synthesis.",                                             model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"medium", cost:"$$",  tools:["web","docs"],                    memory:true,  created:"2024-02-10", prompt:"You are Nathan Cross — a UX Researcher. You run studies and synthesize insights." },
   { id:"a25", name:"Sophie Müller",      role:"UX/UI Designer",              dept:"product",   emoji:"🎭", color:"#f43f5e", description:"Interface design, prototyping, and the design system.",                                         model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["image","docs"],                  memory:true,  created:"2024-02-15", prompt:"You are Sophie Müller — a UX/UI designer. You design interfaces and prototype solutions." },
   { id:"a26", name:"Liam O'Brien",       role:"Product Analyst",             dept:"product",   emoji:"📉", color:"#a78bfa", description:"Product analytics, funnel analysis, and engagement metrics.",                                  model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$",   tools:["analytics","docs","web"],        memory:false, created:"2024-02-20", prompt:"You are Liam O'Brien — a product analyst. You analyze the funnel and engagement metrics." },
   { id:"a27", name:"Kai Tanaka",         role:"Full-Stack Developer",        dept:"dev",       emoji:"💻", color:"#3b82f6", description:"Feature development, architecture, and code review.",                                                     model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["code","docs","web"],             memory:true,  created:"2024-01-25", prompt:"You are Kai Tanaka — a Full-Stack developer. You write code and run code reviews." },
   { id:"a28", name:"Emma Johansson",     role:"DevOps Engineer",             dept:"dev",       emoji:"🛠️", color:"#10b981", description:"CI/CD, Kubernetes, monitoring, and infrastructure automation.",                                  model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["code","docs","web"],             memory:true,  created:"2024-02-01", prompt:"You are Emma Johansson — a DevOps engineer. You set up CI/CD and manage infrastructure." },
-  { id:"a29", name:"Lucas Hoffmann",     role:"Security Engineer",           dept:"dev",       emoji:"🔐", color:"#8b5cf6", description:"Application security, pentesting, and standards compliance.",                                     model:"claude-opus-4-8",  status:"idle",   runs:0, rating:0, speed:"medium", cost:"$$$", tools:["code","web","docs"],             memory:true,  created:"2024-02-08", prompt:"You are Lucas Hoffmann — a Security Engineer. You run security audits and pentests." },
+  { id:"a29", name:"Lucas Hoffmann",     role:"Security Engineer",           dept:"dev",       emoji:"🔐", color:"#D946EF", description:"Application security, pentesting, and standards compliance.",                                     model:"claude-opus-4-8",  status:"idle",   runs:0, rating:0, speed:"medium", cost:"$$$", tools:["code","web","docs"],             memory:true,  created:"2024-02-08", prompt:"You are Lucas Hoffmann — a Security Engineer. You run security audits and pentests." },
   { id:"a30", name:"Aisha Johnson",      role:"ML Engineer",                 dept:"dev",       emoji:"🧠", color:"#f43f5e", description:"Model training, MLOps, and product ML solutions.",                                               model:"claude-opus-4-8",  status:"active", runs:0, rating:0, speed:"slow",   cost:"$$$", tools:["code","docs","analytics"],       memory:true,  created:"2024-02-15", prompt:"You are Aisha Johnson — an ML Engineer. You train models and build MLOps pipelines." },
   { id:"a31", name:"Oscar Lindqvist",    role:"Backend Engineer",            dept:"dev",       emoji:"⚙️", color:"#f59e0b", description:"API design, databases, microservices, and performance.",                                   model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["code","docs"],                   memory:false, created:"2024-02-20", prompt:"You are Oscar Lindqvist — a Backend Engineer. You design APIs and optimize databases." },
   { id:"a32", name:"Julia Santos",       role:"QA Engineer",                 dept:"dev",       emoji:"🧪", color:"#a78bfa", description:"Test plans, test automation, and quality control.",                                   model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$",   tools:["code","docs"],                   memory:false, created:"2024-03-01", prompt:"You are Julia Santos — a QA Engineer. You write test plans and automate testing." },
   { id:"a33", name:"Benjamin Clark",     role:"Mobile Developer",            dept:"dev",       emoji:"📲", color:"#3b82f6", description:"iOS/Android development, React Native, and mobile app performance.",               model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["code","docs","web"],             memory:false, created:"2024-03-05", prompt:"You are Benjamin Clark — a Mobile Developer. You build iOS/Android apps." },
   { id:"a34", name:"Clara Novak",        role:"Data Analyst",                dept:"analytics", emoji:"📊", color:"#10b981", description:"SQL, dashboards, cohort analysis, and KPI reporting.",                                               model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$",   tools:["analytics","calculator","docs"], memory:false, created:"2024-02-05", prompt:"You are Clara Novak — a Data Analyst. You build dashboards and run cohort analysis." },
-  { id:"a35", name:"Hugo Petit",         role:"Business Intelligence",       dept:"analytics", emoji:"🔭", color:"#8b5cf6", description:"BI infrastructure, warehousing, and executive reporting.",                                            model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"medium", cost:"$$",  tools:["analytics","docs"],              memory:true,  created:"2024-02-10", prompt:"You are Hugo Petit — a BI specialist. You build the data warehouse and create executive reports." },
+  { id:"a35", name:"Hugo Petit",         role:"Business Intelligence",       dept:"analytics", emoji:"🔭", color:"#D946EF", description:"BI infrastructure, warehousing, and executive reporting.",                                            model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"medium", cost:"$$",  tools:["analytics","docs"],              memory:true,  created:"2024-02-10", prompt:"You are Hugo Petit — a BI specialist. You build the data warehouse and create executive reports." },
   { id:"a36", name:"Mia Eriksson",       role:"Data Scientist",              dept:"analytics", emoji:"🔮", color:"#f43f5e", description:"Predictive models, NLP, and data science projects.",                                               model:"claude-opus-4-8",  status:"active", runs:0, rating:0, speed:"slow",   cost:"$$$", tools:["code","analytics","docs"],       memory:true,  created:"2024-02-15", prompt:"You are Mia Eriksson — a Data Scientist. You build predictive models and work with NLP." },
   { id:"a37", name:"Ahmed Hassan",       role:"Market Research Analyst",     dept:"analytics", emoji:"🌐", color:"#f59e0b", description:"Market research, competitive analysis, and consumer trends.",                           model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$",   tools:["web","docs","analytics"],        memory:false, created:"2024-02-20", prompt:"You are Ahmed Hassan — a market analyst. You research markets and analyze competitors." },
   { id:"a38", name:"Yuki Watanabe",      role:"Reporting Specialist",        dept:"analytics", emoji:"📑", color:"#a78bfa", description:"Report automation, data visualization, and storytelling.",                                   model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$",   tools:["docs","analytics"],              memory:false, created:"2024-03-01", prompt:"You are Yuki Watanabe — a reporting specialist. You automate reports." },
   { id:"a39", name:"Francesca Ricci",    role:"Corporate Lawyer",            dept:"legal",     emoji:"⚖️", color:"#3b82f6", description:"Corporate law, M&A deals, and protecting the company's interests.",                                 model:"claude-opus-4-8",  status:"idle",   runs:0, rating:0, speed:"slow",   cost:"$$$", tools:["docs","web"],                    memory:true,  created:"2024-02-01", prompt:"You are Francesca Ricci — a corporate lawyer. You advise on corporate law matters." },
-  { id:"a40", name:"Daniel Wright",      role:"IP & Patent Attorney",        dept:"legal",     emoji:"📜", color:"#8b5cf6", description:"Intellectual property protection, patents, and trademarks.",                             model:"claude-opus-4-8",  status:"idle",   runs:0, rating:0, speed:"slow",   cost:"$$$", tools:["docs","web"],                    memory:true,  created:"2024-02-10", prompt:"You are Daniel Wright — a patent attorney. You protect intellectual property." },
+  { id:"a40", name:"Daniel Wright",      role:"IP & Patent Attorney",        dept:"legal",     emoji:"📜", color:"#D946EF", description:"Intellectual property protection, patents, and trademarks.",                             model:"claude-opus-4-8",  status:"idle",   runs:0, rating:0, speed:"slow",   cost:"$$$", tools:["docs","web"],                    memory:true,  created:"2024-02-10", prompt:"You are Daniel Wright — a patent attorney. You protect intellectual property." },
   { id:"a41", name:"Sophia Turner",      role:"Contract Specialist",         dept:"legal",     emoji:"📄", color:"#10b981", description:"Contract drafting, review, and negotiation.",                                                 model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"medium", cost:"$$",  tools:["docs"],                          memory:true,  created:"2024-02-15", prompt:"You are Sophia Turner — a contract specialist. You review and prepare contracts." },
   { id:"a42", name:"Marcus Johnson",     role:"HR Director",                 dept:"hr",        emoji:"👥", color:"#f43f5e", description:"Talent acquisition, HR policies, and corporate culture.",                                     model:"claude-sonnet-5",  status:"active", runs:0, rating:0, speed:"fast",   cost:"$$",  tools:["web","docs"],                    memory:true,  created:"2024-02-20", prompt:"You are Marcus Johnson — an HR Director. You manage talent and shape the culture." },
   { id:"a43", name:"Luna Petrov",        role:"Recruiter",                   dept:"hr",        emoji:"🎯", color:"#f59e0b", description:"Candidate sourcing, interviews, and onboarding new hires.",                                     model:"claude-sonnet-5",  status:"idle",   runs:0, rating:0, speed:"fast",   cost:"$",   tools:["web","docs"],                    memory:false, created:"2024-03-01", prompt:"You are Luna Petrov — a recruiter. You source and evaluate candidates and run onboarding." },
@@ -163,7 +163,7 @@ const TOOL_LABELS: Record<string, string> = {
 const SPEED_LABEL: Record<string, string> = { fast: "Fast", medium: "Medium", slow: "Slow" };
 
 const KPI = [
-  { label: "Total Agents",    value: "46",    color: "#8b5cf6", icon: Bot         },
+  { label: "Total Agents",    value: "46",    color: "#D946EF", icon: Bot         },
   { label: "Active Now",      value: "28",    color: "#10b981", icon: Activity    },
   { label: "Runs / Day",      value: "2.4K",  color: "#3b82f6", icon: Zap         },
   { label: "Success Rate",    value: "98.7%", color: "#f59e0b", icon: CheckCircle2 },
@@ -386,7 +386,7 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
               <div style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 14, border: "1px solid rgba(255,255,255,0.06)" }}>
                 <p style={{ fontSize: 12, color: "rgba(255,255,255,0.55)", lineHeight: 1.7, whiteSpace: "pre-wrap", margin: 0 }}>{agent.prompt}</p>
               </div>
-              <button style={{ marginTop: 12, width: "100%", padding: "8px 0", borderRadius: 8, fontSize: 12, cursor: "pointer", background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", color: "#a78bfa", fontWeight: 500 }}>
+              <button style={{ marginTop: 12, width: "100%", padding: "8px 0", borderRadius: 8, fontSize: 12, cursor: "pointer", background: "rgba(217,70,239,0.1)", border: "1px solid rgba(217,70,239,0.2)", color: "#a78bfa", fontWeight: 500 }}>
                 Edit Prompt
               </button>
             </motion.div>
@@ -407,7 +407,7 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
               <div style={{ padding: 12, borderRadius: 10, background: "rgba(255,255,255,0.025)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <div style={{ fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", marginBottom: 8 }}>Memory</div>
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 28, height: 16, borderRadius: 8, background: agent.memory ? "#8b5cf6" : "rgba(255,255,255,0.1)", position: "relative" }}>
+                  <div style={{ width: 28, height: 16, borderRadius: 8, background: agent.memory ? "#D946EF" : "rgba(255,255,255,0.1)", position: "relative" }}>
                     <div style={{ position: "absolute", top: 2, left: agent.memory ? 14 : 2, width: 12, height: 12, borderRadius: "50%", background: "white", transition: "left 0.2s" }} />
                   </div>
                   <span style={{ fontSize: 11, color: agent.memory ? "#a78bfa" : "rgba(255,255,255,0.3)" }}>{agent.memory ? "Enabled" : "Disabled"}</span>
@@ -418,7 +418,7 @@ function AgentDetail({ agent, onClose, onRun, onChat, onConfigure, onClone }: {
           {tab === "stats" && (
             <motion.div key="st" initial="hidden" animate="show" variants={{ show: { transition: { staggerChildren: 0.07 } } }}>
               {[
-                { label: "Your Runs",        value: agent.runs.toLocaleString(), color: "#8b5cf6", pct: Math.min(100, agent.runs * 5) },
+                { label: "Your Runs",        value: agent.runs.toLocaleString(), color: "#D946EF", pct: Math.min(100, agent.runs * 5) },
                 { label: "Model",            value: agent.model,                 color: "#3b82f6", pct: 100 },
                 { label: "Department",       value: DEPARTMENTS.find(d => d.id === agent.dept)?.label ?? agent.dept,       color: "#10b981", pct: 100 },
                 { label: "Conversation Memory", value: agent.memory ? "enabled" : "disabled", color: "#f59e0b", pct: agent.memory ? 100 : 20 },
@@ -572,7 +572,7 @@ export default function AgentsPage() {
     if (!newAgent.name.trim() || !newAgent.role.trim()) { showToast("Fill in the name and role"); return; }
     const created: Agent = {
       id: `c${Date.now()}`, name: newAgent.name.trim(), role: newAgent.role.trim(), dept: newAgent.dept,
-      emoji: "🤖", color: "#8b5cf6", description: newAgent.description.trim() || "Custom AI agent.",
+      emoji: "🤖", color: "#D946EF", description: newAgent.description.trim() || "Custom AI agent.",
       model: newAgent.model, status: "active", runs:0, rating:0, speed: "fast", cost: "$$",
       tools: ["web", "docs"], memory: true, created: new Date().toISOString().slice(0, 10),
       prompt: newAgent.prompt.trim() || `You are ${newAgent.name}, ${newAgent.role}. You help solve tasks professionally.`,
@@ -661,7 +661,7 @@ export default function AgentsPage() {
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100vh", background: "#05060A", color: "white", overflow: "hidden" }}>
       <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
-        <div style={{ position: "absolute", top: -160, right: -100, width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(139,92,246,0.06) 0%, transparent 70%)" }} />
+        <div style={{ position: "absolute", top: -160, right: -100, width: 600, height: 600, borderRadius: "50%", background: "radial-gradient(circle, rgba(217,70,239,0.06) 0%, transparent 70%)" }} />
         <div style={{ position: "absolute", bottom: -200, left: -100, width: 500, height: 500, borderRadius: "50%", background: "radial-gradient(circle, rgba(16,185,129,0.04) 0%, transparent 70%)" }} />
       </div>
 
@@ -670,7 +670,7 @@ export default function AgentsPage() {
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 4 }}>
-              <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #7C3AED, #6D28D9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <Bot size={16} color="white" />
               </div>
               <h1 className="term-mono" style={{ fontSize: 18, fontWeight: 700, color: "#fff", margin: 0, letterSpacing: "0.02em" }}>AGENT<span style={{ color: "rgba(255,255,255,0.25)" }}>_</span>STUDIO</h1>
@@ -686,7 +686,7 @@ export default function AgentsPage() {
             </button>
             <button
               onClick={() => { setShowCreate(true); setCreateStep(0); }}
-              style={{ padding: "8px 16px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #8b5cf6, #3b82f6)", border: "none", color: "white", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 16px rgba(139,92,246,0.35)" }}
+              style={{ padding: "8px 16px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #D946EF, #3b82f6)", border: "none", color: "white", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 4px 16px rgba(217,70,239,0.35)" }}
             >
               <Plus size={14} /> Create Agent
             </button>
@@ -735,7 +735,7 @@ export default function AgentsPage() {
                 {([["all", "All"], ["active", "Active"], ["idle", "Idle"], ["paused", "Paused"]] as const).map(([v, l]) => (
                   <button key={v} onClick={() => setStatusFilter(v as any)}
                     style={{ padding: "5px 10px", borderRadius: 8, fontSize: 11, fontWeight: 600, cursor: "pointer", border: "none",
-                      background: statusFilter === v ? "rgba(99,102,241,0.2)" : "transparent",
+                      background: statusFilter === v ? "rgba(124,58,237,0.2)" : "transparent",
                       color: statusFilter === v ? "#a5b4fc" : "rgba(255,255,255,0.4)", transition: "all .15s" }}>
                     {l}
                   </button>
@@ -757,8 +757,8 @@ export default function AgentsPage() {
                 return (
                   <button key={d.id} onClick={() => setDept(d.id)}
                     style={{ flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6, padding: "6px 11px", borderRadius: 9, fontSize: 11.5, fontWeight: 600, cursor: "pointer",
-                      background: on ? "rgba(99,102,241,0.14)" : "rgba(255,255,255,0.03)",
-                      border: `1px solid ${on ? "rgba(99,102,241,0.4)" : "rgba(255,255,255,0.07)"}`,
+                      background: on ? "rgba(124,58,237,0.14)" : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${on ? "rgba(124,58,237,0.4)" : "rgba(255,255,255,0.07)"}`,
                       color: on ? "#a5b4fc" : "rgba(255,255,255,0.5)", transition: "all .15s", whiteSpace: "nowrap" }}>
                     <Icon size={12} /> {d.label}
                     <span style={{ fontSize: 9.5, opacity: 0.55, fontFamily: "var(--font-geist-mono), monospace" }}>
@@ -837,7 +837,7 @@ export default function AgentsPage() {
                 {["Basics", "Model & Tools", "System Prompt"].map((s, i) => (
                   <div
                     key={s}
-                    style={{ flex: 1, padding: "10px", textAlign: "center", fontSize: 11, fontWeight: 500, cursor: "pointer", borderBottom: `2px solid ${i === createStep ? "#8b5cf6" : "transparent"}`, color: i === createStep ? "#a78bfa" : i < createStep ? "#10b981" : "rgba(255,255,255,0.25)" }}
+                    style={{ flex: 1, padding: "10px", textAlign: "center", fontSize: 11, fontWeight: 500, cursor: "pointer", borderBottom: `2px solid ${i === createStep ? "#D946EF" : "transparent"}`, color: i === createStep ? "#a78bfa" : i < createStep ? "#10b981" : "rgba(255,255,255,0.25)" }}
                     onClick={() => setCreateStep(i)}
                   >
                     {i < createStep && <Check size={12} style={{ display: "inline", marginRight: 4 }} />}{s}
@@ -875,8 +875,8 @@ export default function AgentsPage() {
                         <div style={{ fontSize: 11, color: "rgba(255,255,255,0.4)", marginBottom: 10 }}>Language Model</div>
                         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                           {MODELS.map((m) => (
-                            <label key={m} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, cursor: "pointer", background: newAgent.model === m ? "rgba(139,92,246,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${newAgent.model === m ? "rgba(139,92,246,0.3)" : "rgba(255,255,255,0.07)"}` }}>
-                              <input type="radio" checked={newAgent.model === m} onChange={() => setNewAgent({...newAgent,model:m})} style={{ accentColor: "#8b5cf6" }} />
+                            <label key={m} style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", borderRadius: 10, cursor: "pointer", background: newAgent.model === m ? "rgba(217,70,239,0.1)" : "rgba(255,255,255,0.03)", border: `1px solid ${newAgent.model === m ? "rgba(217,70,239,0.3)" : "rgba(255,255,255,0.07)"}` }}>
+                              <input type="radio" checked={newAgent.model === m} onChange={() => setNewAgent({...newAgent,model:m})} style={{ accentColor: "#D946EF" }} />
                               <span style={{ fontSize: 12, color: newAgent.model === m ? "#a78bfa" : "rgba(255,255,255,0.55)" }}>{m}</span>
                             </label>
                           ))}
@@ -887,7 +887,7 @@ export default function AgentsPage() {
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
                           {Object.entries(TOOL_LABELS).map(([key, label]) => (
                             <label key={key} style={{ display: "flex", alignItems: "center", gap: 8, padding: "9px 12px", borderRadius: 10, cursor: "pointer", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
-                              <input type="checkbox" style={{ accentColor: "#8b5cf6" }} />
+                              <input type="checkbox" style={{ accentColor: "#D946EF" }} />
                               <span style={{ fontSize: 11, color: "rgba(255,255,255,0.55)" }}>{label}</span>
                             </label>
                           ))}
@@ -901,7 +901,7 @@ export default function AgentsPage() {
                       <textarea value={newAgent.prompt} onChange={(e) => setNewAgent({...newAgent,prompt:e.target.value})} placeholder="You are [name] — [role]. Your tasks: ..." rows={8} style={{ width: "100%", padding: 12, borderRadius: 10, fontSize: 12, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)", color: "white", outline: "none", resize: "none", lineHeight: 1.7, boxSizing: "border-box" }} />
                       <div style={{ marginTop: 12, display: "flex", gap: 8 }}>
                         {["Expert","Consultant","Analyst"].map((t) => (
-                          <button key={t} onClick={() => setNewAgent({...newAgent,prompt:`You are ${newAgent.name || "an agent"}, a ${t.toLowerCase()}. Role: ${newAgent.role || "[role]"}. You help solve tasks professionally.`})} style={{ padding: "6px 12px", borderRadius: 8, fontSize: 11, cursor: "pointer", background: "rgba(139,92,246,0.08)", border: "1px solid rgba(139,92,246,0.18)", color: "#a78bfa" }}>
+                          <button key={t} onClick={() => setNewAgent({...newAgent,prompt:`You are ${newAgent.name || "an agent"}, a ${t.toLowerCase()}. Role: ${newAgent.role || "[role]"}. You help solve tasks professionally.`})} style={{ padding: "6px 12px", borderRadius: 8, fontSize: 11, cursor: "pointer", background: "rgba(217,70,239,0.08)", border: "1px solid rgba(217,70,239,0.18)", color: "#a78bfa" }}>
                             <Sparkles size={10} style={{ display: "inline", marginRight: 4 }} />{t}
                           </button>
                         ))}
@@ -915,7 +915,7 @@ export default function AgentsPage() {
                 <button onClick={() => createStep > 0 ? setCreateStep(createStep - 1) : setShowCreate(false)} style={{ padding: "9px 20px", borderRadius: 10, fontSize: 12, cursor: "pointer", background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.5)" }}>
                   {createStep > 0 ? "Back" : "Cancel"}
                 </button>
-                <button onClick={() => createStep < 2 ? setCreateStep(createStep + 1) : createAgent()} style={{ padding: "9px 20px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #8b5cf6, #3b82f6)", border: "none", color: "white", display: "flex", alignItems: "center", gap: 6 }}>
+                <button onClick={() => createStep < 2 ? setCreateStep(createStep + 1) : createAgent()} style={{ padding: "9px 20px", borderRadius: 10, fontSize: 12, fontWeight: 600, cursor: "pointer", background: "linear-gradient(135deg, #D946EF, #3b82f6)", border: "none", color: "white", display: "flex", alignItems: "center", gap: 6 }}>
                   {createStep < 2 ? "Next" : "Create Agent"} <ChevronRight size={13} />
                 </button>
               </div>
@@ -1041,7 +1041,7 @@ export default function AgentsPage() {
         {toast && (
           <motion.div
             initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }}
-            style={{ position: "fixed", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 200, padding: "9px 18px", borderRadius: 12, background: "rgba(20,18,32,0.96)", border: "1px solid rgba(139,92,246,0.32)", color: "white", fontSize: 12.5, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}
+            style={{ position: "fixed", top: 18, left: "50%", transform: "translateX(-50%)", zIndex: 200, padding: "9px 18px", borderRadius: 12, background: "rgba(20,18,32,0.96)", border: "1px solid rgba(217,70,239,0.32)", color: "white", fontSize: 12.5, fontWeight: 600, boxShadow: "0 8px 32px rgba(0,0,0,0.5)", backdropFilter: "blur(12px)" }}
           >
             {toast}
           </motion.div>

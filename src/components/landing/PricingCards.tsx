@@ -14,8 +14,8 @@ import { PLANS, type Plan, type PlanFeatures } from "@/lib/plans";
 // hover (пружина), count-up цены, живое свечение у популярного тарифа. Всё —
 // с веткой prefers-reduced-motion (статичное финальное состояние).
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 
@@ -116,7 +116,7 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
 
               <div style={{ position: "relative", zIndex: 1 }}>
                 {hot && (
-                  <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 14px", borderRadius: 999, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, color: "#fff", whiteSpace: "nowrap", boxShadow: `0 4px 14px rgba(${RGB},0.5)` }}>
+                  <div style={{ position: "absolute", top: -14, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 14px", borderRadius: 999, background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, color: "#fff", whiteSpace: "nowrap", boxShadow: `0 4px 14px rgba(${RGB},0.5)` }}>
                     Popular
                   </div>
                 )}
@@ -133,7 +133,7 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
                     style={{
                       display: "flex", alignItems: "center", justifyContent: "center", height: 46, borderRadius: 12,
                       fontSize: 14, fontWeight: 700, textDecoration: "none", color: "#fff",
-                      background: hot ? `linear-gradient(135deg,${ACCENT},#4f46e5)` : "rgba(255,255,255,0.06)",
+                      background: hot ? `linear-gradient(135deg,${ACCENT},#6D28D9)` : "rgba(255,255,255,0.06)",
                       border: hot ? "none" : "1px solid rgba(255,255,255,0.12)",
                       boxShadow: hot ? `0 6px 20px rgba(${RGB},0.35), inset 0 1px 0 rgba(255,255,255,0.16)` : "none",
                     }}
@@ -174,7 +174,7 @@ export function PricingCards({ asPageHeading = false }: { asPageHeading?: boolea
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>What\u2019s included</th>
+                <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>What's included</th>
                 {PLANS.map(p => (
                   <th key={p.id} style={{ padding: "16px 12px", fontSize: 13.5, fontWeight: 700, color: p.highlight ? "#c7d2fe" : "#fff", textAlign: "center" }}>
                     {p.name}<br /><span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.4)" }}>${p.priceMonthly}</span>

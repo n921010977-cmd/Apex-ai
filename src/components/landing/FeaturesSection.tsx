@@ -41,8 +41,8 @@ const FEATURES = [
   {
     title:       "Real boardroom thinking",
     description: "Not generic AI answers. Every director gives their own position, data and recommendations — like a real board meeting.",
-    color:       "#8b5cf6",
-    rgb:         "139,92,246",
+    color:       "#D946EF",
+    rgb:         "217,70,239",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" width="22" height="22">
         <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96-.46 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-1.14Z" />
@@ -199,7 +199,7 @@ function ReportCard() {
           background:     "linear-gradient(160deg, rgba(20,14,40,0.85) 0%, rgba(6,6,12,0.92) 100%)",
           border:         "1px solid rgba(255,255,255,0.08)",
           boxShadow:      [
-            "0 0 0 1px rgba(139,92,246,0.08)",
+            "0 0 0 1px rgba(217,70,239,0.08)",
             "0 8px 40px rgba(0,0,0,0.6)",
             "0 32px 80px rgba(0,0,0,0.4)",
             "inset 0 1px 0 rgba(255,255,255,0.07)",
@@ -271,7 +271,7 @@ function ReportCard() {
                 <span style={{ fontSize: 11, color: "rgba(255,255,255,0.42)" }}>{c.label}</span>
                 <div style={{ height: 6, background: "rgba(255,255,255,0.05)", borderRadius: 999, overflow: "hidden" }}>
                   <motion.div
-                    style={{ height: "100%", background: "linear-gradient(90deg, rgba(99,102,241,0.5), #6366f1)", borderRadius: 999 }}
+                    style={{ height: "100%", background: "linear-gradient(90deg, rgba(124,58,237,0.5), #7C3AED)", borderRadius: 999 }}
                     initial={{ width: 0 }}
                     whileInView={{ width: `${c.v}%` }}
                     viewport={{ once: true }}

@@ -30,8 +30,8 @@ function Badge({ n }: { n: number }) {
   return (
     <span style={{
       minWidth: 18, height: 18, borderRadius: 9,
-      background: "rgba(99,102,241,0.85)",
-      border: "1px solid rgba(99,102,241,0.4)",
+      background: "rgba(124,58,237,0.85)",
+      border: "1px solid rgba(124,58,237,0.4)",
       fontSize: 9.5, fontWeight: 800, color: "#fff",
       display: "flex", alignItems: "center", justifyContent: "center",
       padding: "0 4px", letterSpacing: "0.02em",
@@ -163,7 +163,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
         style={{ height: 58, padding: collapsed ? "0 14px" : "0 14px 0 16px", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
         <Link href="/" className="flex items-center gap-2.5 min-w-0" onClick={onClose} title="Vertlix — Command Center">
           <div className="size-8 rounded-[10px] flex items-center justify-center flex-shrink-0 relative"
-            style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)", boxShadow: "0 4px 14px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.2)" }}>
+            style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)", boxShadow: "0 4px 14px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.2)" }}>
             <svg className="size-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2">
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
             </svg>
@@ -239,7 +239,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                     padding: collapsed ? "0" : "0 10px",
                     justifyContent: collapsed ? "center" : "flex-start",
                     gap: 10,
-                    background: active ? "rgba(99,102,241,0.12)" : "transparent",
+                    background: active ? "rgba(124,58,237,0.12)" : "transparent",
                     color: active ? "#fff" : item.accent ? "rgba(129,140,248,0.9)" : "rgba(255,255,255,0.45)",
                     fontSize: 13, fontWeight: active ? 600 : 500, textDecoration: "none",
                   }}
@@ -249,7 +249,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   {/* active indicator bar */}
                   {active && (
                     <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[2.5px] h-4 rounded-full"
-                      style={{ background: "linear-gradient(180deg, #6366f1, #4f46e5)", boxShadow: "0 0 8px rgba(99,102,241,0.6)" }} />
+                      style={{ background: "linear-gradient(180deg, #7C3AED, #6D28D9)", boxShadow: "0 0 8px rgba(124,58,237,0.6)" }} />
                   )}
                   <div style={{ position: "relative", flexShrink: 0 }}>
                     <Icon size={15} strokeWidth={active ? 2.2 : 1.8}
@@ -259,7 +259,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                       <span style={{
                         position: "absolute", top: -4, right: -4,
                         width: 12, height: 12, borderRadius: "50%",
-                        background: "#6366f1", border: "2px solid #090A0F",
+                        background: "#7C3AED", border: "2px solid #090A0F",
                         fontSize: 7, fontWeight: 800, color: "#fff",
                         display: "flex", alignItems: "center", justifyContent: "center",
                       }}>{item.badge}</span>
@@ -283,7 +283,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
                   )}
                   {/* accent dot for special items (no badge, not locked) */}
                   {!collapsed && item.accent && !locked && !active && !item.badge && !item.live && (
-                    <span className="size-1.5 rounded-full flex-shrink-0" style={{ background: "#6366f1", boxShadow: "0 0 6px rgba(99,102,241,0.7)" }} />
+                    <span className="size-1.5 rounded-full flex-shrink-0" style={{ background: "#7C3AED", boxShadow: "0 0 6px rgba(124,58,237,0.7)" }} />
                   )}
                   {/* active chevron */}
                   {!collapsed && active && (
@@ -312,7 +312,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             <div className="h-1 rounded-full overflow-hidden mb-2.5" style={{ background: "rgba(255,255,255,0.06)" }}>
               <div className="h-full rounded-full" style={{
                 width: `${usedPct}%`,
-                background: "linear-gradient(90deg, #6366f1, #4f46e5)",
+                background: "linear-gradient(90deg, #7C3AED, #6D28D9)",
                 transition: "width 0.8s cubic-bezier(0.22,1,0.36,1)",
               }} />
             </div>
@@ -331,7 +331,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             <Link href="/dashboard/billing" onClick={onClose} title="Plans & billing"
               className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
               style={{ height: 30, padding: "0 8px", color: "rgba(129,140,248,0.85)", fontSize: 11.5 }}
-              onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
+              onMouseEnter={e => (e.currentTarget.style.background = "rgba(124,58,237,0.08)")}
               onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
               <CreditCard size={13} /> Billing
             </Link>
@@ -346,7 +346,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <Link href="/admin" onClick={onClose} title="Analytics (admin)"
                 className="flex items-center gap-2 rounded-lg transition-colors mb-2.5"
                 style={{ height: 30, padding: "0 8px", color: "rgba(129,140,248,0.85)", fontSize: 11.5 }}
-                onMouseEnter={e => (e.currentTarget.style.background = "rgba(99,102,241,0.08)")}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(124,58,237,0.08)")}
                 onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                 <BarChart3 size={13} /> Analytics
               </Link>
@@ -355,7 +355,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
             {/* user + plan */}
             <div className="flex items-center gap-2.5" style={{ borderTop: "1px solid rgba(255,255,255,0.05)", paddingTop: 8 }}>
               <div className="relative size-8 rounded-[10px] flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
-                style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}>
+                style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }}>
                 {userInitial}
                 <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full" style={{ background: "#10b981", border: "2px solid #0B0C11" }} />
               </div>
@@ -375,7 +375,7 @@ export function Sidebar({ isOpen = false, onClose }: SidebarProps) {
               <Settings size={14} />
             </Link>
             <div className="relative size-8 rounded-[10px] flex items-center justify-center text-[11px] font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }} title={`${userName} · Starter`}>
+              style={{ background: "linear-gradient(135deg, #7C3AED, #6D28D9)" }} title={`${userName} · Starter`}>
               {userInitial}
               <span className="absolute -bottom-0.5 -right-0.5 size-2 rounded-full" style={{ background: "#10b981", border: "2px solid #0B0C11" }} />
             </div>

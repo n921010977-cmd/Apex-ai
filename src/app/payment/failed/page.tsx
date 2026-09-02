@@ -5,8 +5,8 @@ import { XCircle, RotateCcw } from "lucide-react";
 
 // ─── /payment/failed — оплата не прошла или истекла ───────────────────────────
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 
 export default function PaymentFailedPage() {
   return (
@@ -22,7 +22,7 @@ export default function PaymentFailedPage() {
         <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, margin: "0 0 24px" }}>
           Try again — a new invoice takes a couple of seconds.
         </p>
-        <Link href="/dashboard/billing" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 48, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 8px 24px rgba(${RGB},0.4)` }}>
+        <Link href="/dashboard/billing" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 48, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, boxShadow: `0 8px 24px rgba(${RGB},0.4)` }}>
           <RotateCcw size={16} /> Try again
         </Link>
       </div>

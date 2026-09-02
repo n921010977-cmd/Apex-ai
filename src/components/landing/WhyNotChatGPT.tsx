@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 
-const RGB = "99,102,241";
+const RGB = "124,58,237";
 
 // ─── Comparison model ─────────────────────────────────────────────────────────
 type Cell = { v: "yes" | "no" | "part"; note?: string };

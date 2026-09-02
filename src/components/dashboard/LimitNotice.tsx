@@ -12,7 +12,7 @@ import { trackEvent } from "@/lib/track-client";
 // оборачиваем window.fetch и показываем объяснение с кнопкой «Обновить тариф».
 // Ответ при этом не подменяется — вызывающий код получает его как обычно.
 
-const RGB = "99,102,241";
+const RGB = "124,58,237";
 
 interface Info { code: string; error: string; limit?: number | null; used?: number; requiredPlan?: string | null; resetAt?: number }
 
@@ -63,7 +63,7 @@ export function LimitNotice() {
               <X size={15} />
             </button>
 
-            <div style={{ width: 54, height: 54, borderRadius: 16, margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: `0 10px 28px rgba(${RGB},0.4)` }}>
+            <div style={{ width: 54, height: 54, borderRadius: 16, margin: "0 auto 16px", display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: `0 10px 28px rgba(${RGB},0.4)` }}>
               <Lock size={22} color="#fff" />
             </div>
 
@@ -84,7 +84,7 @@ export function LimitNotice() {
                 автоматически на оплату никого не отправляем. */}
             <Link href="/dashboard/billing"
               onClick={() => { trackEvent("upgrade_clicked", { from: info.code }); setInfo(null); }}
-              style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 24px", borderRadius: 13, textDecoration: "none", color: "#fff", fontSize: 14.5, fontWeight: 700, background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: `0 8px 24px rgba(${RGB},0.4), inset 0 1px 0 rgba(255,255,255,0.16)` }}>
+              style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 24px", borderRadius: 13, textDecoration: "none", color: "#fff", fontSize: 14.5, fontWeight: 700, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: `0 8px 24px rgba(${RGB},0.4), inset 0 1px 0 rgba(255,255,255,0.16)` }}>
               Choose a plan <ArrowUpRight size={16} />
             </Link>
           </motion.div>

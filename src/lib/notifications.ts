@@ -33,7 +33,7 @@ async function emailForUser(userId: string): Promise<string | null> {
 function wrap(title: string, bodyHtml: string, ctaLabel?: string, ctaPath?: string): string {
   const cta = ctaLabel && ctaPath ? `
     <p style="margin:20px 0">
-      <a href="${siteUrl()}${ctaPath}" style="display:inline-block;padding:11px 20px;border-radius:10px;background:#4f46e5;color:#fff;font-weight:600;font-size:14px;text-decoration:none">
+      <a href="${siteUrl()}${ctaPath}" style="display:inline-block;padding:11px 20px;border-radius:10px;background:#6D28D9;color:#fff;font-weight:600;font-size:14px;text-decoration:none">
         ${ctaLabel}
       </a>
     </p>` : "";

@@ -22,7 +22,7 @@ const T = {
   tp: "#E5E7EB",
   ts: "rgba(255,255,255,0.55)",
   tm: "rgba(255,255,255,0.35)",
-  accent: "#6366f1",
+  accent: "#7C3AED",
 };
 
 function Eyebrow({ children }: { children: React.ReactNode }) {
@@ -62,7 +62,7 @@ export default function InvestorsPage() {
         {/* ── Hero ── */}
         <header style={{ padding: "88px 0 56px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 36 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#6366f1,#4f46e5)" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#7C3AED,#6D28D9)" }}>
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" aria-hidden>
                 <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
               </svg>
@@ -80,7 +80,7 @@ export default function InvestorsPage() {
             The product is live and taking payments.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <a href="https://vertlixai.com" style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 26px", borderRadius: 12, fontSize: 14.5, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 8px 24px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
+            <a href="https://vertlixai.com" style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 26px", borderRadius: 12, fontSize: 14.5, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 8px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
               Open the live product
             </a>
             <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: "inline-flex", alignItems: "center", height: 48, padding: "0 24px", borderRadius: 12, fontSize: 14.5, fontWeight: 600, color: "rgba(255,255,255,0.75)", textDecoration: "none", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>
@@ -150,7 +150,7 @@ export default function InvestorsPage() {
               ["Execute", "Weekly focus and the goal tracker bring the user back every week."],
             ].map(([t, d], i) => (
               <li key={t} style={{ borderRadius: 16, padding: "18px 20px", background: T.surf, border: T.bord }}>
-                <div style={{ width: 26, height: 26, borderRadius: 8, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)", color: "#a5b4fc", fontSize: 12.5, fontWeight: 700 }}>{i + 1}</div>
+                <div style={{ width: 26, height: 26, borderRadius: 8, marginBottom: 10, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.3)", color: "#a5b4fc", fontSize: 12.5, fontWeight: 700 }}>{i + 1}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#fff", marginBottom: 6 }}>{t}</div>
                 <div style={{ fontSize: 13, lineHeight: 1.6, color: T.ts }}>{d}</div>
               </li>
@@ -162,7 +162,7 @@ export default function InvestorsPage() {
         <Section id="model" eyebrow="Business model" title="Monthly subscriptions with margin-protecting limits">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 14, marginBottom: 18 }}>
             {PLANS.map(p => (
-              <div key={p.id} style={{ borderRadius: 16, padding: "20px 22px", background: T.surf, border: p.highlight ? "1px solid rgba(99,102,241,0.45)" : T.bord }}>
+              <div key={p.id} style={{ borderRadius: 16, padding: "20px 22px", background: T.surf, border: p.highlight ? "1px solid rgba(124,58,237,0.45)" : T.bord }}>
                 <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>{p.name}</div>
                 <div style={{ display: "flex", alignItems: "baseline", gap: 4, margin: "8px 0 10px" }}>
                   <span style={{ fontSize: 30, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em" }}>${p.priceMonthly}</span>
@@ -282,7 +282,7 @@ export default function InvestorsPage() {
               ["Later", "Integrations with work tools, localization, partner channels", false],
             ].map(([label, text, done]) => (
               <div key={label as string} style={{ display: "flex", gap: 14, alignItems: "flex-start", borderRadius: 14, padding: "14px 18px", background: T.surf, border: T.bord }}>
-                <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", padding: "4px 10px", borderRadius: 999, color: done ? "#34d399" : "#a5b4fc", background: done ? "rgba(16,185,129,0.1)" : "rgba(99,102,241,0.1)", border: done ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(99,102,241,0.3)" }}>{label}</span>
+                <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", padding: "4px 10px", borderRadius: 999, color: done ? "#34d399" : "#a5b4fc", background: done ? "rgba(16,185,129,0.1)" : "rgba(124,58,237,0.1)", border: done ? "1px solid rgba(16,185,129,0.3)" : "1px solid rgba(124,58,237,0.3)" }}>{label}</span>
                 <span style={{ fontSize: 13.5, lineHeight: 1.6, color: T.ts }}>{text}</span>
               </div>
             ))}
@@ -296,7 +296,7 @@ export default function InvestorsPage() {
             We\u2019ll show the product live, real metrics in the admin panel and the unit-economics math.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
-            <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 28px", borderRadius: 13, fontSize: 15, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 8px 24px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
+            <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 28px", borderRadius: 13, fontSize: 15, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 8px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
               Email us: {CONTACT_EMAIL}
             </a>
             <Link href="/" style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.75)", textDecoration: "none", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>

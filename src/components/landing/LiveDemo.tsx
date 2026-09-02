@@ -4,7 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 
-const RGB = "99,102,241";
+const RGB = "124,58,237";
 const FREE_RUNS = 2;
 
 const EXAMPLES = [
@@ -142,7 +142,7 @@ export function LiveDemo() {
                   height: 46, padding: "0 20px", borderRadius: 12, border: "none", flexShrink: 0,
                   cursor: busy || !idea.trim() || exhausted ? "default" : "pointer",
                   fontSize: 11.5, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff",
-                  background: busy || !idea.trim() || exhausted ? "rgba(255,255,255,0.07)" : "linear-gradient(135deg,#6366f1,#4f46e5)",
+                  background: busy || !idea.trim() || exhausted ? "rgba(255,255,255,0.07)" : "linear-gradient(135deg,#7C3AED,#6D28D9)",
                   boxShadow: busy || !idea.trim() || exhausted ? "none" : `0 5px 18px rgba(${RGB},0.35)`,
                 }}>
                 {busy ? "BOARD IS THINKING…" : "▸ Check it"}
@@ -188,7 +188,7 @@ export function LiveDemo() {
                   display: "inline-flex", alignItems: "center", gap: 7, height: 40, padding: "0 18px",
                   borderRadius: 10, textDecoration: "none", fontSize: 11, fontWeight: 700,
                   letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff",
-                  background: "linear-gradient(135deg,#6366f1,#4f46e5)",
+                  background: "linear-gradient(135deg,#7C3AED,#6D28D9)",
                   boxShadow: `0 5px 18px rgba(${RGB},0.35)`, flexShrink: 0,
                 }}>
                   ▸ Full report

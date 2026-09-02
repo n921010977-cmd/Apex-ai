@@ -17,7 +17,7 @@ const BORD   = "rgba(255,255,255,0.07)";
 const TP     = "#E5E7EB";
 const TS     = "rgba(255,255,255,0.5)";
 const TM     = "rgba(255,255,255,0.28)";
-const ACCENT = "#6366f1";
+const ACCENT = "#7C3AED";
 const SUC    = "#10b981";
 const WARN   = "#f59e0b";
 const DNG    = "#ef4444";
@@ -353,8 +353,8 @@ function AnalyticsSection() {
             <button key={d} onClick={() => setDays(d)}
               style={{ padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600, cursor: "pointer",
                 color: days === d ? "#fff" : TS,
-                background: days === d ? `rgba(99,102,241,0.16)` : "transparent",
-                border: `1px solid ${days === d ? "rgba(99,102,241,0.45)" : BORD}` }}>
+                background: days === d ? `rgba(124,58,237,0.16)` : "transparent",
+                border: `1px solid ${days === d ? "rgba(124,58,237,0.45)" : BORD}` }}>
               {d} дней
             </button>
           ))}
@@ -538,7 +538,7 @@ function GrantPlanCard() {
                 <button
                   onClick={() => { if (p.email) grant(p.email, p.guessedPlan ?? plan); else { setEmail(""); setPlan(p.guessedPlan ?? plan); setResult({ ok: false, msg: "У платежа нет email — впиши его в форме ниже и нажми «Включить»" }); } }}
                   disabled={busy}
-                  style={{ height: 32, padding: "0 14px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)` }}>
+                  style={{ height: 32, padding: "0 14px", borderRadius: 9, border: "none", cursor: "pointer", fontSize: 12.5, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#6D28D9)` }}>
                   Выдать
                 </button>
               )}
@@ -561,7 +561,7 @@ function GrantPlanCard() {
             {[1, 2, 3, 6, 12].map(m => <option key={m} value={m}>{m} мес</option>)}
           </select>
           <button onClick={() => grant()} disabled={busy}
-            style={{ height: 36, padding: "0 18px", borderRadius: 9, border: "none", cursor: busy ? "default" : "pointer", fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, opacity: busy ? 0.7 : 1 }}>
+            style={{ height: 36, padding: "0 18px", borderRadius: 9, border: "none", cursor: busy ? "default" : "pointer", fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, opacity: busy ? 0.7 : 1 }}>
             {busy ? "Включаю…" : "Включить"}
           </button>
         </div>
@@ -840,7 +840,7 @@ export default function AdminPage() {
                     <div style={{ fontSize: 12, fontWeight: 600, color: TP, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name}</div>
                     <div style={{ fontSize: 10, color: TM, marginTop: 1 }}>{u.activity} · {ago(u.joined)}</div>
                   </div>
-                  <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 6, background: u.plan === "Pro" ? "rgba(99,102,241,0.15)" : "rgba(255,255,255,0.05)", border: `1px solid ${u.plan === "Pro" ? ACCENT + "40" : BORD}`, color: u.plan === "Pro" ? "#a5b4fc" : TM, fontWeight: 700, flexShrink: 0 }}>{u.plan}</span>
+                  <span style={{ fontSize: 9.5, padding: "2px 7px", borderRadius: 6, background: u.plan === "Pro" ? "rgba(124,58,237,0.15)" : "rgba(255,255,255,0.05)", border: `1px solid ${u.plan === "Pro" ? ACCENT + "40" : BORD}`, color: u.plan === "Pro" ? "#a5b4fc" : TM, fontWeight: 700, flexShrink: 0 }}>{u.plan}</span>
                 </motion.div>
               ))}
             </div>
@@ -849,7 +849,7 @@ export default function AdminPage() {
 
         {/* ── Quick facts ── */}
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}
-          style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.18)", display: "flex", flexWrap: "wrap", gap: 24 }}>
+          style={{ padding: "16px 20px", borderRadius: 14, background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.18)", display: "flex", flexWrap: "wrap", gap: 24 }}>
           {[
             { label: "Новых сегодня",      value: `+${stats.users.new_today}`,      color: SUC },
             { label: "Новых за неделю",    value: `+${stats.users.new_week}`,       color: ACCENT },

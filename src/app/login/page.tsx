@@ -126,7 +126,7 @@ function LoginForm() {
     color: "#fff", fontSize: 14, outline: "none",
     transition: "border-color 0.15s, box-shadow 0.15s",
   };
-  const onFocus = (e: React.FocusEvent<HTMLInputElement>) => { e.currentTarget.style.borderColor = "rgba(99,102,241,0.55)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)"; };
+  const onFocus = (e: React.FocusEvent<HTMLInputElement>) => { e.currentTarget.style.borderColor = "rgba(124,58,237,0.55)"; e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.1)"; };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)"; e.currentTarget.style.boxShadow = "none"; };
 
   return (
@@ -134,7 +134,7 @@ function LoginForm() {
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
       {/* Мягкое амбиентное свечение — единственный декоративный элемент */}
-      <div aria-hidden style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: 640, height: 640, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.09), transparent 70%)", filter: "blur(70px)", pointerEvents: "none" }} />
+      <div aria-hidden style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: 640, height: 640, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,58,237,0.09), transparent 70%)", filter: "blur(70px)", pointerEvents: "none" }} />
 
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -143,7 +143,7 @@ function LoginForm() {
       >
         {/* Бренд */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 28 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 4px 16px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
+          <div style={{ width: 38, height: 38, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 4px 16px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" aria-hidden>
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
@@ -216,7 +216,7 @@ function LoginForm() {
             )}
 
             <button type="submit" disabled={!!loading}
-              style={{ height: 48, borderRadius: 12, border: "none", cursor: loading ? "default" : "pointer", background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 14.5, fontWeight: 700, boxShadow: "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 2 }}>
+              style={{ height: 48, borderRadius: 12, border: "none", cursor: loading ? "default" : "pointer", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", fontSize: 14.5, fontWeight: 700, boxShadow: "0 6px 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.16)", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 2 }}>
               {loading === "credentials"
                 ? <span style={{ width: 15, height: 15, border: "2px solid rgba(255,255,255,0.3)", borderTopColor: "#fff", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
                 : (needsTotp ? "Confirm 2FA code" : "Sign in")}
@@ -232,7 +232,7 @@ function LoginForm() {
                 : "Continue as guest"}
             </button>
             <button type="button" onClick={handlePasskey} disabled={!!loading}
-              style={{ flex: 1, height: 42, borderRadius: 11, border: "1px solid rgba(99,102,241,0.28)", background: "rgba(99,102,241,0.07)", color: "#c7d2fe", fontSize: 12.5, fontWeight: 600, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              style={{ flex: 1, height: 42, borderRadius: 11, border: "1px solid rgba(124,58,237,0.28)", background: "rgba(124,58,237,0.07)", color: "#c7d2fe", fontSize: 12.5, fontWeight: 600, cursor: loading ? "default" : "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
               {loading === "passkey"
                 ? <span style={{ width: 13, height: 13, border: "2px solid rgba(199,210,254,0.35)", borderTopColor: "#c7d2fe", borderRadius: "50%", animation: "spin 0.7s linear infinite" }} />
                 : "Use a passkey"}

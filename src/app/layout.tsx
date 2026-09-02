@@ -1,6 +1,6 @@
 import { AcquisitionCapture } from "@/components/AcquisitionCapture";
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Manrope, Inter, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "@/components/SessionProvider";
@@ -8,14 +8,25 @@ import { PostHogProvider } from "@/components/PostHogProvider";
 import { CookieBanner } from "@/components/CookieBanner";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 
-const geistSans = Geist({
+// Variable names kept as --font-geist-sans / --font-geist-mono (legacy) even
+// though the fonts are now Inter/JetBrains Mono — hundreds of inline
+// `fontFamily: "var(--font-geist-mono), ..."` references across the app pick
+// up the new typefaces automatically without touching every call site.
+const geistSans = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
 });
 
-const geistMono = Geist_Mono({
+const geistMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Headings only (see globals.css h1–h6 rule). New variable, not a legacy alias.
+const manrope = Manrope({
+  variable: "--font-heading",
+  subsets: ["latin"],
+  weight: ["600", "700", "800"],
 });
 
 export const viewport: Viewport = {
@@ -79,7 +90,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${manrope.variable} antialiased`}
     >
       <head>
         <meta name="mobile-web-app-capable" content="yes" />

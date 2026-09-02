@@ -38,7 +38,7 @@ export function verificationEmailHtml(link: string): string {
       Thanks for signing up for Vertlix AI. Confirm your email to activate your account:
     </p>
     <p style="margin:20px 0">
-      <a href="${link}" style="display:inline-block;padding:11px 20px;border-radius:10px;background:#4f46e5;color:#fff;font-weight:600;font-size:14px;text-decoration:none">
+      <a href="${link}" style="display:inline-block;padding:11px 20px;border-radius:10px;background:#6D28D9;color:#fff;font-weight:600;font-size:14px;text-decoration:none">
         Confirm email
       </a>
     </p>

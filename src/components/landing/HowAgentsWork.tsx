@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence, useInView } from "framer-motion";
 
-const RGB = "99,102,241";
+const RGB = "124,58,237";
 
 // ─── Boardroom script ─────────────────────────────────────────────────────────
 type Msg = {
@@ -39,7 +39,7 @@ const STANCE_STYLE: Record<string, { bg: string; color: string }> = {
   "FOR":     { bg: "rgba(16,185,129,0.14)",  color: "#34d399" },
   "AGAINST": { bg: "rgba(239,68,68,0.14)",   color: "#f87171" },
   "RISK":    { bg: "rgba(245,158,11,0.14)",  color: "#fbbf24" },
-  "DATA":    { bg: "rgba(99,102,241,0.14)",  color: "#a5b4fc" },
+  "DATA":    { bg: "rgba(124,58,237,0.14)",  color: "#a5b4fc" },
 };
 
 // ─── Section ──────────────────────────────────────────────────────────────────
@@ -212,7 +212,7 @@ export function HowAgentsWork() {
                   style={{ margin: "8px 0 12px", borderRadius: 16, padding: "18px 18px 16px", background: `rgba(${RGB},0.08)`, border: `1px solid rgba(${RGB},0.35)`, boxShadow: `0 8px 32px rgba(${RGB},0.12)` }}
                 >
                   <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-                    <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px rgba(${RGB},0.4)` }}>
+                    <div style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 14px rgba(${RGB},0.4)` }}>
                       <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" width="15" height="15"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     </div>
                     <div style={{ flex: 1 }}>

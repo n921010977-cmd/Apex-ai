@@ -22,7 +22,7 @@ const EXECUTIVES_STATUS = [
   { role: "CMO", title: "Chief Marketing Officer", status: "complete", color: "#10b981" },
   { role: "Analyst", title: "Business Analyst", status: "complete", color: "#f59e0b" },
   { role: "COO", title: "Chief Operations Officer", status: "complete", color: "#ec4899" },
-  { role: "Sales", title: "Sales Director", status: "complete", color: "#6366f1" },
+  { role: "Sales", title: "Sales Director", status: "complete", color: "#7C3AED" },
   { role: "Legal", title: "Legal Advisor", status: "complete", color: "#6b7280" },
   { role: "CTO", title: "Chief Technology Officer", status: "complete", color: "#a855f7" },
 ];

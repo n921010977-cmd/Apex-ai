@@ -21,9 +21,9 @@ const S = {
   textPrimary: "#E5E7EB",
   textSecondary: "rgba(255,255,255,0.5)",
   textMuted: "rgba(255,255,255,0.3)",
-  accent: "#6366f1",
-  accentDark: "#4f46e5",
-  violet: "#8b5cf6",
+  accent: "#7C3AED",
+  accentDark: "#6D28D9",
+  violet: "#D946EF",
   success: "#10b981",
   warning: "#f59e0b",
   danger: "#ef4444",
@@ -123,7 +123,7 @@ function ScoreRing({ score, size = 64 }: { score: number; size?: number }) {
 function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = false): string {
   const esc = (s: string) => String(s ?? "").replace(/[&<>]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" }[c] as string));
   const score = r.score ?? 78;
-  const scoreColor = score >= 85 ? "#10b981" : score >= 70 ? "#6366f1" : "#f59e0b";
+  const scoreColor = score >= 85 ? "#10b981" : score >= 70 ? "#7C3AED" : "#f59e0b";
   const seed = (n: number) => Math.abs(Math.round(Math.sin(score * n) * 12)); // deterministic jitter
 
   // ── Derived analytics ──
@@ -189,7 +189,7 @@ function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = fa
   h1{font-size:27px;font-weight:800;letter-spacing:-.02em;color:#fff;margin:8px 0 6px;max-width:600px}
   .head{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;padding-bottom:24px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:26px}
   .chips{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-  .chip{font-size:11px;padding:3px 10px;border-radius:6px;background:rgba(99,102,241,.12);color:#818cf8;border:1px solid rgba(99,102,241,.25);font-weight:600}
+  .chip{font-size:11px;padding:3px 10px;border-radius:6px;background:rgba(124,58,237,.12);color:#818cf8;border:1px solid rgba(124,58,237,.25);font-weight:600}
   .chip.ok{background:rgba(16,185,129,.12);color:#34d399;border-color:rgba(16,185,129,.25)}
   /* gauge */
   .gwrap{text-align:center;flex-shrink:0}
@@ -197,7 +197,7 @@ function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = fa
   @keyframes gauge{to{stroke-dasharray:var(--dash) 999}}
   .gl{font-size:10px;color:rgba(255,255,255,.35);margin-top:4px;letter-spacing:.1em}
   h2.block{font-size:12px;font-weight:800;color:#818cf8;letter-spacing:.16em;text-transform:uppercase;margin:34px 0 14px;padding-bottom:8px;border-bottom:1px solid rgba(129,140,248,.18)}
-  .summary{background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.22);border-radius:14px;padding:18px 20px;font-size:14px;color:rgba(255,255,255,.75)}
+  .summary{background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.22);border-radius:14px;padding:18px 20px;font-size:14px;color:rgba(255,255,255,.75)}
   /* facts */
   .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
   .cell{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:13px 14px}
@@ -207,7 +207,7 @@ function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = fa
   .cat{display:grid;grid-template-columns:210px 1fr 44px;gap:12px;align-items:center;margin-bottom:10px}
   .cat .l{font-size:12px;color:rgba(255,255,255,.55)}
   .cat .track{height:7px;border-radius:99px;background:rgba(255,255,255,.06);overflow:hidden}
-  .cat .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(99,102,241,.5),#6366f1);width:0;animation:fill 1.3s cubic-bezier(.22,1,.36,1) forwards}
+  .cat .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,rgba(124,58,237,.5),#7C3AED);width:0;animation:fill 1.3s cubic-bezier(.22,1,.36,1) forwards}
   @keyframes fill{to{width:var(--w)}}
   .cat .n{font-size:12px;font-weight:800;color:#a5b4fc;text-align:right;font-variant-numeric:tabular-nums}
   /* chart */
@@ -269,8 +269,8 @@ function buildReportHtml(r: Report & { report_sections?: any[] }, autoPrint = fa
   <div class="chart fade">
     <svg width="100%" viewBox="0 0 ${W} ${H}">
       ${[0, 25, 50, 75, 100].map(g => `<line x1="${PX}" y1="${toY(g)}" x2="${W - 12}" y2="${toY(g)}" stroke="rgba(255,255,255,.05)"/>`).join("")}
-      <path class="area" d="${area}" fill="rgba(99,102,241,.12)"/>
-      <path class="line" d="${line}" fill="none" stroke="#6366f1" stroke-width="2.4" stroke-linecap="round"/>
+      <path class="area" d="${area}" fill="rgba(124,58,237,.12)"/>
+      <path class="line" d="${line}" fill="none" stroke="#7C3AED" stroke-width="2.4" stroke-linecap="round"/>
       ${[0, 6, 12].map(i => `<circle cx="${toX(i)}" cy="${toY(pts[i])}" r="3.5" fill="#05060A" stroke="#818cf8" stroke-width="2"/>`).join("")}
       <text x="${toX(0)}" y="${H - 6}" fill="rgba(255,255,255,.35)" font-size="10">start</text>
       <text x="${toX(6) - 14}" y="${H - 6}" fill="rgba(255,255,255,.35)" font-size="10">18 mo</text>
@@ -353,7 +353,7 @@ function ReportCard({ report, index, onSelect, selected, onView, onPdf }: { repo
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6, flexWrap: "wrap" }}>
-            <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(99,102,241,0.1)", color: S.accent, border: `1px solid ${S.accent}22`, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{report.type}</span>
+            <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(124,58,237,0.1)", color: S.accent, border: `1px solid ${S.accent}22`, textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 700 }}>{report.type}</span>
             {isCompleted ? (
               <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(16,185,129,0.1)", color: S.success, border: `1px solid ${S.success}22`, fontWeight: 700 }}>✓ Ready</span>
             ) : (
@@ -511,10 +511,10 @@ export default function ReportsPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16, marginBottom: 28 }}>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
-              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(99,102,241,0.1)", border: `1px solid ${S.accent}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(124,58,237,0.1)", border: `1px solid ${S.accent}33`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <FileText size={18} color={S.accent} />
               </div>
-              <span className="term-mono" style={{ fontSize: 10.5, color: "rgba(99,102,241,0.7)", textTransform: "uppercase", letterSpacing: "0.16em" }}>// research hub</span>
+              <span className="term-mono" style={{ fontSize: 10.5, color: "rgba(124,58,237,0.7)", textTransform: "uppercase", letterSpacing: "0.16em" }}>// research hub</span>
             </div>
             <h1 className="term-mono" style={{ fontSize: "clamp(22px,4vw,30px)", fontWeight: 800, letterSpacing: "0.01em", margin: 0 }}>REPORTS<span style={{ color: "rgba(255,255,255,0.25)" }}>_</span>ARCHIVE</h1>
             <p className="term-mono" style={{ fontSize: 11, color: S.textSecondary, marginTop: 8, letterSpacing: "0.04em" }}>// AI analysis of ideas, markets, and strategies</p>
@@ -578,8 +578,8 @@ export default function ReportsPage() {
             {/* Example banner — only when the user has no real reports */}
             {!loading && isDemo && (
               <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "13px 16px", marginBottom: 14, borderRadius: 14,
-                background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.22)" }}>
-                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a5b4fc", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>Example</span>
+                background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.22)" }}>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#a5b4fc", background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.3)", borderRadius: 6, padding: "3px 8px", flexShrink: 0 }}>Example</span>
                 <span style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.6)", lineHeight: 1.5 }}>
                   These are demo reports. Run an analysis — your reports will appear here.
                 </span>
@@ -646,7 +646,7 @@ export default function ReportsPage() {
                 <motion.div key="placeholder" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="rp-card"
                   style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center", minHeight: 180, gap: 12 }}
                 >
-                  <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(99,102,241,0.08)", border: `1px solid ${S.accent}22`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <div style={{ width: 44, height: 44, borderRadius: 12, background: "rgba(124,58,237,0.08)", border: `1px solid ${S.accent}22`, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Eye size={20} color={S.accent} />
                   </div>
                   <span style={{ fontSize: 13, color: S.textMuted }}>Select a report to view details</span>

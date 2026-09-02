@@ -271,7 +271,7 @@ function OrgMap({ routed, depts, phase, selected, onSelect }: { routed: string[]
       <svg viewBox="0 0 100 100" className="cc-map-svg">
         <defs>
           <radialGradient id="cc-core" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#a5b4fc" stopOpacity="0.9" /><stop offset="50%" stopColor="#6366f1" stopOpacity="0.3" /><stop offset="100%" stopColor="#4f46e5" stopOpacity="0" />
+            <stop offset="0%" stopColor="#a5b4fc" stopOpacity="0.9" /><stop offset="50%" stopColor="#7C3AED" stopOpacity="0.3" /><stop offset="100%" stopColor="#6D28D9" stopOpacity="0" />
           </radialGradient>
         </defs>
         {/* links */}
@@ -332,11 +332,11 @@ function OrgMap({ routed, depts, phase, selected, onSelect }: { routed: string[]
 function CcStyles() {
   return (
     <style jsx global>{`
-      .cc-root { background: radial-gradient(1200px 600px at 50% -10%, rgba(99,102,241,0.08), transparent 60%), #05060A; min-height: 100%; }
+      .cc-root { background: radial-gradient(1200px 600px at 50% -10%, rgba(124,58,237,0.08), transparent 60%), #05060A; min-height: 100%; }
       .cc-wrap { max-width: 1200px; margin: 0 auto; padding: 24px 24px 60px; }
       .cc-header { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
       .cc-brand { display: flex; align-items: center; gap: 12px; }
-      .cc-brand-mark { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 16px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
+      .cc-brand-mark { width: 34px; height: 34px; border-radius: 10px; display: flex; align-items: center; justify-content: center; color: #fff; background: linear-gradient(135deg, #7C3AED, #6D28D9); box-shadow: 0 4px 16px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.2); }
       .cc-brand-name { font-size: 19px; font-weight: 800; letter-spacing: -0.02em; color: #E5E7EB; }
       .cc-brand-sub { font-size: 11.5px; color: rgba(255,255,255,0.42); margin-top: 1px; }
       .cc-status { display: inline-flex; align-items: center; gap: 7px; font-family: var(--font-geist-mono), monospace; font-size: 10px; letter-spacing: 0.1em; color: rgba(255,255,255,0.6); padding: 7px 12px; border-radius: 9px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.07); }
@@ -344,14 +344,14 @@ function CcStyles() {
       .cc-tabs { display: flex; gap: 2px; padding: 3px; border-radius: 11px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.07); }
       .cc-tabs button { position: relative; padding: 7px 15px; border-radius: 8px; border: none; background: none; cursor: pointer; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.5); transition: color .18s; }
       .cc-tabs button.on { color: #fff; }
-      .cc-tab-pill { position: absolute; inset: 0; border-radius: 8px; background: rgba(99,102,241,0.25); border: 1px solid rgba(99,102,241,0.4); z-index: -1; }
+      .cc-tab-pill { position: absolute; inset: 0; border-radius: 8px; background: rgba(124,58,237,0.25); border: 1px solid rgba(124,58,237,0.4); z-index: -1; }
       .cc-status-dot { width: 6px; height: 6px; border-radius: 50%; animation: cc-pulse 2s infinite; }
 
-      .cc-goal { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 56px; border-radius: 15px; background: rgba(255,255,255,0.04); border: 1px solid rgba(99,102,241,0.28); box-shadow: 0 0 0 4px rgba(99,102,241,0.06), 0 12px 40px rgba(0,0,0,0.3); transition: border-color .18s, box-shadow .18s; }
-      .cc-goal:focus-within { border-color: rgba(99,102,241,0.6); box-shadow: 0 0 0 4px rgba(99,102,241,0.12), 0 12px 40px rgba(0,0,0,0.3); }
+      .cc-goal { display: flex; align-items: center; gap: 10px; padding: 0 16px; height: 56px; border-radius: 15px; background: rgba(255,255,255,0.04); border: 1px solid rgba(124,58,237,0.28); box-shadow: 0 0 0 4px rgba(124,58,237,0.06), 0 12px 40px rgba(0,0,0,0.3); transition: border-color .18s, box-shadow .18s; }
+      .cc-goal:focus-within { border-color: rgba(124,58,237,0.6); box-shadow: 0 0 0 4px rgba(124,58,237,0.12), 0 12px 40px rgba(0,0,0,0.3); }
       .cc-goal input { flex: 1; min-width: 0; background: none; border: none; outline: none; color: #E5E7EB; font-size: 15.5px; }
       .cc-goal input::placeholder { color: rgba(255,255,255,0.3); }
-      .cc-goal button { flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 18px; border-radius: 11px; border: none; cursor: pointer; font-size: 13.5px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 14px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18); transition: transform .15s, opacity .15s; }
+      .cc-goal button { flex-shrink: 0; display: inline-flex; align-items: center; gap: 7px; height: 40px; padding: 0 18px; border-radius: 11px; border: none; cursor: pointer; font-size: 13.5px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #7C3AED, #6D28D9); box-shadow: 0 4px 14px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.18); transition: transform .15s, opacity .15s; }
       .cc-goal button:hover:not(:disabled) { transform: translateY(-1px); }
       .cc-goal button:disabled { opacity: 0.6; cursor: not-allowed; }
       .cc-dots { display: inline-flex; gap: 4px; } .cc-dots i { width: 5px; height: 5px; border-radius: 50%; background: #fff; animation: cc-blink 1s infinite; }
@@ -371,7 +371,7 @@ function CcStyles() {
       .cc-node-ring { position: relative; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
       .cc-node-ring svg { position: absolute; inset: 0; width: 100%; height: 100%; }
       .cc-node-av { width: 30px; height: 30px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-family: var(--font-geist-mono), monospace; font-size: 9px; font-weight: 800; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2); }
-      .cc-ceo-node { width: 46px; height: 46px; border-radius: 13px; font-size: 13px; box-shadow: 0 0 24px rgba(99,102,241,0.5), inset 0 1px 0 rgba(255,255,255,0.25); }
+      .cc-ceo-node { width: 46px; height: 46px; border-radius: 13px; font-size: 13px; box-shadow: 0 0 24px rgba(124,58,237,0.5), inset 0 1px 0 rgba(255,255,255,0.25); }
       .cc-node-label { font-size: 8.5px; color: rgba(255,255,255,0.5); white-space: nowrap; }
       .cc-node.on .cc-node-label { color: rgba(255,255,255,0.75); }
       .cc-node:hover:not(.cc-node-ceo) .cc-node-av { transform: translateY(-1px); }
@@ -385,13 +385,13 @@ function CcStyles() {
       .cc-map-stats b { font-variant-numeric: tabular-nums; }
 
       .cc-ceo { display: flex; align-items: center; gap: 11px; margin-bottom: 14px; }
-      .cc-ceo-av { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: var(--font-geist-mono), monospace; font-size: 13px; font-weight: 800; color: #fff; box-shadow: 0 0 20px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.25); }
+      .cc-ceo-av { width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-family: var(--font-geist-mono), monospace; font-size: 13px; font-weight: 800; color: #fff; box-shadow: 0 0 20px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.25); }
       .cc-ceo-name { font-size: 15px; font-weight: 800; color: #fff; }
       .cc-ceo-phase { font-size: 11.5px; color: #a5b4fc; }
       .cc-block { border-radius: 12px; background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.06); padding: 12px 14px; margin-bottom: 12px; }
       .cc-block-label { font-family: var(--font-geist-mono), monospace; font-size: 9px; letter-spacing: 0.1em; color: rgba(255,255,255,0.35); margin-bottom: 6px; }
       .cc-block p, .cc-result p { font-size: 13px; line-height: 1.6; color: rgba(255,255,255,0.8); margin: 0; white-space: pre-wrap; }
-      .cc-result { border-radius: 14px; background: linear-gradient(180deg, rgba(99,102,241,0.1), rgba(99,102,241,0.02)); border: 1px solid rgba(99,102,241,0.3); padding: 14px 16px; }
+      .cc-result { border-radius: 14px; background: linear-gradient(180deg, rgba(124,58,237,0.1), rgba(124,58,237,0.02)); border: 1px solid rgba(124,58,237,0.3); padding: 14px 16px; }
       .cc-result-label { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-geist-mono), monospace; font-size: 9.5px; letter-spacing: 0.1em; color: #a5b4fc; margin-bottom: 8px; }
       .cc-cursor { display: inline-block; width: 6px; height: 13px; margin-left: 2px; border-radius: 1px; background: #818cf8; vertical-align: text-bottom; animation: cc-caret 1s step-end infinite; }
       .cc-offline { font-family: var(--font-geist-mono), monospace; font-size: 9.5px; color: rgba(251,191,36,0.8); margin-top: 10px; }

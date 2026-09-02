@@ -123,7 +123,7 @@ export default function ReportDetailPage() {
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="term-mono"
         style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 11, color: "rgba(255,255,255,0.35)", marginBottom: 12 }}>
         <Link href="/dashboard/reports" style={{ color: "rgba(255,255,255,0.35)", textDecoration: "none" }}>reports</Link>
-        <span style={{ color: "rgba(99,102,241,0.6)" }}>/</span>
+        <span style={{ color: "rgba(124,58,237,0.6)" }}>/</span>
         <span style={{ color: "rgba(255,255,255,0.7)" }}>q2-growth-strategy</span>
       </motion.div>
 
@@ -133,7 +133,7 @@ export default function ReportDetailPage() {
         <div>
           <h1 style={{ fontSize: 27, fontWeight: 800, color: "#fff", letterSpacing: "-0.02em", margin: "0 0 10px" }}>{title}</h1>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <span className="term-mono" style={{ fontSize: 10, padding: "4px 10px", borderRadius: 7, background: "rgba(99,102,241,.1)", border: "1px solid rgba(99,102,241,.28)", color: "#a5b4fc" }}>E-commerce Expansion</span>
+            <span className="term-mono" style={{ fontSize: 10, padding: "4px 10px", borderRadius: 7, background: "rgba(124,58,237,.1)", border: "1px solid rgba(124,58,237,.28)", color: "#a5b4fc" }}>E-commerce Expansion</span>
             <span className="term-mono" style={{ fontSize: 10, padding: "4px 10px", borderRadius: 7, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.09)", color: "rgba(255,255,255,.5)" }}>Создан 10 июля 2026</span>
             <span className="term-mono" style={{ fontSize: 10, padding: "4px 10px", borderRadius: 7, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.09)", color: "rgba(255,255,255,.5)" }}>AI-команда · 20 агентов</span>
             <span className="term-mono" style={{ fontSize: 10, padding: "4px 10px", borderRadius: 7, background: "rgba(16,185,129,.1)", border: "1px solid rgba(16,185,129,.3)", color: "#34d399" }}>✓ Завершён</span>
@@ -143,7 +143,7 @@ export default function ReportDetailPage() {
           <button onClick={() => window.print()} style={{ display: "flex", alignItems: "center", gap: 7, height: 36, padding: "0 15px", borderRadius: 10, background: "rgba(255,255,255,.04)", border: "1px solid rgba(255,255,255,.1)", color: "rgba(255,255,255,.65)", fontSize: 12, fontWeight: 600, cursor: "pointer" }}>
             <Download size={13} /> Экспорт
           </button>
-          <Link href="/dashboard/new" style={{ display: "flex", alignItems: "center", gap: 7, height: 36, padding: "0 15px", borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 12, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(99,102,241,.3)" }}>
+          <Link href="/dashboard/new" style={{ display: "flex", alignItems: "center", gap: 7, height: 36, padding: "0 15px", borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", fontSize: 12, fontWeight: 700, textDecoration: "none", boxShadow: "0 4px 14px rgba(124,58,237,.3)" }}>
             <Plus size={13} /> Новый отчёт
           </Link>
         </div>
@@ -155,7 +155,7 @@ export default function ReportDetailPage() {
           <button key={t} onClick={() => scrollTo(i)} style={{
             padding: "10px 16px", fontSize: 12.5, fontWeight: 600, border: "none", background: "transparent", cursor: "pointer", whiteSpace: "nowrap",
             color: tab === i ? "#fff" : "rgba(255,255,255,0.35)",
-            borderBottom: tab === i ? "2px solid #6366f1" : "2px solid transparent", marginBottom: -1,
+            borderBottom: tab === i ? "2px solid #7C3AED" : "2px solid transparent", marginBottom: -1,
           }}>{t}</button>
         ))}
       </div>
@@ -234,7 +234,7 @@ export default function ReportDetailPage() {
                 </div>
               </div>
               {/* action */}
-              <div style={{ padding: "16px 18px", borderRadius: 14, background: "rgba(99,102,241,.06)", border: "1px solid rgba(99,102,241,.25)" }}>
+              <div style={{ padding: "16px 18px", borderRadius: 14, background: "rgba(124,58,237,.06)", border: "1px solid rgba(124,58,237,.25)" }}>
                 <div className="term-mono" style={{ fontSize: 9, letterSpacing: ".14em", color: "rgba(255,255,255,.4)", marginBottom: 6 }}>РЕКОМЕНДУЕМОЕ ДЕЙСТВИЕ</div>
                 <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 8 }}>Продолжить экспансию</div>
                 <div style={{ fontSize: 11.5, color: "rgba(255,255,255,.45)", marginBottom: 10 }}>Внедрить 90-дневный план с приоритетом на:</div>

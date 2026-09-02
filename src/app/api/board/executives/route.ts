@@ -9,7 +9,7 @@ const EXECUTIVES = [
     name: "Sophia Rivers",
     title: "Chief Executive Officer",
     emoji: "👑",
-    color: "#6366f1",
+    color: "#7C3AED",
     model: MODEL_HEAVY,
     description: "Стратегическое руководство, принятие ключевых решений и управление исполнительной командой.",
     expertise: ["Стратегия", "Лидерство", "M&A", "Инвесторы", "Культура"],

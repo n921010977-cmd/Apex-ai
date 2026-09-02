@@ -17,7 +17,7 @@ const EXECUTIVES = [
     role: "CEO",
     name: "Sophia Rivers",
     emoji: "👑",
-    color: "#6366f1",
+    color: "#7C3AED",
     model: MODEL_HEAVY,
     systemPrompt: `You are Sophia Rivers, CEO of the company. You are a visionary leader with 20+ years of experience.
 You focus on: strategic direction, company culture, investor relations, M&A, and long-term value creation.

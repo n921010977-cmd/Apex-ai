@@ -12,8 +12,8 @@ import { trackEvent } from "@/lib/track-client";
 // куплен вовсе) — вместо инструмента показываем экран с замком и апселлом на
 // нужный тариф. Логика доступа — единая, из src/lib/plans.ts.
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 
 const FEATURE_TITLE: Record<keyof PlanFeatures, string> = {
   pitchDeck: "Investor pitch deck",
@@ -61,7 +61,7 @@ export function PlanGate({
           style={{
             width: 64, height: 64, borderRadius: 18, margin: "0 auto 20px",
             display: "flex", alignItems: "center", justifyContent: "center",
-            background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`,
+            background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)`,
             boxShadow: `0 12px 32px rgba(${RGB},0.4), inset 0 1px 0 rgba(255,255,255,0.2)`,
           }}
         >
@@ -95,7 +95,7 @@ export function PlanGate({
             display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
             height: 50, padding: "0 28px", borderRadius: 13,
             fontSize: 15, fontWeight: 700, textDecoration: "none", color: "#fff",
-            background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`,
+            background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)`,
             boxShadow: `0 8px 24px rgba(${RGB},0.4), inset 0 1px 0 rgba(255,255,255,0.16)`,
           }}
         >

@@ -14,8 +14,8 @@ import { PaymentFlowNote } from "@/components/dashboard/PaymentFlowNote";
 // обработка возврата с оплаты (?paid=1 — ждём подтверждения webhook’ом), живые
 // счётчики расхода лимитов текущего тарифа и подсказка апгрейда у лимита.
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const FEATURE_ROWS: { key: keyof PlanFeatures; label: string }[] = [
@@ -182,7 +182,7 @@ export default function BillingPage() {
         {pay === "pending" && (
           <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
             style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 14, marginBottom: 20,
-              background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.3)" }}>
+              background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.3)" }}>
             <Loader2 size={18} style={{ color: "#a5b4fc", animation: "spin 1s linear infinite" }} />
             <div>
               <div style={{ fontSize: 14, fontWeight: 700, color: "#fff" }}>Confirming your payment on-chain…</div>
@@ -237,7 +237,7 @@ export default function BillingPage() {
                 You\u2019re close to your plan limit. <b style={{ color: "#fff" }}>{nextPlan.name}</b> has much higher limits.
               </div>
               <button onClick={() => choose(nextPlan)} disabled={busy !== null}
-                style={{ flexShrink: 0, height: 36, padding: "0 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#4f46e5)` }}>
+                style={{ flexShrink: 0, height: 36, padding: "0 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#6D28D9)` }}>
                 Upgrade to {nextPlan.name}
               </button>
             </div>
@@ -257,7 +257,7 @@ export default function BillingPage() {
                 border: isCurrent ? "1px solid rgba(52,211,153,0.5)" : hot ? `1px solid rgba(${RGB},0.5)` : "1px solid rgba(255,255,255,0.08)",
                 boxShadow: hot ? `0 12px 40px rgba(${RGB},0.2)` : "0 1px 2px rgba(0,0,0,0.4), 0 8px 32px rgba(0,0,0,0.18)" }}>
               {hot && (
-                <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 14px", borderRadius: 999, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, color: "#fff", whiteSpace: "nowrap", boxShadow: `0 4px 14px rgba(${RGB},0.5)` }}>Popular</div>
+                <div style={{ position: "absolute", top: -13, left: "50%", transform: "translateX(-50%)", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", padding: "5px 14px", borderRadius: 999, background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, color: "#fff", whiteSpace: "nowrap", boxShadow: `0 4px 14px rgba(${RGB},0.5)` }}>Popular</div>
               )}
               <div style={{ fontSize: 15, fontWeight: 700, color: "#fff", marginTop: hot ? 8 : 0 }}>{plan.name}</div>
               <div style={{ fontSize: 12.5, color: "rgba(255,255,255,0.45)", marginTop: 3, minHeight: 34 }}>{plan.tagline}</div>
@@ -267,7 +267,7 @@ export default function BillingPage() {
               </div>
               <button onClick={() => choose(plan)} disabled={busy !== null}
                 style={{ width: "100%", height: 46, borderRadius: 12, border: "none", cursor: "pointer", fontSize: 14, fontWeight: 700, color: "#fff",
-                  background: isCurrent ? "rgba(52,211,153,0.15)" : hot ? `linear-gradient(135deg,${ACCENT},#4f46e5)` : "rgba(255,255,255,0.08)",
+                  background: isCurrent ? "rgba(52,211,153,0.15)" : hot ? `linear-gradient(135deg,${ACCENT},#6D28D9)` : "rgba(255,255,255,0.08)",
                   boxShadow: hot && !isCurrent ? `0 6px 20px rgba(${RGB},0.35)` : "none", opacity: busy && busy !== plan.id ? 0.5 : 1 }}>
                 {busy === plan.id ? "Opening payment…" : isCurrent ? "Renew · current plan" : `Choose ${plan.name}`}
               </button>
@@ -290,7 +290,7 @@ export default function BillingPage() {
           <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 560 }}>
             <thead>
               <tr>
-                <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>What\u2019s included</th>
+                <th style={{ textAlign: "left", padding: "16px 20px", fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)" }}>What's included</th>
                 {PLANS.map(p => (
                   <th key={p.id} style={{ padding: "16px 12px", fontSize: 13.5, fontWeight: 700, color: p.highlight ? "#c7d2fe" : "#fff", textAlign: "center" }}>
                     {p.name}<br /><span style={{ fontSize: 12, fontWeight: 500, color: "rgba(255,255,255,0.4)" }}>${p.priceMonthly}</span>

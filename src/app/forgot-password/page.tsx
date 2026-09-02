@@ -27,7 +27,7 @@ export default function ForgotPasswordPage() {
     <div style={{ minHeight: "100dvh", background: "#05060A", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }}>
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={CARD}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-          <span style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
+          <span style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 18px rgba(124,58,237,0.4)" }}>
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           </span>
           <span style={{ fontFamily: "var(--font-geist-mono), monospace", fontSize: 14, fontWeight: 700, color: "#fff" }}>VERTLIX AI</span>
@@ -49,10 +49,10 @@ export default function ForgotPasswordPage() {
             </p>
             <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               <input type="email" required value={email} onChange={e => setEmail(e.target.value)} placeholder="you@example.com" style={field}
-                onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")} />
+                onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")} />
               <button type="submit" disabled={busy || !email.trim()}
                 style={{ height: 46, borderRadius: 11, border: "none", cursor: busy || !email.trim() ? "default" : "pointer", fontSize: 14, fontWeight: 700, color: "#fff",
-                  background: busy || !email.trim() ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: busy || !email.trim() ? "none" : "0 6px 20px rgba(99,102,241,0.35)" }}>
+                  background: busy || !email.trim() ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: busy || !email.trim() ? "none" : "0 6px 20px rgba(124,58,237,0.35)" }}>
                 {busy ? "Отправляем…" : "Отправить ссылку"}
               </button>
             </form>

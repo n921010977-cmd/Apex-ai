@@ -10,8 +10,8 @@ import { track, EVENTS } from "@/lib/analytics/events";
 // можно посмотреть тут же и скачать готовым HTML-файлом. Отличие от ChatGPT: не
 // текст в окне, а документ, который открывается как презентация.
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 
 type Metric = { label: string; value: string };
 interface Deck {
@@ -42,7 +42,7 @@ function Editable({ value, onSave, style }: { value: string; onSave: (v: string)
       contentEditable
       suppressContentEditableWarning
       spellCheck={false}
-      onFocus={e => { e.currentTarget.style.background = "rgba(99,102,241,0.14)"; }}
+      onFocus={e => { e.currentTarget.style.background = "rgba(124,58,237,0.14)"; }}
       onBlur={e => {
         e.currentTarget.style.background = "transparent";
         const t = e.currentTarget.innerText.trim();
@@ -141,7 +141,7 @@ function PitchDeckInner() {
     <div style={{ maxWidth: 1000, margin: "0 auto", padding: "28px 24px 80px" }}>
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-        <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 16px rgba(${RGB},0.35)` }}>
+        <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: `0 4px 16px rgba(${RGB},0.35)` }}>
           <Presentation size={20} color="#fff" />
         </div>
         <div>
@@ -227,7 +227,7 @@ function PitchDeckInner() {
 
         <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
           <button onClick={generate} disabled={busy}
-            style={{ display: "flex", alignItems: "center", gap: 9, padding: "11px 20px", borderRadius: 12, border: "none", fontSize: 14, fontWeight: 700, color: "#fff", cursor: busy ? "default" : "pointer", background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, boxShadow: `0 6px 22px rgba(${RGB},0.32)`, opacity: busy ? 0.7 : 1 }}>
+            style={{ display: "flex", alignItems: "center", gap: 9, padding: "11px 20px", borderRadius: 12, border: "none", fontSize: 14, fontWeight: 700, color: "#fff", cursor: busy ? "default" : "pointer", background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, boxShadow: `0 6px 22px rgba(${RGB},0.32)`, opacity: busy ? 0.7 : 1 }}>
             {busy ? <Loader2 size={15} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={15} />}
             {busy ? "Собираю дек…" : deck ? "Пересобрать" : "Собрать питч-дек"}
           </button>
@@ -353,9 +353,9 @@ h2{font-size:clamp(22px,4vw,38px);font-weight:800;letter-spacing:-.02em;line-hei
 .sub{font-size:clamp(15px,2vw,19px);color:rgba(255,255,255,.6);margin-bottom:14px}
 ul{list-style:none;padding:0;display:flex;flex-direction:column;gap:10px;margin-top:8px}
 li{font-size:clamp(14px,1.8vw,18px);line-height:1.5;padding-left:24px;position:relative;color:rgba(255,255,255,.82)}
-li:before{content:"▸";position:absolute;left:0;color:#6366f1}
+li:before{content:"▸";position:absolute;left:0;color:#7C3AED}
 .chips{display:flex;gap:12px;flex-wrap:wrap;margin:8px 0}
-.chips span{font-size:15px;padding:8px 14px;border-radius:10px;background:rgba(99,102,241,.1);border:1px solid rgba(99,102,241,.25);color:#c7d2fe}
+.chips span{font-size:15px;padding:8px 14px;border-radius:10px;background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.25);color:#c7d2fe}
 .amount{font-size:clamp(28px,5vw,48px);font-weight:800;color:#34d399;margin:8px 0}
 .metrics{display:flex;gap:32px;flex-wrap:wrap;margin:12px 0}
 .mv{display:block;font-size:clamp(22px,4vw,36px);font-weight:800;color:#fff}

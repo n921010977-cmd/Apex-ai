@@ -23,7 +23,7 @@ export type TeamMember = {
 
 export const TEAM: TeamMember[] = [
   // ── C-level ──
-  { slug: "ceo", ab: "SR", name: "Sophia Rivers", role: "CEO", title: "Chief Executive Officer", dept: "leadership", tier: "c-level", reportsTo: null,  c: "#6366f1", g: ["#6366f1", "#4f46e5"] },
+  { slug: "ceo", ab: "SR", name: "Sophia Rivers", role: "CEO", title: "Chief Executive Officer", dept: "leadership", tier: "c-level", reportsTo: null,  c: "#7C3AED", g: ["#7C3AED", "#6D28D9"] },
   { slug: "cfo", ab: "MC", name: "Marcus Chen",   role: "CFO", title: "Chief Financial Officer", dept: "finance",    tier: "c-level", reportsTo: "ceo", c: "#3b82f6", g: ["#3b82f6", "#1d4ed8"] },
   { slug: "cmo", ab: "ET", name: "Elena Torres",  role: "CMO", title: "Chief Marketing Officer", dept: "marketing",  tier: "c-level", reportsTo: "ceo", c: "#10b981", g: ["#10b981", "#047857"] },
   { slug: "coo", ab: "JW", name: "James Wright",  role: "COO", title: "Chief Operating Officer", dept: "operations", tier: "c-level", reportsTo: "ceo", c: "#f59e0b", g: ["#f59e0b", "#b45309"] },
@@ -47,7 +47,7 @@ export const TEAM: TeamMember[] = [
   { slug: "product",  ab: "SP", name: "Sara Patel",   role: "Product",  title: "Product Manager",      dept: "product",    tier: "specialist", reportsTo: "cto", c: "#fb923c", g: ["#fb923c", "#c2410c"] },
   { slug: "ux",       ab: "ZC", name: "Zoe Carter",   role: "UX",       title: "UX Researcher",        dept: "product",    tier: "specialist", reportsTo: "cto", c: "#2dd4bf", g: ["#2dd4bf", "#0d9488"] },
   // ── Advisor → CEO ──
-  { slug: "strategy", ab: "DW", name: "Diana Wells",  role: "Strategy", title: "Strategic Advisor",    dept: "leadership", tier: "specialist", reportsTo: "ceo", c: "#818cf8", g: ["#818cf8", "#4f46e5"] },
+  { slug: "strategy", ab: "DW", name: "Diana Wells",  role: "Strategy", title: "Strategic Advisor",    dept: "leadership", tier: "specialist", reportsTo: "ceo", c: "#818cf8", g: ["#818cf8", "#6D28D9"] },
 ];
 
 export const TEAM_BY_SLUG: Record<string, TeamMember> = Object.fromEntries(TEAM.map(m => [m.slug, m]));

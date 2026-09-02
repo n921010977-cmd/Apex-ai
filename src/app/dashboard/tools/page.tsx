@@ -14,8 +14,8 @@ import { INDUSTRIES, industryPromptBlock } from "@/lib/industries";
 // markdown, навигация по секциям, уточнение плана в диалоге (history уходит в
 // /api/chat/direct), экспорт (.md / буфер / Блокнот) и локальная история запусков.
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 
 const HORIZONS = [
   { id: "6", label: "6 months" },
@@ -232,7 +232,7 @@ function Checklist({ md, briefKey }: { md: string; briefKey: string }) {
                   onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.04)")}
                   onMouseLeave={e => (e.currentTarget.style.background = "transparent")}>
                   <span style={{ width: 18, height: 18, borderRadius: 6, flexShrink: 0, marginTop: 1, display: "flex", alignItems: "center", justifyContent: "center",
-                    background: on ? `linear-gradient(135deg,${ACCENT},#4f46e5)` : "rgba(255,255,255,0.04)",
+                    background: on ? `linear-gradient(135deg,${ACCENT},#6D28D9)` : "rgba(255,255,255,0.04)",
                     border: on ? "none" : "1px solid rgba(255,255,255,0.18)" }}>
                     {on && <Check size={12} color="#fff" />}
                   </span>
@@ -539,7 +539,7 @@ function GoalsPlanStudioInner() {
 
             {!busy ? (
               <button onClick={() => run()} disabled={!canRun}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "12px 18px", borderRadius: 12, border: "1px solid transparent", fontSize: 14, fontWeight: 700, color: "#fff", cursor: canRun ? "pointer" : "not-allowed", opacity: canRun ? 1 : 0.5, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`, boxShadow: `0 6px 22px rgba(${RGB},0.32), inset 0 1px 0 rgba(255,255,255,0.16)`, transition: "opacity .15s" }}>
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 9, padding: "12px 18px", borderRadius: 12, border: "1px solid transparent", fontSize: 14, fontWeight: 700, color: "#fff", cursor: canRun ? "pointer" : "not-allowed", opacity: canRun ? 1 : 0.5, background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)`, boxShadow: `0 6px 22px rgba(${RGB},0.32), inset 0 1px 0 rgba(255,255,255,0.16)`, transition: "opacity .15s" }}>
                 <Sparkles size={15} /> Build Plan
                 <kbd style={{ display: "inline-flex", alignItems: "center", gap: 2, padding: "2px 6px", borderRadius: 5, background: "rgba(0,0,0,0.25)", border: "1px solid rgba(255,255,255,0.18)", fontSize: 10, fontWeight: 600 }}>⌘<CornerDownLeft size={9} /></kbd>
               </button>
@@ -630,7 +630,7 @@ function GoalsPlanStudioInner() {
                 onBlur={e => { e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"; }}
               />
               <button onClick={runRefine} disabled={!refine.trim()}
-                style={{ display: "flex", alignItems: "center", gap: 7, padding: "0 16px", borderRadius: 11, border: "1px solid transparent", fontSize: 13, fontWeight: 700, color: "#fff", cursor: refine.trim() ? "pointer" : "not-allowed", opacity: refine.trim() ? 1 : 0.5, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)` }}>
+                style={{ display: "flex", alignItems: "center", gap: 7, padding: "0 16px", borderRadius: 11, border: "1px solid transparent", fontSize: 13, fontWeight: 700, color: "#fff", cursor: refine.trim() ? "pointer" : "not-allowed", opacity: refine.trim() ? 1 : 0.5, background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)` }}>
                 <SendHorizonal size={14} /> Refine
               </button>
             </div>

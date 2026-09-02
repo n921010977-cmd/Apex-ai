@@ -10,7 +10,7 @@ const STEP_MS = 3600; // сколько «выполняется» каждый 
 // ─── Step data ────────────────────────────────────────────────────────────────
 
 const STEPS = [
-  { number: "01", color: "#8b5cf6", rgb: "139,92,246", title: "Describe Your Business",
+  { number: "01", color: "#D946EF", rgb: "217,70,239", title: "Describe Your Business",
     description: "Tell us about your idea, market, or company. Be as specific as you want — our AI understands context and nuance." },
   { number: "02", color: "#22d3ee", rgb: "34,211,238", title: "CEO Delegates Work",
     description: "Your AI CEO analyzes the brief and assigns specialized tasks to each executive — CFO, CMO, COO, CTO, and more." },
@@ -266,8 +266,8 @@ export function HowItWorksSection() {
           100% { left: calc(100% + 6px); opacity: 0; }
         }
         @keyframes hiw-badge-glow {
-          0%, 100% { box-shadow: 0 0 0 0   rgba(139,92,246,0.14), inset 0 0 6px  rgba(139,92,246,0.04); }
-          50%       { box-shadow: 0 0 0 4px rgba(139,92,246,0),   inset 0 0 10px rgba(139,92,246,0.1); }
+          0%, 100% { box-shadow: 0 0 0 0   rgba(217,70,239,0.14), inset 0 0 6px  rgba(217,70,239,0.04); }
+          50%       { box-shadow: 0 0 0 4px rgba(217,70,239,0),   inset 0 0 10px rgba(217,70,239,0.1); }
         }
         @keyframes hiw-dot-blink {
           0%, 100% { opacity: 1;   transform: scale(1);   }
@@ -306,7 +306,7 @@ export function HowItWorksSection() {
       }} />
 
       {/* Ambient glows */}
-      <div aria-hidden style={{ position: "absolute", top: "5%", left: "5%", width: 560, height: 560, background: "radial-gradient(circle, rgba(139,92,246,0.07) 0%, transparent 65%)", filter: "blur(70px)", pointerEvents: "none" }} />
+      <div aria-hidden style={{ position: "absolute", top: "5%", left: "5%", width: 560, height: 560, background: "radial-gradient(circle, rgba(217,70,239,0.07) 0%, transparent 65%)", filter: "blur(70px)", pointerEvents: "none" }} />
       <div aria-hidden style={{ position: "absolute", bottom: "5%", right: "5%", width: 560, height: 560, background: "radial-gradient(circle, rgba(52,211,153,0.06) 0%, transparent 65%)", filter: "blur(70px)", pointerEvents: "none" }} />
 
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
@@ -321,10 +321,10 @@ export function HowItWorksSection() {
         >
           <div style={{
             display: "inline-flex", alignItems: "center", gap: 9, padding: "7px 20px", borderRadius: 999,
-            border: "1px solid rgba(139,92,246,0.42)", background: "rgba(139,92,246,0.07)", marginBottom: 28,
+            border: "1px solid rgba(217,70,239,0.42)", background: "rgba(217,70,239,0.07)", marginBottom: 28,
             animation: "hiw-badge-glow 3s ease-in-out infinite",
           }}>
-            <span style={{ display: "block", width: 5, height: 5, borderRadius: "50%", background: "#8b5cf6", boxShadow: "0 0 8px #8b5cf6", animation: "hiw-dot-blink 2s ease-in-out infinite", flexShrink: 0 }} />
+            <span style={{ display: "block", width: 5, height: 5, borderRadius: "50%", background: "#D946EF", boxShadow: "0 0 8px #D946EF", animation: "hiw-dot-blink 2s ease-in-out infinite", flexShrink: 0 }} />
             <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.22em", textTransform: "uppercase", color: "#c4b5fd" }}>How It Works · Live</span>
           </div>
 

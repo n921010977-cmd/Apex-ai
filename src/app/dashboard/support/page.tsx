@@ -29,7 +29,7 @@ const SERVICES = [
 const AI_SUGGESTIONS = ["How do I create a project?", "How does the AI board work?", "How do I export a report?"];
 
 const STATUS_RU: Record<string, { label: string; color: string; bg: string }> = {
-  open:        { label: "Open",     color: "#6366f1", bg: "rgba(99,102,241,0.1)" },
+  open:        { label: "Open",     color: "#7C3AED", bg: "rgba(124,58,237,0.1)" },
   in_progress: { label: "In Progress", color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
   resolved:    { label: "Resolved", color: "#10b981", bg: "rgba(16,185,129,0.1)" },
   closed:      { label: "Closed",   color: "#94a3b8", bg: "rgba(148,163,184,0.1)" },
@@ -120,7 +120,7 @@ function AIChat() {
   return (
     <div style={{ ...card, display: "flex", flexDirection: "column", height: 420 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "14px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg, #7C3AED, #6D28D9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Bot size={15} color="#fff" />
         </div>
         <div style={{ flex: 1 }}>
@@ -134,7 +134,7 @@ function AIChat() {
       <div style={{ flex: 1, overflowY: "auto", padding: "14px 18px", display: "flex", flexDirection: "column", gap: 10 }}>
         {messages.length === 0 && (
           <div style={{ margin: "auto", textAlign: "center" }}>
-            <Sparkles size={22} style={{ color: "rgba(99,102,241,0.6)", marginBottom: 10 }} />
+            <Sparkles size={22} style={{ color: "rgba(124,58,237,0.6)", marginBottom: 10 }} />
             <div style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", marginBottom: 14 }}>Ask a question — I'll answer right away</div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center" }}>
               {AI_SUGGESTIONS.map(s => (
@@ -150,7 +150,7 @@ function AIChat() {
           <div key={i} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
             <div style={{
               maxWidth: "82%", padding: "9px 13px", borderRadius: 13, fontSize: 12.5, lineHeight: 1.6, whiteSpace: "pre-wrap",
-              background: m.role === "user" ? "linear-gradient(135deg, #6366f1, #4f46e5)" : "rgba(255,255,255,0.05)",
+              background: m.role === "user" ? "linear-gradient(135deg, #7C3AED, #6D28D9)" : "rgba(255,255,255,0.05)",
               border: m.role === "user" ? "none" : "1px solid rgba(255,255,255,0.07)",
               color: m.role === "user" ? "#fff" : "rgba(255,255,255,0.82)",
             }}>
@@ -172,7 +172,7 @@ function AIChat() {
           spellCheck={false}
         />
         <button onClick={() => void send("")} disabled={typing || !input.trim()}
-          style={{ width: 42, height: 40, borderRadius: 12, border: "none", cursor: "pointer", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", opacity: typing || !input.trim() ? 0.5 : 1 }}>
+          style={{ width: 42, height: 40, borderRadius: 12, border: "none", cursor: "pointer", background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", opacity: typing || !input.trim() ? 0.5 : 1 }}>
           {typing ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Send size={14} />}
         </button>
       </div>
@@ -231,7 +231,7 @@ function TicketModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
               We've received your request and will get back to you. You can track its status in the "My Tickets" list.
             </p>
             {result.ai && (
-              <div style={{ padding: "12px 14px", borderRadius: 12, background: "rgba(99,102,241,0.07)", border: "1px solid rgba(99,102,241,0.2)", marginBottom: 14 }}>
+              <div style={{ padding: "12px 14px", borderRadius: 12, background: "rgba(124,58,237,0.07)", border: "1px solid rgba(124,58,237,0.2)", marginBottom: 14 }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, fontWeight: 700, color: "#a5b4fc", marginBottom: 8 }}>
                   <Bot size={12} /> Instant AI Reply
                 </div>
@@ -239,7 +239,7 @@ function TicketModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
               </div>
             )}
             <button onClick={onClose}
-              style={{ padding: "10px 18px", borderRadius: 11, fontSize: 12.5, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer" }}>
+              style={{ padding: "10px 18px", borderRadius: 11, fontSize: 12.5, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", cursor: "pointer" }}>
               Done
             </button>
           </div>
@@ -269,7 +269,7 @@ function TicketModal({ onClose, onCreated }: { onClose: () => void; onCreated: (
                 style={{ ...inputStyle, resize: "none", lineHeight: 1.6 }} />
               {error && <div style={{ fontSize: 12, color: "#f87171" }}>{error}</div>}
               <button onClick={() => void submit()} disabled={loading}
-                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "11px 0", borderRadius: 12, fontSize: 13, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer", opacity: loading ? 0.6 : 1 }}>
+                style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, padding: "11px 0", borderRadius: 12, fontSize: 13, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", cursor: "pointer", opacity: loading ? 0.6 : 1 }}>
                 {loading ? <Loader2 size={14} style={{ animation: "spin 1s linear infinite" }} /> : <Send size={14} />}
                 {loading ? "Sending…" : "Send Ticket"}
               </button>
@@ -327,7 +327,7 @@ export default function SupportPage() {
                   <Ticket size={14} style={{ color: "#818cf8" }} /> My Tickets
                 </div>
                 <button onClick={() => setShowTicket(true)}
-                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 11px", borderRadius: 9, fontSize: 11, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "6px 11px", borderRadius: 9, fontSize: 11, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", cursor: "pointer" }}>
                   <Plus size={11} /> Create
                 </button>
               </div>

@@ -20,11 +20,11 @@ interface Project {
 }
 
 const ROLE_COLOR: Record<string, string> = {
-  CEO: "#8b5cf6", CFO: "#3b82f6", CMO: "#f43f5e", COO: "#10b981", CTO: "#a78bfa",
+  CEO: "#D946EF", CFO: "#3b82f6", CMO: "#f43f5e", COO: "#10b981", CTO: "#a78bfa",
   "Business Analyst": "#f59e0b", "Sales Director": "#fb923c", "Legal Advisor": "#94a3b8",
 };
 const colorOf = (role: string, i: number) =>
-  ROLE_COLOR[role] ?? ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#f43f5e", "#22d3ee", "#a78bfa", "#fb923c"][i % 8];
+  ROLE_COLOR[role] ?? ["#D946EF", "#3b82f6", "#10b981", "#f59e0b", "#f43f5e", "#22d3ee", "#a78bfa", "#fb923c"][i % 8];
 
 // ─── Count-up число ───────────────────────────────────────────────────────────
 function CountUp({ to, suffix = "", duration = 1400, delay = 0 }: { to: number; suffix?: string; duration?: number; delay?: number }) {
@@ -48,13 +48,13 @@ function CountUp({ to, suffix = "", duration = 1400, delay = 0 }: { to: number; 
 // ─── Большой круговой показатель ──────────────────────────────────────────────
 function ScoreGauge({ score }: { score: number }) {
   const R = 82, C = 2 * Math.PI * R;
-  const color = score >= 80 ? "#10b981" : score >= 60 ? "#6366f1" : "#f59e0b";
+  const color = score >= 80 ? "#10b981" : score >= 60 ? "#7C3AED" : "#f59e0b";
   return (
     <div className="sr-gauge">
       <svg width="220" height="220" viewBox="0 0 220 220">
         <defs>
           <linearGradient id="srGauge" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stopColor="#6366f1" /><stop offset="100%" stopColor={color} />
+            <stop offset="0%" stopColor="#7C3AED" /><stop offset="100%" stopColor={color} />
           </linearGradient>
         </defs>
         <circle cx="110" cy="110" r={R} fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="12" />
@@ -96,9 +96,9 @@ function Radar({ results }: { results: AgentResult[] }) {
           fill="none" stroke="rgba(255,255,255,0.07)" strokeWidth="1" />
       ))}
       {data.map((_, i) => { const [x, y] = pt(i, R); return <line key={i} x1={CX} y1={CY} x2={x} y2={y} stroke="rgba(255,255,255,0.06)" strokeWidth="1" />; })}
-      <motion.polygon points={poly} fill="rgba(99,102,241,0.18)" stroke="#818cf8" strokeWidth="1.8" strokeLinejoin="round"
+      <motion.polygon points={poly} fill="rgba(124,58,237,0.18)" stroke="#818cf8" strokeWidth="1.8" strokeLinejoin="round"
         initial={{ opacity: 0, scale: 0.5 }} whileInView={{ opacity: 1, scale: 1 }} viewport={{ once: true }}
-        transition={{ duration: 1, ease: EASE, delay: 0.2 }} style={{ transformOrigin: `${CX}px ${CY}px`, filter: "drop-shadow(0 0 12px rgba(99,102,241,0.35))" }} />
+        transition={{ duration: 1, ease: EASE, delay: 0.2 }} style={{ transformOrigin: `${CX}px ${CY}px`, filter: "drop-shadow(0 0 12px rgba(124,58,237,0.35))" }} />
       {data.map((d, i) => {
         const [x, y] = pt(i, (d.score / 100) * R);
         const [lx, ly] = pt(i, R + 18);
@@ -134,7 +134,7 @@ function RevenueChart({ score, months, target }: { score: number; months: number
     <svg width="100%" viewBox={`0 0 ${W} ${H}`} className="sr-chart">
       <defs>
         <linearGradient id="srArea" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="rgba(99,102,241,0.34)" /><stop offset="100%" stopColor="rgba(99,102,241,0)" />
+          <stop offset="0%" stopColor="rgba(124,58,237,0.34)" /><stop offset="100%" stopColor="rgba(124,58,237,0)" />
         </linearGradient>
       </defs>
       {[0.25, 0.5, 0.75].map(k => (
@@ -248,7 +248,7 @@ export default function ReportPage() {
           <div className="sr-kpis">
             {[
               { icon: TrendingUp, label: "Прогноз выручки", value: project.revenue || "—", color: "#10b981", num: null },
-              { icon: Target, label: "Объём рынка", value: project.market || "—", color: "#6366f1", num: null },
+              { icon: Target, label: "Объём рынка", value: project.market || "—", color: "#7C3AED", num: null },
               { icon: Users, label: "Уверенность совета", value: null, color: "#f59e0b", num: avgConf },
               { icon: ShieldAlert, label: "Рисков найдено", value: null, color: "#f43f5e", num: topRisks.length || results.length },
             ].map((k, i) => (
@@ -349,7 +349,7 @@ function SrStyles() {
     <style jsx global>{`
       .sr-root { position: relative; min-height: 100vh; background: #05060A; overflow: hidden; }
       .sr-ambient { position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: min(1000px, 100%); height: 620px; pointer-events: none;
-        background: radial-gradient(52% 55% at 50% 0%, rgba(99,102,241,0.15), transparent 70%); }
+        background: radial-gradient(52% 55% at 50% 0%, rgba(124,58,237,0.15), transparent 70%); }
       .sr-particles { position: absolute; inset: 0; pointer-events: none; }
       .sr-particle { position: absolute; bottom: -10px; width: 3px; height: 3px; border-radius: 50%; }
 
@@ -358,7 +358,7 @@ function SrStyles() {
         padding: 14px 24px; background: rgba(5,6,10,0.72); backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,0.06); }
       .sr-brand { display: flex; align-items: center; gap: 10px; }
       .sr-logo { display: inline-flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 9px; color: #fff;
-        background: linear-gradient(135deg,#6366f1,#4f46e5); box-shadow: 0 4px 14px rgba(99,102,241,0.4); }
+        background: linear-gradient(135deg,#7C3AED,#6D28D9); box-shadow: 0 4px 14px rgba(124,58,237,0.4); }
       .sr-brand-t { font-family: var(--font-geist-mono), monospace; font-size: 12px; font-weight: 800; letter-spacing: 0.14em; color: #fff; }
       .sr-topbar-actions { display: flex; align-items: center; gap: 10px; }
       .sr-tb-btn { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 15px; border-radius: 11px; font-size: 12.5px; font-weight: 700;
@@ -366,7 +366,7 @@ function SrStyles() {
       .sr-tb-btn:hover { transform: translateY(-1px); }
       .sr-tb-ghost { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); }
       .sr-tb-ghost:hover { border-color: rgba(255,255,255,0.2); }
-      .sr-tb-main { color: #fff; background: linear-gradient(135deg,#6366f1,#4f46e5); box-shadow: 0 6px 18px rgba(99,102,241,0.32), inset 0 1px 0 rgba(255,255,255,0.16); }
+      .sr-tb-main { color: #fff; background: linear-gradient(135deg,#7C3AED,#6D28D9); box-shadow: 0 6px 18px rgba(124,58,237,0.32), inset 0 1px 0 rgba(255,255,255,0.16); }
 
       .sr-wrap { position: relative; max-width: 1080px; margin: 0 auto; padding: 44px 24px 80px; }
 
@@ -376,8 +376,8 @@ function SrStyles() {
       .sr-title { font-size: clamp(28px, 4.5vw, 44px); font-weight: 800; letter-spacing: -0.03em; color: #F3F4F6; margin: 0 0 8px; text-wrap: balance; }
       .sr-sub { font-size: 14px; color: rgba(255,255,255,0.45); margin: 0; }
       .sr-hero-cta { margin-top: 18px; display: inline-flex; align-items: center; gap: 9px; height: 46px; padding: 0 22px; border-radius: 13px; border: none; cursor: pointer;
-        background: linear-gradient(135deg,#6366f1,#4f46e5); color: #fff; font-size: 14px; font-weight: 700; transition: transform .15s;
-        box-shadow: 0 8px 24px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.18); }
+        background: linear-gradient(135deg,#7C3AED,#6D28D9); color: #fff; font-size: 14px; font-weight: 700; transition: transform .15s;
+        box-shadow: 0 8px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.18); }
       .sr-hero-cta:hover { transform: translateY(-1px); }
 
       .sr-topgrid { display: grid; grid-template-columns: 320px 1fr; gap: 16px; margin-bottom: 16px; }
@@ -387,7 +387,7 @@ function SrStyles() {
       .sr-panel-s { font-size: 12px; color: rgba(255,255,255,0.4); margin-bottom: 14px; }
 
       .sr-gaugebox { display: flex; flex-direction: column; align-items: center; justify-content: center;
-        background: linear-gradient(160deg, rgba(99,102,241,0.09), rgba(255,255,255,0.015) 65%); border-color: rgba(99,102,241,0.28); }
+        background: linear-gradient(160deg, rgba(124,58,237,0.09), rgba(255,255,255,0.015) 65%); border-color: rgba(124,58,237,0.28); }
       .sr-gauge { position: relative; }
       .sr-gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
       .sr-gauge-num { font-size: 52px; font-weight: 800; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; line-height: 1; }
@@ -428,7 +428,7 @@ function SrStyles() {
       .sr-cta { display: flex; gap: 10px; justify-content: center; margin-top: 34px; flex-wrap: wrap; }
       .sr-btn { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 22px; border-radius: 14px; font-size: 13.5px; font-weight: 700; text-decoration: none; transition: transform .15s; }
       .sr-btn:hover { transform: translateY(-1px); }
-      .sr-btn-main { color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 18px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18); }
+      .sr-btn-main { color: #fff; background: linear-gradient(135deg, #7C3AED, #6D28D9); box-shadow: 0 4px 18px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.18); }
       .sr-btn-ghost { color: rgba(255,255,255,0.7); background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); }
 
       @media (max-width: 900px) {

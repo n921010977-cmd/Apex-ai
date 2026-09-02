@@ -18,7 +18,7 @@ const BORD_H = "rgba(255,255,255,0.13)";
 const TP     = "#E5E7EB";
 const TS     = "rgba(255,255,255,0.5)";
 const TM     = "rgba(255,255,255,0.3)";
-const ACCENT = "#6366f1";
+const ACCENT = "#7C3AED";
 const MONO   = "var(--font-geist-mono), ui-monospace, monospace";
 const EASE   = [0.22, 1, 0.36, 1] as const;
 
@@ -85,7 +85,7 @@ export default function HistoryPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
+              background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 6px 18px rgba(124,58,237,0.4)" }}>
               <History size={18} color="#fff" />
             </span>
             <h1 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 800, color: TP, letterSpacing: "-0.02em", margin: 0 }}>Conversation History</h1>
@@ -109,14 +109,14 @@ export default function HistoryPage() {
           <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: TM, pointerEvents: "none" }} />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search history…"
             style={{ width: "100%", height: 42, padding: "0 12px 0 36px", borderRadius: 12, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 13, outline: "none", boxSizing: "border-box" }}
-            onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+            onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
         </div>
         {([["all", "All"], ["agent", "Directors"], ["council", "Board"]] as const).map(([key, label]) => {
           const active = filter === key;
           return (
             <button key={key} onClick={() => setFilter(key)}
               style={{ display: "flex", alignItems: "center", gap: 6, height: 42, padding: "0 14px", borderRadius: 11, cursor: "pointer",
-                border: `1px solid ${active ? "rgba(99,102,241,0.5)" : BORD}`, background: active ? "rgba(99,102,241,0.14)" : "transparent",
+                border: `1px solid ${active ? "rgba(124,58,237,0.5)" : BORD}`, background: active ? "rgba(124,58,237,0.14)" : "transparent",
                 color: active ? "#a5b4fc" : TS, fontSize: 12.5, fontWeight: 600 }}>
               {key === "all" && <Filter size={12} />}
               {label}<span style={{ fontFamily: MONO, fontSize: 10, opacity: 0.7 }}>{counts[key]}</span>
@@ -127,7 +127,7 @@ export default function HistoryPage() {
 
       {items.length === 0 ? (
         <div style={{ marginTop: 70, textAlign: "center" }}>
-          <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
+          <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)", display: "flex", alignItems: "center", justifyContent: "center", margin: "0 auto 14px" }}>
             <Sparkles size={22} style={{ color: ACCENT }} />
           </div>
           <div style={{ fontSize: 15, fontWeight: 700, color: TS }}>Nothing here yet</div>
@@ -192,7 +192,7 @@ export default function HistoryPage() {
                   <div style={{ padding: "18px 20px 20px", maxHeight: "72vh", overflowY: "auto" }}>
                     {/* question */}
                     <div style={{ display: "flex", alignItems: "flex-start", gap: 10, marginBottom: 16 }}>
-                      <span style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.28)", color: "#a5b4fc" }}>
+                      <span style={{ width: 30, height: 30, borderRadius: 9, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.28)", color: "#a5b4fc" }}>
                         <MessageSquare size={14} />
                       </span>
                       <div style={{ flex: 1 }}>
@@ -221,7 +221,7 @@ export default function HistoryPage() {
                           ))}
                         </div>
                         {selected.verdict && (
-                          <div style={{ borderRadius: 12, padding: 14, background: "linear-gradient(150deg, rgba(99,102,241,0.1), rgba(139,92,246,0.05))", border: "1px solid rgba(99,102,241,0.3)" }}>
+                          <div style={{ borderRadius: 12, padding: 14, background: "linear-gradient(150deg, rgba(124,58,237,0.1), rgba(217,70,239,0.05))", border: "1px solid rgba(124,58,237,0.3)" }}>
                             <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 7 }}>
                               <Crown size={13} style={{ color: "#fbbf24" }} />
                               <span style={{ fontFamily: MONO, fontSize: 9.5, fontWeight: 700, letterSpacing: "0.12em", color: "#a5b4fc", textTransform: "uppercase" }}>Board Verdict</span>
@@ -245,7 +245,7 @@ export default function HistoryPage() {
                         addTask({ title: selected.question, priority: "medium", source: src, color: selected.color });
                         setAddedTask(true); setTimeout(() => setAddedTask(false), 1600);
                       }} title="Add to tasks"
-                        style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 38, borderRadius: 10, cursor: "pointer", background: addedTask ? "rgba(16,185,129,0.12)" : "rgba(99,102,241,0.1)", border: `1px solid ${addedTask ? "rgba(16,185,129,0.35)" : "rgba(99,102,241,0.3)"}`, color: addedTask ? "#10b981" : "#a5b4fc", fontSize: 12.5, fontWeight: 600 }}>
+                        style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", gap: 6, height: 38, borderRadius: 10, cursor: "pointer", background: addedTask ? "rgba(16,185,129,0.12)" : "rgba(124,58,237,0.1)", border: `1px solid ${addedTask ? "rgba(16,185,129,0.35)" : "rgba(124,58,237,0.3)"}`, color: addedTask ? "#10b981" : "#a5b4fc", fontSize: 12.5, fontWeight: 600 }}>
                         {addedTask ? <><Check size={13} /> In tasks</> : <><ListPlus size={13} /> To tasks</>}
                       </button>
                       <button onClick={() => remove(selected.id)} title="Delete"

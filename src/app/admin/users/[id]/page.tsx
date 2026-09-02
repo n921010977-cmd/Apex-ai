@@ -9,7 +9,7 @@ import { ArrowLeft, User, Activity, MessageSquare, CreditCard, Clock, LogIn, Eye
 
 const BG = "#05060A", SURF = "rgba(255,255,255,0.025)", BORD = "rgba(255,255,255,0.07)";
 const TP = "#E5E7EB", TS = "rgba(255,255,255,0.5)", TM = "rgba(255,255,255,0.28)";
-const ACCENT = "#6366f1";
+const ACCENT = "#7C3AED";
 
 interface Detail {
   profile: { email: string; name: string | null; plan: string | null; plan_expires_at: string | null; created_at: string; last_login_at: string | null; is_admin: boolean };
@@ -70,7 +70,7 @@ export default function AdminUserDetailPage({ params }: { params: Promise<{ id: 
 
           {/* Профиль */}
           <div style={{ display: "flex", alignItems: "center", gap: 14, marginBottom: 22 }}>
-            <div style={{ width: 52, height: 52, borderRadius: 15, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, color: "#fff" }}>
+            <div style={{ width: 52, height: 52, borderRadius: 15, background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 20, fontWeight: 800, color: "#fff" }}>
               {(p.name || p.email || "?")[0]?.toUpperCase()}
             </div>
             <div>

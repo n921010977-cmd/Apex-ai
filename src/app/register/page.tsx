@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { track, EVENTS } from "@/lib/analytics/events";
 
 const STRENGTH_LABELS = ["", "Weak", "Fair", "Good", "Strong"];
-const STRENGTH_COLORS = ["", "#ef4444", "#f59e0b", "#6366f1", "#10b981"];
+const STRENGTH_COLORS = ["", "#ef4444", "#f59e0b", "#7C3AED", "#10b981"];
 
 function getStrength(p: string) {
   if (!p) return 0;
@@ -114,8 +114,8 @@ export default function RegisterPage() {
     letterSpacing: "0.06em", textTransform: "uppercase", color: "rgba(255,255,255,0.45)",
   };
   const onFocus = (e: React.FocusEvent<HTMLInputElement>) => {
-    e.currentTarget.style.borderColor = "rgba(99,102,241,0.55)";
-    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.1)";
+    e.currentTarget.style.borderColor = "rgba(124,58,237,0.55)";
+    e.currentTarget.style.boxShadow = "0 0 0 3px rgba(124,58,237,0.1)";
   };
   const onBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     e.currentTarget.style.borderColor = "rgba(255,255,255,0.09)";
@@ -130,7 +130,7 @@ export default function RegisterPage() {
       `}</style>
 
       {/* Мягкое амбиентное свечение */}
-      <div aria-hidden style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: 640, height: 640, borderRadius: "50%", background: "radial-gradient(circle, rgba(99,102,241,0.09), transparent 70%)", filter: "blur(70px)", pointerEvents: "none" }} />
+      <div aria-hidden style={{ position: "absolute", top: "30%", left: "50%", transform: "translate(-50%,-50%)", width: 640, height: 640, borderRadius: "50%", background: "radial-gradient(circle, rgba(124,58,237,0.09), transparent 70%)", filter: "blur(70px)", pointerEvents: "none" }} />
 
       <motion.div
         initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}
@@ -139,7 +139,7 @@ export default function RegisterPage() {
       >
         {/* Бренд */}
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginBottom: 28 }}>
-          <div style={{ width: 38, height: 38, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 4px 16px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
+          <div style={{ width: 38, height: 38, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 4px 16px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round" aria-hidden>
               <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
             </svg>
@@ -168,7 +168,7 @@ export default function RegisterPage() {
                 </motion.div>
                 <div style={{ fontSize: 17, fontWeight: 800, color: "#fff", marginBottom: 8 }}>Account created</div>
                 <p style={{ fontSize: 13, color: "rgba(255,255,255,0.4)", lineHeight: 1.6 }}>Signing you in…</p>
-                <div style={{ marginTop: 16, width: 24, height: 24, border: "2px solid rgba(255,255,255,0.1)", borderTopColor: "#6366f1", borderRadius: "50%", animation: "spin 0.7s linear infinite", margin: "16px auto 0" }} />
+                <div style={{ marginTop: 16, width: 24, height: 24, border: "2px solid rgba(255,255,255,0.1)", borderTopColor: "#7C3AED", borderRadius: "50%", animation: "spin 0.7s linear infinite", margin: "16px auto 0" }} />
               </motion.div>
             ) : (
               <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -279,7 +279,7 @@ export default function RegisterPage() {
                     <input
                       id="consent" type="checkbox" checked={consent}
                       onChange={e => setConsent(e.target.checked)}
-                      style={{ marginTop: 2, width: 16, height: 16, accentColor: "#6366f1", cursor: "pointer", flexShrink: 0 }}
+                      style={{ marginTop: 2, width: 16, height: 16, accentColor: "#7C3AED", cursor: "pointer", flexShrink: 0 }}
                     />
                     <span style={{ fontSize: 12, lineHeight: 1.55, color: "rgba(255,255,255,0.55)" }}>
                       I consent to the processing of my personal data (email, technical data and AI requests) to create an account and operate the Service, and I accept the{" "}
@@ -310,9 +310,9 @@ export default function RegisterPage() {
                     type="submit" disabled={loading}
                     style={{
                       height: 48, borderRadius: 12, border: "none", cursor: loading ? "default" : "pointer",
-                      background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff",
+                      background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff",
                       fontSize: 14.5, fontWeight: 700,
-                      boxShadow: "0 6px 20px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)",
+                      boxShadow: "0 6px 20px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.16)",
                       display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 2,
                     }}
                   >

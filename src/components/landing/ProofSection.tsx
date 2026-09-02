@@ -11,8 +11,8 @@ import { FileText, Presentation, Target, Users, ArrowRight, ShieldCheck, CreditC
 // конкретные результаты, которые продукт действительно выдаёт, и честные
 // условия покупки. Как только появятся настоящие отзывы — их место здесь.
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const DELIVERABLES = [
@@ -135,7 +135,7 @@ export function ProofSection() {
           style={{
             display: "inline-flex", alignItems: "center", gap: 9, height: 52, padding: "0 30px", borderRadius: 13,
             fontSize: 15.5, fontWeight: 700, color: "#fff", textDecoration: "none",
-            background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`,
+            background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)`,
             boxShadow: `0 8px 28px rgba(${RGB},0.4), inset 0 1px 0 rgba(255,255,255,0.16)`,
           }}
         >

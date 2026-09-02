@@ -59,7 +59,7 @@ export default function UseCasesPage() {
               <ol style={{ margin: "0 0 16px", padding: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 8 }}>
                 {c.how.map((step, i) => (
                   <li key={step} style={{ display: "flex", gap: 11, alignItems: "flex-start", fontSize: 13.5, color: "rgba(255,255,255,0.72)", lineHeight: 1.5 }}>
-                    <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: 6, background: "rgba(99,102,241,0.14)", border: "1px solid rgba(99,102,241,0.28)", color: "#a5b4fc", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</span>
+                    <span style={{ flexShrink: 0, width: 20, height: 20, borderRadius: 6, background: "rgba(124,58,237,0.14)", border: "1px solid rgba(124,58,237,0.28)", color: "#a5b4fc", fontSize: 11, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{i + 1}</span>
                     {step}
                   </li>
                 ))}
@@ -70,7 +70,7 @@ export default function UseCasesPage() {
         </div>
 
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 40 }}>
-          <Link href="/register" style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 28px", borderRadius: 13, fontSize: 15, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 8px 24px rgba(99,102,241,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
+          <Link href="/register" style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 28px", borderRadius: 13, fontSize: 15, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 8px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>
             Try it free
           </Link>
           <Link href="/features" style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 26px", borderRadius: 13, fontSize: 15, fontWeight: 600, color: "rgba(255,255,255,0.75)", textDecoration: "none", background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.1)" }}>

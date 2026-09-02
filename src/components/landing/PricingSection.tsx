@@ -6,8 +6,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { checkoutUrl, type PaidPlanId } from "@/lib/billing";
 import { track, EVENTS } from "@/lib/analytics/events";
 
-const ACCENT     = "#6366f1";
-const ACCENT_RGB = "99,102,241";
+const ACCENT     = "#7C3AED";
+const ACCENT_RGB = "124,58,237";
 
 // ─── Plan model ───────────────────────────────────────────────────────────────
 const PLANS = {
@@ -99,7 +99,7 @@ export function PricingSection() {
                   color: annual === o.k ? "#fff" : "rgba(255,255,255,0.35)", transition: "color 0.15s",
                 }}>
                   {annual === o.k && (
-                    <motion.span layoutId="cfg-billing" style={{ position: "absolute", inset: 0, borderRadius: 7, background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)` }} transition={{ type: "spring", stiffness: 420, damping: 32 }} />
+                    <motion.span layoutId="cfg-billing" style={{ position: "absolute", inset: 0, borderRadius: 7, background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)` }} transition={{ type: "spring", stiffness: 420, damping: 32 }} />
                   )}
                   <span style={{ position: "relative", zIndex: 1 }}>{o.l}</span>
                 </button>
@@ -189,7 +189,7 @@ export function PricingSection() {
                     display: "flex", alignItems: "center", justifyContent: "center", gap: 8,
                     height: 48, borderRadius: 12, textDecoration: "none",
                     fontSize: 12, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "#fff",
-                    background: `linear-gradient(135deg, ${ACCENT}, #4f46e5)`,
+                    background: `linear-gradient(135deg, ${ACCENT}, #6D28D9)`,
                     boxShadow: `0 6px 20px rgba(${ACCENT_RGB},0.3), inset 0 1px 0 rgba(255,255,255,0.16)`,
                   }}>
                     {price === 0 ? `▸ Начать с ${plan.name} — бесплатно` : `▸ Оформить ${plan.name}`}

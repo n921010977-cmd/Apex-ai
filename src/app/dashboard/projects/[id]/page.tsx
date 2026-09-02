@@ -289,10 +289,10 @@ function DetailedRevenueChart({ financials, timeframe }: {
         <defs>
           <linearGradient id="fin-line" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stopColor="#3b82f6" />
-            <stop offset="100%" stopColor="#8b5cf6" />
+            <stop offset="100%" stopColor="#D946EF" />
           </linearGradient>
           <linearGradient id="fin-area" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#8b5cf6" stopOpacity="0.22" />
+            <stop offset="0%" stopColor="#D946EF" stopOpacity="0.22" />
             <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.02" />
           </linearGradient>
           <clipPath id="fin-clip">
@@ -346,8 +346,8 @@ function DetailedRevenueChart({ financials, timeframe }: {
           const x = toX(i), y = toY(v);
           return (
             <g key={i} style={{ opacity: animated ? 1 : 0, transition: `opacity 0.3s ${0.9 + i * 0.03}s` }}>
-              <circle cx={x} cy={y} r="4" fill="#070912" stroke={i === months - 1 ? "#8b5cf6" : "#3b82f6"} strokeWidth="1.5" />
-              <circle cx={x} cy={y} r="1.8" fill={i === months - 1 ? "#8b5cf6" : "#3b82f6"} />
+              <circle cx={x} cy={y} r="4" fill="#070912" stroke={i === months - 1 ? "#D946EF" : "#3b82f6"} strokeWidth="1.5" />
+              <circle cx={x} cy={y} r="1.8" fill={i === months - 1 ? "#D946EF" : "#3b82f6"} />
             </g>
           );
         })}
@@ -356,7 +356,7 @@ function DetailedRevenueChart({ financials, timeframe }: {
         {animated && (
           <g style={{ opacity: animated ? 1 : 0, transition: "opacity 0.5s 2s" }}>
             <text x={toX(months - 1) - 6} y={toY(pts28[months - 1]) - 10}
-              textAnchor="end" fill="#8b5cf6" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace">
+              textAnchor="end" fill="#D946EF" fontSize="11" fontWeight="700" fontFamily="ui-monospace,monospace">
               {yr3?.value ?? formatVal(v3)}
             </text>
           </g>
@@ -414,7 +414,7 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
   const cards = [
     { key: "TAM", label: "TAM: " + (tam?.value ?? "—"), sub: "(Total addressable market)", color: "#818cf8", rgb: "129,140,248",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> },
-    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Serviceable available market)", color: "#6366f1", rgb: "99,102,241",
+    { key: "SAM", label: "SAM: " + (sam?.value ?? "—"), sub: "(Serviceable available market)", color: "#7C3AED", rgb: "124,58,237",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> },
     { key: "SOM", label: "SOM: " + (som?.value ?? "—"), sub: "(Serviceable obtainable market)", color: "#10b981", rgb: "16,185,129",
       icon: <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" style={{width:26,height:26}}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/><path d="M17 3l1 4-4 1"/></svg> },
@@ -436,12 +436,12 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
           <svg viewBox="0 0 300 300" style={{ width: "100%", maxWidth: 300, height: "auto", overflow: "visible" }}>
             <defs>
               <radialGradient id="mkt-tam" cx="50%" cy="42%" r="60%">
-                <stop offset="0%" stopColor="rgba(99,102,241,0.16)" />
-                <stop offset="100%" stopColor="rgba(99,102,241,0.03)" />
+                <stop offset="0%" stopColor="rgba(124,58,237,0.16)" />
+                <stop offset="100%" stopColor="rgba(124,58,237,0.03)" />
               </radialGradient>
               <radialGradient id="mkt-sam" cx="50%" cy="42%" r="60%">
-                <stop offset="0%" stopColor="rgba(99,102,241,0.28)" />
-                <stop offset="100%" stopColor="rgba(99,102,241,0.08)" />
+                <stop offset="0%" stopColor="rgba(124,58,237,0.28)" />
+                <stop offset="100%" stopColor="rgba(124,58,237,0.08)" />
               </radialGradient>
               <radialGradient id="mkt-som" cx="50%" cy="40%" r="65%">
                 <stop offset="0%" stopColor="rgba(16,185,129,0.4)" />
@@ -451,12 +451,12 @@ function MarketSphereChart({ items }: { items: { label: string; value: string; n
 
             {/* TAM */}
             <g style={{ transformOrigin: "150px 150px", transform: animated ? "scale(1)" : "scale(0.3)", opacity: animated ? 1 : 0, transition: "transform 0.9s cubic-bezier(0.22,1,0.36,1), opacity 0.9s" }}>
-              <circle cx="150" cy="150" r={R} fill="url(#mkt-tam)" stroke="rgba(99,102,241,0.4)" strokeWidth="1.5" />
+              <circle cx="150" cy="150" r={R} fill="url(#mkt-tam)" stroke="rgba(124,58,237,0.4)" strokeWidth="1.5" />
               <text x="150" y={150 - R + 20} textAnchor="middle" fontSize="11" fontWeight="800" fill="#818cf8" fontFamily="ui-monospace,monospace">TAM {tam?.value ?? "—"}</text>
             </g>
             {/* SAM */}
             <g style={{ transformOrigin: "150px 150px", transform: animated ? "scale(1)" : "scale(0.3)", opacity: animated ? 1 : 0, transition: "transform 0.9s cubic-bezier(0.22,1,0.36,1) 0.15s, opacity 0.9s 0.15s" }}>
-              <circle cx="150" cy={150 + (R - rSam)} r={rSam} fill="url(#mkt-sam)" stroke="rgba(99,102,241,0.6)" strokeWidth="1.5" />
+              <circle cx="150" cy={150 + (R - rSam)} r={rSam} fill="url(#mkt-sam)" stroke="rgba(124,58,237,0.6)" strokeWidth="1.5" />
               <text x="150" y={150 + (R - rSam) - rSam + 18} textAnchor="middle" fontSize="10.5" fontWeight="800" fill="#a5b4fc" fontFamily="ui-monospace,monospace">SAM {sam?.value ?? "—"}</text>
             </g>
             {/* SOM (target core) */}
@@ -902,29 +902,29 @@ function CircularScore({ score, color }: { score: number; color: string }) {
 // ─── AGENT COLORS ─────────────────────────────────────────────────────────────
 
 const AGENT_COLORS: Record<string, string> = {
-  "CEO": "#8b5cf6", "CFO": "#3b82f6", "CMO": "#f43f5e", "COO": "#10b981",
+  "CEO": "#D946EF", "CFO": "#3b82f6", "CMO": "#f43f5e", "COO": "#10b981",
   "Business Analyst": "#f59e0b", "CTO": "#a78bfa", "Legal Advisor": "#94a3b8",
   "Sales Director": "#fb923c", "HR Director": "#f472b6",
 };
 function agentColor(role: string) {
-  return AGENT_COLORS[role] ?? DEMO_AGENTS.find(a => a.id === role?.toLowerCase().slice(0,3))?.color ?? "#8b5cf6";
+  return AGENT_COLORS[role] ?? DEMO_AGENTS.find(a => a.id === role?.toLowerCase().slice(0,3))?.color ?? "#D946EF";
 }
 
 // ─── SCORE BANNER ─────────────────────────────────────────────────────────────
 
 const SCORE_METRICS = [
   {
-    key: 0, label: "MARKET POTENTIAL", color: "#8b5cf6", rgb: "139,92,246",
+    key: 0, label: "MARKET POTENTIAL", color: "#D946EF", rgb: "217,70,239",
     icon: (
       <svg viewBox="0 0 48 48" width={44} height={44} fill="none">
         <circle cx="24" cy="24" r="22" fill="url(#mg1)" opacity={0.18}/>
-        <defs><radialGradient id="mg1" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#8b5cf6"/><stop offset="100%" stopColor="#3a1cff" stopOpacity="0"/></radialGradient></defs>
-        <ellipse cx="24" cy="24" rx="14" ry="14" stroke="#8b5cf6" strokeWidth="1.5" opacity={0.5}/>
-        <ellipse cx="24" cy="24" rx="14" ry="6" stroke="#8b5cf6" strokeWidth="1" opacity={0.4}/>
-        <line x1="10" y1="24" x2="38" y2="24" stroke="#8b5cf6" strokeWidth="1" opacity={0.4}/>
-        <line x1="24" y1="10" x2="24" y2="38" stroke="#8b5cf6" strokeWidth="1" opacity={0.4}/>
+        <defs><radialGradient id="mg1" cx="50%" cy="30%" r="70%"><stop offset="0%" stopColor="#D946EF"/><stop offset="100%" stopColor="#3a1cff" stopOpacity="0"/></radialGradient></defs>
+        <ellipse cx="24" cy="24" rx="14" ry="14" stroke="#D946EF" strokeWidth="1.5" opacity={0.5}/>
+        <ellipse cx="24" cy="24" rx="14" ry="6" stroke="#D946EF" strokeWidth="1" opacity={0.4}/>
+        <line x1="10" y1="24" x2="38" y2="24" stroke="#D946EF" strokeWidth="1" opacity={0.4}/>
+        <line x1="24" y1="10" x2="24" y2="38" stroke="#D946EF" strokeWidth="1" opacity={0.4}/>
         <path d="M18 30 L24 16 L30 26 L26 22 L24 30" stroke="#a78bfa" strokeWidth="1.5" strokeLinejoin="round" fill="none"/>
-        <circle cx="24" cy="16" r="2" fill="#8b5cf6"/>
+        <circle cx="24" cy="16" r="2" fill="#D946EF"/>
         <path d="M28 32 l4 4" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round"/>
         <circle cx="32" cy="36" r="3" stroke="#f59e0b" strokeWidth="1.5" fill="none"/>
       </svg>
@@ -1077,17 +1077,17 @@ function ScoreBanner({ project, aiResults }: { project: ProjectData; aiResults: 
         <div style={{
           width: 200, borderLeft: "1px solid rgba(255,255,255,0.06)",
           padding: "20px 18px", display: "flex", flexDirection: "column", gap: 10,
-          background: "rgba(99,102,241,0.04)",
+          background: "rgba(124,58,237,0.04)",
         }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#6366f1", flexShrink: 0 }} />
+            <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#7C3AED", flexShrink: 0 }} />
             <span style={{ fontSize: 8.5, fontWeight: 800, color: "#818cf8", letterSpacing: "0.14em" }}>AI RECOMMENDATIONS</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: 8, flex: 1 }}>
             {recLines.map((line: string, i: number) => (
               <div key={i} style={{
                 fontSize: 10, color: "rgba(255,255,255,0.5)", lineHeight: 1.55,
-                paddingLeft: 10, borderLeft: "2px solid rgba(99,102,241,0.35)",
+                paddingLeft: 10, borderLeft: "2px solid rgba(124,58,237,0.35)",
               }}>
                 {line.slice(0, 88)}
               </div>
@@ -1125,7 +1125,7 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-      <AgentBrief letter="S" name="Sophia Rivers" role="CEO" color="#6366f1" rgb="99,102,241" text={diagBrief} />
+      <AgentBrief letter="S" name="Sophia Rivers" role="CEO" color="#7C3AED" rgb="124,58,237" text={diagBrief} />
       {/* Summary strip */}
       <div style={{
         display: "flex", alignItems: "center", gap: 24,
@@ -1138,7 +1138,7 @@ function DiagnosticsTab({ project, aiResults }: { project: ProjectData; aiResult
         </div>
         <div style={{ width: 1, height: 32, background: "rgba(255,255,255,0.07)" }} />
         <div>
-          <div style={{ fontSize: 22, fontWeight: 900, color: "#6366f1", fontFamily: "ui-monospace,monospace" }}>{avgScore}</div>
+          <div style={{ fontSize: 22, fontWeight: 900, color: "#7C3AED", fontFamily: "ui-monospace,monospace" }}>{avgScore}</div>
           <div style={{ fontSize: 9, color: "rgba(255,255,255,0.35)", letterSpacing: "0.1em" }}>AVG SCORE</div>
         </div>
         <div style={{ width: 1, height: 32, background: "rgba(255,255,255,0.07)" }} />
@@ -1184,8 +1184,8 @@ const DIVISIONS: { lead: string; badge: string; reports: string[] }[] = [
 ];
 
 const TEAM_AGENT_COLORS: Record<string, string> = {
-  "CEO": "#6366f1", "CFO": "#3b82f6", "CMO": "#f43f5e", "COO": "#10b981",
-  "CTO": "#8b5cf6", "Sales Director": "#f59e0b", "Strategy Advisor": "#a78bfa",
+  "CEO": "#7C3AED", "CFO": "#3b82f6", "CMO": "#f43f5e", "COO": "#10b981",
+  "CTO": "#D946EF", "Sales Director": "#f59e0b", "Strategy Advisor": "#a78bfa",
   "Legal Advisor": "#94a3b8", "Brand Strategist": "#f472b6", "PR Director": "#fb7185",
   "Market Research": "#f59e0b", "Supply Chain": "#34d399", "HR Director": "#f472b6",
   "UX Researcher": "#a78bfa", "Investor Relations": "#60a5fa", "Risk Manager": "#f87171",
@@ -1206,7 +1206,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
 
   const ceo = agentMap["CEO"];
   const selAgent = selectedRole ? agentMap[selectedRole] : null;
-  const selColor = selectedRole ? (TEAM_AGENT_COLORS[selectedRole] ?? "#6366f1") : "#6366f1";
+  const selColor = selectedRole ? (TEAM_AGENT_COLORS[selectedRole] ?? "#7C3AED") : "#7C3AED";
   const emptyState = aiResults.length === 0;
 
   function agentStats(role: string) {
@@ -1221,7 +1221,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
 
   // Small roster chip — used for both division leads and their reports.
   function AgentChip({ role, small }: { role: string; small?: boolean }) {
-    const color = TEAM_AGENT_COLORS[role] ?? "#6366f1";
+    const color = TEAM_AGENT_COLORS[role] ?? "#7C3AED";
     const hasData = !!agentMap[role];
     const isSelected = role === selectedRole;
     const score = agentMap[role]?.score;
@@ -1260,7 +1260,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
   return (
     <div style={{ position: "relative" }}>
       <div style={{ marginBottom: 14 }}>
-        <AgentBrief letter="S" name="Sophia Rivers" role="CEO" color="#6366f1" rgb="99,102,241"
+        <AgentBrief letter="S" name="Sophia Rivers" role="CEO" color="#7C3AED" rgb="124,58,237"
           text="This is your AI team — 20 specialists, each has broken down the project from their angle. Click any agent to see their full analysis. Press \u201cPlay\u201d and I'll walk you through the highlights." />
       </div>
 
@@ -1277,10 +1277,10 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
         {isUserProject && (
           <button onClick={onReanalyze} disabled={isReanalyzing} style={{
             height: 38, padding: "0 18px", borderRadius: 11, fontSize: 12.5, fontWeight: 700, cursor: isReanalyzing ? "default" : "pointer",
-            background: isReanalyzing ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#6366f1,#4f46e5)",
+            background: isReanalyzing ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg,#7C3AED,#6D28D9)",
             color: isReanalyzing ? "rgba(255,255,255,0.4)" : "#fff",
             border: "none", display: "flex", alignItems: "center", gap: 8,
-            boxShadow: isReanalyzing ? "none" : "0 6px 18px rgba(99,102,241,0.35), inset 0 1px 0 rgba(255,255,255,0.16)",
+            boxShadow: isReanalyzing ? "none" : "0 6px 18px rgba(124,58,237,0.35), inset 0 1px 0 rgba(255,255,255,0.16)",
           }}>
             <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 11, height: 11 }}><polygon points="3,2 14,8 3,14"/></svg>
             {isReanalyzing ? `Analyzing… ${reanalyzeProgress}/8` : "Run Analysis"}
@@ -1299,7 +1299,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
           </p>
           {isUserProject && (
             <button onClick={onReanalyze} disabled={isReanalyzing}
-              style={{ height: 42, padding: "0 28px", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", border: "none", borderRadius: 11, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
+              style={{ height: 42, padding: "0 28px", fontSize: 13, fontWeight: 700, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", border: "none", borderRadius: 11, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 8 }}>
               <svg viewBox="0 0 16 16" fill="currentColor" style={{ width: 12, height: 12 }}><polygon points="3,2 14,8 3,14"/></svg>
               {isReanalyzing ? `Starting… ${reanalyzeProgress}/8` : "Run Analysis"}
             </button>
@@ -1313,11 +1313,11 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
               style={{
                 width: "100%", display: "flex", alignItems: "center", gap: 16, textAlign: "left", cursor: "pointer",
                 borderRadius: 16, padding: "16px 20px",
-                background: selectedRole === "CEO" ? "rgba(99,102,241,0.12)" : "linear-gradient(160deg, rgba(99,102,241,0.08), rgba(255,255,255,0.02) 65%)",
-                border: `1px solid ${selectedRole === "CEO" ? "rgba(99,102,241,0.5)" : "rgba(99,102,241,0.22)"}`,
+                background: selectedRole === "CEO" ? "rgba(124,58,237,0.12)" : "linear-gradient(160deg, rgba(124,58,237,0.08), rgba(255,255,255,0.02) 65%)",
+                border: `1px solid ${selectedRole === "CEO" ? "rgba(124,58,237,0.5)" : "rgba(124,58,237,0.22)"}`,
               }}>
               <span style={{ width: 48, height: 48, borderRadius: 13, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>C</span>
+                background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", fontSize: 18, fontWeight: 800, boxShadow: "0 6px 18px rgba(124,58,237,0.4)" }}>C</span>
               <span style={{ flex: 1, minWidth: 0 }}>
                 <span style={{ display: "block", fontSize: 14.5, fontWeight: 800, color: "white" }}>CEO — Chief Executive Officer</span>
                 <span style={{ display: "block", fontSize: 11.5, color: "rgba(255,255,255,0.4)", marginTop: 2 }}>Synthesizes every director's findings into a single strategy</span>
@@ -1329,7 +1329,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
           {/* Division grid */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
             {DIVISIONS.map((div, di) => {
-              const leadColor = TEAM_AGENT_COLORS[div.lead] ?? "#6366f1";
+              const leadColor = TEAM_AGENT_COLORS[div.lead] ?? "#7C3AED";
               return (
                 <div key={div.lead} style={{
                   borderRadius: 16, border: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.02)",
@@ -1450,7 +1450,7 @@ function WhatIfPanel({ financials }: { financials: { label: string; value: strin
         </span>
       </div>
       <input type="range" min={min} max={max} step={0.05} value={val} onChange={e => set(parseFloat(e.target.value))}
-        style={{ width: "100%", accentColor: "#6366f1", cursor: "pointer" }} />
+        style={{ width: "100%", accentColor: "#7C3AED", cursor: "pointer" }} />
     </div>
   );
 
@@ -1462,7 +1462,7 @@ function WhatIfPanel({ financials }: { financials: { label: string; value: strin
   ];
 
   return (
-    <div style={{ borderRadius: 16, border: "1px solid rgba(99,102,241,0.2)", background: "rgba(99,102,241,0.03)", overflow: "hidden" }}>
+    <div style={{ borderRadius: 16, border: "1px solid rgba(124,58,237,0.2)", background: "rgba(124,58,237,0.03)", overflow: "hidden" }}>
       <div className="term-mono" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
         <span style={{ fontSize: 11, letterSpacing: "0.14em", color: "#a5b4fc" }}>// WHAT-IF SIMULATOR</span>
         {changed && (
@@ -1512,7 +1512,7 @@ function ScenariosPanel({ financials }: { financials: { label: string; value: st
   const SC = [
     { key: "crisis", label: "PESSIMISTIC", tone: "#f87171", rgb: "248,113,113", rev: 0.55, be: 1.6,
       note: "Slow growth, high CAC, market contraction. Requires runway and tight burn control." },
-    { key: "base",   label: "BASE",        tone: "#a5b4fc", rgb: "99,102,241", rev: 1.0,  be: 1.0,
+    { key: "base",   label: "BASE",        tone: "#a5b4fc", rgb: "124,58,237", rev: 1.0,  be: 1.0,
       note: "Realistic scenario under current assumptions and steady plan execution." },
     { key: "growth", label: "OPTIMISTIC",  tone: "#34d399", rgb: "52,211,153", rev: 1.7,  be: 0.65,
       note: "PMF found, organic growth and network effects kick in, acquisition gets cheaper at scale." },
@@ -1565,7 +1565,7 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
   const FIN_AGENTS = [
     cfo ? { ...cfo, color: "#3b82f6", letter: "J", subtitle: "Chief Financial Officer — forecast", opinion: [cfo.analysis, cfo.recommendations, cfo.forecast].filter(Boolean).join(" ").slice(0, 500) } : null,
     coo ? { ...coo, color: "#10b981", letter: "E", subtitle: "Chief Operating Officer — budget", opinion: [coo.analysis, coo.recommendations].filter(Boolean).join(" ").slice(0, 450) } : null,
-    ceo ? { ...ceo, color: "#8b5cf6", letter: "V", subtitle: "Chief Executive Officer — strategy", opinion: [ceo.summary, ceo.forecast].filter(Boolean).join(" ").slice(0, 450) } : null,
+    ceo ? { ...ceo, color: "#D946EF", letter: "V", subtitle: "Chief Executive Officer — strategy", opinion: [ceo.summary, ceo.forecast].filter(Boolean).join(" ").slice(0, 450) } : null,
   ].filter(Boolean) as { role: string; name: string; color: string; letter: string; subtitle: string; score: number; opinion: string }[];
 
   const yr1 = project.financials.find(f => f.label.toLowerCase().includes("year 1"));
@@ -1620,7 +1620,7 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
     </svg>
   );
 
-  const IND = "#6366f1", INDRGB = "99,102,241";
+  const IND = "#7C3AED", INDRGB = "124,58,237";
   const rightCards = [
     { label: "FORECAST (YEAR 1):", value: yr1?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconRevYear },
     { label: "FORECAST (YEAR 3):", value: yr3?.value ?? "—", color: IND, rgb: INDRGB, Icon: IconTrendUp },
@@ -1688,7 +1688,7 @@ function FinanceTab({ project, aiResults }: { project: ProjectData; aiResults: a
               opinion: "The project's financial structure is generally sound and only needs refinement in revenue forecasting. Burn rate should be optimized to a maximum of 15% of monthly MRR from day one. CAC needs to drop 20% to hit profitability on schedule. Build a runway of at least 18 months before the next funding round. P&L should turn positive no later than month 20 from launch. Revenue-based financing is worth considering as an early-stage alternative to equity dilution. Unit economics become viable at a scale of 1000+ active customers. Financial KPIs need weekly monitoring to catch deviations early." },
             { letter: "E", name: "COO", subtitle: "Chief Operating Officer — operating expenses", color: "#10b981", score: 76,
               opinion: "Operationally, the project has a realistic cost structure for its current stage. Operating expenses can be optimized by 20-25% by introducing automation from the early months. COGS should be tracked weekly and kept under 35% of revenue. Operating leverage will start showing once the system reaches 500 paying customers. Fixed costs need to stay minimal through the first 18 months of operations." },
-            { letter: "V", name: "CEO", subtitle: "Chief Executive Officer — growth strategy", color: "#8b5cf6", score: 82,
+            { letter: "V", name: "CEO", subtitle: "Chief Executive Officer — growth strategy", color: "#D946EF", score: 82,
               opinion: "Strategically the project is moving in the right direction, but needs clear prioritization. The next funding round should be raised upon reaching $100K MRR. Investment attractiveness is high when demonstrating sustained growth of over 15% per month. Capital efficiency should exceed 1.5x MRR/burn throughout the period up to profitability." },
           ].map((ag, i) => (
             <AgentPanel key={i} letter={ag.letter} name={ag.name} subtitle={ag.subtitle}
@@ -1712,7 +1712,7 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
   const MKT_AGENTS = [
     ba ? { letter: "M", name: "Business Analyst", subtitle: "Business Analyst — market analysis", color: "#f59e0b", score: ba.score, opinion: [ba.analysis, ba.facts].filter(Boolean).join(" ").slice(0, 500) } : null,
     cmo ? { letter: "S", name: "CMO", subtitle: "Chief Marketing Officer — strategy", color: "#f43f5e", score: cmo.score, opinion: [cmo.analysis, cmo.recommendations].filter(Boolean).join(" ").slice(0, 500) } : null,
-    ceo ? { letter: "V", name: "CEO", subtitle: "Chief Executive Officer — market position", color: "#8b5cf6", score: ceo.score, opinion: [ceo.summary, ceo.analysis].filter(Boolean).join(" ").slice(0, 450) } : null,
+    ceo ? { letter: "V", name: "CEO", subtitle: "Chief Executive Officer — market position", color: "#D946EF", score: ceo.score, opinion: [ceo.summary, ceo.analysis].filter(Boolean).join(" ").slice(0, 450) } : null,
   ].filter(Boolean) as { letter: string; name: string; subtitle: string; color: string; score: number; opinion: string }[];
 
   const fallbackAgents = [
@@ -1720,7 +1720,7 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
       opinion: "Market analysis confirms real demand exists in the target audience segment. Competitors don't fully address the key pain point this project targets. Market trends are positive: CAGR of 15-25% is forecast over the next 5 years. Entry barriers are moderate — the window of opportunity is open for fast market entry. Consumer behavior is shifting in favor of this solution across all key metrics. The competitive map shows an unoccupied niche in the mid-price category. Seasonality needs separate accounting when planning cashflow and marketing activity. Geographic expansion is possible once PMF is reached in the local home market." },
     { letter: "S", name: "CMO", subtitle: "Marketing strategy and GTM", color: "#f43f5e", score: 84,
       opinion: "Market positioning needs clearer differentiation from key competitors in the segment. Content marketing is the optimal primary acquisition channel for this type of product. Brand voice must be strictly documented before the first public contact with the audience. Organic CAC can run 3-5x lower than paid with the right long-term SEO strategy. An email retention program can cut churn by 15-20% when executed well. Partnering with niche opinion leaders will deliver fast initial traction in the first 90 days. A/B testing the landing page and onboarding is mandatory from the first day of traffic acquisition. Community-building around the product creates an organic acquisition loop with zero CAC." },
-    { letter: "V", name: "CEO", subtitle: "Strategic market position", color: "#8b5cf6", score: 82,
+    { letter: "V", name: "CEO", subtitle: "Strategic market position", color: "#D946EF", score: 82,
       opinion: "The project's market position looks strong given the right niche positioning. Timely market entry creates a first-mover advantage over potential competitors. Partnerships with complementary products will accelerate market penetration without significant cost. An ecosystem strategy through integrations creates high switching costs for the company's customers. Geographic scaling should only start after reaching unit economics in the first location. Network effects need to be deliberately built into the product roadmap from version one. Dominating a single niche beats a weak presence across several directions at once. A strategic distribution partner can accelerate market share better than organic growth." },
   ];
 
@@ -1742,7 +1742,7 @@ function MarketTab({ project, aiResults }: { project: ProjectData; aiResults: an
       }}>
         {project.market.map((m, i) => {
           // Single indigo accent; SOM (target) stays green as the semantic goal
-          const color = i === 2 ? "#10b981" : "#6366f1";
+          const color = i === 2 ? "#10b981" : "#7C3AED";
           return (
             <div key={i} style={{
               padding: "18px 16px",
@@ -1982,8 +1982,8 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
           {(["month","quarter","year"] as const).map(p => (
             <button key={p} onClick={() => setPeriod(p)} style={{
               padding: "5px 12px", borderRadius: 8, fontSize: 10, fontWeight: 600, cursor: "pointer",
-              background: period === p ? "rgba(99,102,241,0.18)" : "rgba(255,255,255,0.03)",
-              border: period === p ? "1px solid rgba(99,102,241,0.4)" : "1px solid rgba(255,255,255,0.07)",
+              background: period === p ? "rgba(124,58,237,0.18)" : "rgba(255,255,255,0.03)",
+              border: period === p ? "1px solid rgba(124,58,237,0.4)" : "1px solid rgba(255,255,255,0.07)",
               color: period === p ? "#a5b4fc" : "rgba(255,255,255,0.35)",
               transition: "all 0.15s",
             }}>
@@ -2134,7 +2134,7 @@ function RisksTab({ project, aiResults }: { project: ProjectData; aiResults: any
                   : ["Increase LTV focus in the SMB segment.", "Optimize competitive positioning in key channels.", "Introduce a quarterly risk-review process.", "Strengthen reach growth in key segments."];
                 return lines.map((rec:string, i:number) => (
                   <div key={i} style={{ fontSize:9, color:"rgba(255,255,255,0.3)", display:"flex", gap:5, alignItems:"flex-start" }}>
-                    <span style={{ color:"#8b5cf6", fontWeight:700, flexShrink:0 }}>AI:</span>
+                    <span style={{ color:"#D946EF", fontWeight:700, flexShrink:0 }}>AI:</span>
                     <span>{rec.slice(0,60)}</span>
                   </div>
                 ));
@@ -2281,7 +2281,7 @@ export default function ProjectPage() {
     finally { setIsReanalyzing(false); }
   }
 
-  const headerBg = "linear-gradient(135deg,rgba(139,92,246,0.07) 0%,rgba(10,10,18,0.95) 100%)";
+  const headerBg = "linear-gradient(135deg,rgba(217,70,239,0.07) 0%,rgba(10,10,18,0.95) 100%)";
   const scoreColor = project.score >= 85 ? "#10b981" : project.score >= 70 ? "#f59e0b" : "#f43f5e";
 
   return (
@@ -2314,8 +2314,8 @@ export default function ProjectPage() {
             <button onClick={() => handleReanalyze()} disabled={isReanalyzing}
               style={{
                 height: 36, padding: "0 16px", fontSize: 11, fontWeight: 600,
-                border: "1px solid rgba(99,102,241,0.3)", color: "#a5b4fc",
-                background: "rgba(99,102,241,0.06)", borderRadius: 10, cursor: "pointer",
+                border: "1px solid rgba(124,58,237,0.3)", color: "#a5b4fc",
+                background: "rgba(124,58,237,0.06)", borderRadius: 10, cursor: "pointer",
                 display: "flex", alignItems: "center", gap: 8, transition: "all 0.15s",
               }}>
               {isReanalyzing ? `↻ ${reanalyzeProgress}/8 agents` : "↻ Refresh Analysis"}
@@ -2328,9 +2328,9 @@ export default function ProjectPage() {
           }}>Export PDF</button>
           <button style={{
             height: 36, padding: "0 18px", fontSize: 11, fontWeight: 600,
-            background: "linear-gradient(135deg,#6366f1,#4f46e5)",
+            background: "linear-gradient(135deg,#7C3AED,#6D28D9)",
             color: "white", border: "none", borderRadius: 10, cursor: "pointer",
-            boxShadow: "0 0 20px rgba(99,102,241,0.25)",
+            boxShadow: "0 0 20px rgba(124,58,237,0.25)",
           }}>Refine Strategy</button>
         </div>
       </div>
@@ -2345,7 +2345,7 @@ export default function ProjectPage() {
             style={{
               padding: "10px 20px", fontSize: 12, fontWeight: 600, border: "none", cursor: "pointer",
               background: "transparent", color: activeTab === t ? "white" : "rgba(255,255,255,0.35)",
-              borderBottom: activeTab === t ? "2px solid #6366f1" : "2px solid transparent",
+              borderBottom: activeTab === t ? "2px solid #7C3AED" : "2px solid transparent",
               transition: "all 0.15s", marginBottom: -1,
             }}>{t}</button>
         ))}

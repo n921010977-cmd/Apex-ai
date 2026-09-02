@@ -232,7 +232,7 @@ export default function ChatPage() {
     } catch { /* ignore */ }
   }, [agentId]);
 
-  const agentColor = agent?.color ?? "#8b5cf6";
+  const agentColor = agent?.color ?? "#D946EF";
   const persona = agent
     ? `${agent.prompt ?? `You are ${agent.name}, ${agent.role}.`}\n\nYour role: ${agent.role}. Reply in English, professionally, in character for your role, concretely and to the point.`
     : undefined;
@@ -242,7 +242,7 @@ export default function ChatPage() {
     <div className="size-7 rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5 text-sm"
       style={agent
         ? { background: `linear-gradient(135deg, ${agentColor}e6, ${agentColor}99)`, boxShadow: `0 4px 12px ${agentColor}33` }
-        : { background: "linear-gradient(135deg, #7c3aed, #2563eb)", boxShadow: "0 4px 12px rgba(139,92,246,0.2)" }}>
+        : { background: "linear-gradient(135deg, #7c3aed, #2563eb)", boxShadow: "0 4px 12px rgba(217,70,239,0.2)" }}>
       {agent?.emoji ?? (
         <svg className="size-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />

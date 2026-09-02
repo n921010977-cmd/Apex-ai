@@ -11,7 +11,7 @@ import { Users, Search, ChevronLeft, ChevronRight, ArrowLeft, ArrowUpDown } from
 
 const BG = "#05060A", SURF = "rgba(255,255,255,0.025)", BORD = "rgba(255,255,255,0.07)";
 const TP = "#E5E7EB", TS = "rgba(255,255,255,0.5)", TM = "rgba(255,255,255,0.28)";
-const ACCENT = "#6366f1";
+const ACCENT = "#7C3AED";
 
 interface Row {
   user_id: string; email: string; name: string | null; plan: string;
@@ -96,7 +96,7 @@ export default function AdminUsersPage() {
             <ArrowLeft size={13} /> Аналитика
           </a>
           <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-            <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},#4f46e5)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 40, height: 40, borderRadius: 12, background: `linear-gradient(135deg,${ACCENT},#6D28D9)`, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Users size={19} color="#fff" />
             </div>
             <div>

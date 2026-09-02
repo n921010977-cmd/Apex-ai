@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { CONTACT_EMAIL } from "@/lib/site";
 
-const RGB = "99,102,241";
+const RGB = "124,58,237";
 
 // ─── FAQ data (question = command, answer = console output) ──────────────────
 const FAQ = [

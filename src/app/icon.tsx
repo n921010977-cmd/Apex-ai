@@ -12,7 +12,7 @@ export default function Icon() {
       <div
         style={{
           width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center",
-          background: "linear-gradient(135deg,#6366f1,#4f46e5)", borderRadius: 14,
+          background: "linear-gradient(135deg,#7C3AED,#6D28D9)", borderRadius: 14,
         }}
       >
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2" strokeLinejoin="round">

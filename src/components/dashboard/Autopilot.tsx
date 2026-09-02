@@ -153,7 +153,7 @@ export function Autopilot() {
                 <div className="ap-card">
                   <div className="ap-card-label"><Sparkles size={11} strokeWidth={2.4} />УВЕРЕННОСТЬ CEO</div>
                   <div className="ap-big" style={{ color: "#818cf8" }}>{f.conf}%</div>
-                  <div className="ap-track"><motion.i animate={{ width: `${f.conf}%` }} transition={{ duration: 0.9, ease: EASE }} style={{ background: "linear-gradient(90deg,#6366f1,#8b5cf6)" }} /></div>
+                  <div className="ap-track"><motion.i animate={{ width: `${f.conf}%` }} transition={{ duration: 0.9, ease: EASE }} style={{ background: "linear-gradient(90deg,#7C3AED,#D946EF)" }} /></div>
                   <div className="ap-card-note">{saved.doneTasks.length} задач выполнено всего</div>
                 </div>
               </div>
@@ -196,13 +196,13 @@ export function Autopilot() {
       <style jsx global>{`
         .ap-root { max-width: 820px; }
         .ap-intro { margin-bottom: 18px; }
-        .ap-intro-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-geist-mono), monospace; font-size: 9.5px; letter-spacing: 0.12em; color: #a5b4fc; padding: 5px 10px; border-radius: 8px; background: rgba(99,102,241,0.1); border: 1px solid rgba(99,102,241,0.25); margin-bottom: 12px; }
+        .ap-intro-badge { display: inline-flex; align-items: center; gap: 6px; font-family: var(--font-geist-mono), monospace; font-size: 9.5px; letter-spacing: 0.12em; color: #a5b4fc; padding: 5px 10px; border-radius: 8px; background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.25); margin-bottom: 12px; }
         .ap-intro-title { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; color: #E5E7EB; margin: 0 0 8px; text-wrap: balance; }
         .ap-intro-sub { font-size: 13.5px; line-height: 1.55; color: rgba(255,255,255,0.5); max-width: 58ch; margin: 0; }
         .ap-goal { display: flex; gap: 8px; }
         .ap-goal input { flex: 1; min-width: 0; height: 52px; padding: 0 18px; border-radius: 14px; font-size: 15px; color: #E5E7EB; background: rgba(255,255,255,0.035); border: 1px solid rgba(255,255,255,0.1); outline: none; transition: border-color .18s, box-shadow .18s; }
-        .ap-goal input:focus { border-color: rgba(99,102,241,0.55); box-shadow: 0 0 0 4px rgba(99,102,241,0.1); }
-        .ap-goal button { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 20px; border-radius: 14px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #6366f1, #4f46e5); box-shadow: 0 4px 16px rgba(99,102,241,0.32), inset 0 1px 0 rgba(255,255,255,0.18); transition: transform .15s, opacity .15s; }
+        .ap-goal input:focus { border-color: rgba(124,58,237,0.55); box-shadow: 0 0 0 4px rgba(124,58,237,0.1); }
+        .ap-goal button { flex-shrink: 0; display: inline-flex; align-items: center; gap: 8px; height: 52px; padding: 0 20px; border-radius: 14px; border: none; cursor: pointer; font-size: 14px; font-weight: 700; color: #fff; background: linear-gradient(135deg, #7C3AED, #6D28D9); box-shadow: 0 4px 16px rgba(124,58,237,0.32), inset 0 1px 0 rgba(255,255,255,0.18); transition: transform .15s, opacity .15s; }
         .ap-goal button:hover:not(:disabled) { transform: translateY(-1px); }
         .ap-goal button:disabled { opacity: 0.55; cursor: not-allowed; }
         .ap-dots { display: inline-flex; gap: 4px; } .ap-dots i { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: ap-blink 1s infinite; }

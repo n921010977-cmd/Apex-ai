@@ -97,7 +97,7 @@ export default function OfferPage() {
     <div style={{ minHeight: "100vh", background: "#05060A", color: "#fff" }}>
       <header style={{ borderBottom: "1px solid rgba(255,255,255,0.07)", padding: "0 24px", height: 58, display: "flex", alignItems: "center", justifyContent: "space-between", position: "sticky", top: 0, background: "rgba(5,6,10,0.85)", backdropFilter: "blur(20px)", zIndex: 10 }}>
         <Link href="/" style={{ display: "flex", alignItems: "center", gap: 9, textDecoration: "none" }}>
-          <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ width: 32, height: 32, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", display: "flex", alignItems: "center", justifyContent: "center" }}>
             <svg viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.2" width="16" height="16"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
           </div>
           <span style={{ fontSize: 15, fontWeight: 800 }}>Vertlix AI</span>
@@ -139,7 +139,7 @@ export default function OfferPage() {
                   }
                   if (b.kind === "callout") {
                     return (
-                      <div key={i} style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.25)" }}>
+                      <div key={i} style={{ padding: "14px 16px", borderRadius: 12, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.25)" }}>
                         <p style={{ fontSize: 14.5, lineHeight: 1.7, color: "#c7d2fe", margin: 0, fontWeight: 500 }}>{b.text}</p>
                       </div>
                     );
@@ -151,7 +151,7 @@ export default function OfferPage() {
                         <ul style={{ margin: 0, paddingLeft: 0, listStyle: "none", display: "flex", flexDirection: "column", gap: 9 }}>
                           {b.items.map((it, j) => (
                             <li key={j} style={{ fontSize: 14.5, lineHeight: 1.65, color: "rgba(255,255,255,0.6)", display: "flex", gap: 11 }}>
-                              <span style={{ color: "#6366f1", flexShrink: 0, marginTop: 1 }}>—</span>
+                              <span style={{ color: "#7C3AED", flexShrink: 0, marginTop: 1 }}>—</span>
                               <span>{it}</span>
                             </li>
                           ))}

@@ -17,7 +17,7 @@ const BORD_H = "rgba(255,255,255,0.13)";
 const TP     = "#E5E7EB";
 const TS     = "rgba(255,255,255,0.5)";
 const TM     = "rgba(255,255,255,0.3)";
-const ACCENT = "#6366f1";
+const ACCENT = "#7C3AED";
 const MONO   = "var(--font-geist-mono), ui-monospace, monospace";
 const EASE   = [0.22, 1, 0.36, 1] as const;
 
@@ -36,8 +36,8 @@ interface KItem {
 }
 
 const TYPE_META: Record<KType, { label: string; color: string; icon: React.ElementType }> = {
-  project: { label: "Projects",  color: "#6366f1", icon: FolderOpen   },
-  report:  { label: "Reports",   color: "#8b5cf6", icon: FileBarChart },
+  project: { label: "Projects",  color: "#7C3AED", icon: FolderOpen   },
+  report:  { label: "Reports",   color: "#D946EF", icon: FileBarChart },
   note:    { label: "Notes",  color: "#10b981", icon: StickyNote   },
   memory:  { label: "Memory",   color: "#f59e0b", icon: Brain        },
   doc:     { label: "Documents",color: "#3b82f6", icon: FileText     },
@@ -233,7 +233,7 @@ export default function KnowledgeVaultPage() {
         <div>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
             <span style={{ width: 36, height: 36, borderRadius: 11, display: "flex", alignItems: "center", justifyContent: "center",
-              background: "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
+              background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 6px 18px rgba(124,58,237,0.4)" }}>
               <Database size={18} color="#fff" />
             </span>
             <h1 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 800, color: TP, letterSpacing: "-0.02em", margin: 0 }}>Knowledge Vault</h1>
@@ -244,8 +244,8 @@ export default function KnowledgeVaultPage() {
         </div>
         <button onClick={() => setAdding(true)}
           style={{ display: "flex", alignItems: "center", gap: 8, height: 42, padding: "0 18px", borderRadius: 12, border: "none",
-            background: "linear-gradient(135deg,#6366f1,#4f46e5)", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer",
-            boxShadow: "0 6px 20px rgba(99,102,241,0.32), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
+            background: "linear-gradient(135deg,#7C3AED,#6D28D9)", color: "#fff", fontSize: 13.5, fontWeight: 700, cursor: "pointer",
+            boxShadow: "0 6px 20px rgba(124,58,237,0.32), inset 0 1px 0 rgba(255,255,255,0.18)" }}>
           <Plus size={15} /> Add to Vault
         </button>
       </motion.div>
@@ -277,7 +277,7 @@ export default function KnowledgeVaultPage() {
           <Search size={14} style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: TM, pointerEvents: "none" }} />
           <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Search the knowledge base…"
             style={{ width: "100%", height: 42, padding: "0 12px 0 36px", borderRadius: 12, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 13, outline: "none", boxSizing: "border-box" }}
-            onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+            onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
         </div>
         <span style={{ fontFamily: MONO, fontSize: 11, color: TM, display: "flex", alignItems: "center", gap: 6 }}>
           <HardDrive size={12} /> {totalBytes}
@@ -415,7 +415,7 @@ export default function KnowledgeVaultPage() {
             <motion.div onClick={e => e.stopPropagation()} initial={{ opacity: 0, scale: 0.95, y: 16 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.96 }}
               transition={{ duration: 0.24, ease: EASE }}
               style={{ width: "min(560px, 100%)", borderRadius: 20, background: "#0a0c15", border: `1px solid ${BORD_H}`, padding: 24, position: "relative" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, borderRadius: "20px 20px 0 0", background: "linear-gradient(90deg, transparent, rgba(99,102,241,0.7), transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, borderRadius: "20px 20px 0 0", background: "linear-gradient(90deg, transparent, rgba(124,58,237,0.7), transparent)" }} />
               <button onClick={() => setAdding(false)} style={{ position: "absolute", top: 16, right: 16, width: 30, height: 30, borderRadius: 9, background: SURF, border: `1px solid ${BORD}`, color: TS, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <X size={14} />
               </button>
@@ -423,15 +423,15 @@ export default function KnowledgeVaultPage() {
               <div style={{ fontSize: 12.5, color: TS, marginBottom: 18 }}>Save a document, insight, or note to the company's shared memory.</div>
               <input value={draft.title} onChange={e => setDraft(d => ({ ...d, title: e.target.value }))} placeholder="Title"
                 style={{ width: "100%", height: 42, padding: "0 14px", borderRadius: 11, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 14, outline: "none", boxSizing: "border-box", marginBottom: 10 }}
-                onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+                onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
               <textarea value={draft.content} onChange={e => setDraft(d => ({ ...d, content: e.target.value }))} placeholder="Content…" rows={6}
                 style={{ width: "100%", padding: "12px 14px", borderRadius: 11, border: `1px solid ${BORD}`, background: "rgba(255,255,255,0.035)", color: TP, fontSize: 13.5, lineHeight: 1.6, outline: "none", resize: "none", boxSizing: "border-box", fontFamily: "inherit" }}
-                onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
+                onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = BORD)} />
               <div style={{ display: "flex", gap: 8, marginTop: 16, justifyContent: "flex-end" }}>
                 <button onClick={() => setAdding(false)} style={{ height: 40, padding: "0 18px", borderRadius: 11, background: "transparent", border: `1px solid ${BORD}`, color: TS, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>Cancel</button>
                 <button onClick={addItem} disabled={!draft.title.trim()}
                   style={{ height: 40, padding: "0 20px", borderRadius: 11, border: "none", color: "#fff", fontSize: 13, fontWeight: 700, cursor: draft.title.trim() ? "pointer" : "default",
-                    background: draft.title.trim() ? "linear-gradient(135deg,#6366f1,#4f46e5)" : "rgba(255,255,255,0.06)", boxShadow: draft.title.trim() ? "0 4px 14px rgba(99,102,241,0.32)" : "none" }}>
+                    background: draft.title.trim() ? "linear-gradient(135deg,#7C3AED,#6D28D9)" : "rgba(255,255,255,0.06)", boxShadow: draft.title.trim() ? "0 4px 14px rgba(124,58,237,0.32)" : "none" }}>
                   Save
                 </button>
               </div>

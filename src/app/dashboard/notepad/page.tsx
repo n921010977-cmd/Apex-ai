@@ -53,10 +53,10 @@ const CUSTOM_FOLDERS = ["Strategy", "Finance", "Marketing", "Product", "Team"];
 const TAGS = [
   { label: "Urgent",    color: "#ef4444" },
   { label: "Important",    color: "#f59e0b" },
-  { label: "Ideas",      color: "#6366f1" },
+  { label: "Ideas",      color: "#7C3AED" },
   { label: "Decisions",   color: "#10b981" },
-  { label: "Tasks",    color: "#4f46e5" },
-  { label: "Meetings",   color: "#8b5cf6" },
+  { label: "Tasks",    color: "#6D28D9" },
+  { label: "Meetings",   color: "#D946EF" },
 ];
 
 const TEMPLATES: { id: string; icon: string; name: string; content: string }[] = [
@@ -90,7 +90,7 @@ const mapFromApi = (r: any): Note => ({
   emoji: r.emoji ?? "📝",
   folder: r.folder ?? "all",
   tags: Array.isArray(r.tags) ? r.tags : [],
-  color: r.color ?? "#6366f1",
+  color: r.color ?? "#7C3AED",
   pinned: !!r.is_pinned,
   starred: !!r.is_starred,
   wordCount: r.word_count ?? 0,
@@ -119,16 +119,16 @@ const fmt = (ts: number) => new Date(ts).toLocaleDateString("en-US", { day: "2-d
 // ─── AI Actions ───────────────────────────────────────────────────────────────
 
 const AI_ACTIONS = [
-  { icon: Sparkles, label: "Summarize",  color: "#6366f1" },
-  { icon: Brain,    label: "Key Ideas",    color: "#4f46e5" },
+  { icon: Sparkles, label: "Summarize",  color: "#7C3AED" },
+  { icon: Brain,    label: "Key Ideas",    color: "#6D28D9" },
   { icon: PenTool,  label: "Rewrite Text", color: "#10b981" },
   { icon: Check,    label: "Fix Errors", color: "#10b981" },
   { icon: Languages,label: "Translate",        color: "#f59e0b" },
   { icon: LayoutList,label: "Create Plan",    color: "#ef4444" },
-  { icon: BarChart2,label: "Make Report",   color: "#4f46e5" },
+  { icon: BarChart2,label: "Make Report",   color: "#6D28D9" },
   { icon: Target,   label: "Extract Tasks",  color: "#f59e0b" },
-  { icon: Lightbulb,label: "Suggest Ideas",  color: "#8b5cf6" },
-  { icon: Bookmark, label: "Create Summary",   color: "#6366f1" },
+  { icon: Lightbulb,label: "Suggest Ideas",  color: "#D946EF" },
+  { icon: Bookmark, label: "Create Summary",   color: "#7C3AED" },
 ];
 
 const TOOLBAR = [
@@ -206,7 +206,7 @@ export default function NotepadPage() {
       emoji: template ? template.icon : "📝",
       folder: "all",
       tags: [],
-      color: "#6366f1",
+      color: "#7C3AED",
       pinned: false,
       starred: false,
       wordCount: template ? wordCount(template.content) : 0,
@@ -316,7 +316,7 @@ export default function NotepadPage() {
     return b.updatedAt - a.updatedAt;
   });
 
-  const COLORS = ["#6366f1","#4f46e5","#10b981","#ef4444","#f59e0b","#8b5cf6"];
+  const COLORS = ["#7C3AED","#6D28D9","#10b981","#ef4444","#f59e0b","#D946EF"];
 
   return (
     <div style={{ height: "100vh", display: "flex", background: "#05060A", overflow: "hidden" }}>
@@ -325,7 +325,7 @@ export default function NotepadPage() {
       <div style={{ width: 230, flexShrink: 0, borderRight: "1px solid rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", height: "100%" }}>
         <div style={{ padding: "14px 12px 10px" }}>
           <button onClick={() => setShowTemplates(true)}
-            style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 11, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer", marginBottom: 10, boxShadow: "0 4px 16px rgba(99,102,241,0.3)" }}>
+            style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "9px 14px", borderRadius: 11, fontSize: 12, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", cursor: "pointer", marginBottom: 10, boxShadow: "0 4px 16px rgba(124,58,237,0.3)" }}>
             <Plus size={13} />New Note
           </button>
           <div style={{ position: "relative" }}>
@@ -340,8 +340,8 @@ export default function NotepadPage() {
           <div style={{ marginBottom: 12 }}>
             {FOLDERS.map(f => (
               <button key={f.id} onClick={() => setFolder(f.id)}
-                style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: folder === f.id ? 700 : 500, border: `1px solid ${folder === f.id ? "rgba(99,102,241,0.25)" : "transparent"}`, background: folder === f.id ? "rgba(99,102,241,0.1)" : "transparent", color: folder === f.id ? "#fff" : "rgba(255,255,255,0.38)", cursor: "pointer", textAlign: "left", marginBottom: 1, transition: "all 0.15s" }}>
-                <f.icon size={12} style={{ color: folder === f.id ? "#6366f1" : "rgba(255,255,255,0.22)", flexShrink: 0 }} />
+                style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: folder === f.id ? 700 : 500, border: `1px solid ${folder === f.id ? "rgba(124,58,237,0.25)" : "transparent"}`, background: folder === f.id ? "rgba(124,58,237,0.1)" : "transparent", color: folder === f.id ? "#fff" : "rgba(255,255,255,0.38)", cursor: "pointer", textAlign: "left", marginBottom: 1, transition: "all 0.15s" }}>
+                <f.icon size={12} style={{ color: folder === f.id ? "#7C3AED" : "rgba(255,255,255,0.22)", flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>{f.label}</span>
                 {f.id === "all" && <span style={{ fontSize: 10, color: "rgba(255,255,255,0.2)" }}>{notes.length}</span>}
               </button>
@@ -354,7 +354,7 @@ export default function NotepadPage() {
             {CUSTOM_FOLDERS.map(f => (
               <button key={f} onClick={() => setFolder(f)}
                 style={{ width: "100%", display: "flex", alignItems: "center", gap: 9, padding: "7px 10px", borderRadius: 9, fontSize: 12, fontWeight: 500, border: "1px solid transparent", background: "transparent", color: folder === f ? "#fff" : "rgba(255,255,255,0.38)", cursor: "pointer", textAlign: "left", marginBottom: 1, transition: "all 0.15s" }}>
-                <Folder size={11} style={{ color: folder === f ? "#6366f1" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
+                <Folder size={11} style={{ color: folder === f ? "#7C3AED" : "rgba(255,255,255,0.2)", flexShrink: 0 }} />
                 <span style={{ flex: 1 }}>{f}</span>
                 <span style={{ fontSize: 10, color: "rgba(255,255,255,0.18)" }}>{notes.filter(n => n.folder === f).length}</span>
               </button>
@@ -406,9 +406,9 @@ export default function NotepadPage() {
               {/* Breadcrumb — terminal path */}
               <div className="term-mono" style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 11, color: "rgba(255,255,255,0.28)", letterSpacing: "0.03em" }}>
                 <span>notepad</span>
-                <span style={{ color: "rgba(99,102,241,0.5)" }}>/</span>
+                <span style={{ color: "rgba(124,58,237,0.5)" }}>/</span>
                 <span>{active.folder || "all"}</span>
-                <span style={{ color: "rgba(99,102,241,0.5)" }}>/</span>
+                <span style={{ color: "rgba(124,58,237,0.5)" }}>/</span>
                 <span style={{ color: "rgba(255,255,255,0.7)", fontWeight: 600 }}>{active.title}</span>
               </div>
 
@@ -433,7 +433,7 @@ export default function NotepadPage() {
                 <div style={{ width: 1, height: 16, background: "rgba(255,255,255,0.08)", margin: "0 4px" }} />
 
                 <button onClick={() => setShowAI(!showAI)}
-                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, border: "1px solid rgba(99,102,241,0.3)", background: showAI ? "rgba(99,102,241,0.15)" : "rgba(99,102,241,0.08)", color: "#8b5cf6", cursor: "pointer" }}>
+                  style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, border: "1px solid rgba(124,58,237,0.3)", background: showAI ? "rgba(124,58,237,0.15)" : "rgba(124,58,237,0.08)", color: "#D946EF", cursor: "pointer" }}>
                   <Sparkles size={11} />AI
                 </button>
                 <button onClick={() => setRightPanel(!rightPanel)}
@@ -516,8 +516,8 @@ export default function NotepadPage() {
             <AnimatePresence>
               {showAI && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden", flexShrink: 0 }}>
-                  <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(99,102,241,0.15)", background: "rgba(99,102,241,0.04)" }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: "#8b5cf6", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ padding: "14px 20px", borderBottom: "1px solid rgba(124,58,237,0.15)", background: "rgba(124,58,237,0.04)" }}>
+                    <div style={{ fontSize: 11, fontWeight: 700, color: "#D946EF", marginBottom: 10, display: "flex", alignItems: "center", gap: 6 }}>
                       <Sparkles size={12} />AI Assistant
                     </div>
                     <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: aiResult ? 12 : 0 }}>
@@ -532,18 +532,18 @@ export default function NotepadPage() {
                       <div style={{ display: "flex", gap: 5, alignItems: "center", marginTop: 8 }}>
                         {[0,1,2].map(i => (
                           <motion.div key={i} animate={{ opacity: [0.3,1,0.3] }} transition={{ duration: 1.2, repeat: Infinity, delay: i*0.3 }}
-                            style={{ width: 5, height: 5, borderRadius: "50%", background: "#6366f1" }} />
+                            style={{ width: 5, height: 5, borderRadius: "50%", background: "#7C3AED" }} />
                         ))}
                         <span style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", marginLeft: 4 }}>AI is processing...</span>
                       </div>
                     )}
                     {aiResult && (
-                      <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 10, background: "rgba(99,102,241,0.08)", border: "1px solid rgba(99,102,241,0.15)" }}>
+                      <div style={{ marginTop: 8, padding: "12px 14px", borderRadius: 10, background: "rgba(124,58,237,0.08)", border: "1px solid rgba(124,58,237,0.15)" }}>
                         <div style={{ fontSize: 12, color: "rgba(255,255,255,0.7)", lineHeight: 1.7, whiteSpace: "pre-wrap" }}>{aiResult}</div>
                         {!aiLoading && (
                           <div style={{ display: "flex", gap: 6, marginTop: 10 }}>
                             <button onClick={() => { updateActive({ content: `${active.content}\n\n---\n\n${aiResult}` }); setAiResult(""); }}
-                              style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer" }}>
+                              style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 12px", borderRadius: 8, fontSize: 11, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", cursor: "pointer" }}>
                               <Plus size={11} /> Insert into Note
                             </button>
                             <button onClick={() => { navigator.clipboard?.writeText(aiResult).catch(() => {}); }}
@@ -579,7 +579,7 @@ export default function NotepadPage() {
               <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                 {active.tags.map(t => {
                   const tag = TAGS.find(tg => tg.label === t);
-                  return <span key={t} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: `${tag?.color ?? "#6366f1"}18`, color: tag?.color ?? "#6366f1", fontWeight: 700, border: `1px solid ${tag?.color ?? "#6366f1"}25` }}>{t}</span>;
+                  return <span key={t} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: `${tag?.color ?? "#7C3AED"}18`, color: tag?.color ?? "#7C3AED", fontWeight: 700, border: `1px solid ${tag?.color ?? "#7C3AED"}25` }}>{t}</span>;
                 })}
                 <button onClick={() => setShowTagMenu(!showTagMenu)} style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.04)", color: "rgba(255,255,255,0.3)", border: "1px solid rgba(255,255,255,0.07)", cursor: "pointer" }}>
                   + tag
@@ -604,12 +604,12 @@ export default function NotepadPage() {
           </>
         ) : (
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 16 }}>
-            <div style={{ width: 60, height: 60, borderRadius: 18, background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <FileText size={26} style={{ color: "#6366f1" }} />
+            <div style={{ width: 60, height: 60, borderRadius: 18, background: "rgba(124,58,237,0.1)", border: "1px solid rgba(124,58,237,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <FileText size={26} style={{ color: "#7C3AED" }} />
             </div>
             <div style={{ fontSize: 15, fontWeight: 700, color: "rgba(255,255,255,0.5)" }}>Select a Note</div>
             <button onClick={() => setShowTemplates(true)}
-              style={{ padding: "10px 20px", borderRadius: 11, fontSize: 13, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", cursor: "pointer" }}>
+              style={{ padding: "10px 20px", borderRadius: 11, fontSize: 13, fontWeight: 700, border: "none", background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", cursor: "pointer" }}>
               Create Note
             </button>
           </div>
@@ -643,7 +643,7 @@ export default function NotepadPage() {
               {/* AI Summary */}
               <div style={{ marginBottom: 14 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: "rgba(255,255,255,0.3)", letterSpacing: "0.1em", textTransform: "uppercase", marginBottom: 8 }}>AI Summary</div>
-                <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(99,102,241,0.06)", border: "1px solid rgba(99,102,241,0.14)", fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+                <div style={{ padding: "10px 12px", borderRadius: 10, background: "rgba(124,58,237,0.06)", border: "1px solid rgba(124,58,237,0.14)", fontSize: 11, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
                   {active.content.length > 20
                     ? `The document "${active.title}" contains ${active.wordCount} words. Reads in ${readTime(active.wordCount)} min.`
                     : "Start writing to get an AI summary"}
@@ -679,7 +679,7 @@ export default function NotepadPage() {
                   { time: "Yesterday",       user: "You" },
                 ].map((h, i) => (
                   <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, padding: "5px 8px", borderRadius: 7, background: "rgba(255,255,255,0.02)" }}>
-                    <div style={{ width: 20, height: 20, borderRadius: 6, background: "linear-gradient(135deg, #6366f1, #4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff" }}>F</div>
+                    <div style={{ width: 20, height: 20, borderRadius: 6, background: "linear-gradient(135deg, #7C3AED, #6D28D9)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontWeight: 800, color: "#fff" }}>F</div>
                     <div>
                       <div style={{ fontSize: 10, color: "rgba(255,255,255,0.5)" }}>{h.user}</div>
                       <div style={{ fontSize: 9, color: "rgba(255,255,255,0.22)" }}>{h.time}</div>
@@ -700,7 +700,7 @@ export default function NotepadPage() {
             onClick={e => e.target === e.currentTarget && setShowTemplates(false)}>
             <motion.div initial={{ opacity: 0, scale: 0.95, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }}
               style={{ width: "100%", maxWidth: 680, borderRadius: 22, background: "#0d0f14", border: "1px solid rgba(255,255,255,0.1)", overflow: "hidden", position: "relative" }}>
-              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #6366f180, transparent)" }} />
+              <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 1, background: "linear-gradient(90deg, transparent, #7C3AED80, transparent)" }} />
               <div style={{ padding: "22px 28px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div>
                   <div style={{ fontSize: 16, fontWeight: 800, color: "#fff" }}>Templates</div>
@@ -712,7 +712,7 @@ export default function NotepadPage() {
               </div>
               <div style={{ padding: "18px 28px 24px" }}>
                 <button onClick={() => createNote()}
-                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 12, border: "1px dashed rgba(99,102,241,0.3)", background: "rgba(99,102,241,0.05)", color: "#8b5cf6", cursor: "pointer", marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
+                  style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 14px", borderRadius: 12, border: "1px dashed rgba(124,58,237,0.3)", background: "rgba(124,58,237,0.05)", color: "#D946EF", cursor: "pointer", marginBottom: 16, fontSize: 13, fontWeight: 700 }}>
                   <Plus size={16} />Blank Note
                 </button>
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10 }}>

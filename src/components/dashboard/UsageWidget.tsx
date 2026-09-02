@@ -10,8 +10,8 @@ import { PLAN_BY_ID, type PlanId } from "@/lib/plans";
 // Тянет реальные квоты из /api/usage и подбирает следующий полезный шаг по
 // состоянию тарифа и расхода. Не статичная витрина, а рабочая панель.
 
-const ACCENT = "#6366f1";
-const RGB = "99,102,241";
+const ACCENT = "#7C3AED";
+const RGB = "124,58,237";
 
 type Q = { used: number; limit: number | null; remaining: number | null };
 type UsageResp = { success: boolean; plan: PlanId | "none"; usage: Record<string, Q> };

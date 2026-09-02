@@ -39,7 +39,7 @@ function ResetForm() {
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} style={CARD}>
       <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 6 }}>
-        <span style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#6366f1,#4f46e5)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 18px rgba(99,102,241,0.4)" }}>
+        <span style={{ width: 34, height: 34, borderRadius: 10, background: "linear-gradient(135deg,#7C3AED,#6D28D9)", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 6px 18px rgba(124,58,237,0.4)" }}>
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.2"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
         </span>
         <span style={{ fontFamily: "var(--font-geist-mono), monospace", fontSize: 14, fontWeight: 700, color: "#fff" }}>VERTLIX AI</span>
@@ -62,15 +62,15 @@ function ResetForm() {
           <p style={{ fontSize: 13, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, margin: "0 0 20px" }}>Придумайте новый пароль для вашего аккаунта.</p>
           <form onSubmit={submit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <input type="password" required value={pw} onChange={e => setPw(e.target.value)} placeholder="Новый пароль" style={field}
-              onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")} />
+              onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")} />
             <input type="password" required value={pw2} onChange={e => setPw2(e.target.value)} placeholder="Повторите пароль" style={field}
-              onFocus={e => (e.currentTarget.style.borderColor = "rgba(99,102,241,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")} />
+              onFocus={e => (e.currentTarget.style.borderColor = "rgba(124,58,237,0.5)")} onBlur={e => (e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)")} />
             {error && (
               <div style={{ fontSize: 12, color: "#f87171", background: "rgba(239,68,68,0.08)", border: "1px solid rgba(239,68,68,0.25)", borderRadius: 10, padding: "9px 12px" }}>{error}</div>
             )}
             <button type="submit" disabled={busy}
               style={{ height: 46, borderRadius: 11, border: "none", cursor: busy ? "default" : "pointer", fontSize: 14, fontWeight: 700, color: "#fff",
-                background: busy ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#6366f1,#4f46e5)", boxShadow: busy ? "none" : "0 6px 20px rgba(99,102,241,0.35)" }}>
+                background: busy ? "rgba(255,255,255,0.08)" : "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: busy ? "none" : "0 6px 20px rgba(124,58,237,0.35)" }}>
               {busy ? "Сохраняем…" : "Установить пароль"}
             </button>
           </form>

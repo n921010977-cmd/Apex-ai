@@ -278,6 +278,6 @@ export const AGENT_META = [
   { role: "COO", title: "Chief Operating Officer", color: "#f59e0b" },
   { role: "Business Analyst", title: "Business Analyst", color: "#f97316" },
   { role: "CTO", title: "Chief Technology Officer", color: "#ec4899" },
-  { role: "Sales Director", title: "Sales Director", color: "#6366f1" },
+  { role: "Sales Director", title: "Sales Director", color: "#7C3AED" },
   { role: "Legal Advisor", title: "Legal Advisor", color: "#64748b" },
 ];

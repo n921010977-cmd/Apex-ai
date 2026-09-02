@@ -23,7 +23,7 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
         </p>
         <div style={{ display: "flex", gap: 10, justifyContent: "center", flexWrap: "wrap" }}>
           <button onClick={reset}
-            style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "0 24px", borderRadius: 12, background: "linear-gradient(135deg, #6366f1, #4f46e5)", color: "#fff", fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
+            style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 44, padding: "0 24px", borderRadius: 12, background: "linear-gradient(135deg, #7C3AED, #6D28D9)", color: "#fff", fontSize: 14, fontWeight: 700, border: "none", cursor: "pointer", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.16)" }}>
             Повторить
           </button>
           <a href="/dashboard"
