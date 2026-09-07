@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSession } from "next-auth/react";
 import { motion, AnimatePresence, useMotionValue, useSpring, useReducedMotion } from "framer-motion";
 import {
-  Zap, TrendingUp, Target, Shield, ChevronRight, ArrowUpRight,
+  Zap, TrendingUp, Target, ChevronRight, ArrowUpRight,
   Brain, DollarSign, Cpu, Globe, Lightbulb, Activity, Users,
   BarChart2, FileText, Rocket, Star, AlertTriangle,
   CheckCircle, ExternalLink, MessageSquare,
@@ -598,13 +598,16 @@ export default function DashboardPage() {
                 Your AI board of directors analyzes market, strategy and finance in real time.
               </motion.p>
 
-              {/* KPI chips */}
+              {/* KPI chips — только реальные, посчитанные из projects. Раньше
+                  здесь стояли зашитые числа (4 Opportunities, 2 Risks, 34%
+                  MoM growth), которые показывались одинаково даже пустому
+                  аккаунту без единого проекта — начатая уже в этом файле
+                  чистка от выдуманных данных (см. комментарий у EXECUTIVES)
+                  сюда ещё не дошла. */}
               <div className="flex flex-wrap gap-2.5 mb-6">
                 {[
-                  { icon: Target,     label: "Opportunities", value: 4,  suffix: "",  color: SUCCESS },
-                  { icon: BarChart2,  label: "AI Analyses",  value: 12, suffix: "+", color: ACCENT  },
-                  { icon: Shield,     label: "Risks",       value: 2,  suffix: "",  color: DANGER  },
-                  { icon: TrendingUp, label: "MoM growth",     value: 34, suffix: "%", color: WARNING },
+                  { icon: Target,    label: "Projects",    value: projects.length, suffix: "", color: SUCCESS },
+                  { icon: BarChart2, label: "AI Analyses", value: projects.filter(p => Array.isArray(p.ai_results) && p.ai_results.length > 0).length, suffix: "", color: ACCENT },
                 ].map((k, i) => (
                   <KpiChip key={k.label} {...k} delay={0.3 + i * 0.06} />
                 ))}

@@ -8,7 +8,7 @@ import {
   Bot, Plus, Search, Play, MessageSquare, Settings2, BarChart2, Copy,
   Star, Zap, Shield, TrendingUp, Users, Code2, Scale, FlaskConical,
   ChevronRight, X, Check, Brain, Database, Globe, Cpu,
-  Activity, Clock, DollarSign, GitBranch, Package, Layers, Filter,
+  Activity, Clock, GitBranch, Package, Layers, Filter,
   ArrowUpRight, Sparkles, CheckCircle2, PauseCircle, Circle,
   AlertCircle, Crown, Target, Briefcase, Megaphone, Rocket, PenLine,
   Palette, Share2, Mail, Handshake, Phone, Gem, Map, Microscope,
@@ -162,12 +162,14 @@ const TOOL_LABELS: Record<string, string> = {
 
 const SPEED_LABEL: Record<string, string> = { fast: "Fast", medium: "Medium", slow: "Slow" };
 
+// Только реальные, вычисляемые значения — раньше три из пяти плиток были
+// зашитыми числами (2.4K запусков/день, 98.7% успеха, $84K экономии), никак
+// не связанными с фактическим использованием. Ни один запущенный агент этого
+// не подтверждал: у каждого runs:0. Оставлены только два поля, которые
+// реально считаются из состояния агентов ниже.
 const KPI = [
-  { label: "Total Agents",    value: "46",    color: "#D946EF", icon: Bot         },
-  { label: "Active Now",      value: "28",    color: "#10b981", icon: Activity    },
-  { label: "Runs / Day",      value: "2.4K",  color: "#3b82f6", icon: Zap         },
-  { label: "Success Rate",    value: "98.7%", color: "#f59e0b", icon: CheckCircle2 },
-  { label: "Savings / Month", value: "$84K",  color: "#f43f5e", icon: DollarSign  },
+  { label: "Total Agents", value: "",  color: "#D946EF", icon: Bot      },
+  { label: "Active Now",   value: "",  color: "#10b981", icon: Activity },
 ];
 
 function StatusDot({ status }: { status: AgentStatus }) {
