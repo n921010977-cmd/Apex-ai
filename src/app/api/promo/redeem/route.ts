@@ -54,9 +54,12 @@ export async function POST(req: NextRequest) {
   }
 
   const granted = await grantTrialDays(userId, PROMO_PLAN, PROMO_DAYS);
-  if (!granted) {
+  if (!granted.ok) {
     return NextResponse.json(
-      { success: false, error: "Could not activate the plan right now — please try again in a minute." },
+      {
+        success: false,
+        error: `Could not activate the plan right now — please try again in a minute. (${granted.errorCode ?? "unknown"})`,
+      },
       { status: 500 },
     );
   }

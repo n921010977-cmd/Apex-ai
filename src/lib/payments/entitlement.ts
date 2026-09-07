@@ -104,7 +104,9 @@ export async function setEntitlement(
  * уже на следующем запросе, поэтому вызывающий код должен честно сообщить об
  * ошибке, а не показать «активировано» по факту отсутствия исключения.
  */
-export async function grantTrialDays(userId: string, plan: PlanId, days: number): Promise<boolean> {
+export interface GrantResult { ok: boolean; errorCode?: string }
+
+export async function grantTrialDays(userId: string, plan: PlanId, days: number): Promise<GrantResult> {
   const client = await db();
 
   if (client) {
@@ -118,10 +120,15 @@ export async function grantTrialDays(userId: string, plan: PlanId, days: number)
         p_currency: "USD",
         p_days: days,
       });
-      if (!error) return true;
+      if (!error) return { ok: true };
       console.error("[subscriptions] grantTrialDays failed:", error.message);
+      // Код ошибки Postgres не секретен (42501 = нет прав, 42703 = нет
+      // колонки и т.д.) и позволяет диагностировать причину по скриншоту,
+      // не раскрывая текст ошибки с именами таблиц/колонок.
+      return { ok: false, errorCode: (error as { code?: string }).code };
     } catch (e) {
       console.error("[subscriptions] grantTrialDays error:", e instanceof Error ? e.message : String(e));
+      return { ok: false };
     }
   }
 
@@ -133,15 +140,15 @@ export async function grantTrialDays(userId: string, plan: PlanId, days: number)
     const expiresAt = base + days * 24 * 60 * 60 * 1000;
     const ttlMs = Math.max(60_000, expiresAt - Date.now());
     if (upstashConfigured()) {
-      try { await upstash([["SET", key(userId), plan, "PX", ttlMs]]); return true; }
+      try { await upstash([["SET", key(userId), plan, "PX", ttlMs]]); return { ok: true }; }
       catch { /* память ниже */ }
     }
     store.set(key(userId), { plan, expiresAt });
-    return true;
+    return { ok: true };
   }
 
   // База настроена, но запись в неё упала — не притворяемся, что всё хорошо.
-  return false;
+  return { ok: false };
 }
 
 async function readFallback(userId: string): Promise<{ plan: PlanId; expiresAt: number } | null> {
