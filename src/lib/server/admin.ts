@@ -9,7 +9,14 @@ import { headers } from "next/headers";
 import { createClient, isSupabaseConfigured } from "@/lib/supabase/server";
 import { apiLimiter, clientIp } from "@/lib/middleware/rate-limit";
 
-const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "n921010977@gmail.com";
+// Bootstrap admin by email. The hardcoded address is a DEVELOPMENT-ONLY
+// convenience: in production the grant comes from ADMIN_EMAIL, and if that is
+// unset the email path is disabled entirely so a committed address can never
+// confer admin. The database column users.is_admin remains the real source of
+// truth in every environment.
+const ADMIN_EMAIL =
+  process.env.ADMIN_EMAIL?.trim() ||
+  (process.env.NODE_ENV === "production" ? "" : "n921010977@gmail.com");
 
 export interface AdminCheck {
   ok: boolean;
@@ -33,7 +40,7 @@ export async function requireAdmin(): Promise<AdminCheck> {
   const email = session.user.email ?? "";
 
   // Запасной вход (bootstrap/демо): email из серверного окружения.
-  if (email && email === ADMIN_EMAIL) {
+  if (ADMIN_EMAIL && email && email === ADMIN_EMAIL) {
     return { ok: true, status: 200, userId: session.user.id, email };
   }
 

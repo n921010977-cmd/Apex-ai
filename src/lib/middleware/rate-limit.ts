@@ -76,6 +76,23 @@ async function checkUpstash(key: string, config: RateLimitConfig): Promise<RateL
   return { allowed: true, remaining: config.max - count, resetAt };
 }
 
+// The in-memory limiter only counts requests seen by ONE process. On a
+// serverless platform each invocation may be a fresh instance, so without a
+// shared store the limits above are close to unenforced — an attacker spreading
+// requests across instances is never counted. That degradation used to be
+// silent; warn once per process so a misconfigured deploy is visible in logs.
+let warnedNoSharedStore = false;
+function warnIfUnenforceable() {
+  if (warnedNoSharedStore || process.env.NODE_ENV !== "production") return;
+  warnedNoSharedStore = true;
+  console.error(
+    "[rate-limit] SECURITY: no shared store configured (UPSTASH_REDIS_REST_URL / " +
+    "UPSTASH_REDIS_REST_TOKEN missing). Falling back to per-instance memory, which " +
+    "does NOT reliably limit login, password-reset or AI endpoints in a multi-instance " +
+    "deployment. Configure Upstash to make these limits effective.",
+  );
+}
+
 export function rateLimit(config: RateLimitConfig) {
   return async function check(identifier: string): Promise<RateLimitResult> {
     if (upstashConfigured()) {
@@ -85,6 +102,8 @@ export function rateLimit(config: RateLimitConfig) {
         // Fail open to the in-memory limiter rather than blocking legit traffic.
         console.error("[rate-limit] Upstash error, falling back to memory:", err);
       }
+    } else {
+      warnIfUnenforceable();
     }
     return checkMemory(identifier, config);
   };
