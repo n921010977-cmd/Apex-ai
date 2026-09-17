@@ -1,329 +1,203 @@
 "use client";
 
 import Link from "next/link";
-import { motion, useMotionValue, useSpring, useTransform, type Variants } from "framer-motion";
-
-// ellipse → SVG path (so pulses can travel along the orbit)
-const ellipsePath = (cx: number, cy: number, rx: number, ry: number) =>
-  `M ${cx - rx},${cy} a ${rx},${ry} 0 1,0 ${2 * rx},0 a ${rx},${ry} 0 1,0 ${-2 * rx},0`;
+import { motion, type Variants } from "framer-motion";
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
-// 3 orbital rings so all 20 agents distribute without clutter
-const RINGS = [
-  { r: 188, dur: 42, dir: 1  as 1 | -1 },
-  { r: 142, dur: 32, dir: -1 as 1 | -1 },
-  { r: 98,  dur: 24, dir: 1  as 1 | -1 },
-];
-
+// The 20 AI directors — same roster used across the landing page and app.
+// Only the first 9 render as chips in the mockup card ("+11 more" covers the rest).
 const ROLES_20: [string, string][] = [
-  ["CEO", "#D946EF"], ["CFO", "#7C3AED"], ["CMO", "#3b82f6"], ["COO", "#06b6d4"],
-  ["CTO", "#10b981"], ["PM", "#f59e0b"], ["Growth", "#ec4899"], ["Data", "#22d3ee"],
-  ["Legal", "#D946EF"], ["HR", "#7C3AED"], ["Sales", "#3b82f6"], ["Brand", "#06b6d4"],
-  ["UX", "#10b981"], ["SEO", "#f59e0b"], ["Research", "#ec4899"], ["Finance", "#22d3ee"],
-  ["Ops", "#D946EF"], ["CS", "#7C3AED"], ["DevOps", "#3b82f6"], ["AI", "#06b6d4"],
+  ["CEO", "#D946EF"], ["CFO", "#7C3AED"], ["CMO", "#3b82f6"], ["CTO", "#10b981"],
+  ["Growth", "#ec4899"], ["Legal", "#f59e0b"], ["Data", "#22d3ee"], ["Research", "#06b6d4"],
+  ["Brand", "#a78bfa"],
 ];
 
-// distribute 20 across rings: 8 / 7 / 5
-const ORBITERS = ROLES_20.map(([short, color], i) => {
-  let ring: number, idxInRing: number, countInRing: number;
-  if (i < 8)       { ring = 0; idxInRing = i;      countInRing = 8; }
-  else if (i < 15) { ring = 1; idxInRing = i - 8;  countInRing = 7; }
-  else             { ring = 2; idxInRing = i - 15; countInRing = 5; }
-  return { short, color, ring, startDeg: (idxInRing / countInRing) * 360 };
-});
-
-// Deterministic micro-particles (sin/cos of evenly spaced angles × varying radii)
-const PARTICLES = Array.from({ length: 22 }, (_, i) => {
-  const a = (i / 22) * Math.PI * 2;
-  const r = 68 + (i % 4) * 26;
-  return {
-    cx: Math.cos(a) * r,
-    cy: Math.sin(a) * r * 0.52,   // flatten for 3D depth illusion
-    r:  i % 3 === 0 ? 1.8 : 1.1,
-    o:  0.10 + (i % 5) * 0.05,
-    d:  (i % 5) * 0.7,
-  };
-});
+// Illustrative sample analysis — same example ideas used in the live-demo
+// widget below the fold. Framed explicitly as "a sample idea" (see label in
+// the card), not a real customer's data or an aggregate product claim.
+const SAMPLE_IDEA = "Subscription coffee shop for developers";
+const SAMPLE_SCORES: [string, number][] = [
+  ["Market", 82], ["Demand", 91], ["Competition", 64], ["Risk", 38],
+];
+const ACTION_PLAN = ["Market validation", "Financial model", "Growth strategy", "Risk management"];
 
 // ─── Motion config ────────────────────────────────────────────────────────────
 
 const cont: Variants = { hidden: {}, show: { transition: { staggerChildren: 0.11 } } };
 const it: Variants   = { hidden: { opacity: 0, y: 26 }, show: { opacity: 1, y: 0, transition: { duration: 0.65, ease: [0.22, 1, 0.36, 1] } } };
 
-// ─── Orb sub-components ───────────────────────────────────────────────────────
+// ─── Dashboard mockup (right side of hero) ────────────────────────────────────
+// Recreates the "product in action" preview: a central analysis card plus two
+// floating detail cards. All figures are one illustrative example idea run
+// through the board (same idea used in the live demo below the fold) — never
+// presented as an aggregate claim about the product or its customers.
 
-function OrbCore() {
-  // ── pointer parallax (subtle 3D depth) ──
-  const px = useMotionValue(0);
-  const py = useMotionValue(0);
-  const spring = { stiffness: 120, damping: 18, mass: 0.4 };
-  const rotX = useSpring(useTransform(py, [-0.5, 0.5], [7, -7]), spring);
-  const rotY = useSpring(useTransform(px, [-0.5, 0.5], [-7, 7]), spring);
-  // deeper layers shift more than the plane → parallax separation
-  const coreX = useSpring(useTransform(px, [-0.5, 0.5], [-14, 14]), spring);
-  const coreY = useSpring(useTransform(py, [-0.5, 0.5], [-14, 14]), spring);
-
-  const onMove = (e: React.PointerEvent<HTMLDivElement>) => {
-    const r = e.currentTarget.getBoundingClientRect();
-    px.set((e.clientX - r.left) / r.width - 0.5);
-    py.set((e.clientY - r.top) / r.height - 0.5);
-  };
-  const onLeave = () => { px.set(0); py.set(0); };
-
+function HeroDashboardMock() {
   return (
-    <div
-      className="relative size-full"
-      style={{ perspective: 1000 }}
-      onPointerMove={onMove}
-      onPointerLeave={onLeave}
-    >
-    <motion.div
-      className="relative flex items-center justify-center size-full"
-      style={{ rotateX: rotX, rotateY: rotY, transformStyle: "preserve-3d" }}
-    >
-      {/* Deep ambient glow under the orb */}
+    <div className="relative" style={{ width: 420, maxWidth: "100%" }}>
+      {/* Ambient glow behind the whole mockup */}
       <div
-        className="absolute rounded-full"
+        className="absolute rounded-full pointer-events-none"
         style={{
-          width: 260, height: 260,
-          background: "radial-gradient(circle, rgba(124,58,237,0.28) 0%, rgba(59,130,246,0.12) 50%, transparent 75%)",
-          filter: "blur(32px)",
+          inset: "10% -10%",
+          background: "radial-gradient(ellipse, rgba(124,58,237,0.22) 0%, rgba(59,130,246,0.1) 45%, transparent 75%)",
+          filter: "blur(36px)",
         }}
       />
 
-      {/* Outer decorative ring — thin, slow spin */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: 340, height: 340,
-          border: "1px solid rgba(124,58,237,0.12)",
-          animation: "spin-slow 40s linear infinite",
-        }}
-      />
-      {/* Dashed techy ring */}
-      <div
-        className="absolute rounded-full"
-        style={{
-          width: 310, height: 310,
-          border: "1px dashed rgba(59,130,246,0.08)",
-          animation: "spin-slow 30s linear infinite reverse",
-        }}
-      />
-
-      {/* SVG rings — ellipses that look 3D ──────────────────────────────── */}
-      <svg
-        viewBox="0 0 400 400"
-        className="absolute"
-        style={{ width: 400, height: 400, overflow: "visible" }}
-      >
-        <defs>
-          <radialGradient id="rg1" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#7c3aed" stopOpacity="0.35" />
-            <stop offset="100%" stopColor="#7c3aed" stopOpacity="0" />
-          </radialGradient>
-          <radialGradient id="rg2" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.25" />
-            <stop offset="100%" stopColor="#06b6d4" stopOpacity="0" />
-          </radialGradient>
-          <filter id="fg1" x="-50%" y="-50%" width="200%" height="200%">
-            <feGaussianBlur stdDeviation="1.5" />
-          </filter>
-        </defs>
-
-        {/* Outer orbit ellipse (wide, shallow — looks like orbital plane tilted ~65°) */}
-        <ellipse cx="200" cy="200" rx="185" ry="68"
-          fill="none" stroke="rgba(124,58,237,0.18)" strokeWidth="1"
-          transform="rotate(-18 200 200)"
-        />
-        {/* Second ellipse — different tilt */}
-        <ellipse cx="200" cy="200" rx="152" ry="55"
-          fill="none" stroke="rgba(59,130,246,0.14)" strokeWidth="0.8"
-          transform="rotate(22 200 200)"
-        />
-        {/* Inner ellipse */}
-        <ellipse cx="200" cy="200" rx="108" ry="40"
-          fill="none" stroke="rgba(6,182,212,0.12)" strokeWidth="0.7"
-          transform="rotate(-5 200 200)"
-        />
-        {/* Techy arc segment on outer ring */}
-        <path
-          d="M 24 200 A 176 176 0 0 1 106 42"
-          fill="none" stroke="rgba(124,58,237,0.45)" strokeWidth="1.5"
-          strokeLinecap="round"
-          filter="url(#fg1)"
-        />
-        <path
-          d="M 362 232 A 176 176 0 0 1 340 318"
-          fill="none" stroke="rgba(6,182,212,0.4)" strokeWidth="1.5"
-          strokeLinecap="round"
-          filter="url(#fg1)"
-        />
-
-        {/* Energy pulses flowing along each orbit (data in motion) */}
-        {[
-          { rx: 185, ry: 68, tilt: -18, color: "#a78bfa", dur: 7,   delay: 0   },
-          { rx: 152, ry: 55, tilt: 22,  color: "#38bdf8", dur: 5.6, delay: 1.4 },
-          { rx: 108, ry: 40, tilt: -5,  color: "#5eead4", dur: 4.4, delay: 0.7 },
-        ].map((o, i) => (
-          <g key={i} transform={`rotate(${o.tilt} 200 200)`}>
-            <path id={`orbit-${i}`} d={ellipsePath(200, 200, o.rx, o.ry)} fill="none" stroke="none" />
-            <circle r={i === 0 ? 3 : 2.4} fill={o.color} filter="url(#fg1)">
-              <animateMotion dur={`${o.dur}s`} begin={`${o.delay}s`} repeatCount="indefinite" rotate="auto">
-                <mpath href={`#orbit-${i}`} />
-              </animateMotion>
-              <animate attributeName="opacity" values="0.2;1;0.2" dur={`${o.dur}s`} begin={`${o.delay}s`} repeatCount="indefinite" />
-            </circle>
-          </g>
-        ))}
-
-        {/* Micro-particles scattered on the elliptical plane */}
-        {PARTICLES.map((p, i) => (
-          <circle
-            key={i}
-            cx={200 + p.cx} cy={200 + p.cy}
-            r={p.r}
-            fill="white"
-            opacity={p.o}
-          >
-            <animate attributeName="opacity"
-              values={`${p.o};${p.o * 3};${p.o}`}
-              dur={`${2.5 + p.d}s`}
-              begin={`${p.d}s`}
-              repeatCount="indefinite"
-            />
-          </circle>
-        ))}
-
-        {/* Small glowing dots on the outer ring arc */}
-        {[0, 72, 144, 216, 288].map((deg, i) => {
-          const rad = (deg - 90) * Math.PI / 180;
-          const x = 200 + Math.cos(rad) * 185;
-          const y = 200 + Math.sin(rad) * 68;
-          return (
-            <circle key={i} cx={x} cy={y} r="3" fill={ORBITERS[i]?.color ?? "#D946EF"} opacity="0.5">
-              <animate attributeName="opacity" values="0.4;0.9;0.4" dur="2s" begin={`${i * 0.4}s`} repeatCount="indefinite" />
-            </circle>
-          );
-        })}
-      </svg>
-
-      {/* Central glassmorphism core ──────────────────────────────────────── */}
+      {/* Floating card — 90-day action plan (top-right) */}
       <motion.div
-        className="relative z-10 flex items-center justify-center"
-        initial={{ opacity: 0, scale: 0.6 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, delay: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-        style={{ x: coreX, y: coreY }}
+        className="hidden sm:block absolute z-20"
+        style={{ top: -64, right: -64, width: 168, animation: "hero-metric-float 6s ease-in-out infinite" }}
+        initial={{ opacity: 0, y: 14, scale: 0.92 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.7, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
       >
-        {/* Core glow pulse */}
         <div
-          className="absolute rounded-3xl"
+          className="rounded-2xl p-3.5"
           style={{
-            inset: -20,
-            background: "radial-gradient(circle, rgba(124,58,237,0.4) 0%, transparent 70%)",
-            filter: "blur(20px)",
-            animation: "pulse-glow 3s ease-in-out infinite",
-          }}
-        />
-        {/* Outer glass ring */}
-        <div
-          className="absolute rounded-3xl"
-          style={{
-            inset: -12,
-            background: "linear-gradient(135deg, rgba(124,58,237,0.06) 0%, rgba(59,130,246,0.04) 100%)",
-            border: "1px solid rgba(124,58,237,0.2)",
-            backdropFilter: "blur(4px)",
-          }}
-        />
-        {/* Core glass body */}
-        <div
-          className="relative size-28 rounded-3xl flex flex-col items-center justify-center"
-          style={{
-            background: "linear-gradient(135deg, rgba(124,58,237,0.22) 0%, rgba(59,130,246,0.14) 50%, rgba(6,182,212,0.08) 100%)",
-            border: "1px solid rgba(255,255,255,0.14)",
-            backdropFilter: "blur(20px)",
-            boxShadow: "0 0 40px rgba(124,58,237,0.3), 0 0 80px rgba(124,58,237,0.12), inset 0 1px 0 rgba(255,255,255,0.16)",
-            animation: "hero-core-breathe 5s ease-in-out infinite",
+            background: "rgba(9,10,16,0.92)",
+            border: "1px solid rgba(124,58,237,0.22)",
+            boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+            backdropFilter: "blur(16px)",
           }}
         >
-          {/* Top shimmer */}
-          <div className="absolute inset-x-0 top-0 h-px rounded-t-3xl" style={{ background: "linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent)" }} />
-          {/* Star icon */}
-          <svg viewBox="0 0 24 24" className="size-11 mb-1.5" fill="none" stroke="url(#star-grad)" strokeWidth="1.4">
-            <defs>
-              <linearGradient id="star-grad" x1="0" y1="0" x2="1" y2="1">
-                <stop offset="0%" stopColor="#a78bfa" />
-                <stop offset="100%" stopColor="#38bdf8" />
-              </linearGradient>
-            </defs>
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-          </svg>
-          <span
-            className="text-[10px] font-bold tracking-[0.18em]"
-            style={{
-              background: "linear-gradient(90deg, #a78bfa, #38bdf8)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            VERTLIX AI
-          </span>
+          <div className="flex items-center justify-between mb-2.5">
+            <span className="text-[9.5px] font-bold tracking-[0.1em] uppercase" style={{ color: "#a78bfa" }}>
+              90-Day Action Plan
+            </span>
+            <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="#a78bfa" strokeWidth="2.2" strokeLinecap="round">
+              <path d="M9 6l6 6-6 6" />
+            </svg>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            {ACTION_PLAN.map((step) => (
+              <div key={step} className="flex items-center gap-1.5">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="#34d399" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="flex-shrink-0">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+                <span className="text-[10.5px] text-white/70 leading-none">{step}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </motion.div>
 
-      {/* Orbital capsules — all 20 agents across 3 rings ──────────────────── */}
-      {ORBITERS.map((o, i) => {
-        const ring = RINGS[o.ring];
-        const dir = ring.dir === -1 ? "reverse" : "normal";
-        return (
-          <motion.div
-            key={o.short}
-            className="absolute"
-            style={{ top: "50%", left: "50%", width: 0, height: 0 }}
-            initial={{ opacity: 0, scale: 0.4 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.7 + i * 0.05, type: "spring", stiffness: 240, damping: 18 }}
-          >
-            <div
-              style={{
-                position: "absolute",
-                top: 0, left: 0, width: 0, height: 0,
-                transformOrigin: "0 0",
-                animation: `hero-orbit ${ring.dur}s linear infinite`,
-                animationDirection: dir,
-                animationDelay: `-${(o.startDeg / 360) * ring.dur}s`,
-              }}
-            >
-              <div
-                style={{
-                  position: "absolute",
-                  left: 0, top: 0,
-                  ["--orbit-r" as string]: `${ring.r}px`,
-                  animation: `hero-unspin ${ring.dur}s linear infinite`,
-                  animationDirection: dir,
-                  animationDelay: `-${(o.startDeg / 360) * ring.dur}s`,
-                } as React.CSSProperties}
-              >
-                {/* Compact capsule (dot + short role) */}
-                <div
-                  className="relative flex items-center gap-1.5 pl-1.5 pr-2 py-1 rounded-lg whitespace-nowrap"
-                  style={{
-                    transform: "translate(-50%, -50%)",
-                    background: `linear-gradient(135deg, ${o.color}22 0%, rgba(9,10,16,0.92) 100%)`,
-                    border: `1px solid ${o.color}3d`,
-                    boxShadow: `0 4px 14px rgba(0,0,0,0.42), inset 0 1px 0 rgba(255,255,255,0.06)`,
-                  }}
-                >
-                  <span className="size-1.5 rounded-full flex-shrink-0" style={{ background: o.color, boxShadow: `0 0 5px ${o.color}` }} />
-                  <span className="text-[10px] font-bold" style={{ color: o.color }}>{o.short}</span>
+      {/* Floating card — competitor snapshot (bottom-left) */}
+      <motion.div
+        className="hidden sm:block absolute z-20"
+        style={{ bottom: -80, left: -68, width: 176, animation: "hero-metric-float 7s ease-in-out infinite 0.6s" }}
+        initial={{ opacity: 0, y: 14, scale: 0.92 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ delay: 0.9, duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <div
+          className="rounded-2xl p-3.5"
+          style={{
+            background: "rgba(9,10,16,0.92)",
+            border: "1px solid rgba(6,182,212,0.2)",
+            boxShadow: "0 16px 40px rgba(0,0,0,0.45)",
+            backdropFilter: "blur(16px)",
+          }}
+        >
+          <span className="text-[9.5px] font-bold tracking-[0.1em] uppercase block mb-2.5" style={{ color: "#22d3ee" }}>
+            Competitor Snapshot
+          </span>
+          <div className="flex flex-col gap-1.5">
+            {[["Your idea", 82, "#22d3ee"], ["Competitor A", 61, "rgba(255,255,255,0.25)"], ["Competitor B", 48, "rgba(255,255,255,0.25)"]].map(([label, val, color]) => (
+              <div key={label as string} className="flex items-center gap-2">
+                <span className="text-[9.5px] text-white/45 w-[62px] flex-shrink-0 truncate">{label}</span>
+                <div className="flex-1 h-1.5 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${val}%`, background: color as string }} />
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      </motion.div>
+
+      {/* Main card — idea analysis */}
+      <motion.div
+        className="relative z-10 rounded-[22px] overflow-hidden"
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.7, delay: 0.25, ease: [0.22, 1, 0.36, 1] }}
+        style={{
+          background: "rgba(9,10,16,0.9)",
+          border: "1px solid rgba(124,58,237,0.25)",
+          boxShadow: "0 30px 80px rgba(0,0,0,0.5), 0 0 60px rgba(124,58,237,0.08)",
+          backdropFilter: "blur(20px)",
+        }}
+      >
+        {/* Title bar */}
+        <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: "1px solid rgba(255,255,255,0.07)" }}>
+          <div className="flex items-center gap-2">
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="url(#hero-star-grad)" strokeWidth="1.6">
+              <defs>
+                <linearGradient id="hero-star-grad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor="#a78bfa" /><stop offset="100%" stopColor="#38bdf8" />
+                </linearGradient>
+              </defs>
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+            </svg>
+            <span className="term-mono text-[11px] font-bold text-white tracking-[0.06em]">VERTLIX</span>
+          </div>
+          <span className="flex items-center gap-1.5 text-[9.5px] tracking-[0.08em] uppercase px-2 py-1 rounded-full" style={{ color: "#34d399", background: "rgba(16,185,129,0.1)", border: "1px solid rgba(16,185,129,0.2)" }}>
+            <span className="size-1.5 rounded-full bg-emerald-400 term-blink" /> Analysis complete
+          </span>
+        </div>
+
+        <div className="p-4">
+          {/* Idea analysis */}
+          <div className="text-[9px] font-bold tracking-[0.12em] uppercase text-white/35 mb-2">Idea analysis · sample run</div>
+          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-xl" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)" }}>
+            <span aria-hidden>💡</span>
+            <span className="text-[12px] text-white/75 truncate">{SAMPLE_IDEA}</span>
+          </div>
+          <div className="flex flex-col gap-2 mb-4">
+            {SAMPLE_SCORES.map(([label, val]) => (
+              <div key={label} className="flex items-center gap-3">
+                <span className="text-[11px] text-white/45 w-[92px] flex-shrink-0">{label}</span>
+                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.06)" }}>
+                  <div className="h-full rounded-full" style={{ width: `${val}%`, background: "linear-gradient(90deg, #7C3AED, #22d3ee)" }} />
+                </div>
+                <span className="text-[11px] font-semibold text-white/80 w-8 text-right flex-shrink-0">{val}%</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Agent roster */}
+          <div className="text-[9px] font-bold tracking-[0.12em] uppercase text-white/35 mb-2">20 AI directors on this review</div>
+          <div className="flex flex-wrap gap-1.5 mb-4">
+            {ROLES_20.map(([short, color]) => (
+              <span
+                key={short}
+                className="text-[10px] font-semibold px-2 py-1 rounded-lg"
+                style={{ color, background: `${color}18`, border: `1px solid ${color}33` }}
+              >
+                {short}
+              </span>
+            ))}
+            <span className="text-[10px] px-2 py-1 rounded-lg text-white/35" style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.08)" }}>
+              +11 more
+            </span>
+          </div>
+
+          {/* Strategic outlook */}
+          <div className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl" style={{ background: "rgba(16,185,129,0.06)", border: "1px solid rgba(16,185,129,0.18)" }}>
+            <div className="flex items-center gap-2.5 min-w-0">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#34d399" strokeWidth="2.2" strokeLinecap="round" className="flex-shrink-0">
+                <path d="M5 12l5 5L20 6" />
+              </svg>
+              <span className="text-[12px] font-semibold text-emerald-300 truncate">Strong potential</span>
             </div>
-          </motion.div>
-        );
-      })}
-    </motion.div>
+            <Link href="/register" className="text-[10.5px] font-semibold text-white/70 hover:text-white flex items-center gap-1 flex-shrink-0">
+              Full strategy <span aria-hidden>→</span>
+            </Link>
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
 }
@@ -333,48 +207,22 @@ function OrbCore() {
 export function HeroSection() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      {/* ── CSS keyframes (orbit trick) ── */}
+      {/* ── CSS keyframes ── */}
       <style>{`
-        @keyframes hero-orbit {
-          from { transform: rotate(0deg); }
-          to   { transform: rotate(360deg); }
-        }
-        @keyframes hero-unspin {
-          from { transform: translateX(var(--orbit-r)) translateY(-50%) rotate(0deg); }
-          to   { transform: translateX(var(--orbit-r)) translateY(-50%) rotate(-360deg); }
-        }
-        @keyframes hero-particle-pulse {
-          0%, 100% { opacity: 0.12; transform: scale(1); }
-          50%       { opacity: 0.45; transform: scale(1.6); }
-        }
         @keyframes hero-badge-glow {
           0%, 100% { box-shadow: 0 0 8px rgba(124,58,237,0.12); }
           50%       { box-shadow: 0 0 16px rgba(124,58,237,0.24); }
         }
-        @keyframes hero-core-breathe {
-          0%, 100% { transform: scale(1); }
-          50%       { transform: scale(1.035); }
-        }
         @keyframes hero-metric-float {
           0%, 100% { transform: translateY(0); }
-          50%       { transform: translateY(-2px); }
+          50%       { transform: translateY(-6px); }
         }
 
-        /* Orb column — give it more of the row and let the orb breathe */
-        .hero-orb-col { flex: 1.15; }
-        .hero-orb-stage { width: 420px; height: 420px; }
-        .hero-orb-scale { transform: scale(1); transform-origin: center; will-change: transform; }
+        /* Mockup column — give it more of the row so the card breathes */
+        .hero-mock-col { flex: 1.15; }
 
-        @media (min-width: 1024px) {
-          .hero-orb-stage { width: 520px; height: 520px; }
-          .hero-orb-scale { transform: scale(1.32); }
-        }
-        @media (min-width: 1280px) {
-          .hero-orb-stage { width: 580px; height: 580px; }
-          .hero-orb-scale { transform: scale(1.48); }
-        }
         @media (prefers-reduced-motion: reduce) {
-          .hero-orb-scale { will-change: auto; }
+          [style*="hero-metric-float"] { animation: none !important; }
         }
       `}</style>
 
@@ -544,18 +392,14 @@ export function HeroSection() {
           </motion.div>
         </motion.div>
 
-        {/* ─── Right: 3D Orb visual ────────────────────────────────────── */}
+        {/* ─── Right: product preview mockup ──────────────────────────── */}
         <motion.div
-          className="hero-orb-col flex items-center justify-center"
+          className="hero-mock-col flex items-center justify-center"
           initial={{ opacity: 0, x: 40 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 1, delay: 0.2, ease: [0.22, 1, 0.36, 1] }}
         >
-          <div className="hero-orb-stage relative flex items-center justify-center">
-            <div className="hero-orb-scale">
-              <OrbCore />
-            </div>
-          </div>
+          <HeroDashboardMock />
         </motion.div>
       </div>
 
