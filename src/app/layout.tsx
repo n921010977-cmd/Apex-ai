@@ -5,6 +5,7 @@ import "./globals.css";
 import { Analytics } from "@vercel/analytics/react";
 import { SessionProvider } from "@/components/SessionProvider";
 import { PostHogProvider } from "@/components/PostHogProvider";
+import { MotionProvider } from "@/components/MotionProvider";
 import { CookieBanner } from "@/components/CookieBanner";
 import { siteUrl, SITE_NAME } from "@/lib/site";
 
@@ -111,7 +112,9 @@ export default function RootLayout({
       </head>
       <body className="bg-[#05060A] text-white min-h-screen overscroll-none">
         <SessionProvider>
-          <PostHogProvider>{children}</PostHogProvider>
+          <PostHogProvider>
+            <MotionProvider>{children}</MotionProvider>
+          </PostHogProvider>
         </SessionProvider>
         <CookieBanner />
         <Analytics />

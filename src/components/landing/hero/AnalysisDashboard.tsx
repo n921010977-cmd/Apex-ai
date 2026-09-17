@@ -75,8 +75,6 @@ export function AnalysisDashboard({ className = "", style }: { className?: strin
         background: `linear-gradient(180deg, rgba(17,19,32,0.92) 0%, rgba(8,9,16,0.95) 100%)`,
         border: `1px solid ${C.line}`,
         boxShadow: `0 1px 2px rgba(0,0,0,0.6), 0 40px 90px rgba(0,0,0,0.6), 0 0 70px rgba(124,58,237,0.07), inset 0 1px 0 rgba(255,255,255,0.055)`,
-        backdropFilter: "blur(24px)",
-        WebkitBackdropFilter: "blur(24px)",
         ...style,
       }}
       initial={{ opacity: 0, y: 26 }}

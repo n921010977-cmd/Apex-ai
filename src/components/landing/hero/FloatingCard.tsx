@@ -49,8 +49,6 @@ export function FloatingCard({
           background: `linear-gradient(180deg, rgba(20,22,36,0.88) 0%, rgba(9,10,18,0.92) 100%)`,
           border: `1px solid ${C.line}`,
           boxShadow: "0 1px 2px rgba(0,0,0,0.5), 0 18px 48px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
         }}
       >
         <div className="flex items-start justify-between gap-2 mb-3">

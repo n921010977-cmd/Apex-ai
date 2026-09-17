@@ -1,3 +1,5 @@
+"use client";
+
 // ─── Motion system ────────────────────────────────────────────────────────────
 // Single source of truth for JS-driven motion (Framer Motion). Mirrors the CSS
 // motion tokens in src/styles/tokens.css (--duration-*, --ease-*) so a hover in
@@ -11,6 +13,7 @@
 // Import these instead of writing literals:
 //   import { DUR, EASE, fadeUp, stagger } from "@/lib/motion";
 
+import { useMotionValue, useReducedMotion, useSpring } from "framer-motion";
 import type { Transition, Variants } from "framer-motion";
 
 /** Cubic-bezier control points, typed so Framer Motion accepts them as `ease`. */
@@ -152,9 +155,79 @@ export const COUNT_MS = 1200;
 // rule CANNOT reach Framer Motion — it animates inline transforms from JS, which
 // no stylesheet overrides. To honour the setting app-wide, wrap the tree once:
 //
-//   import { MotionConfig } from "framer-motion";
-//   <MotionConfig reducedMotion="user">{children}</MotionConfig>
+// This is handled app-wide by <MotionProvider> (src/components/MotionProvider.tsx),
+// mounted in the root layout. Verified by frame-tracing the hero headline: with
+// `reduce` set it moves through 2 distinct positions (a snap) versus 12 without,
+// so no per-component guards are needed. Do not add them.
+
+// ─── Editorial reveal ─────────────────────────────────────────────────────────
+// Line-by-line entrance for display type: the line rises out of a slight blur
+// and sharpens. Reads as film titling rather than a UI fade, and unlike a
+// typewriter it never leaves the headline unreadable mid-flight.
 //
-// With that in place, `transform`/`opacity` animations are skipped to their end
-// state for users who asked for reduced motion, and no per-component guards are
-// needed. Not yet wired — see the vertlix-performance skill.
+// `filter` is not a compositor-only property, so this is reserved for a handful
+// of display lines on first paint — never for body copy or anything in a list.
+
+export const revealLine: Variants = {
+  hidden: { opacity: 0, y: "0.42em", filter: "blur(10px)" },
+  show: {
+    opacity: 1,
+    y: "0em",
+    filter: "blur(0px)",
+    transition: { duration: 0.85, ease: EASE.standard },
+  },
+};
+
+/** Parent for revealLine children. Lines land ~130ms apart. */
+export const revealLines = (delayChildren = 0): Variants => ({
+  hidden: {},
+  show: { transition: { staggerChildren: 0.13, delayChildren } },
+});
+
+// ─── Ambient ──────────────────────────────────────────────────────────────────
+
+/** Slow idle drift. Give neighbouring elements different durations. */
+export const floatY = (px = 6, seconds = 7) => ({
+  animate: { y: [0, -px, 0] },
+  transition: { duration: seconds, ease: EASE.inOut, repeat: Infinity },
+});
+
+/** Breathing opacity for live/status indicators. */
+export const pulse = (seconds = 2.4) => ({
+  animate: { opacity: [0.35, 1, 0.35] },
+  transition: { duration: seconds, ease: EASE.inOut, repeat: Infinity },
+});
+
+// ─── Pointer magnetism ────────────────────────────────────────────────────────
+
+/**
+ * Pulls an element a few pixels toward the cursor while it is nearby, then
+ * springs home. Used on the primary CTA so it feels like it wants to be
+ * pressed. Deliberately small — past ~8px it reads as a gimmick and the button
+ * starts running away from the click.
+ *
+ * Returns props to spread on a `motion` element. No-ops for coarse pointers
+ * (touch has no hover state to anticipate) and when reduced motion is set.
+ */
+export function useMagnetic(strength = 6) {
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
+  const reduced = useReducedMotion();
+  const sx = useSpring(x, { stiffness: 220, damping: 18, mass: 0.35 });
+  const sy = useSpring(y, { stiffness: 220, damping: 18, mass: 0.35 });
+
+  const fine = typeof window !== "undefined" && window.matchMedia?.("(pointer: fine)").matches;
+  const active = fine && !reduced;
+
+  return {
+    style: active ? { x: sx, y: sy } : undefined,
+    onPointerMove: active
+      ? (e: React.PointerEvent<HTMLElement>) => {
+          const r = e.currentTarget.getBoundingClientRect();
+          x.set(((e.clientX - (r.left + r.width / 2)) / (r.width / 2)) * strength);
+          y.set(((e.clientY - (r.top + r.height / 2)) / (r.height / 2)) * strength);
+        }
+      : undefined,
+    onPointerLeave: active ? () => { x.set(0); y.set(0); } : undefined,
+  };
+}

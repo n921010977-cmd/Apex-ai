@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { motion, type Variants } from "framer-motion";
+import { revealLine, revealLines, useMagnetic } from "@/lib/motion";
 import { ArrowRight, Clock, CreditCard, Play, Sparkles, Users } from "lucide-react";
 import { C } from "./data";
 
@@ -19,6 +20,8 @@ const TRUST = [
 
 /** Left column: the promise, the ask, and the reasons to trust it. */
 export function HeroCopy() {
+  const magnetic = useMagnetic(6);
+
   return (
     <motion.div className="hero-copy" variants={cont} initial="hidden" animate="show">
       {/* Badge */}
@@ -38,10 +41,15 @@ export function HeroCopy() {
       </motion.div>
 
       {/* Headline */}
-      <motion.h1 variants={item} className="hero-h1">
-        <span className="text-white">Turn your idea</span>
-        <br />
-        <span className="hero-h1-grad">into a real business.</span>
+      <motion.h1 className="hero-h1" variants={revealLines(0.12)} initial="hidden" animate="show">
+        {/* Each line is its own block so it can rise and sharpen independently —
+            the promise resolves line by line rather than arriving all at once. */}
+        <motion.span variants={revealLine} style={{ display: "block" }} className="text-white">
+          Turn your idea
+        </motion.span>
+        <motion.span variants={revealLine} style={{ display: "block" }}>
+          <span className="hero-h1-grad">into a real business.</span>
+        </motion.span>
       </motion.h1>
 
       {/* Supporting paragraph */}
@@ -52,6 +60,7 @@ export function HeroCopy() {
 
       {/* CTAs */}
       <motion.div variants={item} className="hero-cta-row flex flex-wrap items-center justify-center gap-3 lg:justify-start">
+        <motion.div {...magnetic} style={{ display: "inline-flex", ...(magnetic.style ?? {}) }}>
         <Link href="/register" className="hero-cta group">
           Analyze My Idea — Free
           <ArrowRight
@@ -61,6 +70,7 @@ export function HeroCopy() {
             aria-hidden
           />
         </Link>
+        </motion.div>
 
         <a href="#product" className="hero-cta-ghost group">
           <span
