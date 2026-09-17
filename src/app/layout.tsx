@@ -12,21 +12,33 @@ import { siteUrl, SITE_NAME } from "@/lib/site";
 // though the fonts are now Inter/JetBrains Mono — hundreds of inline
 // `fontFamily: "var(--font-geist-mono), ..."` references across the app pick
 // up the new typefaces automatically without touching every call site.
+// Cyrillic is requested alongside Latin on all three. It costs nothing up
+// front: next/font emits one @font-face per subset with its unicode-range, so
+// a browser only downloads the Cyrillic file if a Cyrillic glyph is actually
+// painted. All three families cover base Cyrillic (U+0400-045F) — verified
+// against the Google Fonts API, and the reason several otherwise-good
+// candidates (Plus Jakarta Sans, DM Sans, Space Grotesk, Sora) were rejected.
 const geistSans = Inter({
   variable: "--font-geist-sans",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  display: "swap",
 });
 
 const geistMono = JetBrains_Mono({
   variable: "--font-geist-mono",
-  subsets: ["latin"],
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  display: "swap",
 });
 
 // Headings only (see globals.css h1–h6 rule). New variable, not a legacy alias.
+// No `weight` array on purpose: naming weights pins next/font to static
+// instances, which is why markup asking for 650/750/900 was silently rounded
+// or synthesised. Omitting it ships the variable face, so the whole 200-800
+// axis is real — and it is one file instead of three.
 const manrope = Manrope({
   variable: "--font-heading",
-  subsets: ["latin"],
-  weight: ["600", "700", "800"],
+  subsets: ["latin", "latin-ext", "cyrillic"],
+  display: "swap",
 });
 
 export const viewport: Viewport = {

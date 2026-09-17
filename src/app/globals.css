@@ -356,7 +356,9 @@ a:focus-visible, button:focus-visible {
 }
 
 /* ── Tabular numbers for data ─────────────────────────── */
-.tabular { font-variant-numeric: tabular-nums; }
+/* lining-nums is explicit so a future font swap can't introduce old-style
+   figures that would sit below the baseline in a metric row. */
+.tabular { font-variant-numeric: tabular-nums lining-nums; }
 
 /* ── Status chip ──────────────────────────────────────── */
 .chip {
@@ -562,4 +564,96 @@ a:focus-visible, button:focus-visible {
 .hero-benefit { display: flex; align-items: center; gap: 12px; }
 @media (min-width: 1024px) {
   .hero-benefit + .hero-benefit { padding-left: 32px; border-left: 1px solid rgba(255,255,255,0.05); }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * TYPOGRAPHY UTILITIES
+ * One class binds size + weight + leading + tracking, so a heading can never
+ * drift from its scale step. Tokens live in styles/tokens.css.
+ *
+ * Purely additive — nothing below changes existing markup until a component
+ * opts in by replacing its inline fontSize/fontWeight with one of these.
+ * ══════════════════════════════════════════════════════════════════════════*/
+
+.type-display,
+.type-h1, .type-h2, .type-h3 { font-family: var(--font-display); }
+
+.type-display {
+  font-size: var(--text-display); font-weight: var(--fw-extrabold);
+  line-height: var(--leading-display); letter-spacing: var(--tracking-display);
+  text-wrap: balance;
+}
+.type-h1 {
+  font-size: var(--text-h1); font-weight: var(--fw-bold);
+  line-height: var(--leading-heading); letter-spacing: var(--tracking-heading);
+  text-wrap: balance;
+}
+.type-h2 {
+  font-size: var(--text-h2); font-weight: var(--fw-bold);
+  line-height: var(--leading-heading); letter-spacing: var(--tracking-heading);
+  text-wrap: balance;
+}
+.type-h3 {
+  font-size: var(--text-h3); font-weight: var(--fw-semibold);
+  line-height: var(--leading-snug); letter-spacing: var(--tracking-h3);
+}
+
+.type-body-lg {
+  font-size: var(--text-body-lg); font-weight: var(--fw-regular);
+  line-height: var(--leading-body); letter-spacing: var(--tracking-body);
+}
+.type-body {
+  font-size: var(--text-body); font-weight: var(--fw-regular);
+  line-height: var(--leading-body);
+}
+.type-body-sm {
+  font-size: var(--text-body-sm); font-weight: var(--fw-regular);
+  line-height: var(--leading-normal, 1.55);
+}
+.type-label {
+  font-size: var(--text-label); font-weight: var(--fw-medium);
+  line-height: var(--leading-snug); letter-spacing: var(--tracking-label);
+}
+/* Uppercase eyebrows only — 11px is the floor for anything a user must read. */
+.type-micro {
+  font-size: var(--text-micro); font-weight: var(--fw-semibold);
+  line-height: 1.35; letter-spacing: var(--tracking-caps); text-transform: uppercase;
+}
+
+/* ── Product UI ─────────────────────────────────────────────────────────── */
+
+.type-dash-title {
+  font-size: var(--text-dash-title); font-weight: var(--fw-semibold);
+  line-height: var(--leading-snug); letter-spacing: -0.01em;
+}
+.type-dash-section {
+  font-size: var(--text-dash-section); font-weight: var(--fw-semibold);
+  line-height: 1.4; letter-spacing: 0.04em;
+}
+
+/* Metrics carry tabular figures so columns of numbers align on the decimal. */
+.type-metric-xl, .type-metric {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-weight: var(--fw-bold); line-height: var(--leading-data);
+  letter-spacing: -0.02em;
+}
+.type-metric-xl { font-size: var(--text-metric-xl); }
+.type-metric    { font-size: var(--text-metric); }
+.type-metric-label {
+  font-size: var(--text-label); font-weight: var(--fw-medium);
+  line-height: 1.35; letter-spacing: 0.05em;
+}
+
+/* ── Helpers ────────────────────────────────────────────────────────────── */
+
+/* Keeps paragraphs near the 60-70 character optimum. */
+.measure { max-width: 34rem; }
+
+/* Brand gradient for ONE emphasised phrase — never a whole paragraph.
+   padding-bottom stops descenders being clipped by the background-clip box. */
+.text-gradient-brand {
+  display: inline-block; padding-bottom: 0.09em;
+  background: linear-gradient(128deg, #C9AEFF 0%, #8B5CF6 40%, #5FA8FA 96%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
 }

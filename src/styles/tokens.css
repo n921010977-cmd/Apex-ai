@@ -177,10 +177,18 @@
   /* ==========================================================================
    * TYPOGRAPHY
    * ========================================================================*/
-  --font-sans: var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  /* Families. Legacy variable names (--font-geist-*) now carry Inter and
+     JetBrains Mono; --font-heading carries Manrope. All three are variable
+     fonts with full Latin AND base-Cyrillic (U+0400-045F) coverage — the
+     constraint that ruled out Plus Jakarta Sans, DM Sans, Space Grotesk and
+     Sora, and that IBM Plex Sans passes only as static weights. */
+  --font-sans:    var(--font-geist-sans), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono:    var(--font-geist-mono), ui-monospace, "SF Mono", Menlo, monospace;
+  --font-display: var(--font-heading), var(--font-geist-sans), system-ui, sans-serif;
 
   --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700; --fw-extrabold: 800;
+  /* Only the five weights above are loaded. 650 / 750 / 900 appear in legacy
+     markup and resolve to a rounded or synthesised face — do not add more. */
 
   /* Font sizes (rem-based; 1rem = 16px) */
   --text-11: 0.6875rem; --text-12: 0.75rem;  --text-13: 0.8125rem; --text-14: 0.875rem;
@@ -190,6 +198,47 @@
 
   --lh-tight: 1.1; --lh-snug: 1.25; --lh-normal: 1.5; --lh-relaxed: 1.65; --lh-loose: 1.75;
   --ls-tighter: -0.03em; --ls-tight: -0.02em; --ls-normal: 0; --ls-wide: 0.02em; --ls-caps: 0.14em;
+
+  /* ── Semantic type scale ───────────────────────────────────────────────────
+   * Fluid where a level spans breakpoints, fixed where it must not drift.
+   * Sizes below 12px are deliberately absent: an audit found 542 declarations
+   * under 12px (down to 7px), which is the project's main readability defect.
+   * --text-micro (11px) is the floor and is for uppercase labels only.
+   * Pair each size with the leading and tracking listed beside it, or use the
+   * .type-* utilities in globals.css which bind all four properties at once. */
+
+  --text-display:  clamp(2.5rem, 4.6vw, 4.75rem);   /* 40 → 76  hero only      */
+  --text-h1:       clamp(2.125rem, 3.2vw, 3.25rem); /* 34 → 52                 */
+  --text-h2:       clamp(1.6875rem, 2.4vw, 2.5rem); /* 27 → 40                 */
+  --text-h3:       clamp(1.3125rem, 1.6vw, 1.75rem);/* 21 → 28                 */
+  --text-body-lg:  clamp(1.03125rem, 1.1vw, 1.1875rem); /* 16.5 → 19           */
+  --text-body:     1rem;        /* 16 — the readable default                   */
+  --text-body-sm:  0.875rem;    /* 14 — dense UI body                          */
+  --text-label:    0.75rem;     /* 12 — form/metric labels                     */
+  --text-micro:    0.6875rem;   /* 11 — uppercase eyebrows. Hard floor.        */
+
+  /* Product UI runs denser than the marketing site — separate ramp. */
+  --text-dash-title:   1.25rem;                      /* 20                     */
+  --text-dash-section: 0.8125rem;                    /* 13                     */
+  --text-metric-xl:    clamp(1.875rem, 2.6vw, 2.75rem); /* 30 → 44             */
+  --text-metric:       1.5rem;                       /* 24                     */
+
+  /* Leading — display packs tight, body stays open, data sits on its cap. */
+  --leading-display: 1.02;
+  --leading-heading: 1.12;
+  --leading-snug:    1.3;
+  --leading-body:    1.6;
+  --leading-relaxed: 1.75;
+  --leading-data:    1;
+
+  /* Tracking — negative as size grows, positive as it shrinks. Never beyond
+     ±0.14em; wide tracking on lowercase text reads as amateur. */
+  --tracking-display: -0.035em;
+  --tracking-heading: -0.022em;
+  --tracking-h3:      -0.015em;
+  --tracking-body:    0;
+  --tracking-label:   0.06em;
+  --tracking-caps:    0.12em;
 
   /* ==========================================================================
    * SPACING  (8px grid; 4px sub-steps for dense controls)
