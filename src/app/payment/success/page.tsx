@@ -83,7 +83,7 @@ export default function PaymentSuccessPage() {
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 20px" }}>
               The network can be slow — confirmation sometimes takes up to 30 minutes. Your plan will activate on its own once the payment confirms. Check back shortly.
             </p>
-            <Link href="/payment/pending" style={{ fontSize: 13.5, fontWeight: 600, color: "#a5b4fc" }}>What\u2019s happening with my payment →</Link>
+            <Link href="/payment/pending" style={{ fontSize: 13.5, fontWeight: 600, color: "#a5b4fc" }}>What’s happening with my payment →</Link>
           </>
         )}
 
@@ -91,7 +91,7 @@ export default function PaymentSuccessPage() {
           <>
             <h1 style={{ fontSize: 22, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Sign in to see the status</h1>
             <p style={{ fontSize: 14, color: "rgba(255,255,255,0.55)", lineHeight: 1.6, margin: "0 0 20px" }}>
-              Your payment is processed on the server regardless of sign-in. Sign in with the account you paid from and you\u2019ll see the plan active.
+              Your payment is processed on the server regardless of sign-in. Sign in with the account you paid from and you’ll see the plan active.
             </p>
             <Link href="/login?callbackUrl=/payment/success" style={{ display: "inline-flex", alignItems: "center", gap: 8, height: 46, padding: "0 24px", borderRadius: 12, fontSize: 14, fontWeight: 700, textDecoration: "none", color: "#fff", background: `linear-gradient(135deg,${ACCENT},#6D28D9)` }}>
               Sign in

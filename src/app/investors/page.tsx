@@ -75,7 +75,7 @@ export default function InvestorsPage() {
             An AI board of directors for entrepreneurs
           </h1>
           <p style={{ fontSize: 17, lineHeight: 1.65, color: T.ts, maxWidth: 640, margin: "0 0 28px" }}>
-            Vertlix AI replaces expensive consulting: 20 AI roles — from CEO to lawyer — examine the user\u2019s
+            Vertlix AI replaces expensive consulting: 20 AI roles — from CEO to lawyer — examine the user’s
             business and deliver finished documents: a strategy, a pitch deck, a 30/60/90 plan.
             The product is live and taking payments.
           </p>
@@ -93,7 +93,7 @@ export default function InvestorsPage() {
         <Section id="problem" eyebrow="Problem" title="Entrepreneurs make their biggest decisions alone">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
             <Card title="Consulting is out of reach">
-              A strategy session with consultants costs thousands of dollars — money early-stage founders don\u2019t have.
+              A strategy session with consultants costs thousands of dollars — money early-stage founders don’t have.
             </Card>
             <Card title="Chatbots give transcripts, not results">
               A generic AI chat answers questions but never produces a coherent document: a strategy, a deck, an action plan.
@@ -208,7 +208,7 @@ export default function InvestorsPage() {
         </Section>
 
         {/* ── Traction ── */}
-        <Section id="traction" eyebrow="Traction" title="Early stage — and we don\u2019t hide it">
+        <Section id="traction" eyebrow="Traction" title="Early stage — and we don’t hide it">
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 14 }}>
             <Card title="Product in production">
               Live at vertlixai.com: signup, every AI tool, plans and payments — a working service, not a prototype.
@@ -224,7 +224,7 @@ export default function InvestorsPage() {
           </div>
           <p style={{ fontSize: 12.5, color: T.tm, marginTop: 14 }}>
             We cite no user counts or revenue: the product is just entering the market.
-            You won\u2019t find invented customers or ratings here — when real ones arrive, our own analytics will show them.
+            You won’t find invented customers or ratings here — when real ones arrive, our own analytics will show them.
           </p>
         </Section>
 
@@ -274,7 +274,7 @@ export default function InvestorsPage() {
         </Section>
 
         {/* ── Roadmap ── */}
-        <Section id="roadmap" eyebrow="Roadmap" title="What\u2019s next">
+        <Section id="roadmap" eyebrow="Roadmap" title="What’s next">
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {[
               ["Done", "Product, plans, payment loop, funnel analytics, admin panel, SEO pages", true],
@@ -290,10 +290,10 @@ export default function InvestorsPage() {
         </Section>
 
         {/* ── Investment ── */}
-        <Section id="invest" eyebrow="Investment" title="Let\u2019s talk">
+        <Section id="invest" eyebrow="Investment" title="Let’s talk">
           <p style={{ fontSize: 15, lineHeight: 1.7, color: T.ts, maxWidth: 640, margin: "0 0 24px" }}>
             Round terms are discussed individually — no invented valuations on a slide.
-            We\u2019ll show the product live, real metrics in the admin panel and the unit-economics math.
+            We’ll show the product live, real metrics in the admin panel and the unit-economics math.
           </p>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 12 }}>
             <a href={`mailto:${CONTACT_EMAIL}`} style={{ display: "inline-flex", alignItems: "center", height: 50, padding: "0 28px", borderRadius: 13, fontSize: 15, fontWeight: 700, color: "#fff", textDecoration: "none", background: "linear-gradient(135deg,#7C3AED,#6D28D9)", boxShadow: "0 8px 24px rgba(124,58,237,0.4), inset 0 1px 0 rgba(255,255,255,0.16)" }}>

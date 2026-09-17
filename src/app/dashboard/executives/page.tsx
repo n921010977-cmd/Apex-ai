@@ -527,7 +527,7 @@ function CouncilSession() {
       const heard = results.length
         ? `\n\nAlready spoke:\n${results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text.slice(0, 220)}`).join("\n")}\nYou may agree or push back on colleagues — keep it substantive.`
         : "";
-      const ctx = isFollowUp && prevCtx.current ? `\n\nContext of the board\u2019s previous decision: ${prevCtx.current.slice(0, 400)}` : "";
+      const ctx = isFollowUp && prevCtx.current ? `\n\nContext of the board’s previous decision: ${prevCtx.current.slice(0, 400)}` : "";
       const persona = `You are ${a.name}, ${a.title} (${a.role}) at a Vertlix board of directors meeting. Your expertise: ${a.specialty}. Start your answer with exactly one stance tag: [FOR], [AGAINST] or [CAUTION]. Then 2–3 short sentences strictly from your professional standpoint, concrete, no preamble, no markdown.`;
       let raw = "";
       try {
@@ -550,8 +550,8 @@ function CouncilSession() {
     const tally = results.reduce((acc, r) => { acc[r.stance] = (acc[r.stance] ?? 0) + 1; return acc; }, {} as Record<Stance, number>);
     const tallyStr = (Object.keys(STANCE_META) as Stance[]).filter(s => tally[s]).map(s => `${STANCE_META[s].label}: ${tally[s]}`).join(", ");
     const synthPersona = "You are the chair of the Vertlix board of directors. Synthesize the debate into one verdict: a clear decision grounded in the vote, 1–2 key risks and a concrete next step. 3–5 businesslike sentences, no markdown.";
-    const synthMsg = `Founder\u2019s question: "${question}"\n\nVote: ${tallyStr}\n\nStatements:\n` +
-      results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text}`).join("\n\n") + "\n\nGive the board\u2019s final verdict.";
+    const synthMsg = `Founder’s question: "${question}"\n\nVote: ${tallyStr}\n\nStatements:\n` +
+      results.map(r => `${r.role} [${STANCE_META[r.stance].label}]: ${r.text}`).join("\n\n") + "\n\nGive the board’s final verdict.";
     let verdictFull = "";
     try {
       verdictFull = await streamChat(synthMsg, synthPersona, t => setVerdict(prev => prev + t));

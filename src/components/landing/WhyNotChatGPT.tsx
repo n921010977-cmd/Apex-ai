@@ -23,7 +23,7 @@ const ROWS: { label: string; chatgpt: Cell; consult: Cell; vertlix: Cell }[] = [
     chatgpt: { v: "no", note: "text in a chat" },
     consult: { v: "yes", note: "weeks later" },
     vertlix:    { v: "yes", note: "PDF, 15+ sections" } },
-  { label: "A final call, not \u201cit depends\u201d",
+  { label: "A final call, not “it depends”",
     chatgpt: { v: "no" },
     consult: { v: "part" },
     vertlix:    { v: "yes", note: "verdict with a score" } },
@@ -67,7 +67,7 @@ export function WhyNotChatGPT() {
           viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <div className="term-mono" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 8, marginBottom: 22, border: `1px solid rgba(${RGB},0.25)`, background: `rgba(${RGB},0.05)` }}>
-            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${RGB},0.85)` }}>// честное сравнение</span>
+            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${RGB},0.85)` }}>// an honest comparison</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.12, margin: "0 0 14px", color: "#fff" }}>
             ChatGPT answers.<br /><span style={{ color: "#818cf8" }}>Vertlix decides.</span>

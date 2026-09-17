@@ -251,7 +251,7 @@ export function TopNav({ onMenuClick }: TopNavProps) {
           >
             {results.length === 0 ? (
               <div className="term-mono" style={{ padding: "16px", fontSize: 11.5, color: "rgba(255,255,255,0.35)" }}>
-                Nothing found for \u201c{query}\u201d
+                Nothing found for “{query}”
               </div>
             ) : (
               <>

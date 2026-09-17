@@ -109,7 +109,7 @@ export function ExecutivesSection() {
         >
           <div className="term-mono" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 8, marginBottom: 22, border: `1px solid rgba(${RGB},0.25)`, background: `rgba(${RGB},0.05)` }}>
             <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#7C3AED" }} />
-            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(165,180,252,0.9)" }}>// орг-структура · 20 агентов</span>
+            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "rgba(165,180,252,0.9)" }}>// org structure · 20 agents</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px, 4vw, 52px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.08, margin: "0 0 14px", color: "#fff" }}>
             Not a list. An organization
@@ -233,7 +233,7 @@ export function ExecutivesSection() {
           {/* ── Dossier panel ── */}
           <div style={{ borderLeft: "1px solid rgba(255,255,255,0.07)", background: "rgba(255,255,255,0.015)", display: "flex", flexDirection: "column" }}>
             <div className="term-mono" style={{ padding: "12px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 10, letterSpacing: "0.16em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>
-              // досье агента
+              // agent dossier
             </div>
             <AnimatePresence mode="wait">
               <motion.div key={sel}

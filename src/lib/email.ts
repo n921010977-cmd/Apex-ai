@@ -43,7 +43,7 @@ export function verificationEmailHtml(link: string): string {
       </a>
     </p>
     <p style="font-size:12px;line-height:1.6;color:#94a3b8">
-      The link is valid for 24 hours. If you didn\u2019t sign up, just ignore this email.
+      The link is valid for 24 hours. If you didn’t sign up, just ignore this email.
     </p>
   </div>`;
 }

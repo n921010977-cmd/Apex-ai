@@ -52,7 +52,7 @@ const FEATURES = [
   },
   {
     title:       "Financial model in minutes",
-    description: "The CFO builds a realistic revenue, cost and break-even forecast for your business model — not for an \u201caverage company\u201d.",
+    description: "The CFO builds a realistic revenue, cost and break-even forecast for your business model — not for an “average company”.",
     color:       "#3b82f6",
     rgb:         "59,130,246",
     icon: (
@@ -380,14 +380,14 @@ export function FeaturesSection() {
               background: "#10b981", boxShadow: "0 0 8px #10b981", display: "block",
             }} />
             <span className="term-mono" style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: "#6ee7b7" }}>
-              // что внутри отчёта
+              // inside the report
             </span>
           </div>
 
           {/* Heading */}
           <h2 style={{ fontSize: "clamp(30px, 5vw, 56px)", fontWeight: 800, letterSpacing: "-0.025em", lineHeight: 1.07, margin: "0 0 20px", color: "#fff" }}>
             <span style={{ display: "block" }}>Everything you need to decide.</span>
-            <span style={{ display: "block", color: "rgba(255,255,255,0.45)" }}>And nothing you don\u2019t.</span>
+            <span style={{ display: "block", color: "rgba(255,255,255,0.45)" }}>And nothing you don’t.</span>
           </h2>
 
           <p style={{ fontSize: 17, color: "rgba(255,255,255,0.38)", maxWidth: 520, margin: "0 auto", lineHeight: 1.65 }}>

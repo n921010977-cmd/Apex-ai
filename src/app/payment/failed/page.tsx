@@ -17,7 +17,7 @@ export default function PaymentFailedPage() {
         </div>
         <h1 style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em", margin: "0 0 10px", color: "#fff" }}>Payment failed</h1>
         <p style={{ fontSize: 14.5, color: "rgba(255,255,255,0.55)", lineHeight: 1.65, margin: "0 0 8px" }}>
-          The payment was cancelled, the invoice expired or the transfer wasn\u2019t completed. No money was taken — or it will return to your wallet.
+          The payment was cancelled, the invoice expired or the transfer wasn’t completed. No money was taken — or it will return to your wallet.
         </p>
         <p style={{ fontSize: 13.5, color: "rgba(255,255,255,0.4)", lineHeight: 1.6, margin: "0 0 24px" }}>
           Try again — a new invoice takes a couple of seconds.

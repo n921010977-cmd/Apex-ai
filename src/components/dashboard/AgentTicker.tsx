@@ -108,7 +108,7 @@ export function AgentTicker() {
           <span className="relative inline-flex rounded-full" style={{ width: 8, height: 8, background: "#10b981" }} />
         </span>
         <Bot size={13} color="#10b981" style={{ flexShrink: 0 }} />
-        <span style={{ fontSize: 11, fontWeight: 700, color: "#34d399", letterSpacing: "0.06em", flex: 1 }}>20 АГЕНТОВ · LIVE</span>
+        <span style={{ fontSize: 11, fontWeight: 700, color: "#34d399", letterSpacing: "0.06em", flex: 1 }}>20 AGENTS · LIVE</span>
         <button onClick={() => setExpanded(v => !v)} style={{ background: "none", border: "none", cursor: "pointer", color: "rgba(255,255,255,0.3)", padding: 2 }}>
           {expanded ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
         </button>

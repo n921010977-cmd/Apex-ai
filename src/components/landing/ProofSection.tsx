@@ -43,7 +43,7 @@ const DELIVERABLES = [
 ];
 
 const TRUST = [
-  { icon: CreditCard,  title: "Monthly billing",  text: "One month at a time. Not happy? Simply don\u2019t renew." },
+  { icon: CreditCard,  title: "Monthly billing",  text: "One month at a time. Not happy? Simply don’t renew." },
   { icon: ShieldCheck, title: "Transparent limits",  text: "Exactly how many requests each plan includes is on the pricing page and in your dashboard." },
   { icon: LifeBuoy,    title: "Human support",    text: "Email us via the footer — a person answers, not a bot." },
 ];
@@ -69,7 +69,7 @@ export function ProofSection() {
           </span>
         </div>
         <h2 style={{ fontSize: "clamp(28px,4vw,46px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, margin: "0 0 14px", color: "#fff", textWrap: "balance" }}>
-          Not \u201cAI access\u201d — four finished documents
+          Not “AI access” — four finished documents
         </h2>
         <p style={{ fontSize: 16, color: "rgba(255,255,255,0.45)", maxWidth: 560, margin: "0 auto", lineHeight: 1.65 }}>
           Describe your business once — walk away with results, not a chat transcript.

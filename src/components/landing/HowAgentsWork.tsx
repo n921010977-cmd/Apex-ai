@@ -20,19 +20,19 @@ const SCRIPT: Msg[] = [
   { id: "cmo", role: "CMO", name: "Elena", color: "#10b981", stance: "FOR",
     text: "Organic plus micro-influencers gets CAC to ~$22. A freemium funnel grows the base fast." },
   { id: "cfo", role: "CFO", name: "Marcus", color: "#3b82f6", stance: "AGAINST",
-    text: "I object. At 8% churn the LTV math fails: payback slips past 26 months. This economy can\u2019t survive paid traffic.",
+    text: "I object. At 8% churn the LTV math fails: payback slips past 26 months. This economy can’t survive paid traffic.",
     conflictWith: "CMO" },
   { id: "cmo2", role: "CMO", name: "Elena", color: "#10b981", stance: "FOR",
     text: "Counterpoint: a retention program plus AI workout plans cut churn to 5%. LTV rises to $180 — the model works." },
   { id: "law", role: "Lawyer", name: "Diana", color: "#94a3b8", stance: "RISK",
-    text: "Health data is sensitive. Explicit consent and a retention policy are needed before launch, or it\u2019s a GDPR risk." },
+    text: "Health data is sensitive. Explicit consent and a retention policy are needed before launch, or it’s a GDPR risk." },
   { id: "cto", role: "CTO", name: "Aiden", color: "#d946ef", stance: "FOR",
     text: "An MVP is doable in 8 weeks: proven stack, personalization models trained on open datasets." },
 ];
 
 const VERDICT = {
   score: 87,
-  text: "We launch. Freemium model, marketing budget ≤ 15% of MRR (CFO\u2019s condition), churn target 6% by month three, legal structure and consents before release. Elena owns GTM, Marcus reviews unit economics weekly.",
+  text: "We launch. Freemium model, marketing budget ≤ 15% of MRR (CFO’s condition), churn target 6% by month three, legal structure and consents before release. Elena owns GTM, Marcus reviews unit economics weekly.",
 };
 
 const STANCE_STYLE: Record<string, { bg: string; color: string }> = {
@@ -109,13 +109,13 @@ export function HowAgentsWork() {
         >
           <div className="term-mono" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 8, marginBottom: 22, border: `1px solid rgba(${RGB},0.25)`, background: `rgba(${RGB},0.05)` }}>
             <span className="term-blink" style={{ width: 5, height: 5, borderRadius: "50%", background: "#ef4444" }} />
-            <span style={{ fontSize: 10, letterSpacing: "0.18em", color: `rgba(${RGB},0.85)` }}>// LIVE — ЗАСЕДАНИЕ СОВЕТА</span>
+            <span style={{ fontSize: 10, letterSpacing: "0.18em", color: `rgba(${RGB},0.85)` }}>// LIVE — BOARD MEETING</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, margin: "0 0 14px", color: "#fff" }}>
             Watch the board make a decision
           </h2>
           <p style={{ fontSize: 16, color: "rgba(255,255,255,0.4)", maxWidth: 540, margin: "0 auto", lineHeight: 1.65 }}>
-            Not promise cards — the real process: arguments, clashing positions and the CEO\u2019s call.
+            Not promise cards — the real process: arguments, clashing positions and the CEO’s call.
           </p>
         </motion.div>
 

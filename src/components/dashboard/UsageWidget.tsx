@@ -61,7 +61,7 @@ export function UsageWidget() {
     }
     // квота на грани
     const near = METERS.find(m => { const q = data.usage[m.key]; return q && q.limit && q.limit > 0 && q.used / q.limit >= 0.8; });
-    if (near) steps.push({ label: `\u201c${near.label}\u201d limit is almost used up — upgrade`, href: "/dashboard/billing", icon: ArrowUpRight, tone: "warn" });
+    if (near) steps.push({ label: `“${near.label}” limit is almost used up — upgrade`, href: "/dashboard/billing", icon: ArrowUpRight, tone: "warn" });
 
     // Подписка заканчивается — напоминаем о продлении по реальной дате.
     const daysLeft = sub?.expiresAt

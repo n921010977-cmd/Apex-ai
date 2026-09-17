@@ -1261,7 +1261,7 @@ function AITeamTab({ aiResults, isUserProject, isReanalyzing, reanalyzeProgress,
     <div style={{ position: "relative" }}>
       <div style={{ marginBottom: 14 }}>
         <AgentBrief letter="S" name="Sophia Rivers" role="CEO" color="#7C3AED" rgb="124,58,237"
-          text="This is your AI team — 20 specialists, each has broken down the project from their angle. Click any agent to see their full analysis. Press \u201cPlay\u201d and I'll walk you through the highlights." />
+          text="This is your AI team — 20 specialists, each has broken down the project from their angle. Click any agent to see their full analysis. Press “Play” and I'll walk you through the highlights." />
       </div>
 
       {/* Header row */}

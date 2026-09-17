@@ -9,7 +9,7 @@ const RGB = "124,58,237";
 // ─── FAQ data (question = command, answer = console output) ──────────────────
 const FAQ = [
   { cmd: "real-ai",   q: "Is this real AI or canned answers?",
-    a: "Real AI agents built on frontier language models. Each of the 20 experts analyzes your specific business rather than fitting it into a template. The CEO synthesizes the team\u2019s findings into one report." },
+    a: "Real AI agents built on frontier language models. Each of the 20 experts analyzes your specific business rather than fitting it into a template. The CEO synthesizes the team’s findings into one report." },
   { cmd: "vs-chatgpt", q: "How is this better than plain ChatGPT?",
     a: "Instead of one answer you get 20 parallel specialist analyses. The CFO builds the financial model, the CMO plans go-to-market, the lawyer checks risks — all at once. Most importantly: they debate and cross-check each other." },
   { cmd: "trust",     q: "Can I trust the financial and legal conclusions?",
@@ -59,7 +59,7 @@ export function FaqSection() {
           viewport={{ once: true, margin: "-80px" }} transition={{ duration: 0.6, ease: "easeOut" }}
         >
           <div className="term-mono" style={{ display: "inline-flex", alignItems: "center", gap: 8, padding: "6px 14px", borderRadius: 8, marginBottom: 22, border: `1px solid rgba(${RGB},0.25)`, background: `rgba(${RGB},0.05)` }}>
-            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${RGB},0.85)` }}>// вопросы к системе</span>
+            <span style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: `rgba(${RGB},0.85)` }}>// questions to the system</span>
           </div>
           <h2 style={{ fontSize: "clamp(28px,4vw,48px)", fontWeight: 800, letterSpacing: "-0.03em", lineHeight: 1.1, margin: "0 0 14px", color: "#fff" }}>
             Ask the system directly
@@ -79,7 +79,7 @@ export function FaqSection() {
           {/* Query list */}
           <div style={{ borderRight: "1px solid rgba(255,255,255,0.06)", display: "flex", flexDirection: "column" }}>
             <div className="term-mono" style={{ padding: "12px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 10, letterSpacing: "0.16em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase" }}>
-              // доступные запросы
+              // available queries
             </div>
             <div style={{ padding: 8, display: "flex", flexDirection: "column", gap: 2, overflowY: "auto" }}>
               {FAQ.map((f, i) => {
@@ -108,7 +108,7 @@ export function FaqSection() {
           {/* Output console */}
           <div style={{ display: "flex", flexDirection: "column", minHeight: 320 }}>
             <div className="term-mono" style={{ padding: "12px 18px", borderBottom: "1px solid rgba(255,255,255,0.06)", fontSize: 10, letterSpacing: "0.16em", color: "rgba(255,255,255,0.35)", textTransform: "uppercase", display: "flex", justifyContent: "space-between" }}>
-              <span>// вывод</span>
+              <span>// output</span>
               <span style={{ color: doneTyping ? "#34d399" : "#fbbf24" }}>{doneTyping ? "OK" : "EXEC…"}</span>
             </div>
             <div className="term-mono" style={{ padding: "18px 20px", fontSize: 13, lineHeight: 1.9, flex: 1 }}>
@@ -121,7 +121,7 @@ export function FaqSection() {
               </div>
             </div>
             <div className="term-mono" style={{ padding: "10px 18px", borderTop: "1px solid rgba(255,255,255,0.05)", fontSize: 10, letterSpacing: "0.08em", color: "rgba(255,255,255,0.25)" }}>
-              didn\u2019t find your answer? → <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#818cf8", textDecoration: "none" }}>support</a> · or ask in <a href="/chat" style={{ color: "#818cf8", textDecoration: "none" }}>Vertlix chat</a>
+              didn’t find your answer? → <a href={`mailto:${CONTACT_EMAIL}`} style={{ color: "#818cf8", textDecoration: "none" }}>support</a> · or ask in <a href="/chat" style={{ color: "#818cf8", textDecoration: "none" }}>Vertlix chat</a>
             </div>
           </div>
         </motion.div>

@@ -33,7 +33,7 @@ export default function FeaturesPage() {
           What Vertlix AI can do
         </h1>
         <p style={{ fontSize: 17, color: "rgba(255,255,255,0.5)", maxWidth: 640, lineHeight: 1.65, margin: "0 0 48px" }}>
-          Eight tools that already work in the dashboard. Nothing on this list is \u201ccoming soon\u201d.
+          Eight tools that already work in the dashboard. Nothing on this list is “coming soon”.
         </p>
 
         <div className="features-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 14 }}>

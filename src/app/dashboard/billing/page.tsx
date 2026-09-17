@@ -197,7 +197,7 @@ export default function BillingPage() {
             style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 18px", borderRadius: 14, marginBottom: 20,
               background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.1)" }}>
             <X size={18} style={{ color: "rgba(255,255,255,0.5)" }} />
-            <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.7)" }}>Payment cancelled. Pick a plan again whenever you\u2019re ready.</div>
+            <div style={{ fontSize: 13.5, color: "rgba(255,255,255,0.7)" }}>Payment cancelled. Pick a plan again whenever you’re ready.</div>
           </motion.div>
         )}
       </AnimatePresence>
@@ -249,7 +249,7 @@ export default function BillingPage() {
             <div style={{ display: "flex", alignItems: "center", gap: 12, marginTop: 18, padding: "12px 14px", borderRadius: 12, background: "rgba(245,158,11,0.08)", border: "1px solid rgba(245,158,11,0.25)" }}>
               <AlertTriangle size={17} style={{ color: "#fbbf24", flexShrink: 0 }} />
               <div style={{ flex: 1, fontSize: 13, color: "rgba(255,255,255,0.8)", lineHeight: 1.45 }}>
-                You\u2019re close to your plan limit. <b style={{ color: "#fff" }}>{nextPlan.name}</b> has much higher limits.
+                You’re close to your plan limit. <b style={{ color: "#fff" }}>{nextPlan.name}</b> has much higher limits.
               </div>
               <button onClick={() => choose(nextPlan)} disabled={busy !== null}
                 style={{ flexShrink: 0, height: 36, padding: "0 16px", borderRadius: 10, border: "none", cursor: "pointer", fontSize: 13, fontWeight: 700, color: "#fff", background: `linear-gradient(135deg,${ACCENT},#6D28D9)` }}>
