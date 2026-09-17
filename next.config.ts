@@ -111,6 +111,12 @@ const nextConfig: NextConfig = {
 
   // Remote avatars (Google / GitHub OAuth) — optimized via next/image
   images: {
+    // AVIF first, WebP as the fallback. Next's default is WebP only; AVIF is
+    // typically 20-30% smaller again, which matters most for hero imagery.
+    formats: ["image/avif", "image/webp"],
+    // Widths the layout actually requests, incl. the 2x/3x steps for the
+    // phone breakpoints in the design-QA matrix.
+    deviceSizes: [390, 430, 768, 1024, 1280, 1440, 1920, 2560, 3840],
     remotePatterns: [
       { protocol: "https", hostname: "lh3.googleusercontent.com" },
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
@@ -135,4 +141,7 @@ const nextConfig: NextConfig = {
   },
 };
 
+// Bundle analysis: `npm run analyze` → `next experimental-analyze`.
+// @next/bundle-analyzer is NOT used — it is a webpack plugin and silently
+// produces no report under Turbopack, which is Next 16's default builder.
 export default nextConfig;
