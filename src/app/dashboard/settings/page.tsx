@@ -17,6 +17,18 @@ import { getConsent, setConsent } from "@/lib/consent";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
+/**
+ * Reads one key out of the shared `preferences` JSONB blob, falling back to a
+ * default when it is absent or the wrong type. Every settings tab stores its
+ * own keys in that one column, so panels must hydrate from it on mount —
+ * previously they seeded from hardcoded constants and a saved value never
+ * reappeared after a refresh.
+ */
+function pref<T>(prefs: Record<string, unknown> | undefined, key: string, fallback: T): T {
+  const v = prefs?.[key];
+  return v === undefined || v === null || typeof v !== typeof fallback ? fallback : (v as T);
+}
+
 interface Settings {
   language: string;
   timezone: string;
@@ -350,12 +362,13 @@ function ProfilePanel({ showToast }: { showToast: (m: string, t: "success"|"erro
 }
 
 function AIPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
+  const P = settings.preferences;
   const [model, setModel] = useState(settings.ai_model || "claude-sonnet-5");
-  const [creativity, setCreativity] = useState(65);
-  const [tone, setTone] = useState("Neutral");
-  const [memory, setMemory] = useState(true);
-  const [auto, setAuto] = useState(false);
-  const [instructions, setInstructions] = useState("I am the founder of an AI startup. Focus on growth, product-market fit and team efficiency. Answer in a structured way, use numbers.");
+  const [creativity, setCreativity] = useState(() => pref(P, "creativity", 65));
+  const [tone, setTone] = useState(() => pref(P, "tone", "Neutral"));
+  const [memory, setMemory] = useState(() => pref(P, "memory", true));
+  const [auto, setAuto] = useState(() => pref(P, "auto", false));
+  const [instructions, setInstructions] = useState(() => pref(P, "instructions", "I am the founder of an AI startup. Focus on growth, product-market fit and team efficiency. Answer in a structured way, use numbers."));
   const [loading, setLoading] = useState(false);
 
   const save = async () => {
@@ -440,7 +453,11 @@ function AIPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpda
 function NotificationsPanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
   const [emailOn, setEmailOn] = useState(settings.email_notifs);
   const [pushOn, setPushOn] = useState(settings.push_notifs);
-  const [states, setStates] = useState({ email_insights: true, email_product: false, email_report: true, tg: false, slack: false, discord: false, sms: false, weekly: true, ai_alerts: true });
+  const NOTIF_DEFAULTS = { email_insights: true, email_product: false, email_report: true, tg: false, slack: false, discord: false, sms: false, weekly: true, ai_alerts: true };
+  const [states, setStates] = useState(() => ({
+    ...NOTIF_DEFAULTS,
+    ...(settings.preferences?.notif_details as Partial<typeof NOTIF_DEFAULTS> | undefined ?? {}),
+  }));
   const tog = (k: keyof typeof states) => setStates(s => ({ ...s, [k]: !s[k] }));
   const [loading, setLoading] = useState(false);
 
@@ -1029,10 +1046,11 @@ function PrivacyPanel({ showToast }: { showToast: (m: string, t: "success"|"erro
 }
 
 function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings; onUpdate: (p: Partial<Settings>) => void; showToast: (m: string, t: "success"|"error") => void }) {
+  const P = settings.preferences;
   const [theme, setTheme] = useState(settings.theme || "dark");
-  const [accent, setAccent] = useState("#7C3AED");
-  const [compact, setCompact] = useState(false);
-  const [animations, setAnimations] = useState(true);
+  const [accent, setAccent] = useState(() => pref(P, "accent", "#7C3AED"));
+  const [compact, setCompact] = useState(() => pref(P, "compact", false));
+  const [animations, setAnimations] = useState(() => pref(P, "animations", true));
   const [loading, setLoading] = useState(false);
 
   const save = async () => {
@@ -1051,19 +1069,25 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
       <Section title="Theme" accent="#7C3AED">
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {[
-            { id: "dark",   label: "Dark",    Icon: Moon,    bg: "#0a0b0f" },
-            { id: "light",  label: "Light",   Icon: Sun,     bg: "#f0f0f5" },
-            { id: "system", label: "System",  Icon: Monitor, bg: "linear-gradient(135deg, #0a0b0f 50%, #f0f0f5 50%)" },
+            { id: "dark",   label: "Dark",    Icon: Moon,    bg: "#0a0b0f", ready: true },
+            { id: "light",  label: "Light",   Icon: Sun,     bg: "#f0f0f5", ready: false },
+            { id: "system", label: "System",  Icon: Monitor, bg: "linear-gradient(135deg, #0a0b0f 50%, #f0f0f5 50%)", ready: false },
           ].map(t => (
-            <button key={t.id} onClick={() => setTheme(t.id)} style={{ borderRadius: 14, padding: "16px", background: theme === t.id ? "rgba(124,58,237,0.1)" : "rgba(255,255,255,0.025)", border: `2px solid ${theme === t.id ? "#7C3AED" : "rgba(255,255,255,0.06)"}`, cursor: "pointer", textAlign: "left", transition: "all 0.2s" }}>
+            <button key={t.id} onClick={() => t.ready && setTheme(t.id)} disabled={!t.ready} title={t.ready ? undefined : "A light palette hasn't been built yet — the app is dark-only for now"} style={{ borderRadius: 14, padding: "16px", background: theme === t.id ? "rgba(124,58,237,0.1)" : "rgba(255,255,255,0.025)", border: `2px solid ${theme === t.id ? "#7C3AED" : "rgba(255,255,255,0.06)"}`, cursor: t.ready ? "pointer" : "not-allowed", textAlign: "left", transition: "all 0.2s", opacity: t.ready ? 1 : 0.42 }}>
               <div style={{ width: "100%", height: 52, borderRadius: 8, background: t.bg, marginBottom: 10 }} />
               <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 <t.Icon size={12} style={{ color: theme === t.id ? "#7C3AED" : "rgba(255,255,255,0.35)" }} />
                 <span style={{ fontSize: 12, fontWeight: 600, color: theme === t.id ? "#fff" : "rgba(255,255,255,0.4)" }}>{t.label}</span>
                 {theme === t.id && <Check size={11} style={{ color: "#7C3AED", marginLeft: "auto" }} />}
               </div>
+              {!t.ready && <div style={{ fontSize: 9, color: "rgba(255,255,255,0.3)", marginTop: 6 }}>Not available yet</div>}
             </button>
           ))}
+        </div>
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", marginTop: 12, lineHeight: 1.5 }}>
+          Vertlix ships a dark palette only. Light and System are shown here because the
+          preference is already stored, but no light theme has been built yet — enabling
+          them would change nothing on screen.
         </div>
       </Section>
 
@@ -1087,6 +1111,10 @@ function AppearancePanel({ settings, onUpdate, showToast }: { settings: Settings
       </Section>
 
       <Section title="Interface" accent="#10b981">
+        <div style={{ fontSize: 11, color: "rgba(255,255,255,0.32)", marginBottom: 10, lineHeight: 1.5 }}>
+          These preferences are saved to your account, but nothing reads them yet —
+          accent colour, compact mode and animations are not wired into the interface.
+        </div>
         <Row label="Compact mode" desc="Reduced spacing and element sizes">
           <Toggle on={compact} onChange={() => setCompact(v => !v)} />
         </Row>

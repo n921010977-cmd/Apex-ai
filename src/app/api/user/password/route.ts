@@ -31,12 +31,12 @@ export async function POST(req: Request) {
 
   const { data: user, error: readErr } = await db
     .from("users").select("id, password_hash").eq("id", session.user.id).maybeSingle();
-  if (readErr || !user) return NextResponse.json({ success: false, error: "Пользователь не найден" }, { status: 404 });
+  if (readErr || !user) return NextResponse.json({ success: false, error: "Account not found" }, { status: 404 });
 
   // If a password already exists, require and verify the current one.
   if (user.password_hash) {
     const ok = body.currentPassword ? await bcrypt.compare(body.currentPassword, user.password_hash) : false;
-    if (!ok) return NextResponse.json({ success: false, error: "Текущий пароль неверный" }, { status: 400 });
+    if (!ok) return NextResponse.json({ success: false, error: "Current password is incorrect" }, { status: 400 });
   }
 
   const password_hash = await bcrypt.hash(newPassword, 12);

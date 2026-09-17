@@ -52,27 +52,39 @@ export async function PATCH(req: NextRequest) {
   const { data, error } = validateBody(UpdateSettingsSchema, rawBody);
   if (error) return NextResponse.json({ success: false, error }, { status: 422 });
 
-  try {
-    if (process.env.NEXT_PUBLIC_SUPABASE_URL) {
-      const supabase = await createClient();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const db = supabase as any;
+  // Demo mode (no database): nothing can be persisted. Say so rather than
+  // reporting a save that did not happen.
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    return NextResponse.json(
+      { success: false, error: "Profile can't be saved: no database is configured for this environment." },
+      { status: 503 },
+    );
+  }
 
-      if (name) {
-        await db.from("users").update({ name }).eq("id", session.user.id);
-      }
-      if (data && Object.keys(data).length) {
-        await db.from("user_settings").upsert({
-          user_id: session.user.id,
-          ...data,
-          updated_at: new Date().toISOString(),
-        }, { onConflict: "user_id" });
-      }
+  try {
+    const supabase = await createClient();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const db = supabase as any;
+
+    // Every write result is checked. Previously these were fire-and-forget and
+    // the catch below returned success even when the update had failed, so a
+    // rejected write still showed "Profile saved".
+    if (name) {
+      const { error } = await db.from("users").update({ name }).eq("id", session.user.id);
+      if (error) return dbErrorResponse(error, "/api/user");
+    }
+    if (data && Object.keys(data).length) {
+      const { error } = await db.from("user_settings").upsert({
+        user_id: session.user.id,
+        ...data,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: "user_id" });
+      if (error) return dbErrorResponse(error, "/api/user");
     }
     return NextResponse.json({ success: true, data, name });
-  } catch {
-    // Демо-режим или сбой БД — не блокируем: клиент отразит имя в сессии.
-    return NextResponse.json({ success: true, data, name });
+  } catch (e) {
+    console.error("[/api/user] PATCH failed:", e instanceof Error ? e.message : String(e));
+    return NextResponse.json({ success: false, error: "Could not save your profile — please try again." }, { status: 500 });
   }
 }
 
