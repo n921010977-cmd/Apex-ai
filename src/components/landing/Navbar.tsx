@@ -30,21 +30,20 @@ export function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${
-        scrolled ? "py-2.5" : "py-4"
-      }`}
+      className="fixed top-0 inset-x-0 z-50 transition-all duration-300"
       style={
         scrolled
           ? {
-              background: "rgba(5,6,10,0.82)",
+              height: 66,
+              background: "rgba(5,6,11,0.78)",
               backdropFilter: "blur(20px) saturate(150%)",
               WebkitBackdropFilter: "blur(20px) saturate(150%)",
-              borderBottom: "1px solid rgba(255,255,255,0.06)",
+              borderBottom: "1px solid rgba(148,163,255,0.08)",
             }
-          : { background: "transparent" }
+          : { height: 76, background: "transparent" }
       }
     >
-      <nav aria-label="Main navigation" className="max-w-7xl mx-auto px-6 flex items-center justify-between">
+      <nav aria-label="Main navigation" className="h-full max-w-[1400px] mx-auto px-6 lg:px-10 flex items-center justify-between">
         {/* Brand — terminal wordmark */}
         <Link href="/" className="flex items-center gap-2.5 group rounded-lg" aria-label="Vertlix Command Center — home">
           <div
@@ -84,7 +83,7 @@ export function Navbar() {
           {/* live status readout */}
           <div className="hidden lg:flex items-center gap-2 term-mono px-3 h-9 rounded-lg" style={{ border: "1px solid rgba(16,185,129,0.18)", background: "rgba(16,185,129,0.05)" }}>
             <span className="size-1.5 rounded-full bg-emerald-400 term-blink" />
-            <span className="text-[10.5px] tracking-[0.12em] text-emerald-400/90">20 AGENTS ONLINE</span>
+            <span className="text-[10.5px] tracking-[0.12em] text-emerald-400/90">20 AI AGENTS ONLINE</span>
           </div>
           <Link
             href="/login"

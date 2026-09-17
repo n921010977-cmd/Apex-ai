@@ -369,3 +369,197 @@ a:focus-visible, button:focus-visible {
 .chip-red    { background: rgba(239,68,68,0.1);   color: #f87171; border: 1px solid rgba(239,68,68,0.2); }
 .chip-blue   { background: rgba(124,58,237,0.1);  color: #a5b4fc; border: 1px solid rgba(124,58,237,0.2); }
 .chip-gray   { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.45); border: 1px solid rgba(255,255,255,0.08); }
+
+/* ════════════════════════════════════════════════════════════════════════════
+ * HERO — first screen
+ * Composition is deliberately asymmetric: the analysis panel dominates, the
+ * satellite cards tuck behind it on the left and sit beside it on the right.
+ * Below 1280px that absolute composition is re-flowed into a grid rather than
+ * scaled down, so nothing is ever clipped or unreadable.
+ * ══════════════════════════════════════════════════════════════════════════*/
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  padding: 120px 0 56px;
+  isolation: isolate;
+}
+@media (min-width: 1024px) {
+  .hero { min-height: 100svh; display: flex; align-items: center; padding: 96px 0 36px; }
+}
+
+.hero-inner {
+  position: relative; z-index: 2;
+  width: 100%; max-width: 1400px;
+  margin: 0 auto; padding: 0 24px;
+}
+@media (min-width: 1024px) { .hero-inner { padding: 0 40px; } }
+@media (min-width: 1800px) { .hero-inner { max-width: 1560px; } }
+
+/* ── Environment ─────────────────────────────────────────────────────────── */
+
+.hero-grid-bg {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none;
+  background-image:
+    linear-gradient(rgba(148,163,255,0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(148,163,255,0.035) 1px, transparent 1px);
+  background-size: 56px 56px;
+  -webkit-mask-image: radial-gradient(ellipse 80% 65% at 50% 42%, #000 20%, transparent 78%);
+  mask-image: radial-gradient(ellipse 80% 65% at 50% 42%, #000 20%, transparent 78%);
+}
+
+/* Light sits behind the product, not over the whole screen. */
+.hero-glow-primary {
+  position: absolute; z-index: 0; pointer-events: none;
+  top: 4%; right: -6%; width: 62%; height: 68%;
+  background: radial-gradient(ellipse at center, rgba(124,58,237,0.17) 0%, rgba(79,70,229,0.07) 42%, transparent 70%);
+  filter: blur(46px);
+}
+.hero-glow-support {
+  position: absolute; z-index: 0; pointer-events: none;
+  bottom: -12%; left: -8%; width: 46%; height: 52%;
+  background: radial-gradient(ellipse at center, rgba(59,130,246,0.08) 0%, transparent 68%);
+  filter: blur(64px);
+}
+.hero-vignette {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse 92% 78% at 52% 46%, transparent 42%, rgba(5,6,11,0.68) 100%);
+}
+
+.hero-motes { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
+.hero-motes span {
+  position: absolute; width: 2px; height: 2px; border-radius: 50%;
+  background: rgba(196,181,253,0.55);
+  animation-name: hero-mote; animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes hero-mote {
+  0%, 100% { opacity: 0.10; transform: translate3d(0, 0, 0); }
+  50%      { opacity: 0.34; transform: translate3d(6px, -16px, 0); }
+}
+
+/* ── Layout ──────────────────────────────────────────────────────────────── */
+
+.hero-layout { display: flex; flex-direction: column; align-items: center; gap: 56px; }
+@media (min-width: 1024px) {
+  .hero-layout { flex-direction: row; align-items: center; gap: 48px; }
+  .hero-copy { flex: 0 0 44%; max-width: 44%; }
+  .hero-stage-wrap { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
+}
+
+/* ── Copy column ─────────────────────────────────────────────────────────── */
+
+.hero-copy { display: flex; flex-direction: column; align-items: center; text-align: center; max-width: 620px; }
+@media (min-width: 1024px) { .hero-copy { align-items: flex-start; text-align: left; } }
+
+.hero-h1 {
+  margin-top: 26px;
+  font-weight: 800;
+  font-size: clamp(36px, 4.6vw, 78px);
+  line-height: 1.03;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.hero-h1-grad {
+  display: inline-block; padding-bottom: 0.09em;
+  background: linear-gradient(128deg, #C9AEFF 0%, #8B5CF6 40%, #5FA8FA 96%);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
+
+.hero-lede {
+  margin-top: 18px; max-width: 34rem;
+  font-size: clamp(16px, 1.1vw, 19px);
+  line-height: 1.65;
+  color: rgba(255,255,255,0.52);
+}
+
+.hero-cta-row { margin-top: 30px; }
+.hero-trust   { margin-top: 20px; }
+
+.hero-notes {
+  margin-top: 26px; padding-top: 18px; width: 100%;
+  border-top: 1px solid rgba(255,255,255,0.055);
+  display: flex; flex-direction: column; gap: 6px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────────────────── */
+
+.hero-cta {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 56px; padding: 0 30px; border-radius: 16px;
+  font-size: 15.5px; font-weight: 600; color: #fff; white-space: nowrap;
+  background: linear-gradient(135deg, #8B5CF6 0%, #6D28D9 56%, #5B21B6 100%);
+  box-shadow: 0 6px 22px rgba(124,58,237,0.30), inset 0 1px 0 rgba(255,255,255,0.20);
+  transition: transform .2s cubic-bezier(.22,1,.36,1), box-shadow .25s ease, filter .2s ease;
+}
+.hero-cta:hover {
+  transform: translateY(-2px); filter: brightness(1.07);
+  box-shadow: 0 12px 34px rgba(124,58,237,0.42), inset 0 1px 0 rgba(255,255,255,0.24);
+}
+.hero-cta:active { transform: translateY(0); }
+
+.hero-cta-ghost {
+  display: inline-flex; align-items: center; gap: 10px;
+  height: 56px; padding: 0 22px 0 14px; border-radius: 16px;
+  font-size: 14.5px; font-weight: 500; color: rgba(255,255,255,0.72); white-space: nowrap;
+  background: rgba(255,255,255,0.028);
+  border: 1px solid rgba(255,255,255,0.09);
+  transition: color .2s ease, border-color .2s ease, background .2s ease;
+}
+.hero-cta-ghost:hover { color: #fff; border-color: rgba(255,255,255,0.18); background: rgba(255,255,255,0.05); }
+
+/* ── Product stage ───────────────────────────────────────────────────────── */
+
+/* Mobile & tablet: re-composed as a grid, not a shrunken desktop scene. */
+.hero-stage {
+  width: 100%; max-width: 560px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.stage-main, .stage-plan, .stage-competitor { grid-column: 1 / -1; }
+
+.hero-drift {
+  animation-name: hero-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+@keyframes hero-drift {
+  0%, 100% { transform: translate3d(0, 0, 0); }
+  50%      { transform: translate3d(0, calc(var(--drift, 5px) * -1), 0); }
+}
+
+@media (min-width: 640px) {
+  .hero-stage { gap: 14px; }
+  .stage-plan, .stage-competitor { grid-column: span 1; }
+}
+
+/* Desktop: the real composition — overlapping, asymmetric, panel-led. */
+@media (min-width: 1280px) {
+  .hero-stage {
+    display: block; width: 730px; height: 508px; max-width: none;
+    transform: scale(var(--stage-scale, 0.82));
+    transform-origin: center center;
+  }
+  .hero-stage > * { position: absolute; }
+  .stage-main       { left: 144px; top: 28px;  width: 386px; z-index: 20; }
+  .stage-market     { left: 0;     top: 84px;  width: 172px; z-index: 10; }
+  .stage-demand     { left: 6px;   top: 318px; width: 158px; z-index: 8;  }
+  .stage-plan       { left: 530px; top: 18px;  width: 188px; z-index: 30; }
+  .stage-competitor { left: 516px; top: 312px; width: 214px; z-index: 30; }
+}
+@media (min-width: 1440px) { .hero-stage { --stage-scale: 0.92; } }
+@media (min-width: 1800px) { .hero-stage { --stage-scale: 1.04; } }
+
+/* ── Benefits strip (still part of the first screen) ─────────────────────── */
+
+.hero-benefits {
+  margin-top: 48px; padding-top: 24px;
+  border-top: 1px solid rgba(255,255,255,0.055);
+  display: grid; grid-template-columns: 1fr; gap: 20px;
+}
+@media (min-width: 640px)  { .hero-benefits { grid-template-columns: repeat(2, 1fr); gap: 24px 36px; } }
+@media (min-width: 1024px) { .hero-benefits { margin-top: 44px; grid-template-columns: repeat(4, 1fr); gap: 32px; } }
+.hero-benefit { display: flex; align-items: center; gap: 12px; }
+@media (min-width: 1024px) {
+  .hero-benefit + .hero-benefit { padding-left: 32px; border-left: 1px solid rgba(255,255,255,0.05); }
+}
