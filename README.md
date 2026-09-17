@@ -98,3 +98,17 @@ SQL migrations live in `supabase/migrations/`, applied in filename order. Recent
 - `004_*` — 2FA columns on `user_settings`
 - `005_vault_and_passkeys.sql` — `vault_items`, `webauthn_credentials`, `webauthn_challenges`
 - `006_email_verification.sql` — `email_verified` on `users`
+- `019`–`021` — Basic plan + promo-code trial grants; see the note below
+
+**Gotcha — `CREATE OR REPLACE FUNCTION` and argument count.** Adding a new
+parameter to an existing Postgres function does **not** replace it — argument
+count is part of a function's identity, so it silently creates a *second*
+overload alongside the old one. A caller that omits the new argument then
+gets "function name is not unique" and the RPC fails. If you need to add a
+parameter to an existing RPC, either give it a default so all existing call
+sites keep resolving to the same signature *and* explicitly
+`drop function if exists <old_signature>` first, or add a migration that
+drops the stale overload once the new one is confirmed working (see `020`).
+Also: `REVOKE ... FROM public/anon/authenticated` does not imply
+`service_role` has `EXECUTE` — grant it explicitly on any new/changed RPC the
+server calls (see `021`).
